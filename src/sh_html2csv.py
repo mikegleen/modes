@@ -69,7 +69,7 @@ def handle_one_row(row):
 
     if not csvrow:
         return False, csvrow
-    locrow = [csvrow[0].upper().replace(' ', '')]
+    locrow = [csvrow[1].upper().replace(' ', '')]
     if _args.prefix and not locrow[0].startswith(_args.prefix):
         return False, locrow
         # print('***', goodrow, locrow)
