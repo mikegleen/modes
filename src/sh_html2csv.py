@@ -16,7 +16,7 @@ import sys
 
 from bs4 import BeautifulSoup as Bs
 
-HEADING = ('SH,Serial,Title,Published,Date,Medium,Image size,Mount size,'
+HEADING = ('SH,Serial,Title,Published,Date,Medium,Image_size,Mount_size,'
            'Location').split(',')
 
 HTML_ENCODING = 'macintosh'
@@ -69,7 +69,11 @@ def handle_one_row(row):
 
     if not csvrow:
         return False, csvrow
-    locrow = [csvrow[1].upper().replace(' ', '')]
+    # print(csvrow)
+    try:
+        locrow = [csvrow[1].upper().replace(' ', '')]
+    except IndexError:
+        return False, csvrow
     if _args.prefix and not locrow[0].startswith(_args.prefix):
         return False, locrow
         # print('***', goodrow, locrow)
@@ -81,7 +85,7 @@ def handle_one_row(row):
 
 def opencsvwriter(filename):
     # csvfile = open(filename, 'w', newline='')
-    csvfile = codecs. open(filename, 'w', 'utf-8-sig')  # insert BOM at front
+    csvfile = codecs.open(filename, 'w', 'utf-8-sig')  # insert BOM at front
     outcsv = csv.writer(csvfile, delimiter=',')
     # outcsv.writerow(HEADING)
     trace(1, 'Output: {}', filename)
