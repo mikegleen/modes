@@ -4,9 +4,15 @@ Set the normal location and current location to new locations from a CSV file.
 """
 import argparse
 import csv
+from datetime import date
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
+
+
+def trace(level, template, *args):
+    if _args.verbose >= level:
+        print(template.format(*args))
 
 
 def loadlocs():
@@ -18,20 +24,37 @@ def loadlocs():
     return location
 
 
+def one_objectlocation(ol, idnum):
+    location = ol.find('./Location')
+    if location.text is not None:
+        text = location.text.strip().upper()
+    else:
+        text = None
+    newtext = newlocs[idnum]
+    if text != newtext:
+        trace(2, 'Updated: {} -> {}', text, newtext)
+        location.text = newtext
+        datebegin = ol.find('./Date/DateBegin')
+        datebegin.text = today
+    else:
+        trace(2, 'Unchanged: {}', text)
+
+
 def main():
-    locs = loadlocs()
     outfile.write(b'<?xml version="1.0"?><Interchange>\n')
     for event, elem in ET.iterparse(infile):
         if elem.tag != 'Object':
             continue
         idelem = elem.find('./ObjectIdentity/Number')
-        idnum = idelem.text if idelem else None
+        idnum = idelem.text if not idelem is None else None
         if _args.verbose > 1:
             print(idnum)
-        if idnum in locs:
-            objlocs = elem.findall('./ObjectLocation/Location')
+        if idnum in newlocs:
+            objlocs = elem.findall('./ObjectLocation')
             for ol in objlocs:
-                ol.text = locs[idnum]
+                one_objectlocation(ol, idnum)
+        else:
+            trace(1, 'Not in CSV file: {}', idnum)
         outfile.write(ET.tostring(elem, encoding='us-ascii'))
     outfile.write(b'</Interchange>')
 
@@ -60,4 +83,6 @@ if __name__ == '__main__':
     _args = getargs()
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
+    newlocs = loadlocs()
+    today = date.today().isoformat()
     main()
