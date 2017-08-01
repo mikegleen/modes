@@ -7,7 +7,7 @@ element.
 
 import sys
 # noinspection PyPep8Naming
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
 
 def main():
