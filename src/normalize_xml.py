@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 Remove leading and trailing whitespace from text and convert multiple
-whitespace sequences to single spaces.
+whitespace sequences to single spaces. Insert a line feed after every Object
+element.
 """
 
 import sys
