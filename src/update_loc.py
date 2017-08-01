@@ -16,21 +16,33 @@ def trace(level, template, *args):
 
 
 def loadlocs():
-    location = {}
+    """
+    Read the CSV file containing objectid -> location mappings
+    :return: the dictionary containing the mappings
+    """
+    location_dict = {}
     with open(_args.csvfile, newline='') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
-            location[row[0].strip()] = row[1].strip()
-    return location
+            location_dict[row[0].strip()] = row[1].strip()
+    return location_dict
 
 
 def one_objectlocation(ol, idnum):
+    """
+    If the location in the newlocs dictionary is different from the location
+    in the XML, update the XML and insert today's date.
+
+    :param ol: the ObjectLocation element
+    :param idnum: the ObjectIdentity/Number text
+    :return:
+    """
     location = ol.find('./Location')
     if location.text is not None:
         text = location.text.strip().upper()
     else:
         text = None
-    newtext = newlocs[idnum]
+    newtext = newlocs[idnum]  # we've already checked that it's there
     if text != newtext:
         trace(2, 'Updated: {} -> {}', text, newtext)
         location.text = newtext
@@ -46,9 +58,8 @@ def main():
         if elem.tag != 'Object':
             continue
         idelem = elem.find('./ObjectIdentity/Number')
-        idnum = idelem.text if not idelem is None else None
-        if _args.verbose > 1:
-            print(idnum)
+        idnum = idelem.text if idelem is not None else None
+        trace(2, '{}', idnum)
         if idnum in newlocs:
             objlocs = elem.findall('./ObjectLocation')
             for ol in objlocs:
@@ -63,6 +74,8 @@ def getargs():
     parser = argparse.ArgumentParser(description='''
         Set the normal location and current location to the new location from
         a CSV file containing rows of the format: <object number>,<location>.
+        If the location in the CSV file differs from the location in the XML
+        file, update the Date/DateBegin element to today's date.
         ''')
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
