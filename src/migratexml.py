@@ -18,7 +18,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-PREFIX = 'SH'
+FINEART = 'fine art'
 
 
 def trace(level, template, *args):
@@ -28,13 +28,39 @@ def trace(level, template, *args):
 
 def find2(oldobj, newobj, target):
     oldelt = oldobj.find(target)
+    if oldelt is None:
+        trace(1, 'no find oldobj: {}, target: {}', oldobj.tag, target)
     newelt = newobj.find(target)
+    if newelt is None:
+        trace(1, 'no find newobj: {}, target: {}', newobj.tag, target)
     return oldelt, newelt
 
 
 def updatetext(oldobj, newobj, target):
     oldelt, newelt = find2(oldobj, newobj, target)
     newelt.text = oldelt.text
+
+
+def removeall(root, childtag):
+    for child in root.findall('./' + childtag):
+        root.remove(child)
+
+
+def updatemultiple(oldroot, newroot, childtag):
+    """
+    Remove all instances of childtag from newroot and copy all instances of
+    oldroot's childtag. This only works in the case where childroot has only
+    text and no other sub-elements.
+    :param oldroot: the source element, child of Object
+    :param newroot: the target element, child of Object
+    :param childtag:
+    :return:
+    """
+    removeall(newroot, childtag)
+    for oldchild in oldroot.findall('./' + childtag):
+        newchild = ET.Element(childtag)
+        newchild.text = oldchild.text
+        newroot.append(newchild)
 
 
 def update_object_identity(oldobj, newobj):
@@ -55,15 +81,63 @@ def update_object_location(oldobj, newobj):
 def update_identification(oldobj, newobj):
     oldid, newid = find2(oldobj, newobj, './Identification')
     updatetext(oldid, newid, './Title')
-    oldelt = oldid.find('./ObjectName[@elementtype="simple name"/Keyword')
-    newelt = newid.find('./ObjectName[@elementtype="Type of Object"/Keyword')
+    oldelt = oldid.find('./ObjectName[@elementtype="simple name"]/Keyword')
+    newelt = newid.find('./ObjectName[@elementtype="Type of Object"]/Keyword')
     newelt.text = oldelt.text
     updatetext(oldid, newid, './BriefDescription')
 
 
+def update_production(oldobj, newobj):
+    oldid, newid = find2(oldobj, newobj, './Production')
+    updatetext(oldid, newid, './SummaryText')
+    updatetext(oldid, newid, './Method')
+
+    oldelt, newelt = find2(oldid, newid, './Person')
+    updatetext(oldelt, newelt, './Role')
+    updatetext(oldelt, newelt, './PersonName')
+
+    updatetext(oldid, newid, './Date/DateBegin')
+    updatetext(oldid, newid, './Date/DateEnd')
+
+
+def update_description(oldobj, newobj):
+    old_description, new_description = find2(oldobj, newobj, './Description')
+    updatetext(old_description, new_description, './SummaryText')
+    updatetext(old_description, new_description, './Inscription/SummaryText')
+
+    removeall(new_description, 'Material')
+    for om in old_description.findall('./Material'):
+        nm = ET.Element('Material')
+        nm.append(ET.Element('Part'))
+        updatetext(om, nm, './Part')
+        updatemultiple(om, nm, 'Keyword')
+        new_description.append(nm)
+
+    removeall(new_description, 'Measurement')
+    for om in old_description.findall('./Measurement'):
+        nm = ET.Element('Measurement')
+        nm.append(ET.Element('Part'))
+        nm.append(ET.Element('Dimension'))
+        nm.append(ET.Element('Reading'))
+        updatetext(om, nm, './Part')
+        updatetext(om, nm, './Dimension')
+        updatetext(om, nm, './Reading')
+        new_description.append(nm)
+
+    updatetext(old_description, new_description, './Condition/Note')
+    updatetext(old_description, new_description, './Completeness/Note')
+
+
+def update_conservation(oldobj, newobj):
+    oldid, newid = find2(oldobj, newobj, './Conservation')
+    updatetext(oldid, newid, './SummaryText')
+    updatetext(oldid, newid, './Method')
+
+
 def one_object(oldobj, newobj):
     """
-    Populate the template with the data from the CSV row.
+    Populate the template with the data from the Modes XML file in the old
+    format.
 
     :param oldobj: the Object from the old file
     :param newobj: the empty Object DOM structure
@@ -71,28 +145,10 @@ def one_object(oldobj, newobj):
     """
     update_object_identity(oldobj, newobj)
     update_object_location(oldobj, newobj)
-
-    if not row['Serial']:
-        trace(1, 'Skipping: {}', row)
-
-    elt = newobj.find('./ObjectLocation[@elementtype="current location"]/Location')
-    elt.text = row['Location']
-    elt = newobj.find('./ObjectLocation[@elementtype="normal location"]/Location')
-    elt.text = row['Location']
-
-    elt = newobj.find('./ObjectIdentity/Number')
-    elt.text = PREFIX + row['Serial']
-
-    elt = newobj.find('./Identification/Title')
-    elt.text = row['Title']
-
-    if row['Published']:
-        elt = newobj.find('./References/Reference[@elementtype="First Published In"]')
-        title = elt.find('Title')
-        title.text = row['Published']
-        date = elt.find('./Date')
-        date.text = row['Date']
-    outfile.write(ET.tostring(newobj))
+    update_identification(oldobj, newobj)
+    update_production(oldobj, newobj)
+    update_description(oldobj, newobj)
+    outfile.write(ET.tostring(newobj, encoding='us-ascii'))
 
 
 def main():
@@ -101,6 +157,8 @@ def main():
     object_template = root.find('Object')
     for event, oldobject in ET.iterparse(infile):
         if oldobject.tag != 'Object':
+            continue
+        if oldobject.attrib['elementtype'] != FINEART:
             continue
         newobject = copy.deepcopy(object_template)
         one_object(oldobject, newobject)
@@ -112,9 +170,9 @@ def getargs():
         Create an XML file for loading into Modes.
         ''')
     parser.add_argument('infile', help='''
-        The CSV file containing the data from the Word document''')
+        The XML file saved from Modes''')
     parser.add_argument('templatefile', help='''
-        The XML format template''')
+        The new XML format template''')
     parser.add_argument('outfile', help='''
         The output XML file.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
