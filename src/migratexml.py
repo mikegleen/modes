@@ -22,23 +22,29 @@ FINEART = 'fine art'
 
 
 def trace(level, template, *args):
+    if level <= 1 and not _args.nored:
+        fore, style = Fore.RED, Style.RESET_ALL
+    else:
+        fore, style = '', ''
     if _args.verbose >= level:
-        print(Fore.RED + template.format(*args) + Style.RESET_ALL)
+        print(fore + template.format(*args) + style)
 
 
 def find2(oldobj, newobj, target):
+    global object_number
     oldelt = oldobj.find(target)
     if oldelt is None:
-        trace(1, 'no find oldobj: {}, target: {}', oldobj.tag, target)
+        trace(1, '{}: no find "{}"', object_number, target)
     newelt = newobj.find(target)
     if newelt is None:
-        trace(1, 'no find newobj: {}, target: {}', newobj.tag, target)
+        trace(1, '{}: no find "{}"', object_number, target)
     return oldelt, newelt
 
 
 def updatetext(oldobj, newobj, target):
     oldelt, newelt = find2(oldobj, newobj, target)
-    newelt.text = oldelt.text
+    if oldelt is not None:
+        newelt.text = oldelt.text
 
 
 def removeall(root, childtag):
@@ -63,41 +69,10 @@ def updatemultiple(oldroot, newroot, childtag):
         newroot.append(newchild)
 
 
-def update_object_identity(oldobj, newobj):
-    updatetext(oldobj, newobj, './ObjectIdentity/Number')
-
-
-def update_object_location(oldobj, newobj):
-    oldelt, newelt = find2(oldobj, newobj,
-                           './ObjectLocation[@elementtype="current location"]')
-    updatetext(oldelt, newelt, './Location')
-    updatetext(oldelt, newelt, './Date/DateBegin')
-
-    oldelt, newelt = find2(oldobj, newobj,
-                           './ObjectLocation[@elementtype="normal location"]')
-    updatetext(oldelt, newelt, './Location')
-
-
-def update_identification(oldobj, newobj):
-    oldid, newid = find2(oldobj, newobj, './Identification')
-    updatetext(oldid, newid, './Title')
-    oldelt = oldid.find('./ObjectName[@elementtype="simple name"]/Keyword')
-    newelt = newid.find('./ObjectName[@elementtype="Type of Object"]/Keyword')
-    newelt.text = oldelt.text
-    updatetext(oldid, newid, './BriefDescription')
-
-
-def update_production(oldobj, newobj):
-    oldid, newid = find2(oldobj, newobj, './Production')
+def update_conservation(oldobj, newobj):
+    oldid, newid = find2(oldobj, newobj, './Conservation')
     updatetext(oldid, newid, './SummaryText')
     updatetext(oldid, newid, './Method')
-
-    oldelt, newelt = find2(oldid, newid, './Person')
-    updatetext(oldelt, newelt, './Role')
-    updatetext(oldelt, newelt, './PersonName')
-
-    updatetext(oldid, newid, './Date/DateBegin')
-    updatetext(oldid, newid, './Date/DateEnd')
 
 
 def update_description(oldobj, newobj):
@@ -128,10 +103,42 @@ def update_description(oldobj, newobj):
     updatetext(old_description, new_description, './Completeness/Note')
 
 
-def update_conservation(oldobj, newobj):
-    oldid, newid = find2(oldobj, newobj, './Conservation')
+def update_identification(oldobj, newobj):
+    oldid, newid = find2(oldobj, newobj, './Identification')
+    updatetext(oldid, newid, './Title')
+    oldelt = oldid.find('./ObjectName[@elementtype="simple name"]/Keyword')
+    newelt = newid.find('./ObjectName[@elementtype="Type of Object"]/Keyword')
+    newelt.text = oldelt.text
+    updatetext(oldid, newid, './BriefDescription')
+
+
+def update_object_identity(oldobj, newobj):
+    updatetext(oldobj, newobj, './ObjectIdentity/Number')
+
+
+def update_object_location(oldobj, newobj):
+    oldelt, newelt = find2(oldobj, newobj,
+                           './ObjectLocation[@elementtype="current location"]')
+    if oldelt is not None:
+        updatetext(oldelt, newelt, './Location')
+        updatetext(oldelt, newelt, './Date/DateBegin')
+
+    oldelt, newelt = find2(oldobj, newobj,
+                           './ObjectLocation[@elementtype="normal location"]')
+    updatetext(oldelt, newelt, './Location')
+
+
+def update_production(oldobj, newobj):
+    oldid, newid = find2(oldobj, newobj, './Production')
     updatetext(oldid, newid, './SummaryText')
     updatetext(oldid, newid, './Method')
+
+    oldelt, newelt = find2(oldid, newid, './Person')
+    updatetext(oldelt, newelt, './Role')
+    updatetext(oldelt, newelt, './PersonName')
+
+    updatetext(oldid, newid, './Date/DateBegin')
+    updatetext(oldid, newid, './Date/DateEnd')
 
 
 def one_object(oldobj, newobj):
@@ -143,12 +150,22 @@ def one_object(oldobj, newobj):
     :param newobj: the empty Object DOM structure
     :return: None. The new object is written to the output XML file.
     """
+    global object_number
+    numelt = oldobj.find('./ObjectIdentity/Number')
+    if numelt is not None:
+        object_number = numelt.text
+    else:
+        object_number = 'Missing'
+    trace(2, '**** {}', object_number)
+
     update_object_identity(oldobj, newobj)
     update_object_location(oldobj, newobj)
     update_identification(oldobj, newobj)
     update_production(oldobj, newobj)
     update_description(oldobj, newobj)
     outfile.write(ET.tostring(newobj, encoding='us-ascii'))
+    oldobj.clear()
+    newobj.clear()
 
 
 def main():
@@ -175,6 +192,9 @@ def getargs():
         The new XML format template''')
     parser.add_argument('outfile', help='''
         The output XML file.''')
+    parser.add_argument('-r', '--nored', action='store_true', help='''
+        Suppress the red highlighting of error messages. Useful when sending
+        output to a file.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -185,6 +205,7 @@ def getargs():
 if __name__ == '__main__':
     if sys.version_info.major < 3:
         raise ImportError('requires Python 3')
+    object_number = ''
     _args = getargs()
     infile = open(_args.infile)
     templatefile = open(_args.templatefile)
