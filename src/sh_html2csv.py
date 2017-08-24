@@ -19,9 +19,11 @@ from bs4 import BeautifulSoup as Bs
 HEADING = ('SH,Serial,Title,Published,Date,Medium,Image_size,Mount_size,'
            'Location').split(',')
 
-HTML_ENCODING = 'macintosh'
-VALID_LOCATIONS = ('FRAMED', 'UNKNOWN')
+DEFAULT_HTML_ENCODING = 'utf-8'
+VALID_LOCATIONS = ('FRAMED', 'UNKNOWN', 'QUARANTINE')
 LOCATION_PATTERN = r'[A-Z]+(\d+)?\*?\??$'
+TABLE_LEN = 9
+SPECIAL_PUBLISHED = ('UNPUBLISHED', 'ROUGH SKETCH')
 
 
 def trace(level, template, *args):
@@ -61,8 +63,9 @@ def handle_one_row(row):
         for para in paras:
             # replace whitespace with a single space
             text = ' '.join(para.text.split())
-            detail += text + '\n'
-        if not detail:  # if there was no <p> tag
+            detail += text + ' '
+
+        if not detail:  # if there were no <p> tag(s)
             detail = td.text
         detail = detail.strip()  # remove trailing NL
         csvrow.append(detail)
@@ -70,17 +73,14 @@ def handle_one_row(row):
     if not csvrow:
         return False, csvrow
     # print(csvrow)
-    try:
-        locrow = [csvrow[1].upper().replace(' ', '')]
-    except IndexError:
+    if len(csvrow) < TABLE_LEN:
         return False, csvrow
-    if _args.prefix and not locrow[0].startswith(_args.prefix):
-        return False, locrow
+    if not csvrow[2] or not csvrow[8]:  # if title or location is empty
+        return False, csvrow
+    if _args.prefix and not csvrow[1].startswith(_args.prefix):
+        return False, csvrow
         # print('***', goodrow, locrow)
-    goodrow, location = getloc(csvrow)
-    if goodrow:
-        locrow.append(location)
-    return goodrow, locrow
+    return True, csvrow[1:TABLE_LEN]
 
 
 def opencsvwriter(filename):
@@ -104,7 +104,7 @@ def one_table(table, outcsv):
             outrowcount += 1
             outcsv.writerow(outrow)
         elif not (len(outrow) == 1 and not outrow[0]):  # skip if just ['']
-            trace(1, '-------------- table {}, row {}, len={} {}',
+            trace(1, '----ignored: table {}, row {}, len={} {}',
                   tablecount, rowcount, len(outrow), outrow)
 
 
@@ -112,7 +112,7 @@ def main():
     global tablecount
     outcsv = opencsvwriter(_args.outfile)
     trace(1, '        input: {}', _args.infile)
-    htmlfile = codecs.open(_args.infile, encoding=HTML_ENCODING)
+    htmlfile = codecs.open(_args.infile, encoding=_args.encoding)
     soup = Bs(htmlfile, 'html.parser')  # , 'html5lib')
     tables = soup.find_all('table')
     for table in tables:
@@ -125,7 +125,15 @@ def getargs(argv):
     parser = argparse.ArgumentParser(description='''
         Read the HTML file saved from the MS Word "database" and create an XML
         file for inputting to Modes.
+        
+        When saving the HTML file from MS Word, make sure to set the output
+        character encoding to utf-8. Otherwise, specify the -e parameter.
         ''')
+    parser.add_argument('-e', '--encoding', default=DEFAULT_HTML_ENCODING,
+                        help='''
+        Specify the encoding of the input HTML file.
+        Default = "{}".
+        '''.format(DEFAULT_HTML_ENCODING))
     parser.add_argument('infile', help='''
         The HTML file saved from MS Word''')
     parser.add_argument('outfile', help='''

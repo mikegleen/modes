@@ -31,7 +31,8 @@ def loadlocs():
 def one_objectlocation(ol, idnum):
     """
     If the location in the newlocs dictionary is different from the location
-    in the XML, update the XML and insert today's date.
+    in the XML, update the XML and insert today's date.  Note that we have
+    already tested that idnum is in newlocs.
 
     :param ol: the ObjectLocation element
     :param idnum: the ObjectIdentity/Number text
@@ -50,6 +51,7 @@ def one_objectlocation(ol, idnum):
         datebegin.text = today
     else:
         trace(2, 'Unchanged: {}', text)
+    del newlocs[idnum]
 
 
 def main():
@@ -68,6 +70,8 @@ def main():
             trace(1, 'Not in CSV file: {}', idnum)
         outfile.write(ET.tostring(elem, encoding='us-ascii'))
     outfile.write(b'</Interchange>')
+    for idnum in newlocs:
+        trace(1, 'in CSV but not XML: {}', idnum)
 
 
 def getargs():

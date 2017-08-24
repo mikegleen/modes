@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    Examine an XML file and report which tags contain text.
+    Examine an XML file and report tags containing text, showing their full
+    paths.
 """
 import argparse
 from collections import defaultdict
@@ -9,32 +10,24 @@ import sys
 import xml.etree.ElementTree as ET
 
 
-def one_object(elt):
-    typecount[elt.attrib['elementtype']] +=1
-    for e in elt.iter():
-        if e.tag == 'Description':
-            try:
-                description_type_count[e.attrib['elementtype']] += 1
-            except KeyError:
-                pass
-
-        if e.text is not None:
-            tagcount[e.tag] += 1
+def one_elt(elt, path):
+    path += '/' + elt.tag
+    if elt.text is not None:
+        tagcount[path] += 1
+    if not elt:
+        return
+    for e in elt:
+        one_elt(e, path)
 
 
 def main():
     for event, obj in ET.iterparse(infile):
         if obj.tag != 'Object':
             continue
-        one_object(obj)
+        for elt in obj:
+            one_elt(elt, '.')
     for tag, count in sorted(tagcount.items()):
         print(tag, count)
-    print('\n---elementtypes:')
-    for typ, count in sorted(typecount.items()):
-        print(typ, count)
-    print('\n---description_type_count:')
-    for typ, count in sorted(description_type_count.items()):
-        print(typ, count)
 
 
 def getargs():
@@ -53,9 +46,7 @@ def getargs():
 
 
 if __name__ == '__main__':
-    description_type_count = defaultdict(int)
     tagcount = defaultdict(int)
-    typecount = defaultdict(int)
     if sys.version_info.major < 3:
         raise ImportError('requires Python 3')
     _args = getargs()

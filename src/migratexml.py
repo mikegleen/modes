@@ -13,12 +13,16 @@
 import argparse
 from colorama import Fore, Style
 import copy
-import csv
+import re
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
 FINEART = 'fine art'
+READING_PAT = re.compile(r'(\d+)[ xX]+(\d+)')
+NUMBER_PAT = re.compile(r'JB\d{3}')
+# Numbers lower than this will have their WxH reading flipped to HxW:
+FLIP_LIMIT = 'JB600'
 
 
 def trace(level, template, *args):
@@ -31,7 +35,6 @@ def trace(level, template, *args):
 
 
 def find2(oldobj, newobj, target):
-    global object_number
     oldelt = oldobj.find(target)
     if oldelt is None:
         trace(1, '{}: no find "{}"', object_number, target)
@@ -69,6 +72,27 @@ def updatemultiple(oldroot, newroot, childtag):
         newroot.append(newchild)
 
 
+def flip_reading(nm):
+    """
+    Change the Width x Height measurement to Height x Width.
+    :param nm: The new "Measurement" element
+    :return: None
+    """
+    reading = nm.find('./Reading')
+    if reading is None:
+        return
+    if not reading.text:
+        return
+    m = READING_PAT.match(reading.text)
+    if m:
+        w = m.group(1)
+        h = m.group(2)
+        reading.text = f'{h}x{w}'
+    else:
+        trace(2,'{} cannot match dimension reading: {}', object_number,
+              reading.text)
+
+
 def update_conservation(oldobj, newobj):
     oldid, newid = find2(oldobj, newobj, './Conservation')
     updatetext(oldid, newid, './SummaryText')
@@ -88,17 +112,11 @@ def update_description(oldobj, newobj):
         updatemultiple(om, nm, 'Keyword')
         new_description.append(nm)
 
-    removeall(new_description, 'Measurement')
-    for om in old_description.findall('./Measurement'):
-        nm = ET.Element('Measurement')
-        nm.append(ET.Element('Part'))
-        nm.append(ET.Element('Dimension'))
-        nm.append(ET.Element('Reading'))
-        updatetext(om, nm, './Part')
-        updatetext(om, nm, './Dimension')
-        updatetext(om, nm, './Reading')
-        new_description.append(nm)
-
+    om = old_description.find('./Measurement[1]')
+    nm = new_description.find('./Measurement[1]')
+    updatetext(om, nm, './Reading')
+    if object_number < FLIP_LIMIT:
+        flip_reading(nm)
     updatetext(old_description, new_description, './Condition/Note')
     updatetext(old_description, new_description, './Completeness/Note')
 
@@ -157,15 +175,14 @@ def one_object(oldobj, newobj):
     else:
         object_number = 'Missing'
     trace(2, '**** {}', object_number)
-
+    if not NUMBER_PAT.match(object_number):
+        trace(1, 'Warning, invalid object number: {}', object_number)
     update_object_identity(oldobj, newobj)
     update_object_location(oldobj, newobj)
     update_identification(oldobj, newobj)
     update_production(oldobj, newobj)
     update_description(oldobj, newobj)
     outfile.write(ET.tostring(newobj, encoding='us-ascii'))
-    oldobj.clear()
-    newobj.clear()
 
 
 def main():
@@ -179,6 +196,8 @@ def main():
             continue
         newobject = copy.deepcopy(object_template)
         one_object(oldobject, newobject)
+        oldobject.clear()
+        newobject.clear()
     outfile.write(b'</Interchange>')
 
 

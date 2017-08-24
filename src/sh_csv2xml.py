@@ -27,34 +27,38 @@ def trace(level, template, *args):
 
 
 def one_object(template, row):
+    """
+    Populate the template with the data from the CSV row.
+
+    :param template: the empty Object DOM structure
+    :param row: the CSV row
+    :return: None. The object is written to the output XML file.
+    """
+    if not row['Serial']:
+        trace(1, 'Skipping: {}', row)
+
     elt = template.find('./ObjectLocation[@elementtype="current location"]/Location')
     elt.text = row['Location']
     elt = template.find('./ObjectLocation[@elementtype="normal location"]/Location')
     elt.text = row['Location']
-    elt = template.find('./ObjectIdentity/Number')
-    if row['Published']:
-        if row['Published'] == 'unpublished':
-            refs = template.find('./References[@elementtype="unpublished"]')
-            ref = ET.Element('Reference', text='confirmed unpublished')
-            refs.append(ref)
-        else:
-            ref = template.find('./References[@elementtype="magazine"]/Reference')
-            title = ref.find('./Title')
-            title.text = row['Published']
-            date = ref.find('./Date')
-            date.text = row['Date']
 
-    if row['Serial']:
-        elt.text = PREFIX + row['Serial']
-        elt = template.find('./Identification/Title')
-        elt.text = row['Title']
-        outfile.write(ET.tostring(template))
-    else:
-        trace(1, 'Skipping: {}', row)
+    elt = template.find('./ObjectIdentity/Number')
+    elt.text = PREFIX + row['Serial']
+
+    elt = template.find('./Identification/Title')
+    elt.text = row['Title']
+
+    if row['Published']:
+        elt = template.find('./References/Reference[@elementtype="First Published In"]')
+        title = elt.find('Title')
+        title.text = row['Published']
+        date = elt.find('./Date')
+        date.text = row['Date']
+    outfile.write(ET.tostring(template))
 
 
 def main():
-    outfile.write(b'<?xml version="1.0"?>\n<Interchange>\n')
+    outfile.write(b'<?xml version="1.0" encoding="utf-8"?>\n<Interchange>\n')
     root = ET.parse(templatefile)
     object_template = root.find('Object')
     reader = csv.DictReader(incsvfile)

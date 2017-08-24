@@ -79,6 +79,11 @@ def handle_one_row(row):
     goodrow, location = getloc(csvrow)
     if goodrow:
         locrow.append(location)
+        try:
+            locrow.append(csvrow[2])  # Medium
+        except IndexError:
+            print(csvrow)
+            sys.exit()
     return goodrow, locrow
 
 
