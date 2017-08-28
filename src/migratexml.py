@@ -19,7 +19,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 FINEART = 'fine art'
-READING_PAT = re.compile(r'(\d+)[ xX]+(\d+)')
+READING_PAT = re.compile(r'(\d+)[ xX]+(\d+)')  # W x H -> H x W
 NUMBER_PAT = re.compile(r'JB\d{3}')
 # Numbers lower than this will have their WxH reading flipped to HxW:
 FLIP_LIMIT = 'JB600'
