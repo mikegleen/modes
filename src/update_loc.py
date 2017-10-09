@@ -3,6 +3,7 @@
 Set the normal location and current location to new locations from a CSV file.
 """
 import argparse
+import codecs
 import csv
 from datetime import date
 import sys
@@ -21,8 +22,8 @@ def loadlocs():
     :return: the dictionary containing the mappings
     """
     location_dict = {}
-    with open(_args.csvfile, newline='') as csvfile:
-        reader = csv.reader(csvfile)
+    with codecs.open(_args.mapfile, 'r', 'utf-8-sig') as mapfile:
+        reader = csv.reader(mapfile)
         for row in reader:
             location_dict[row[0].strip()] = row[1].strip()
     return location_dict
@@ -31,8 +32,9 @@ def loadlocs():
 def one_objectlocation(ol, idnum):
     """
     If the location in the newlocs dictionary is different from the location
-    in the XML, update the XML and insert today's date.  Note that we have
-    already tested that idnum is in newlocs.
+    in the XML, update the XML, insert the date specified on the command line,
+    and delete the idnum from the global "newlocs" dictionary.
+    Note that we have already tested that idnum is in newlocs.
 
     :param ol: the ObjectLocation element
     :param idnum: the ObjectIdentity/Number text
@@ -45,13 +47,13 @@ def one_objectlocation(ol, idnum):
         text = None
     newtext = newlocs[idnum]  # we've already checked that it's there
     if text != newtext:
-        trace(2, 'Updated: {} -> {}', text, newtext)
+        trace(2, 'Updated {}: {} -> {}', idnum, text, newtext)
         location.text = newtext
         datebegin = ol.find('./Date/DateBegin')
-        datebegin.text = today
+        if datebegin is not None:  # normal location doesn't have a date
+            datebegin.text = _args.date
     else:
         trace(2, 'Unchanged: {}', text)
-    del newlocs[idnum]
 
 
 def main():
@@ -61,23 +63,28 @@ def main():
             continue
         idelem = elem.find('./ObjectIdentity/Number')
         idnum = idelem.text if idelem is not None else None
-        trace(2, '{}', idnum)
+        trace(2, 'idnum: {}', idnum)
         if idnum in newlocs:
             objlocs = elem.findall('./ObjectLocation')
             for ol in objlocs:
-                one_objectlocation(ol, idnum)
+                loc = ol.get('elementtype')
+                if _args.normal and loc == 'normal location' or (
+                                _args.current and loc == 'current location'
+                ):
+                    one_objectlocation(ol, idnum)
+            del newlocs[idnum]
         else:
             trace(1, 'Not in CSV file: {}', idnum)
         outfile.write(ET.tostring(elem, encoding='us-ascii'))
     outfile.write(b'</Interchange>')
     for idnum in newlocs:
-        trace(1, 'in CSV but not XML: {}', idnum)
+        trace(1, 'In CSV but not XML: {}', idnum)
 
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-        Set the normal location and current location to the new location from
-        a CSV file containing rows of the format: <object number>,<location>.
+        Set the normal location and/or current location to the new location
+        from a CSV file with rows of the format: <object number>,<location>.
         If the location in the CSV file differs from the location in the XML
         file, update the Date/DateBegin element to today's date.
         ''')
@@ -85,21 +92,38 @@ def getargs():
         The XML file saved from Modes.''')
     parser.add_argument('outfile', help='''
         The output XML file.''')
+    parser.add_argument('-b', '--both', action='store_true', help='''
+        Update both the current location and the normal location.
+        Select one of "b", "n", and "c".''')
+    parser.add_argument('-c', '--current', action='store_true', help='''
+        Update the current location.
+        Select one of "b", "n", and "c".''')
+    parser.add_argument('-d', '--date', default=today, help='''
+        Use this string as the date to store in the new ObjectLocation date.
+        The default is today's date in ISO format.
+        ''')
+    parser.add_argument('-n', '--normal', action='store_true', help='''
+        Update the normal location.
+        Select one of "b", "n", and "c".''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
-    parser.add_argument('-c', '--csvfile', required=True, help='''
+    parser.add_argument('-m', '--mapfile', required=True, help='''
         The CSV file mapping the object number to its location''')
     args = parser.parse_args()
+    if int(args.both) + int(args.current) + int(args.normal) != 1:
+        raise ValueError('Select one of "b", "n", and "c".')
+    args.current |= args.both
+    args.normal |= args.both
     return args
 
 
 if __name__ == '__main__':
     if sys.version_info.major < 3:
         raise ImportError('requires Python 3')
+    today = date.today().isoformat()
     _args = getargs()
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
     newlocs = loadlocs()
-    today = date.today().isoformat()
     main()
