@@ -3,6 +3,11 @@
     Transpose the "fine art" template format XML to "Original Artwork" as
     defined by the hrm006.xml template.
 
+    Additional editing:
+    1. In 'Production/Method' and 'Description/Material/Part/Keyword' change
+       'line' to 'pen and ink'.
+    2. For objects with ID below JB600, change WxH to HxW
+
     Input:
         1.  The XML file created by Modes support using the "fine art" template
         2.  The template file for creating the DOM object that will be
@@ -15,6 +20,7 @@ from colorama import Fore, Style
 import copy
 import re
 import sys
+import traceback
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
@@ -26,25 +32,30 @@ FLIP_LIMIT = 'JB600'
 
 
 def trace(level, template, *args):
-    if level <= 1 and not _args.nored:
-        fore, style = Fore.RED, Style.RESET_ALL
-    else:
-        fore, style = '', ''
     if _args.verbose >= level:
+        if level <= 1 and not _args.nored:
+            fore, style = Fore.RED, Style.RESET_ALL
+        else:
+            fore, style = '', ''
         print(fore + template.format(*args) + style)
+        if _args.walkback:
+            try:
+                raise IndexError
+            except IndexError:
+                traceback.print_stack()
 
 
 def find2(oldobj, newobj, target):
     oldelt = oldobj.find(target)
     if oldelt is None:
-        trace(1, '{}: no find "{}"', object_number, target)
+        trace(1, '{}: find2 oldobj no find "{}"', object_number, target)
     newelt = newobj.find(target)
     if newelt is None:
-        trace(1, '{}: no find "{}"', object_number, target)
+        trace(1, '{}: find2 newobj no find "{}"', object_number, target)
     return oldelt, newelt
 
 
-def updatetext(oldobj, newobj, target):
+def copytext(oldobj, newobj, target):
     oldelt, newelt = find2(oldobj, newobj, target)
     if oldelt is not None:
         newelt.text = oldelt.text
@@ -55,7 +66,7 @@ def removeall(root, childtag):
         root.remove(child)
 
 
-def updatemultiple(oldroot, newroot, childtag):
+def copymultiple(oldroot, newroot, childtag):
     """
     Remove all instances of childtag from newroot and copy all instances of
     oldroot's childtag. This only works in the case where childroot has only
@@ -95,68 +106,74 @@ def flip_reading(nm):
 
 def update_conservation(oldobj, newobj):
     oldid, newid = find2(oldobj, newobj, './Conservation')
-    updatetext(oldid, newid, './SummaryText')
-    updatetext(oldid, newid, './Method')
+    copytext(oldid, newid, './SummaryText')
+    copytext(oldid, newid, './Method')
 
 
 def update_description(oldobj, newobj):
     old_description, new_description = find2(oldobj, newobj, './Description')
-    updatetext(old_description, new_description, './SummaryText')
-    updatetext(old_description, new_description, './Inscription/SummaryText')
+    copytext(old_description, new_description, './SummaryText')
+    copytext(old_description, new_description, './Inscription/SummaryText')
 
     removeall(new_description, 'Material')
     for om in old_description.findall('./Material'):
         nm = ET.Element('Material')
         nm.append(ET.Element('Part'))
-        updatetext(om, nm, './Part')
-        updatemultiple(om, nm, 'Keyword')
+        copytext(om, nm, './Part')
+        copymultiple(om, nm, 'Keyword')
+        for nk in nm.findall('./Keyword'):
+            if nk.text and nk.text.lower() == 'line':
+                nk.text = 'pen and ink'
         new_description.append(nm)
 
     om = old_description.find('./Measurement[1]')
     nm = new_description.find('./Measurement[1]')
-    updatetext(om, nm, './Reading')
+    copytext(om, nm, './Reading')
     if object_number < FLIP_LIMIT:
         flip_reading(nm)
-    updatetext(old_description, new_description, './Condition/Note')
-    updatetext(old_description, new_description, './Completeness/Note')
+    copytext(old_description, new_description, './Condition/Note')
+    copytext(old_description, new_description, './Completeness/Note')
 
 
 def update_identification(oldobj, newobj):
     oldid, newid = find2(oldobj, newobj, './Identification')
-    updatetext(oldid, newid, './Title')
+    copytext(oldid, newid, './Title')
     oldelt = oldid.find('./ObjectName[@elementtype="simple name"]/Keyword')
     newelt = newid.find('./ObjectName[@elementtype="Type of Object"]/Keyword')
     newelt.text = oldelt.text
-    updatetext(oldid, newid, './BriefDescription')
+    copytext(oldid, newid, './BriefDescription')
 
 
 def update_object_identity(oldobj, newobj):
-    updatetext(oldobj, newobj, './ObjectIdentity/Number')
+    copytext(oldobj, newobj, './ObjectIdentity/Number')
 
 
 def update_object_location(oldobj, newobj):
     oldelt, newelt = find2(oldobj, newobj,
                            './ObjectLocation[@elementtype="current location"]')
     if oldelt is not None:
-        updatetext(oldelt, newelt, './Location')
-        updatetext(oldelt, newelt, './Date/DateBegin')
+        copytext(oldelt, newelt, './Location')
+        copytext(oldelt, newelt, './Date/DateBegin')
 
     oldelt, newelt = find2(oldobj, newobj,
                            './ObjectLocation[@elementtype="normal location"]')
-    updatetext(oldelt, newelt, './Location')
+    copytext(oldelt, newelt, './Location')
 
 
 def update_production(oldobj, newobj):
-    oldid, newid = find2(oldobj, newobj, './Production')
-    updatetext(oldid, newid, './SummaryText')
-    updatetext(oldid, newid, './Method')
+    oldprod, newprod = find2(oldobj, newobj, './Production')
+    copytext(oldprod, newprod, './SummaryText')
+    copytext(oldprod, newprod, './Method')
+    method = newprod.find('./Method')
+    if method.text and method.text.lower() == 'line':
+        method.text = 'pen and ink'
 
-    oldelt, newelt = find2(oldid, newid, './Person')
-    updatetext(oldelt, newelt, './Role')
-    updatetext(oldelt, newelt, './PersonName')
+    oldelt, newelt = find2(oldprod, newprod, './Person')
+    copytext(oldelt, newelt, './Role')
+    copytext(oldelt, newelt, './PersonName')
 
-    updatetext(oldid, newid, './Date/DateBegin')
-    updatetext(oldid, newid, './Date/DateEnd')
+    copytext(oldprod, newprod, './Date/DateBegin')
+    copytext(oldprod, newprod, './Date/DateEnd')
 
 
 def one_object(oldobj, newobj):
@@ -216,6 +233,9 @@ def getargs():
         output to a file.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
+        ''')
+    parser.add_argument('-w', '--walkback', action='store_true', help='''
+        If set, print a stack walkback when a trace is done.
         ''')
     args = parser.parse_args()
     return args
