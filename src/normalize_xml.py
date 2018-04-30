@@ -24,6 +24,7 @@ def main():
         outfile.write(b'\n')
     outfile.write(b'</Interchange>')
 
+
 if __name__ == '__main__':
     if sys.version_info.major < 3:
         raise ImportError('requires Python 3')
