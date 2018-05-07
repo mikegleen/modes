@@ -16,13 +16,15 @@ import sys
 
 from bs4 import BeautifulSoup as Bs
 
-HEADING = ('SH,Serial,Title,Published,Date,Medium,Image_size,Mount_size,'
-           'Location').split(',')
+HEADING = 'Serial,Title,Author,Publisher,Date,Note,Location'.split(',')
 
 DEFAULT_HTML_ENCODING = 'utf-8'
 VALID_LOCATIONS = ('FRAMED', 'UNKNOWN', 'QUARANTINE')
 LOCATION_PATTERN = r'[A-Z]+(\d+)?\*?\??$'
-TABLE_LEN = 9
+SERIAL_COLUMN = 0
+TITLE_COLUMN = 1
+LOCATION_COLUMN = 6
+TABLE_LEN = len(HEADING)
 SPECIAL_PUBLISHED = ('UNPUBLISHED', 'ROUGH SKETCH')
 
 
@@ -71,23 +73,24 @@ def handle_one_row(row):
         csvrow.append(detail)
 
     if not csvrow:
-        return False, csvrow
+        return 1, csvrow
     # print(csvrow)
     if len(csvrow) < TABLE_LEN:
-        return False, csvrow
-    if not csvrow[2] or not csvrow[8]:  # if title or location is empty
-        return False, csvrow
-    if _args.prefix and not csvrow[1].startswith(_args.prefix):
-        return False, csvrow
-        # print('***', goodrow, locrow)
-    return True, csvrow[1:TABLE_LEN]
+        return 2, csvrow
+    if not csvrow[TITLE_COLUMN] or not csvrow[LOCATION_COLUMN]:  # if  empty
+        return 3, csvrow
+    if _args.prefix and not csvrow[SERIAL_COLUMN].startswith(_args.prefix):
+        return 4, csvrow
+    csvrow[SERIAL_COLUMN] = ''.join(csvrow[SERIAL_COLUMN].split())
+    return 0, csvrow[SERIAL_COLUMN:TABLE_LEN]
 
 
 def opencsvwriter(filename):
     # csvfile = open(filename, 'w', newline='')
     csvfile = codecs.open(filename, 'w', 'utf-8-sig')  # insert BOM at front
     outcsv = csv.writer(csvfile, delimiter=',')
-    # outcsv.writerow(HEADING)
+    if _args.header:
+        outcsv.writerow(HEADING)
     trace(1, 'Output: {}', filename)
     return outcsv
 
@@ -98,14 +101,14 @@ def one_table(table, outcsv):
     trace(1, 'table {}, rows: {}', tablecount, len(rows))
     for row in rows:
         rowcount += 1
-        goodrow, outrow = handle_one_row(row)
+        error, outrow = handle_one_row(row)
         # ignore empty rows and title rows
-        if goodrow:
+        if not error:
             outrowcount += 1
             outcsv.writerow(outrow)
-        elif not (len(outrow) == 1 and not outrow[0]):  # skip if just ['']
-            trace(1, '----ignored: table {}, row {}, len={} {}',
-                  tablecount, rowcount, len(outrow), outrow)
+        else: # elif not (len(outrow) == 1 and not outrow[0]):  # skip if just ['']
+            trace(1, '----error {}: table {}, row {}, len={} {}',
+                  error, tablecount, rowcount, len(outrow), outrow)
 
 
 def main():
@@ -121,7 +124,7 @@ def main():
     htmlfile.close()
 
 
-def getargs(argv):
+def getargs():
     parser = argparse.ArgumentParser(description='''
         Read the HTML file saved from the MS Word "database" and create an XML
         file for inputting to Modes.
@@ -137,7 +140,9 @@ def getargs(argv):
     parser.add_argument('infile', help='''
         The HTML file saved from MS Word''')
     parser.add_argument('outfile', help='''
-        The output XML file''')
+        The output CSV file''')
+    parser.add_argument('--header', action='store_true', help='''
+        Write the hard-coded header to the output CSV file before any data.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -151,7 +156,7 @@ def getargs(argv):
 
 
 if __name__ == '__main__':
-    _args = getargs(sys.argv)
+    _args = getargs()
     rowcount = 0
     outrowcount = 0
     tablecount = 0
