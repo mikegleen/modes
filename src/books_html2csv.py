@@ -16,13 +16,14 @@ import sys
 
 from bs4 import BeautifulSoup as Bs
 
-HEADING = 'Serial,Title,Author,Publisher,Date,Note,Location'.split(',')
+HEADING = 'Serial,Title,Author,Publisher,Date,Notes,Location'.split(',')
 
 DEFAULT_HTML_ENCODING = 'utf-8'
 VALID_LOCATIONS = ('FRAMED', 'UNKNOWN', 'QUARANTINE')
 LOCATION_PATTERN = r'[A-Z]+(\d+)?\*?\??$'
 SERIAL_COLUMN = 0
 TITLE_COLUMN = 1
+PUBLISHER_COLUMN = 3
 LOCATION_COLUMN = 6
 TABLE_LEN = len(HEADING)
 SPECIAL_PUBLISHED = ('UNPUBLISHED', 'ROUGH SKETCH')
@@ -31,8 +32,6 @@ SPECIAL_PUBLISHED = ('UNPUBLISHED', 'ROUGH SKETCH')
 def trace(level, template, *args):
     if _args.verbose >= level:
         print(template.format(*args))
-
-# print(len(rows), rows[2])
 
 
 def getloc(row):
@@ -82,11 +81,11 @@ def handle_one_row(row):
     if _args.prefix and not csvrow[SERIAL_COLUMN].startswith(_args.prefix):
         return 4, csvrow
     csvrow[SERIAL_COLUMN] = ''.join(csvrow[SERIAL_COLUMN].split())
+    csvrow[PUBLISHER_COLUMN].strip('º')  # remove trailing garbage
     return 0, csvrow[SERIAL_COLUMN:TABLE_LEN]
 
 
 def opencsvwriter(filename):
-    # csvfile = open(filename, 'w', newline='')
     csvfile = codecs.open(filename, 'w', 'utf-8-sig')  # insert BOM at front
     outcsv = csv.writer(csvfile, delimiter=',')
     if _args.header:
