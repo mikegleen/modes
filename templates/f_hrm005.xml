@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<Interchange>
+    <Object elementtype="Original Artwork">
+        <ObjectIdentity>
+            <Number/>
+        </ObjectIdentity>
+        <NumberOfItems/>
+        <Identification>
+            <ObjectName elementtype="Type of Object">
+                <Keyword/>
+            </ObjectName>
+            <Title/>
+        </Identification>
+        <Production>
+            <SummaryText/>
+            <Method/>
+            <Person>
+                <Role>Artist</Role>
+                <PersonName>Robinson, William Heath</PersonName>
+                <Note/>
+            </Person>
+            <Date>
+                <DateBegin/>
+                <DateEnd/>
+            </Date>
+        </Production>
+        <Description>
+            <SummaryText/>
+            <Inscription>
+                <SummaryText/>
+            </Inscription>
+            <Material>
+                <Part>medium</Part>
+                <Keyword/>
+                <Keyword/>
+            </Material>
+            <Material>
+                <Part>support</Part>
+                <Keyword/>
+            </Material>
+            <Measurement>
+                <Part>Image Size</Part>
+                <Dimension>height x width</Dimension>
+                <Reading/>
+            </Measurement>
+            <Measurement>
+                <Part>Mount Size</Part>
+                <Dimension>height x width</Dimension>
+                <Reading/>
+            </Measurement>
+            <Measurement>
+                <Part>Frame Size</Part>
+                <Dimension>height x width</Dimension>
+                <Reading/>
+            </Measurement>
+            <Condition>
+                <Note/>
+            </Condition>
+            <Completeness>
+                <Note/>
+            </Completeness>
+        </Description>
+        <ObjectLocation elementtype="normal location">
+            <Location/>
+        </ObjectLocation>
+        <ObjectLocation elementtype="current location">
+            <Location/>
+            <Date>
+                <DateBegin/>
+            </Date>
+            <Reason/>
+        </ObjectLocation>
+        <Conservation>
+            <Type/>
+            <Person/>
+            <Date/>
+        </Conservation>
+        <Production elementtype="First Published In">
+            <Date elementtype="publication date"/>
+            <Organisation>
+                <Role>publisher</Role>
+                <OrganisationName/>
+            </Organisation>
+        </Production>
+        <Production elementtype="Reproduced In">
+            <Date elementtype="publication date"/>
+            <Organisation>
+                <Role>publisher</Role>
+                <OrganisationName/>
+            </Organisation>
+        </Production>
+        <Exhibition>
+            <Place/>
+            <Date>
+                <DateBegin/>
+                <DateEnd/>
+            </Date>
+        </Exhibition>
+        <Reproduction elementtype="Digital Image">
+            <Filename/>
+            <SummaryText/>
+        </Reproduction>
+        <Acquisition elementtype="Acquisition Method">
+            <Method/>
+            <Person elementtype="Acquired from"/>
+            <Date/>
+            <Funding elementtype="Sponsorship"/>
+            <SummaryText elementtype="Acquisition text to be displayed "/>
+            <SummaryText elementtype="Conservation text to be displayed "/>
+        </Acquisition>
+        <References>
+            <Reference elementtype="AE Johnson Number"/>
+        </References>
+        <RelatedObject elementtype="Mounted With">
+            <ObjectIdentity>
+                <Number/>
+            </ObjectIdentity>
+            <Note/>
+        </RelatedObject>
+    </Object>
+</Interchange>

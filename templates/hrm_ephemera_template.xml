@@ -1,0 +1,147 @@
+<templates application="Object">
+    <template filename="SYSTEM" name="hrm ephemera template">
+        <Object elementtype="ephemera">
+            <ObjectIdentity>
+                <Number/>
+                <ItemMarked/>
+            </ObjectIdentity>
+            <NumberOfItems/>
+            <Identification>
+                <Title/>
+                <ObjectName elementtype="simple name">
+                    <Keyword>ephemera</Keyword>
+                </ObjectName>
+                <ObjectName elementtype="other name">
+                    <Keyword/>
+                </ObjectName>
+                <Classification>
+                    <Keyword/>
+                    <System/>
+                </Classification>
+                <BriefDescription/>
+            </Identification>
+            <ObjectLocation elementtype="current location">
+                <Location/>
+                <Date>
+                    <DateBegin/>
+                    <DateEnd/>
+                </Date>
+            </ObjectLocation>
+            <ObjectLocation elementtype="normal location">
+                <Location/>
+            </ObjectLocation>
+            <Production>
+                <Person>
+                    <Role>author</Role>
+                    <PersonName/>
+                </Person>
+                <Organisation>
+                    <Role>publisher</Role>
+                    <OrganisationName/>
+                </Organisation>
+                <Organisation>
+                    <Role>printer</Role>
+                    <OrganisationName/>
+                </Organisation>
+                <Date elementtype="publication date"/>
+                <Note elementtype="imprint/edition"/>
+                <Place>
+                    <PlaceName/>
+                    <Country/>
+                </Place>
+                <ReferenceNumber elementtype="ISBN"/>
+            </Production>
+            <Content>
+                <SummaryText/>
+                <Classification>
+                    <Keyword/>
+                    <System/>
+                </Classification>
+                <Person>
+                    <Role/>
+                    <PersonName/>
+                </Person>
+                <Organisation>
+                    <Role/>
+                    <OrganisationName/>
+                </Organisation>
+                <Group>
+                    <Role/>
+                    <GroupName/>
+                </Group>
+                <Place>
+                    <PlaceName/>
+                    <Country/>
+                </Place>
+                <Event>
+                    <EventName/>
+                    <EventType/>
+                </Event>
+                <Item>
+                    <ObjectName>
+                        <Keyword/>
+                    </ObjectName>
+                </Item>
+                <Date>
+                    <DateBegin/>
+                    <DateEnd/>
+                </Date>
+                <Period/>
+            </Content>
+            <Description>
+                <SummaryText/>
+                <Measurement>
+                    <Part/>
+                    <Dimension>height</Dimension>
+                    <Reading/>
+                </Measurement>
+                <Measurement>
+                    <Part/>
+                    <Dimension>width</Dimension>
+                    <Reading/>
+                </Measurement>
+                <Aspect>number of pages<Keyword/></Aspect>
+                <Inscription>
+                    <Method/>
+                    <Position/>
+                    <Transcription/>
+                </Inscription>
+                <Condition>
+                    <Note/>
+                </Condition>
+                <Completeness>
+                    <Note/>
+                </Completeness>
+            </Description>
+            <Acquisition>
+                <Method/>
+                <Person>
+                    <Role>acquired from</Role>
+                    <PersonName/>
+                    <Address/>
+                    <Phone/>
+                </Person>
+                <Date/>
+                <Price/>
+                <Conditions/>
+            </Acquisition>
+            <Entry elementtype="link">
+                <EntryNumber/>
+            </Entry>
+            <References elementtype="multimedia">
+                <Filename/>
+                <SummaryText/>
+            </References>
+            <Reproduction>
+                <Filename/>
+                <SummaryText/>
+            </Reproduction>
+            <RecordType>object record</RecordType>
+            <Recorder>
+                <PersonName/>
+                <Date/>
+            </Recorder>
+            <Notes/>
+        </Object>
+    </template>
+</templates>
