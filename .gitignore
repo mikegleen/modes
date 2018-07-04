@@ -100,3 +100,9 @@ ENV/
 tmp/
 src/.idea/
 *.ipynb
+.ssh/
+data/
+out/
+prod_backup/
+results/
+stocktake/
