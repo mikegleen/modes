@@ -127,6 +127,9 @@ def one_artwork_object(template, row):
     elt = template.find('./Description/Material[Part="medium"]/Keyword')
     elt.text = row['Medium']
 
+    elt = template.find('./Production/Medium')
+    elt.text = row['Medium']
+
     elt = template.find('./Description/Measurement[Part="Image"]/Reading')
     elt.text = row['Size']
 
