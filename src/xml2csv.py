@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 """
+    Extract fields from an XML file, creating a CSV file with the specified
+    fields.
 
+    The first column is hard-coded as './ObjectIdentity/Number'. Subsequent
+    column_paths are defined in a config file containing "column" statements
+    each with one parameter, the XPATH of the column to extract.
 """
 import argparse
 import codecs
@@ -8,6 +13,8 @@ import csv
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
+
+from cfg.cfgutil import read_cfg
 
 
 def trace(level, template, *args):
@@ -25,24 +32,10 @@ def opencsvwriter(filename):
     return outcsv
 
 
-def read_dsl(dslf):
-    cols = []
-    for line in dslf:
-        line = line.strip()
-        if not line or line[0] == '#':
-            continue
-        row = line.split(None, 1)
-        if len(row) > 1:
-            row[1] = row[1].strip('\'"')  # remove leading & trailing quotes
-        if row[0].lower() == 'column':
-            cols.append(row[1])
-    return cols
-
-
 def main(inf, outf, dslf):
     outcsv = opencsvwriter(outf)
-    cols = read_dsl(dslf)
-    for event, elem in ET.iterparse(infile):
+    cols = read_cfg(dslf)
+    for event, elem in ET.iterparse(inf):
         if elem.tag != 'Object':
             continue
         data = []
@@ -57,10 +50,10 @@ def main(inf, outf, dslf):
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-        Set the normal location and/or current location to the new location
-        from a CSV file with rows of the format: <object number>,<location>.
-        If the location in the CSV file differs from the location in the XML
-        file, update the Date/DateBegin element to today's date.
+    Extract fields from an XML file, creating a CSV file with the specified
+    fields. The first column is hard-coded as './ObjectIdentity/Number'.
+    Subsequent column_paths are defined in a DSL file containing "column" statements
+    each with one parameter, the XPATH of the column to extract.
         ''')
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
@@ -69,9 +62,9 @@ def getargs():
     parser.add_argument('-b', '--bom', action='store_true', help='''
         Insert a BOM at the front of the output CSV file.''')
     parser.add_argument('-f', '--dslfile', required=True, help='''
-        The DSL describing the columns to extract''')
+        The DSL describing the column_paths to extract''')
     parser.add_argument('-s', '--short', action='store_true', help='''
-        Only process one object.''')
+        Only process one object. For debugging.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')

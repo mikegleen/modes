@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    Display any non-empty ./Description/Note elements.
+    Replace Image Size with Image, Mount Size with Mount and Frame Size with
+    Frame.
 """
 import argparse
 import sys
@@ -15,13 +16,12 @@ def trace(level, template, *args):
 
 def one_elt(elt):
     des = elt.find('./Description')
-    notes = des.findall('./Note')
-    for note in notes:
-        # if note is not None:
-        #     if note.text is not None and len(note.text.strip()):
-        #         print(object_number, note.text)
-        des.remove(note)
-    ET.SubElement(des, "Note")
+    ET.SubElement(des, 'Note')
+    measlist = des.findall('Measurement')
+    for meas in measlist:
+        part = meas.find('Part')
+        newpart = part.text.split()[0]
+        part.text = newpart
 
 
 def one_object(oldobj):
@@ -43,19 +43,20 @@ def one_object(oldobj):
 
 
 def main():
-    outfile.write(b'<?xml version="1.0" encoding="ascii"?>\n<Interchange>\n')
+    outfile.write(b'<?xml version="1.0" encoding="utf-8"?>\n<Interchange>\n')
     for event, oldobject in ET.iterparse(infile):
         if oldobject.tag != 'Object':
             continue
         one_object(oldobject)
         oldobject.clear()
+        if _args.short:
+            break
     outfile.write(b'</Interchange>')
 
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-        Replace rogue ANSI characters (0x91 - 0x96) with the corresponding
-        Unicode characters.
+        Modify the XML structure.
         ''')
     parser.add_argument('infile', help='''
         The input XML file''')
@@ -66,6 +67,8 @@ def getargs():
         utf-8. This means that non-ascii characters will be encoded with
         sequences such as "&#8220" meaning the left double quote character.
         ''')
+    parser.add_argument('-s', '--short', action='store_true', help='''
+        Only process one object.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -81,3 +84,4 @@ if __name__ == '__main__':
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
     main()
+

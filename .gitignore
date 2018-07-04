@@ -95,3 +95,8 @@ ENV/
 # Rope project settings
 .ropeproject
 
+# mlg stuff
+.idea/
+tmp/
+src/.idea/
+*.ipynb

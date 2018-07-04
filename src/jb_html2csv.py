@@ -40,7 +40,7 @@ def getloc(row):
         if not cell:
             continue
         cell = cell.strip().upper()
-        ucell = cell.replace(' ', '')
+        ucell = ' '.join(cell.split())
         if ucell in VALID_LOCATIONS:
             return True, cell
         if re.match(LOCATION_PATTERN, ucell):
