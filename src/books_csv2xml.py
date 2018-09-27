@@ -25,7 +25,7 @@ def trace(level, template, *args):
         print(Fore.RED + template.format(*args) + Style.RESET_ALL)
 
 
-def one_object(template, row):
+def one_book_object(template, row):
     """
     Populate the template with the data from the CSV row.
 
@@ -51,6 +51,9 @@ def one_object(template, row):
     elt = template.find('./Production/Date[@elementtype="publication date"]')
     elt.text = row['Date']
 
+    elt = template.find('./Production/Note[@elementtype="imprint/edition"]')
+    elt.text = row['Edition']
+
     elt = template.find('./Notes')
     elt.text = row['Notes']
 
@@ -62,6 +65,18 @@ def one_object(template, row):
 
     elt = template.find('./ObjectLocation[@elementtype="normal location"]/Location')
     elt.text = row['Location']
+
+    elt = template.find('./Description/Inscription/Method')
+    elt.text = row['Method']
+
+    elt = template.find('./Description/Inscription/Position')
+    elt.text = row['Position']
+
+    elt = template.find('./Description/Inscription/Transcription')
+    elt.text = row['Transcription']
+
+    elt = template.find('./Description/Condition/Note')
+    elt.text = row['Condition']
 
     outfile.write(ET.tostring(template))
 
@@ -157,7 +172,7 @@ def main():
         elif _args.artwork:
             one_artwork_object(template, row)
         else:
-            one_object(template, row)
+            one_book_object(template, row)
         nrows += 1
     outfile.write(b'</Interchange>')
     print(f"{nrows} rows processed.\nEnd books_csv2xml.")
