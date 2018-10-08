@@ -12,7 +12,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-from .cfg.cfgutil import read_cfg
+from utl.cfgutil import read_cfg
 
 
 def trace(level, template, *args):
