@@ -16,3 +16,11 @@ def read_cfg(cfgf):
         if row[0].lower() == 'column':
             cols.append(row[1])
     return cols
+
+
+def fieldnames(cols):
+    hdgs = ['Serial']
+    for col in cols:
+        h = col.split('/')[-1]  # trailing element name
+        hdgs.append(h.split('[')[0])  # strip trailing [@xyz='def']
+    return hdgs

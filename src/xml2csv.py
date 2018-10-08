@@ -14,7 +14,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-from cfg.cfgutil import read_cfg
+from utl.cfgutil import read_cfg, fieldnames
 
 
 def trace(level, template, *args):
@@ -35,13 +35,18 @@ def opencsvwriter(filename):
 def main(inf, outf, dslf):
     outcsv = opencsvwriter(outf)
     cols = read_cfg(dslf)
+    if _args.fields:
+        data = fieldnames(cols)
+        outcsv.writerow(data)
     for event, elem in ET.iterparse(inf):
         if elem.tag != 'Object':
             continue
-        data = []
+        data = [elem.find('./ObjectIdentity/Number').text]
         for col in cols:
             elt = elem.find(col)
-            if elt is not None:
+            if elt is None:
+                data.append('')
+            else:
                 data.append(elt.text)
         outcsv.writerow(data)
         if _args.short:
@@ -59,9 +64,12 @@ def getargs():
         The XML file saved from Modes.''')
     parser.add_argument('outfile', help='''
         The output CSV file.''')
+    parser.add_argument('-f', '--fields', action='store_true', help='''
+        Write a row at the front of the CSV file containing the field names.'''
+                        )
     parser.add_argument('-b', '--bom', action='store_true', help='''
         Insert a BOM at the front of the output CSV file.''')
-    parser.add_argument('-f', '--dslfile', required=True, help='''
+    parser.add_argument('-c', '--cfgfile', required=True, help='''
         The DSL describing the column_paths to extract''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
@@ -77,5 +85,5 @@ if __name__ == '__main__':
         raise ImportError('requires Python 3')
     _args = getargs()
     infile = open(_args.infile)
-    dslfile = open(_args.dslfile)
-    main(infile, _args.outfile, dslfile)
+    cfgfile = open(_args.cfgfile)
+    main(infile, _args.outfile, cfgfile)
