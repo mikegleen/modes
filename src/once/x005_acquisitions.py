@@ -18,11 +18,13 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-def normalize_date(indate):
+def normalize_csv_date(indate):
     indate = ' '.join(indate.split())  # clean whitespace
+    if not indate:
+        return ''
     datestr = ''
     try:
-        trydate = datetime.strptime('%d %b %Y', indate)  # 1 Jun 2001
+        trydate = datetime.strptime(indate, '%d %b %Y')  # 1 Jun 2001
         day = str(trydate.day)
         month = str(trydate.month)
         year = str(trydate.year)
@@ -31,19 +33,19 @@ def normalize_date(indate):
         pass
     if not datestr:
         try:
-            trydate = datetime.strptime('%b %Y', indate)  # Jun 2001
+            trydate = datetime.strptime(indate, '%b %Y')  # Jun 2001
             month = str(trydate.month)
             year = str(trydate.year)
             datestr = f'{month}.{year}'
         except ValueError:
-            pass
+            print(f'object: {object_number}, failed scan: {indate}')
     return datestr
 
 
 def one_csv_row(row):
     if not row['Serial'].startswith('JB'):
         return
-    datestr = normalize_date(row['Date Acquired'])
+    datestr = normalize_csv_date(row['Date Acquired'])
     price = re.sub('£', '', row['Price'])
     price = re.sub(',', '', price)
     row['Date Acquired'] = datestr
@@ -51,7 +53,13 @@ def one_csv_row(row):
     csvdict[row['Serial'].strip()] = row
 
 
-def one_object(obj, serial):
+def one_object_from_csv(obj, serial):
+    """
+    Update an Object element with the data from a row in the CSV file.
+    :param obj: The Object instance.
+    :param serial: This object's serial number which is an index into csvdict.
+    :return: True. The Object instance is updated.
+    """
     acquisition = obj.find('./Acquisition')
     row = csvdict[serial]
     if row['Date Acquired']:
@@ -68,10 +76,38 @@ def one_object(obj, serial):
         acquisition.insert(4, priceelt)
     else:
         method.text = price
+    return True  # the object is updated
+
+
+def one_other_object(obj):
+    """
+    Update the Acquisition element of a JBxxx object not in the CSV file.
+    Set these to having come from the Joan Brinsmead collection.
+    :param obj:
+    :return: True if updated
+    """
+    if not object_number.startswith('JB'):
+        return False
+    acquisition = obj.find('./Acquisition')
+    method = acquisition.find('./Method')
+    if method.text:
+        return False  # don't set to default if there already is data
+    person = acquisition.find('./Person')
+    sumtext = acquisition.find('./SummaryText[@elementtype="Acquisition text to be displayed"]')
+    objdate = acquisition.find('./Date')
+    method.text = 'gift'
+    person.text = 'Denis Brinsmead'
+    objdate.text = '1992'
+    if sumtext is None:
+        sumtext = ET.Element('SummaryText')
+        acquisition.append(sumtext)
+        sumtext.set('elementtype', 'Acquisition text to be displayed')
+    sumtext.text = 'Part of the Joan Brinsmead collection'
+    return True
 
 
 def main():
-    # with open(_args.csvfile, newline='') as csvfile:
+    global object_number
     reader = csv.DictReader(csvfile)
     for row in reader:
         one_csv_row(row)
@@ -86,13 +122,16 @@ def main():
             object_number = 'Missing'
             trace(1, 'Missing "{}"', object_number)
         trace(2, '**** {}', object_number)
-        if numelt == 'JB607':
-            pass
         if object_number in csvdict:
-            one_object(oldobject, object_number)
+            trace(2, 'incsv: {}', object_number)
+            updated = one_object_from_csv(oldobject, object_number)
+        else:
+            trace(2, 'not incsv: {}', object_number)
+            updated = one_other_object(oldobject)
+        if updated:
             outfile.write(ET.tostring(oldobject, encoding='us-ascii'))
-            if _args.short:  # for debugging
-                return
+        if _args.short:  # for debugging
+            return
         oldobject.clear()
     outfile.write(b'</Interchange>')
 
