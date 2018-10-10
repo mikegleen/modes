@@ -124,12 +124,11 @@ def main():
         trace(2, '**** {}', object_number)
         if object_number in csvdict:
             trace(2, 'incsv: {}', object_number)
-            updated = one_object_from_csv(oldobject, object_number)
+            one_object_from_csv(oldobject, object_number)
         else:
             trace(2, 'not incsv: {}', object_number)
-            updated = one_other_object(oldobject)
-        if updated:
-            outfile.write(ET.tostring(oldobject, encoding='us-ascii'))
+            one_other_object(oldobject)
+        outfile.write(ET.tostring(oldobject, encoding='us-ascii'))
         if _args.short:  # for debugging
             return
         oldobject.clear()
