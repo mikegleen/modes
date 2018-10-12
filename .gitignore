@@ -106,3 +106,6 @@ out/
 prod_backup/
 results/
 stocktake/
+dev_backup/
+etc/
+
