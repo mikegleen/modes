@@ -32,8 +32,8 @@ def main():
 
 
 if __name__ == '__main__':
-    if sys.version_info.major < 3:
-        raise ImportError('requires Python 3')
+    if sys.version_info.major < 3 or sys.version_info.minor < 6:
+        raise ImportError('requires Python 3.6')
     infile = open(sys.argv[1])
     outfile = open(sys.argv[2], 'wb')
     main()

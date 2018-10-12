@@ -5,6 +5,14 @@
 
 
 def read_cfg(cfgf):
+    """
+    :param cfgf: file containing lines of the form:
+                 column <xpath statement>
+           where the xpath statement points to an xml element with the text
+           that we want to extract
+    :return: a list of xpath statements which will be used to extract text
+             values from an xml element.
+    """
     cols = []
     for line in cfgf:
         line = line.strip()
@@ -19,6 +27,11 @@ def read_cfg(cfgf):
 
 
 def fieldnames(cols):
+    """
+    :param cols: the list produced by read_cfg
+    :return: a list of column headings extracted from the last subelement in
+             the xpath statement
+    """
     hdgs = ['Serial']
     for col in cols:
         h = col.split('/')[-1]  # trailing element name

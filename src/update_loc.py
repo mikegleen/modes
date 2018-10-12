@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Set the normal location and current location to new locations from a CSV file.
+Set the normal location and/or the current location to new locations
+from a CSV file.
 """
 import argparse
 import codecs
@@ -9,6 +10,7 @@ from datetime import date
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
+from utl import normalize_date as nd
 
 
 def trace(level, template, *args):
@@ -38,8 +40,9 @@ def one_objectlocation(ol, idnum):
 
     :param ol: the ObjectLocation element
     :param idnum: the ObjectIdentity/Number text
-    :return:
+    :return: True if the object is updated, False otherwise
     """
+    updated = False
     location = ol.find('./Location')
     if location.text is not None:
         text = location.text.strip().upper()
@@ -52,13 +55,16 @@ def one_objectlocation(ol, idnum):
         datebegin = ol.find('./Date/DateBegin')
         if datebegin is not None:  # normal location doesn't have a date
             datebegin.text = _args.date
+        updated = True
     else:
         trace(2, 'Unchanged: {}', text)
+    return updated
 
 
 def main():
     outfile.write(b'<?xml version="1.0"?><Interchange>\n')
     for event, elem in ET.iterparse(infile):
+        updated = False
         if elem.tag != 'Object':
             continue
         idelem = elem.find('./ObjectIdentity/Number')
@@ -68,14 +74,16 @@ def main():
             objlocs = elem.findall('./ObjectLocation')
             for ol in objlocs:
                 loc = ol.get('elementtype')
-                if _args.normal and loc == 'normal location' or (
-                                _args.current and loc == 'current location'
+                if (_args.normal and loc == 'normal location') or (
+                    _args.current and loc == 'current location'
                 ):
-                    one_objectlocation(ol, idnum)
+                    updated = one_objectlocation(ol, idnum)
             del newlocs[idnum]
         else:
-            trace(1, 'Not in CSV file: {}', idnum)
-        outfile.write(ET.tostring(elem, encoding='us-ascii'))
+            if not _args.update:
+                trace(1, 'Not in CSV file: {}', idnum)
+        if updated or not _args.update:
+            outfile.write(ET.tostring(elem, encoding='us-ascii'))
     outfile.write(b'</Interchange>')
     for idnum in newlocs:
         trace(1, 'In CSV but not XML: {}', idnum)
@@ -86,7 +94,8 @@ def getargs():
         Set the normal location and/or current location to the new location
         from a CSV file with rows of the format: <object number>,<location>.
         If the location in the CSV file differs from the location in the XML
-        file, update the Date/DateBegin element to today's date.
+        file, update the Date/DateBegin element to today's date unless the
+        --date option is specified.
         ''')
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
@@ -105,6 +114,10 @@ def getargs():
     parser.add_argument('-n', '--normal', action='store_true', help='''
         Update the normal location.
         Select one of "b", "n", and "c".''')
+    parser.add_argument('-u', '--update', action='store_true', help='''
+        Only write changed objects. The default is to write all objects and
+        issue a warning if an object is not in the detail CSV file.
+        ''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -119,9 +132,9 @@ def getargs():
 
 
 if __name__ == '__main__':
-    if sys.version_info.major < 3:
-        raise ImportError('requires Python 3')
-    today = date.today().isoformat()
+    if sys.version_info.major < 3 or sys.version_info.minor < 6:
+        raise ImportError('requires Python 3.6')
+    today = nd.modesdate(date.today())
     _args = getargs()
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
