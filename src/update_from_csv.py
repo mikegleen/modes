@@ -124,5 +124,5 @@ if __name__ == '__main__':
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
     newvals = loadnewvals()
-    column_paths = read_cfg(_args.cfgfile)
+    column_paths = read_cfg(_args.cfgfile).columns
     main()

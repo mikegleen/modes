@@ -2,7 +2,7 @@
 """
 Remove leading and trailing whitespace from text and convert multiple
 whitespace sequences to single spaces. Insert a line feed after every Object
-element.
+element if option -n is specified.
 """
 
 import argparse
@@ -50,8 +50,8 @@ def getargs():
 
 
 if __name__ == '__main__':
-    if sys.version_info.major < 3:
-        raise ImportError('requires Python 3')
+    if sys.version_info.major < 3 or sys.version_info.minor < 6:
+        raise ImportError('requires Python 3.6')
     _args = getargs()
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')

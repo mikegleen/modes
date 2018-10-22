@@ -3,6 +3,10 @@
 
 """
 
+from collections import namedtuple
+
+Cfg = namedtuple('Cfg', ('columns', 'required'))
+
 
 def read_cfg(cfgf):
     """
@@ -10,10 +14,15 @@ def read_cfg(cfgf):
                  column <xpath statement>
            where the xpath statement points to an xml element with the text
            that we want to extract
-    :return: a list of xpath statements which will be used to extract text
-             values from an xml element.
+    :return: a Cfg namedtuple containing:
+            a list of xpath statements which will be used to extract text
+                values from an xml element.
+            a list of "required" statements such that only an element with that
+            field populated will be included in the output
     """
+
     cols = []
+    reqd = []
     for line in cfgf:
         line = line.strip()
         if not line or line[0] == '#':
@@ -23,7 +32,10 @@ def read_cfg(cfgf):
             row[1] = row[1].strip('\'"')  # remove leading & trailing quotes
         if row[0].lower() == 'column':
             cols.append(row[1])
-    return cols
+        if row[0].lower() == 'required':
+            reqd.append(row[1])
+    cfg = Cfg(cols, reqd)
+    return cfg
 
 
 def fieldnames(cols):

@@ -34,21 +34,32 @@ def opencsvwriter(filename):
 
 def main(inf, outf, dslf):
     outcsv = opencsvwriter(outf)
-    cols = read_cfg(dslf)
+    cfg = read_cfg(dslf)
+    cols = cfg.columns
+    reqd = cfg.required
+    trace(1, 'columns: {}', ', '.join(cols))
+    trace(1, 'required: {}', ', '.join(reqd))
     if _args.fields:
         data = fieldnames(cols)
         outcsv.writerow(data)
     for event, elem in ET.iterparse(inf):
         if elem.tag != 'Object':
             continue
+        writerow = True
+        # data[0] = Id
         data = [elem.find('./ObjectIdentity/Number').text]
         for col in cols:
             elt = elem.find(col)
-            if elt is None:
-                data.append('')
+            if elt is None or elt.text is None:
+                text = ''
             else:
-                data.append(elt.text)
-        outcsv.writerow(data)
+                text = elt.text.strip()
+            if not text and col in reqd:
+                writerow = False
+                break
+            data.append(text)
+        if writerow:
+            outcsv.writerow(data)
         if _args.short:
             break
 
@@ -70,7 +81,7 @@ def getargs():
     parser.add_argument('-b', '--bom', action='store_true', help='''
         Insert a BOM at the front of the output CSV file.''')
     parser.add_argument('-c', '--cfgfile', required=True, help='''
-        The DSL describing the column_paths to extract''')
+        The config file describing the column_paths to extract''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -81,8 +92,8 @@ def getargs():
 
 
 if __name__ == '__main__':
-    if sys.version_info.major < 3:
-        raise ImportError('requires Python 3')
+    if sys.version_info.major < 3 or sys.version_info.minor < 6:
+        raise ImportError('requires Python 3.6')
     _args = getargs()
     infile = open(_args.infile)
     cfgfile = open(_args.cfgfile)

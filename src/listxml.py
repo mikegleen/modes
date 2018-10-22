@@ -46,9 +46,9 @@ def getargs():
 
 
 if __name__ == '__main__':
+    if sys.version_info.major < 3 or sys.version_info.minor < 6:
+        raise ImportError('requires Python 3.6')
     tagcount = defaultdict(int)
-    if sys.version_info.major < 3:
-        raise ImportError('requires Python 3')
     _args = getargs()
     infile = open(_args.infile)
     main()

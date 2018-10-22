@@ -164,5 +164,3 @@ if __name__ == '__main__':
     main()
     print('\nEnd html2csv. {} rows read, {} rows written to {}'.
           format(rowcount, outrowcount, os.path.abspath(_args.outfile)))
-
-
