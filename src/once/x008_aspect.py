@@ -7,6 +7,7 @@
 """
 import argparse
 import os.path
+import re
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
@@ -35,6 +36,17 @@ def one_elt(elt):
             nmeas = nelt
     # Insert the new Measurement subelement after the last existing one
     des.insert(nmeas, newmeas)
+
+    # Convert the accession number format from LDHRM/2018/1 to LDHRM.2018.1
+    if object_number.startswith('LDHRM'):
+        m = re.match(r'LDHRM/(\d{4})/(\d+)', object_number)
+        if not m:
+            trace(0, 'object number starting LDHRM fails match: {}',
+                  object_number)
+            return
+        newnumber = f'LDHRM.{m.group(1)}.{m.group(2)}'
+        numelt = elt.find('./ObjectIdentity/Number')
+        numelt.text = newnumber
 
 
 def one_object(oldobj):
