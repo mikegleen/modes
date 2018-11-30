@@ -5,7 +5,8 @@ identifiers in our Modes file.
 
 Return a string normalized for sorting.
 
-Input can be of the form JB001 or JB0001 or JB001a or SH1 or LDHRM/2018/1.
+Input can be of the form JB001 or JB0001 or JB001a or SH1 or LDHRM/2018/1
+or LDHRM.2018.1.
 """
 import re
 
@@ -13,10 +14,11 @@ import re
 def normalize(objid):
     objid = objid.upper()
     if objid.startswith('LDHRM'):
-        idlist = objid.split('/')
+        idlist = re.split(r'/|\.', objid)  # split on either "/" or "."
         assert len(idlist) == 3
+        assert len(idlist[2]) <= 4
         idlist[2] = f'{int(idlist[2]):0>4d}'
-        return '/'.join(idlist)
+        return '.'.join(idlist)
     # Not an LDHRM/.. id
     m = re.match(r'(\D*)(\d*)(.*)', objid)
     if m:
