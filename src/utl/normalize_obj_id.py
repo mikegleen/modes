@@ -14,7 +14,7 @@ import re
 def normalize(objid):
     objid = objid.upper()
     if objid.startswith('LDHRM'):
-        idlist = re.split(r'/|\.', objid)  # split on either "/" or "."
+        idlist = re.split(r'[/.]', objid)  # split on either "/" or "."
         assert len(idlist) == 3
         assert len(idlist[2]) <= 4
         idlist[2] = f'{int(idlist[2]):0>4d}'
