@@ -12,8 +12,9 @@ def read_cfg(cfgf):
     """
     :param cfgf: file containing lines of the form:
                  column <xpath statement>
-           where the xpath statement points to an xml element with the text
-           that we want to extract
+                 required <xpath statement>
+           where the xpath statement points to an xml element within the file
+
     :return: a Cfg namedtuple containing:
             a list of xpath statements which will be used to extract text
                 values from an xml element.
