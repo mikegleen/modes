@@ -33,6 +33,7 @@ def opencsvwriter(filename):
 
 
 def main(inf, outf, dslf):
+    global nlines
     outcsv = opencsvwriter(outf)
     cfg = read_cfg(dslf)
     cols = cfg.columns
@@ -59,6 +60,7 @@ def main(inf, outf, dslf):
                 break
             data.append(text)
         if writerow:
+            nlines += 1
             outcsv.writerow(data)
         if _args.short:
             break
@@ -73,7 +75,7 @@ def getargs():
         ''')
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
-    parser.add_argument('outfile', help='''
+    parser.add_argument('outfile',  help='''
         The output CSV file.''')
     parser.add_argument('-f', '--fields', action='store_true', help='''
         Write a row at the front of the CSV file containing the field names.'''
@@ -95,6 +97,8 @@ if __name__ == '__main__':
     if sys.version_info.major < 3 or sys.version_info.minor < 6:
         raise ImportError('requires Python 3.6')
     _args = getargs()
+    nlines = 0
     infile = open(_args.infile)
     cfgfile = open(_args.cfgfile)
     main(infile, _args.outfile, cfgfile)
+    trace(1, f'{nlines} lines written to {_args.outfile}.')
