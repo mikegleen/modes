@@ -42,7 +42,8 @@ def main():
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-        Modify the XML structure.
+        Modify the XML structure. Remove leading and trailing spaces and
+        convert multiple spaces to single spaces.
         ''')
     parser.add_argument('infile', help='''
         The input XML file''')
