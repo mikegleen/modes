@@ -7,7 +7,8 @@ element if option -n is specified.
 
 import argparse
 import sys
-from bs4 import BeautifulSoup as bs
+# noinspection PyPep8Naming
+from bs4 import BeautifulSoup as BS
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
@@ -24,7 +25,7 @@ def main():
                 e.tail = ' '.join(e.tail.strip().split())
         xml = ET.tostring(elem, encoding='us-ascii')
         if _args.pretty:
-            pxml = bs(xml, 'xml').prettify('us-ascii')
+            pxml = BS(xml, 'xml').prettify('us-ascii')
             # prettify inserts '<?xml....' at the front. Remove it.
             pxml = pxml.split(b'\n', 1)[1]
             outfile.write(pxml)
