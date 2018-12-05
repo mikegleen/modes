@@ -7,6 +7,7 @@ element if option -n is specified.
 
 import argparse
 import sys
+from bs4 import BeautifulSoup as bs
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
@@ -21,7 +22,14 @@ def main():
                 e.text = ' '.join(e.text.strip().split())
             if e.tail:
                 e.tail = ' '.join(e.tail.strip().split())
-        outfile.write(ET.tostring(elem, encoding='us-ascii'))
+        xml = ET.tostring(elem, encoding='us-ascii')
+        if _args.pretty:
+            pxml = bs(xml, 'xml').prettify('us-ascii')
+            # prettify inserts '<?xml....' at the front. Remove it.
+            pxml = pxml.split(b'\n', 1)[1]
+            outfile.write(pxml)
+        else:
+            outfile.write(xml)
         if _args.newline:
             outfile.write(b'\n')
         if _args.short:
@@ -40,6 +48,8 @@ def getargs():
     parser.add_argument('-n', '--newline', action='store_true', help='''
         If set, add a newline character at the end of each object element.
         ''')
+    parser.add_argument('-p', '--pretty', action='store_true', help='''
+        Prettyprint the output.''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
