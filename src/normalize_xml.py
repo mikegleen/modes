@@ -15,10 +15,12 @@ import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
 def main():
     outfile.write(b'<?xml version="1.0"?><Interchange>')
+    if _args.newline:
+        outfile.write(b'\n')
     for event, elem in ET.iterparse(infile):
         if elem.tag != 'Object':
             continue
-        for e in elem.iter():
+        for e in elem:
             if e.text:
                 e.text = ' '.join(e.text.strip().split())
             if e.tail:
@@ -50,13 +52,15 @@ def getargs():
         If set, add a newline character at the end of each object element.
         ''')
     parser.add_argument('-p', '--pretty', action='store_true', help='''
-        Prettyprint the output.''')
+        Prettyprint the output. This option implies --newline.''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
     args = parser.parse_args()
+    if args.pretty:
+        args.newline = True
     return args
 
 
