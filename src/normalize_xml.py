@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
 
 def main():
+    nlines = 0
     outfile.write(b'<?xml version="1.0"?><Interchange>')
     if _args.newline:
         outfile.write(b'\n')
@@ -33,11 +34,15 @@ def main():
             outfile.write(pxml)
         else:
             outfile.write(xml)
+        nlines += 1
         if _args.newline:
             outfile.write(b'\n')
         if _args.short:
             break
     outfile.write(b'</Interchange>')
+    if _args.verbose >= 1:
+        s = 's' if nlines > 1 else ''
+        print(f'End normalize_xml. {nlines} object{s} written.')
 
 
 def getargs():
