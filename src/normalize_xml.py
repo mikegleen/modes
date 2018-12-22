@@ -41,6 +41,7 @@ def main():
             outfile.write(b'\n')
         if _args.short:
             break
+        elem.clear()
     outfile.write(b'</Interchange>')
     if _args.verbose >= 1:
         s = 's' if nlines > 1 else ''
