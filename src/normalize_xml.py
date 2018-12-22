@@ -15,13 +15,15 @@ import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
 def main():
     nlines = 0
-    outfile.write(b'<?xml version="1.0"?><Interchange>')
+    outfile.write(b'<?xml version="1.0" encoding="ASCII"?>\n<Interchange>')
     if _args.newline:
         outfile.write(b'\n')
     for event, elem in ET.iterparse(infile):
         if elem.tag != 'Object':
             continue
-        for e in elem:
+        elem.text = elem.tail = None
+        for e in elem.iter():
+            # print(f'{e.tag} "{e.text}" "{e.tail}"')
             if e.text:
                 e.text = ' '.join(e.text.strip().split())
             if e.tail:
@@ -48,12 +50,16 @@ def main():
 def getargs():
     parser = argparse.ArgumentParser(description='''
         Modify the XML structure. Remove leading and trailing spaces and
-        convert multiple spaces to single spaces.
+        convert multiple spaces to single spaces. The output encoding is
+        US-ASCII. The input encoding defaults to UTF-8 by may be changed.
         ''')
     parser.add_argument('infile', help='''
         The input XML file''')
     parser.add_argument('outfile', help='''
         The output XML file.''')
+    parser.add_argument('-e', '--encoding', default='utf-8', help='''
+        Set the input encoding.
+        ''')
     parser.add_argument('-n', '--newline', action='store_true', help='''
         If set, add a newline character at the end of each object element.
         ''')
@@ -74,6 +80,6 @@ if __name__ == '__main__':
     if sys.version_info.major < 3 or sys.version_info.minor < 6:
         raise ImportError('requires Python 3.6')
     _args = getargs()
-    infile = open(_args.infile)
+    infile = open(_args.infile, encoding=_args.encoding)
     outfile = open(_args.outfile, 'wb')
     main()
