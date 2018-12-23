@@ -7,8 +7,7 @@ element if option -n is specified.
 
 import argparse
 import sys
-# noinspection PyPep8Naming
-from bs4 import BeautifulSoup as BS
+import xml.dom.minidom as minidom
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
@@ -28,14 +27,15 @@ def main():
                 e.text = ' '.join(e.text.strip().split())
             if e.tail:
                 e.tail = ' '.join(e.tail.strip().split())
-        xml = ET.tostring(elem, encoding='us-ascii')
+        xmlstring = ET.tostring(elem, encoding='us-ascii')
         if _args.pretty:
-            pxml = BS(xml, 'xml').prettify('us-ascii')
-            # prettify inserts '<?xml....' at the front. Remove it.
-            pxml = pxml.split(b'\n', 1)[1]
-            outfile.write(pxml)
+            reparsed = minidom.parseString(xmlstring)
+            prettyxmlstring = reparsed.toprettyxml(indent="\t", encoding='ascii')
+            # toprettyxml inserts '<?xml....' at the front. Remove it.
+            prettyxmlstring = prettyxmlstring.split(b'\n', 1)[1]
+            outfile.write(prettyxmlstring)
         else:
-            outfile.write(xml)
+            outfile.write(xmlstring)
         nlines += 1
         if _args.newline:
             outfile.write(b'\n')
@@ -65,15 +65,13 @@ def getargs():
         If set, add a newline character at the end of each object element.
         ''')
     parser.add_argument('-p', '--pretty', action='store_true', help='''
-        Prettyprint the output. This option implies --newline.''')
+        Prettyprint the output.''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
     args = parser.parse_args()
-    if args.pretty:
-        args.newline = True
     return args
 
 
