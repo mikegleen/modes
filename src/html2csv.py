@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Convert the HTML file saved from an MS-Word document to a CSV file. The first
+Convert an HTML file to a CSV file. The first
 row in the first table in the HTML file will be taken as the CSV field names.
 
 Input: full path to the HTML file
@@ -11,6 +11,7 @@ import argparse
 import codecs
 import csv
 import os.path
+import re
 import sys
 
 from bs4 import BeautifulSoup as Bs
@@ -25,7 +26,7 @@ def trace(level, template, *args):
 
 def handle_one_row(row):
     csvrow = []
-    details = row.find_all('td')
+    details = row.find_all(td_or_th_pat)
     for td in details:
         paras = td.find_all('p')
         detail = ''
@@ -53,9 +54,9 @@ def opencsvwriter(filename):
 
 
 def one_table(table, outcsv):
-    global rowcount, tablecount, outrowcount
+    global rowcount, tablenumber, outrowcount
     rows = table.find_all('tr')
-    trace(1, 'table {}, rows: {}', tablecount, len(rows))
+    trace(1, 'table {}, rows: {}', tablenumber, len(rows))
     for row in rows:
         rowcount += 1
         error, outrow = handle_one_row(row)
@@ -65,18 +66,21 @@ def one_table(table, outcsv):
             outcsv.writerow(outrow)
         else:  # elif not (len(outrow) == 1 and not outrow[0]):  # skip if just ['']
             trace(1, '----error {}: table {}, row {}, len={} {}',
-                  error, tablecount, rowcount, len(outrow), outrow)
+                  error, tablenumber, rowcount, len(outrow), outrow)
 
 
 def main():
-    global tablecount
+    global tablenumber
     outcsv = opencsvwriter(_args.outfile)
-    trace(1, '        input: {}', _args.infile)
+    trace(1, 'Input: {}', _args.infile)
     htmlfile = codecs.open(_args.infile, encoding=_args.encoding)
     soup = Bs(htmlfile, 'html.parser')  # , 'html5lib')
     tables = soup.find_all('table')
     for table in tables:
-        tablecount += 1
+        tablenumber += 1
+        # print(f'_args.table: {_args.table}, tablenumber: {tablenumber}')
+        if _args.table and _args.table != tablenumber:
+            continue
         one_table(table, outcsv)
     htmlfile.close()
 
@@ -98,6 +102,9 @@ def getargs():
         The HTML file saved from MS Word''')
     parser.add_argument('outfile', help='''
         The output CSV file''')
+    parser.add_argument('-t', '--table', type=int, default=0, help='''
+        Select a single table to process. The default is to process all tables.
+        ''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -106,10 +113,11 @@ def getargs():
 
 
 if __name__ == '__main__':
+    td_or_th_pat = re.compile('(td)|(th)')
     _args = getargs()
     rowcount = 0
     outrowcount = 0
-    tablecount = 0
+    tablenumber = 0
     if sys.version_info.major < 3:
         raise ImportError('requires Python 3')
     main()
