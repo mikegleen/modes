@@ -95,9 +95,9 @@ def opencsvwriter(filename):
 
 
 def one_table(table, outcsv):
-    global rowcount, tablecount, outrowcount
+    global rowcount, tablenumber, outrowcount
     rows = table.find_all('tr')
-    trace(1, 'table {}, rows: {}', tablecount, len(rows))
+    trace(1, 'table {}, rows: {}', tablenumber, len(rows))
     for row in rows:
         rowcount += 1
         error, outrow = handle_one_row(row)
@@ -107,18 +107,18 @@ def one_table(table, outcsv):
             outcsv.writerow(outrow)
         else: # elif not (len(outrow) == 1 and not outrow[0]):  # skip if just ['']
             trace(1, '----error {}: table {}, row {}, len={} {}',
-                  error, tablecount, rowcount, len(outrow), outrow)
+                  error, tablenumber, rowcount, len(outrow), outrow)
 
 
 def main():
-    global tablecount
+    global tablenumber
     outcsv = opencsvwriter(_args.outfile)
     trace(1, '        input: {}', _args.infile)
     htmlfile = codecs.open(_args.infile, encoding=_args.encoding)
     soup = Bs(htmlfile, 'html.parser')  # , 'html5lib')
     tables = soup.find_all('table')
     for table in tables:
-        tablecount += 1
+        tablenumber += 1
         one_table(table, outcsv)
     htmlfile.close()
 
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     _args = getargs()
     rowcount = 0
     outrowcount = 0
-    tablecount = 0
+    tablenumber = 0
     if sys.version_info.major < 3:
         raise ImportError('requires Python 3')
     main()
