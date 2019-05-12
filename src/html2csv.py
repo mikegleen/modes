@@ -18,10 +18,18 @@ from bs4 import BeautifulSoup as Bs
 
 DEFAULT_HTML_ENCODING = 'utf-8'
 
+td_or_th_pat = re.compile('(td)|(th)')
+
 
 def trace(level, template, *args):
     if _args.verbose >= level:
         print(template.format(*args))
+
+
+def opencsvwriter(filename):
+    csvfile = codecs.open(filename, 'w', 'utf-8-sig')  # insert BOM at front
+    outcsv = csv.writer(csvfile, delimiter=',')
+    return outcsv
 
 
 def handle_one_row(row):
@@ -46,13 +54,6 @@ def handle_one_row(row):
     return 0, csvrow
 
 
-def opencsvwriter(filename):
-    csvfile = codecs.open(filename, 'w', 'utf-8-sig')  # insert BOM at front
-    outcsv = csv.writer(csvfile, delimiter=',')
-    trace(1, 'Output: {}', filename)
-    return outcsv
-
-
 def one_table(table, outcsv):
     global rowcount, tablenumber, outrowcount
     rows = table.find_all('tr')
@@ -71,9 +72,10 @@ def one_table(table, outcsv):
 
 def main():
     global tablenumber
-    outcsv = opencsvwriter(_args.outfile)
-    trace(1, 'Input: {}', _args.infile)
     htmlfile = codecs.open(_args.infile, encoding=_args.encoding)
+    trace(1, 'Input: {}', _args.infile)
+    outcsv = opencsvwriter(_args.outfile)
+    trace(1, 'Output: {}', _args.outfile)
     soup = Bs(htmlfile, 'html.parser')  # , 'html5lib')
     tables = soup.find_all('table')
     for table in tables:
@@ -87,11 +89,7 @@ def main():
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-        Read the HTML file saved from the MS Word "database" and create a CSV
-        file for converting to XML for inputting to Modes.
-
-        When saving the HTML file from MS Word, make sure to set the output
-        character encoding to utf-8. Otherwise, specify the -e parameter.
+        Read an HTML file and create a CSV file from the <table> elements.
         ''')
     parser.add_argument('-e', '--encoding', default=DEFAULT_HTML_ENCODING,
                         help='''
@@ -99,7 +97,7 @@ def getargs():
         Default = "{}".
         '''.format(DEFAULT_HTML_ENCODING))
     parser.add_argument('infile', help='''
-        The HTML file saved from MS Word''')
+        The HTML file''')
     parser.add_argument('outfile', help='''
         The output CSV file''')
     parser.add_argument('-t', '--table', type=int, default=0, help='''
@@ -113,13 +111,12 @@ def getargs():
 
 
 if __name__ == '__main__':
-    td_or_th_pat = re.compile('(td)|(th)')
     _args = getargs()
     rowcount = 0
     outrowcount = 0
     tablenumber = 0
-    if sys.version_info.major < 3:
-        raise ImportError('requires Python 3')
+    if sys.version_info.major < 3 or sys.version_info.minor < 6:
+        raise ImportError('requires Python 3.6')
     main()
     print('\nEnd html2csv. {} rows read, {} rows written to {}'.
           format(rowcount, outrowcount, os.path.abspath(_args.outfile)))
