@@ -82,7 +82,7 @@ def getargs():
                         )
     parser.add_argument('-b', '--bom', action='store_true', help='''
         Insert a BOM at the front of the output CSV file.''')
-    parser.add_argument('-c', '--cfgfile', required=True, help='''
+    parser.add_argument('-c', '--cfgfile', required=False, help='''
         The config file describing the column_paths to extract''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
@@ -99,6 +99,6 @@ if __name__ == '__main__':
     _args = getargs()
     nlines = 0
     infile = open(_args.infile)
-    cfgfile = open(_args.cfgfile)
+    cfgfile = open(_args.cfgfile) if _args.cfgfile else None
     main(infile, _args.outfile, cfgfile)
     trace(1, f'{nlines} lines written to {_args.outfile}.')
