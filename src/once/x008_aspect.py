@@ -68,7 +68,9 @@ def one_object(oldobj):
 
 
 def main():
-    outfile.write(b'<?xml version="1.0" encoding="utf-8"?>\n<Interchange>\n')
+    declaration = f'<?xml version="1.0" encoding="{_args.encoding}"?>\n'
+    outfile.write(bytes(declaration, encoding=_args.encoding))
+    outfile.write(b'<Interchange>\n')
     for event, oldobject in ET.iterparse(infile):
         if oldobject.tag != 'Object':
             continue
@@ -81,7 +83,9 @@ def main():
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-        Modify the XML structure.
+        Modify the XML structure. Remove the Description/Aspect element and
+        replace it with a Description/Measurement element. Also convert
+        object numbers from the form "LDHRM/2018/1" to "LDHRM.2018.2".
         ''')
     parser.add_argument('infile', help='''
         The input XML file''')
@@ -98,6 +102,7 @@ def getargs():
         Set the verbosity. The default is 1 which prints summary information.
         ''')
     args = parser.parse_args()
+    args.encoding = 'us-ascii' if args.ascii else 'utf-8'
     return args
 
 
