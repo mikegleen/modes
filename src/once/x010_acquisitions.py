@@ -36,18 +36,12 @@ def trace(level, template, *args):
 def one_elt(elt):
     acq = elt.find('./Acquisition')
     person = acq.find('./Person')
-    try:
-        person_index = list(acq).index(person)  # insert new Person elt here
-    except ValueError:
-        print(f'No find Person {object_number}.')
-        sys.exit(0)
     role = person.find('./Role')
     person_name = person.find('./PersonName')
     address = person.find('./Address')
 
-    acq.remove(person)
+    person.clear()
 
-    person = ET.Element('Person')
     if role is not None and role.text:
         ET.SubElement(person, 'Role').text = role.text
     else:
@@ -59,8 +53,6 @@ def one_elt(elt):
     ET.SubElement(person, 'PersonName').text = name
     if address is not None and address.text:
         ET.SubElement(person, 'Address').text = address.text
-
-    acq.insert(person_index, person)
 
 
 def one_object(oldobj):
