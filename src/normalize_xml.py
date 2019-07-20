@@ -52,7 +52,7 @@ def getargs():
     parser = argparse.ArgumentParser(description='''
         Modify the XML structure. Remove leading and trailing spaces and
         convert multiple spaces to single spaces. The output encoding is
-        US-ASCII. The input encoding defaults to UTF-8 by may be changed.
+        US-ASCII. The input encoding defaults to UTF-8 but may be changed.
         ''')
     parser.add_argument('infile', help='''
         The input XML file''')
@@ -76,8 +76,9 @@ def getargs():
 
 
 if __name__ == '__main__':
-    if sys.version_info.major < 3 or sys.version_info.minor < 6:
-        raise ImportError('requires Python 3.6')
+    targetversion = sys.version_info.major * 1000 + sys.version_info.minor
+    if targetversion < 3007:
+        raise ImportError('requires Python 3.7 or higher')
     _args = getargs()
     infile = open(_args.infile, encoding=_args.encoding)
     outfile = open(_args.outfile, 'wb')
