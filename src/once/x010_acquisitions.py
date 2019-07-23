@@ -16,13 +16,11 @@ Convert these to:
         <Person>
             <Role>acquired from</Role>
             <PersonName>Denis Brinsmead</PersonName>
-            <Address/>
-            <Phone/>
+            <Address/>  <-- only if it's populated
         </Person>
 """
 import argparse
 import os.path
-import re
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
@@ -35,10 +33,14 @@ def trace(level, template, *args):
 
 def one_elt(elt):
     acq = elt.find('./Acquisition')
+    acq.attrib = {}  # get rid of elementtype="Acquisition Method" attributes
     person = acq.find('./Person')
     role = person.find('./Role')
     person_name = person.find('./PersonName')
     address = person.find('./Address')
+    person_text = person.text.strip() if person.text else ''
+    person_name_text = (person_name.text if person_name is not None and
+                        person_name.text is not None else '')
 
     person.clear()
 
@@ -46,10 +48,13 @@ def one_elt(elt):
         ET.SubElement(person, 'Role').text = role.text
     else:
         ET.SubElement(person, 'Role').text = 'acquired from'
-    if person.text:
-        name = person.text
+    if person_text:
+        name = person_text
+        # print(f'person_text: "{person_text}"')
     else:
-        name = person_name.text if person_name is not None else ''
+        # name = person_name.text if person_name is not None else ''
+        name = person_name_text.strip()
+        # print(name)
     ET.SubElement(person, 'PersonName').text = name
     if address is not None and address.text:
         ET.SubElement(person, 'Address').text = address.text

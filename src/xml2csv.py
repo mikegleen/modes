@@ -4,8 +4,11 @@
     fields.
 
     The first column is hard-coded as './ObjectIdentity/Number'. Subsequent
-    column_paths are defined in a config file containing "column" statements
-    each with one parameter, the XPATH of the column to extract.
+    column_paths are defined in a config file containing statements each
+    with one parameter, the XPATH of the column to extract and possible other
+    parameters.
+
+    See cfgutil.py for a description of the config statements.
 """
 import argparse
 import codecs
@@ -37,11 +40,13 @@ def main(inf, outf, dslf):
     outcsv = opencsvwriter(outf)
     cfg = read_cfg(dslf)
     cols = cfg.columns
+    targets = [col if isinstance(col, str) else col[0] + '@' + col[1] for col
+               in cols]
     reqd = cfg.required
-    trace(1, 'columns: {}', ', '.join(cols))
-    trace(1, 'required: {}', ', '.join(reqd))
+    trace(1, 'columns: {}', ', '.join(targets))
+    trace(1, 'required: {}', ', '.join(reqd) if reqd else 'None')
     if _args.fields:
-        data = fieldnames(cols)
+        data = fieldnames(targets)
         outcsv.writerow(data)
     for event, elem in ET.iterparse(inf):
         if elem.tag != 'Object':
@@ -50,8 +55,15 @@ def main(inf, outf, dslf):
         # data[0] = Id
         data = [elem.find('./ObjectIdentity/Number').text]
         for col in cols:
-            elt = elem.find(col)
-            if elt is None or elt.text is None:
+            if isinstance(col, str):
+                target = col
+                attrib = None
+            else:
+                target, attrib = col
+            elt = elem.find(target)
+            if attrib and elt is not None:
+                text = elt.get(attrib)
+            elif elt is None or elt.text is None:
                 text = ''
             else:
                 text = elt.text.strip()

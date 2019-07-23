@@ -23,7 +23,10 @@ def main(inf):
         attribs[elementtype] += 1
         if _args.type and elementtype == _args.type:
             num = elem.find('./ObjectIdentity/Number')
-            print(num.text)
+            title = elem.find('./Identification/Title')
+            print(num.text, title.text[:50])
+    if _args.type:
+        return
     for e, c in attribs.items():
         print(e, c)
 
