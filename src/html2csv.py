@@ -16,7 +16,7 @@ import sys
 
 from bs4 import BeautifulSoup as Bs
 
-DEFAULT_HTML_ENCODING = 'utf-8'
+DEFAULT_HTML_ENCODING = 'utf-8-sig'  # insert BOM at front
 
 td_or_th_pat = re.compile('(td)|(th)')
 
@@ -27,7 +27,7 @@ def trace(level, template, *args):
 
 
 def opencsvwriter(filename):
-    csvfile = codecs.open(filename, 'w', 'utf-8-sig')  # insert BOM at front
+    csvfile = codecs.open(filename, 'w', _args.encoding)
     outcsv = csv.writer(csvfile, delimiter=',')
     return outcsv
 
@@ -50,6 +50,12 @@ def handle_one_row(row):
 
     if not csvrow:
         return 1, csvrow
+    if _args.inhibit_upper:
+        try:
+            csvrow[0] = csvrow[0].upper()
+            csvrow[0] = re.sub(r'\s', '', csvrow[0])
+        except IndexError:
+            return 2, csvrow
     # print(csvrow)
     return 0, csvrow
 
@@ -65,6 +71,7 @@ def one_table(table, outcsv):
         if not error:
             outrowcount += 1
             outcsv.writerow(outrow)
+            trace(2, 'row {}, outrow {}', outrowcount, outrow)
         else:  # elif not (len(outrow) == 1 and not outrow[0]):  # skip if just ['']
             trace(1, '----error {}: table {}, row {}, len={} {}',
                   error, tablenumber, rowcount, len(outrow), outrow)
@@ -93,15 +100,21 @@ def getargs():
         ''')
     parser.add_argument('-e', '--encoding', default=DEFAULT_HTML_ENCODING,
                         help='''
-        Specify the encoding of the input HTML file.
+        Specify the encoding of the input HTML file and output CSV file.
         Default = "{}".
         '''.format(DEFAULT_HTML_ENCODING))
     parser.add_argument('infile', help='''
-        The HTML file''')
+        The input HTML file''')
     parser.add_argument('outfile', help='''
         The output CSV file''')
     parser.add_argument('-t', '--table', type=int, default=0, help='''
         Select a single table to process. The default is to process all tables.
+        ''')
+    parser.add_argument('-u', '--inhibit_upper', action='store_false',
+                        default=True, help='''
+        By default, the first column is converted to upper case and white
+        space characters are removed.
+        If specified, inhibit this conversion.
         ''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
