@@ -4,7 +4,7 @@ Convert an HTML file to a CSV file. The first
 row in the first table in the HTML file will be taken as the CSV field names.
 
 Input: full path to the HTML file
-Output: full path to the output XML file.
+Output: full path to the output CSV file.
 """
 
 import argparse
