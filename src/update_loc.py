@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+Deprecated. Use location.py.
+
 Set the normal location and/or the current location to new locations
 from a CSV file.
 """
@@ -27,7 +29,7 @@ def loadlocs():
     with codecs.open(_args.mapfile, 'r', 'utf-8-sig') as mapfile:
         reader = csv.reader(mapfile)
         for row in reader:
-            location_dict[row[0].strip()] = row[1].strip()
+            location_dict[row[0].strip()] = row[_args.col].strip()
     return location_dict
 
 
@@ -91,6 +93,7 @@ def main():
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
+        Deprecated. Use location.py.\n
         Set the normal location and/or current location to the new location
         from a CSV file with rows of the format: <object number>,<location>.
         If the location in the CSV file differs from the location in the XML
@@ -104,6 +107,10 @@ def getargs():
     parser.add_argument('-b', '--both', action='store_true', help='''
         Update both the current location and the normal location.
         Select one of "b", "n", and "c".''')
+    parser.add_argument('--col', type=int, default=1, help='''
+        Specify the column in the CSV file containing the affected location.
+        Default is 1.
+        ''')
     parser.add_argument('-c', '--current', action='store_true', help='''
         Update the current location.
         Select one of "b", "n", and "c".''')

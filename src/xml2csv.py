@@ -26,11 +26,9 @@ def trace(level, template, *args):
 
 
 def opencsvwriter(filename):
-    # csvfile = open(filename, 'w', newline='')
     encoding = 'utf-8-sig' if _args.bom else 'utf-8'
-    csvfile = codecs.open(filename, 'w', encoding)  # insert BOM at front
+    csvfile = codecs.open(filename, 'w', encoding)
     outcsv = csv.writer(csvfile, delimiter=',')
-    # outcsv.writerow(HEADING)
     trace(1, 'Output: {}', filename)
     return outcsv
 
@@ -40,14 +38,12 @@ def main(inf, outf, dslf):
     outcsv = opencsvwriter(outf)
     cfg = read_cfg(dslf)
     cols = cfg.columns
-    targets = [col if isinstance(col, str) else col[0] + '@' + col[1] for col
-               in cols]
+    targets = fieldnames(cols)
     reqd = cfg.required
     trace(1, 'columns: {}', ', '.join(targets))
     trace(1, 'required: {}', ', '.join(reqd) if reqd else 'None')
     if _args.fields:
-        data = fieldnames(targets)
-        outcsv.writerow(data)
+        outcsv.writerow(targets)
     for event, elem in ET.iterparse(inf):
         if elem.tag != 'Object':
             continue
@@ -55,14 +51,13 @@ def main(inf, outf, dslf):
         # data[0] = Id
         data = [elem.find('./ObjectIdentity/Number').text]
         for col in cols:
-            if isinstance(col, str):
-                target = col
-                attrib = None
-            else:
-                target, attrib = col
+            command, target, attrib = col
             elt = elem.find(target)
             if attrib and elt is not None:
                 text = elt.get(attrib)
+            elif command == 'count':
+                count = len(list(elem.findall(target)))
+                text = f'{count}'
             elif elt is None or elt.text is None:
                 text = ''
             else:

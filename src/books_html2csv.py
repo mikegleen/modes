@@ -18,6 +18,7 @@ from bs4 import BeautifulSoup as Bs
 
 HEADING = 'Serial,Title,Author,Publisher,Date,Notes,Location'.split(',')
 
+
 DEFAULT_HTML_ENCODING = 'utf-8'
 VALID_LOCATIONS = ('FRAMED', 'UNKNOWN', 'QUARANTINE')
 LOCATION_PATTERN = r'[A-Z]+(\d+)?\*?\??$'
@@ -159,8 +160,7 @@ if __name__ == '__main__':
     rowcount = 0
     outrowcount = 0
     tablenumber = 0
-    if sys.version_info.major < 3:
-        raise ImportError('requires Python 3')
+    assert sys.version_info >= (3, 6)
     main()
     print('\nEnd html2csv. {} rows read, {} rows written to {}'.
           format(rowcount, outrowcount, os.path.abspath(_args.outfile)))
