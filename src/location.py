@@ -34,7 +34,7 @@ def loadlocs():
 def handle_check(idnum, elem):
     if idnum not in newlocs:
         if _args.all:
-            trace(1, 'Not in CSV file: {}', idnum)
+            trace(3, 'Not in CSV file: {}', idnum)
         return
     objlocs = elem.findall('./ObjectLocation')
     for ol in objlocs:
@@ -67,6 +67,7 @@ def update_one_location(ol, idnum):
     :param idnum: the ObjectIdentity/Number text
     :return: True if the object is updated, False otherwise
     """
+    global total_updated
     updated = False
     location = ol.find('./Location')
     if location.text is not None:
@@ -81,12 +82,14 @@ def update_one_location(ol, idnum):
         if datebegin is not None:  # normal location doesn't have a date
             datebegin.text = _args.date
         updated = True
+        total_updated += 1
     else:
-        trace(2, 'Unchanged: {}', text)
+        trace(2, 'Unchanged: {}: {}', idnum, text)
     return updated
 
 
 def handle_update(idnum, elem):
+    global total_written
     updated = False
     if idnum in newlocs:
         objlocs = elem.findall('./ObjectLocation')
@@ -100,9 +103,10 @@ def handle_update(idnum, elem):
         del newlocs[idnum]
     else:
         if _args.all:
-            trace(1, 'Not in CSV file: {}', idnum)
+            trace(3, 'Not in CSV file: {}', idnum)
     if updated or _args.all:
         outfile.write(ET.tostring(elem, encoding='us-ascii'))
+        total_written += 1
 
 
 def main():
@@ -180,12 +184,12 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     today = normalize_date.modesdate(date.today())  # '[d]d.[m]m.yyyy'
     _args = getargs()
-    # is_check = _args.subp == 'check'
-    # is_update = _args.subp == 'update'
-    # print(_args.subp)
-    # print(_args.infile)
-    # sys.exit()
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
     newlocs = loadlocs()
+    total_updated = 0
+    total_written = 0
+    is_update = _args.subp == 'update'
     main()
+    if is_update:
+        print(f'Total Updated: {total_updated}, Total Written: {total_written}')
