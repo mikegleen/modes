@@ -1,0 +1,38 @@
+---
+cmd: ifattrib
+elt: '.'
+attribute: elementtype
+value: 'Original Artwork'
+---
+cmd: column
+elt: ./ObjectIdentity/Number
+---
+cmd: column
+elt: ./Identification/Title
+---
+cmd: column
+elt: ./Description/Material[Part="medium"]/Keyword
+title: 'Medium'
+---
+cmd: column
+elt: ./Description/Measurement[Part="Image"]/Reading
+title: 'Image Size'
+---
+cmd: column
+elt: ./ObjectLocation[@elementtype="normal location"]/Location
+title: 'Normal Location'
+---
+cmd: column
+elt: ./References/Reference[@elementtype="First Published In"]/Title
+title: 'First Published In'
+
+---
+cmd: column
+elt: ./References/Reference[@elementtype="First Published In"]/Date
+title: 'First Published Date'
+
+---
+cmd: column
+elt: ./References/Reference[@elementtype="AE Johnson Number"]
+title: 'AEJ Number'
+

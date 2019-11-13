@@ -1,0 +1,75 @@
+---
+cmd: ifattrib
+elt: '.'
+attribute: elementtype
+value: 'Original Artwork'
+---
+cmd: column
+elt: ./NumberOfItems
+---
+cmd: column
+elt: ./Identification/ObjectName[@elementtype="Type of Object"]/Keyword
+title: 'Type of Object'
+---
+cmd: column
+elt: ./Production/Person[Role="artist"]/PersonName
+title: Artist
+---
+cmd: column
+elt: ./Description/Material[Part="support"]/Keyword
+title: On what
+---
+cmd: column
+elt: ./Description/Measurement[Part="Mount"]/Reading
+title: 'Mount Size'
+---
+cmd: column
+elt: ./Description/Measurement[Part="Frame"]/Reading
+title: 'Frame Size'
+---
+cmd: column
+elt: ./ObjectLocation[@elementtype="current location"]/Location
+title: 'Current Location'
+---
+cmd: column
+elt: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
+title: 'Date Moved'
+---
+cmd: column
+elt: ./ObjectLocation[@elementtype="current location"]/Reason
+title: 'Purpose of Move'
+---
+cmd: column
+elt: ./Description/Condition
+---
+cmd: column
+elt: ./Conservation/Type
+title: 'Conservation Type'
+---
+cmd: column
+elt: ./Conservation/Person
+title: 'Conservation By Whom'
+---
+cmd: column
+elt: ./Conservation/Date
+title: 'Conservation Date'
+---
+cmd: column
+elt: ./Reproduction[@elementtype="Digital Image"]/SummaryText
+title: 'Digital Image'
+---
+cmd: column
+elt: ./Acquisition/Method
+title: 'Acquisition Method'
+---
+cmd: column
+elt: ./Acquisition/Date
+title: 'Acquisition Date'
+---
+cmd: column
+elt: ./Acquisition/Person[Role="acquired from"]/PersonName
+title: 'Acquired From'
+---
+cmd: column
+elt: ./Description/Inscription/SummaryText
+title: Inscription
