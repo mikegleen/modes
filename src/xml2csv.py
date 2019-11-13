@@ -101,8 +101,7 @@ def getargs():
 
 
 if __name__ == '__main__':
-    if sys.version_info.major < 3 or sys.version_info.minor < 6:
-        raise ImportError('requires Python 3.6')
+    assert sys.version_info >= (3, 6)
     _args = getargs()
     nlines = 0
     infile = open(_args.infile)
