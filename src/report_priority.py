@@ -11,7 +11,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-from utl.cfgutil import read_yaml_cfg, fieldnames
+from utl.cfgutil import read_yaml_cfg
 
 
 def trace(level, template, *args):
