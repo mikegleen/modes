@@ -39,6 +39,8 @@ def one_table(table, outcsv):
     tds = rows[0].find_all('td')
     field = tds[0].p.get_text()  # Accession number JB437
     # print(f'field: "{field}"')
+    if 'Accession' not in field:
+        return
     objectid = re.sub(r'Accession\s+number', '', field).strip()
     # print(f'objectid: "{objectid}"')
 
@@ -68,6 +70,9 @@ def main():
         trace(3, '_args.table: {}, tablenumber: {}', _args.table, tablenumber)
         if _args.table and _args.table != tablenumber:
             continue
+        if _args.skiptable >= tablenumber:
+            trace(2, 'Skipping tablenumber: {}', tablenumber)
+            continue
         one_table(table, outcsv)
     htmlfile.close()
 
@@ -85,6 +90,9 @@ def getargs():
         The input HTML file''')
     parser.add_argument('outfile', help='''
         The output CSV file''')
+    parser.add_argument('-s', '--skiptable', type=int, default=0, help='''
+        Number of tables to skip at the beginning of the file.
+        ''')
     parser.add_argument('-t', '--table', type=int, default=0, help='''
         Select a single table to process. The default is to process all tables.
         ''')
