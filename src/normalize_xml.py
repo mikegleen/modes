@@ -76,9 +76,7 @@ def getargs():
 
 
 if __name__ == '__main__':
-    targetversion = sys.version_info.major * 1000 + sys.version_info.minor
-    if targetversion < 3007:
-        raise ImportError('requires Python 3.7 or higher')
+    assert sys.version_info >= (3, 6)
     _args = getargs()
     infile = open(_args.infile, encoding=_args.encoding)
     outfile = open(_args.outfile, 'wb')
