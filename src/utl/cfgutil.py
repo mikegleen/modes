@@ -4,8 +4,33 @@
 """
 
 from collections import namedtuple
+import yaml
 
 Cfg = namedtuple('Cfg', ('columns', 'required'))
+
+
+def mak_yaml_target(col):
+    command, target, attrib = col
+    if command == 'attrib':
+        target += '@' + attrib
+    elif command == 'count':
+        target = f'{target}(len)'
+        # print(target)
+    elif command == 'ifattrib':
+        return None  # Not included in heading
+    h = target.split('/')[-1]  # trailing element name
+    target = h.split('[')[0]  # strip trailing [@xyz='def']
+    return target
+
+
+def read_yaml_cfg(cfgf):
+    genyaml = yaml.safe_load_all(cfgf)  # generator object
+    cfg = [x for x in genyaml]
+    for stmt in cfg:
+        if 'title' not in stmt:
+            stmt['title'] = mak_yaml_target((stmt['cmd'], stmt['elt'],
+                                      stmt['attribute'] if 'attribute' in stmt else None))
+    return cfg
 
 
 def read_cfg(cfgf):
@@ -60,8 +85,8 @@ def read_cfg(cfgf):
                 cols.append((command, row[1], None))
             elif command == 'required':
                 reqd.append(row[1])
-            elif command == 'attrib':
-                params = ['attrib'] + row[1].split(',')
+            elif command in ('attrib', 'ifattrib'):
+                params = [command] + row[1].split(',')
                 params = [x.strip() for x in params]
                 if len(params) != 3:
                     raise SyntaxError(f'Bad number of parameters in ATTRIB'
@@ -79,7 +104,9 @@ def maktarget(col):
         target += '@' + attrib
     elif command == 'count':
         target = f'{target}(len)'
-        print(target)
+        # print(target)
+    elif command == 'ifattrib':
+        return None  # Not included in heading
     return target
 
 
@@ -93,6 +120,7 @@ def fieldnames(cols):
     hdgs = ['Serial']  # hardcoded first entry
     targets = [maktarget(col) for col in cols]
     for col in targets:
-        h = col.split('/')[-1]  # trailing element name
-        hdgs.append(h.split('[')[0])  # strip trailing [@xyz='def']
+        if col:
+            h = col.split('/')[-1]  # trailing element name
+            hdgs.append(h.split('[')[0])  # strip trailing [@xyz='def']
     return hdgs
