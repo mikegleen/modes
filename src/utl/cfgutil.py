@@ -6,30 +6,87 @@
 from collections import namedtuple
 import yaml
 
-Cfg = namedtuple('Cfg', ('columns', 'required'))
+# The difference between the 'attrib' command and the attribute statement:
+# The 'attrib' command is just like the column command except that the attribute
+# value as given in the attribute statement is extracted.
+# The 'attribute' statement is also used in the case of the 'ifattrib' command to name the
+# attribute to test against the 'value' statement.
 
 
-def mak_yaml_target(col):
-    command, target, attrib = col
-    if command == 'attrib':
+class Cmd:
+    ATTRIB = 'attrib'
+    COLUMN = 'column'
+    IF = 'if'  # if text is present
+    COUNT = 'count'
+    IFEQ = 'ifeq'  # requires value statement
+    IFATTRIB = 'ifattrib'
+    # Commands that do not produce a column in the output CSV file
+    CONTROL_CMDS = (IF, IFEQ, IFATTRIB)
+
+
+class Stmt:
+    CMD = 'cmd'
+    ELT = 'elt'
+    ATTRIBUTE = 'attribute'
+    TITLE = 'title'
+    VALUE = 'value'
+    CASESENSITIVE = 'casesensitive'
+
+
+Cfg = namedtuple('Cfg', ('column', 'required'))
+
+
+def validate_yaml_cmd(cmd):
+    validlist = [cmd for cmd in dir(Cmd) if not cmd.startswith('_')]
+    return cmd in validlist
+
+
+def validate_yaml_stmt(stmt):
+    validlist = [stmt for stmt in dir(Stmt) if not stmt.startswith('_')]
+    return stmt in validlist
+
+
+def validate_yaml_cfg(cfg):
+    for stmt in cfg:
+        if not validate_yaml_stmt(stmt):
+            print(f'{stmt} is not a valid statement.')
+            return False
+        command = stmt[Stmt.CMD]
+        if not validate_yaml_cmd(command):
+            print(f'{command} is not a valid command.')
+            return False
+        if command in Cmd.CONTROL_CMDS:
+            if Stmt.TITLE in stmt:
+                print(f'title is illegal for {command} command.')
+                return False
+        return True
+
+
+def mak_yaml_col_hdg(command, target, attrib):
+    if command == Cmd.ATTRIB:
         target += '@' + attrib
-    elif command == 'count':
+    elif command == Cmd.COUNT:
         target = f'{target}(len)'
         # print(target)
-    elif command == 'ifattrib':
+    elif command in Cmd.CONTROL_CMDS:
         return None  # Not included in heading
+    # command is 'column'
     h = target.split('/')[-1]  # trailing element name
     target = h.split('[')[0]  # strip trailing [@xyz='def']
     return target
 
 
 def read_yaml_cfg(cfgf):
-    genyaml = yaml.safe_load_all(cfgf)  # generator object
-    cfg = [x for x in genyaml]
-    for stmt in cfg:
-        if 'title' not in stmt:
-            stmt['title'] = mak_yaml_target((stmt['cmd'], stmt['elt'],
-                                      stmt['attribute'] if 'attribute' in stmt else None))
+    cfg = list(yaml.safe_load_all(cfgf))
+    for document in cfg:
+        cmd = document[Stmt.CMD]
+        elt = document[Stmt.ELT]
+        # Specify the column title. If the command 'title' isn't specified, construct
+        # the title from the trailing element name from the 'elt' command.
+        if 'title' not in document:
+            target = mak_yaml_col_hdg(cmd, elt, document.get('attrib'))
+            if target:
+                document[Stmt.TITLE] = target
     return cfg
 
 
@@ -69,7 +126,7 @@ def read_cfg(cfgf):
             If cfgf is None, return a Cfg namedtuple with empty lists.
 
     """
-
+    cfg = []
     cols = []
     reqd = []
     if cfgf:
@@ -80,10 +137,10 @@ def read_cfg(cfgf):
             row = line.split(None, 1)
             assert len(row) > 1, f'Invalid command: "{line}"'
             command = row[0].lower()
-            if command in ('column', 'count'):
+            if command in (Cmd.COLUMN, Cmd.COUNT):
                 row[1] = row[1].strip('\'"')  # remove leading & trailing quotes
                 cols.append((command, row[1], None))
-            elif command == 'required':
+            elif command == Cmd.REQUIRED:
                 reqd.append(row[1])
             elif command in ('attrib', 'ifattrib'):
                 params = [command] + row[1].split(',')
@@ -98,6 +155,21 @@ def read_cfg(cfgf):
     return cfg
 
 
+def mak_yaml_target(col):
+    title = col.get(Stmt.TITLE)
+    if title:
+        return title
+    command = col[Stmt.CMD]
+    target = col[Stmt.ELT]
+    attrib = col.get(Stmt.ATTRIBUTE)
+    if command == Cmd.ATTRIB:
+        target += '@' + attrib
+    elif command == 'count':
+        target = f'{target}(len)'
+        # print(target)
+    return target
+
+
 def maktarget(col):
     command, target, attrib = col
     if command == 'attrib':
@@ -108,6 +180,24 @@ def maktarget(col):
     elif command == 'ifattrib':
         return None  # Not included in heading
     return target
+
+
+def yaml_fieldnames(cols):
+    """
+    :param cols: the list produced by read_cfg or that list converted to
+                 a list of strings.
+    :return: a list of column headings extracted from the last subelement in
+             the xpath statement
+    """
+    hdgs = ['Serial']  # hardcoded first entry
+    targets = [mak_yaml_target(col) for col in cols if col['cmd'] not in Cmd.CONTROL_CMDS]
+    for col in targets:
+        if col.startswith('.'):  # extract heading from elt statement
+            h = col.split('/')[-1]  # trailing element name
+            hdgs.append(h.split('[')[0])  # strip trailing [@xyz='def']
+        else:
+            hdgs.append(col)  # heading from title statement
+    return hdgs
 
 
 def fieldnames(cols):
