@@ -13,7 +13,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-from utl.cfgutil import read_yaml_cfg, yaml_fieldnames, Cmd, Stmt
+from utl.cfgutil import read_yaml_cfg, yaml_fieldnames, Cmd, Stmt, validate_yaml_cfg
 
 
 def trace(level, template, *args):
@@ -31,14 +31,14 @@ def opencsvwriter(filename):
 
 def main(inf, outf, cfgf):
     global nlines, not_found
+    cols = read_yaml_cfg(cfgf)
+    if not validate_yaml_cfg(cols):
+        print('Config validation failed. Program aborted.')
+        sys.exit(1)
     outcsv = opencsvwriter(outf)
     outlist = []
-    cfg = read_yaml_cfg(cfgf)
-    cols = cfg.column
     targets = yaml_fieldnames(cols)
-    reqd = cfg.required
-    trace(1, 'columns: {}', ', '.join(targets))
-    trace(1, 'required: {}', ', '.join(reqd) if reqd else 'None')
+    trace(1, 'Columns: {}', ', '.join(targets))
     if _args.fields:
         outcsv.writerow(targets)
     for event, elem in ET.iterparse(inf):
@@ -69,7 +69,7 @@ def main(inf, outf, cfgf):
                 text = ''
             else:
                 text = element.text.strip()
-            if not text and command == Cmd.REQUIRED:
+            if not text and command == Cmd.IF:
                 writerow = False
                 break
             if command in (Cmd.IFEQ, Cmd.IFATTRIB):
@@ -89,7 +89,7 @@ def main(inf, outf, cfgf):
             outlist.append(data)
         if _args.short:
             break
-    outlist = sorted(outlist)
+    outlist.sort()
     for row in outlist:
         outcsv.writerow(row)
 
@@ -131,4 +131,4 @@ if __name__ == '__main__':
     main(infile, _args.outfile, cfgfile)
     trace(1, '{} lines written to {}.', nlines, _args.outfile)
     if not_found:
-        trace(1, '{} elements not found.', not_found)
+        trace(1, 'Warning: {} elements not found.', not_found)

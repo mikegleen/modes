@@ -36,30 +36,53 @@ class Stmt:
 Cfg = namedtuple('Cfg', ('column', 'required'))
 
 
+def dump_document(document):
+    print('Document:')
+    for stmt in document:
+        print(f'     {stmt}: {document[stmt]}')
+    print('     ---')
+
+
 def validate_yaml_cmd(cmd):
-    validlist = [cmd for cmd in dir(Cmd) if not cmd.startswith('_')]
-    return cmd in validlist
+    validlist = [getattr(Cmd, c) for c in dir(Cmd) if isinstance(getattr(Cmd, c), str)
+                 and not c.startswith('_')]
+    # print('validlist', validlist)
+    valid = cmd in validlist
+    if not valid:
+        print(f'{cmd} is not a valid command.')
+    return valid
 
 
-def validate_yaml_stmt(stmt):
-    validlist = [stmt for stmt in dir(Stmt) if not stmt.startswith('_')]
-    return stmt in validlist
+def validate_yaml_stmts(document):
+    validlist = [getattr(Stmt, stmt) for stmt in dir(Stmt) if not stmt.startswith('_')]
+    # print(validlist)
+    # print(document)
+    valid = True
+    for stmt in document:
+        if stmt not in validlist:
+            print(f'"{stmt}" is not a valid statement.')
+            valid = False
+    return valid
 
 
 def validate_yaml_cfg(cfg):
-    for stmt in cfg:
-        if not validate_yaml_stmt(stmt):
-            print(f'{stmt} is not a valid statement.')
-            return False
-        command = stmt[Stmt.CMD]
+    valid = True
+    for document in cfg:
+        valid_doc = True
+        if not validate_yaml_stmts(document):
+            valid_doc = False
+        command = document[Stmt.CMD]
         if not validate_yaml_cmd(command):
-            print(f'{command} is not a valid command.')
-            return False
+            valid_doc = False
         if command in Cmd.CONTROL_CMDS:
-            if Stmt.TITLE in stmt:
+            if Stmt.TITLE in document:
                 print(f'title is illegal for {command} command.')
-                return False
-        return True
+                valid_doc = False
+        if not valid_doc:
+            valid = False
+            dump_document(document)
+
+    return valid
 
 
 def mak_yaml_col_hdg(command, target, attrib):
@@ -140,7 +163,7 @@ def read_cfg(cfgf):
             if command in (Cmd.COLUMN, Cmd.COUNT):
                 row[1] = row[1].strip('\'"')  # remove leading & trailing quotes
                 cols.append((command, row[1], None))
-            elif command == Cmd.REQUIRED:
+            elif command == 'required':
                 reqd.append(row[1])
             elif command in ('attrib', 'ifattrib'):
                 params = [command] + row[1].split(',')
