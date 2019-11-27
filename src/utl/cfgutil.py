@@ -78,6 +78,10 @@ def validate_yaml_cfg(cfg):
             if Stmt.TITLE in document:
                 print(f'title is illegal for {command} command.')
                 valid_doc = False
+        if command in (Cmd.IFEQ, Cmd.IFATTRIB):
+            if Stmt.VALUE not in document:
+                print(f'value is required for {command} command.')
+                valid_doc = False
         if not valid_doc:
             valid = False
             dump_document(document)
