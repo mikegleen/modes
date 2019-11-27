@@ -58,7 +58,7 @@ def main(inf, outf, cfgf):
             if element is None:
                 not_found += 1
                 trace(2, '"{}" is not found.', elt)
-            if command not in (Cmd.ATTRIB, Cmd.IFATTRIB):
+            if command in (Cmd.ATTRIB, Cmd.IFATTRIB):
                 attribute = col.get(Stmt.ATTRIBUTE)
             if attribute and element is not None:
                 text = element.get(attribute)
