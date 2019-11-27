@@ -1,0 +1,17 @@
+---
+cmd: ifeq
+elt: ./ObjectLocation[@elementtype="current location"]/Location
+value: 'Joan Brinsmead Gallery'
+---
+cmd: column
+elt: ./ObjectLocation[@elementtype="normal location"]/Location
+title: Normal
+
+#---
+#cmd: column
+#elt: './ObjectLocation[@elementtype="current location"]/Location'
+#title: Current
+#---
+#cmd: column
+#elt: './ObjectLocation[@elementtype="current location"]/Date/DateBegin'
+#title: Current

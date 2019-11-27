@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    Book: # of pages
-    Remove the Description/Aspect element and replace it with a
-    Description/Measurement measurement
+        For objects where the type of object is "drawing", remove the extraneous text
+        "Drawing - " from the beginning of the BriefDescription element text.
 
 """
 import argparse

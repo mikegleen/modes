@@ -33,9 +33,9 @@ def loadlocs():
 
 def handle_check(idnum, elem):
     if _args.all:
-        if idnum not in newlocs:
+        if idnum not in newlocs and _args.warn:
             trace(3, 'Not in CSV file: {}', idnum)
-        return
+            return
     objlocs = elem.findall('./ObjectLocation')
     for ol in objlocs:
         loc = ol.get('elementtype')
@@ -47,8 +47,8 @@ def handle_check(idnum, elem):
                 text = location.text.strip().upper()
             else:
                 text = None
-            newtext = newlocs[idnum]  # we've checked that it's there
-            trace(2, 'Found in CSV {}: {}', idnum, newtext)
+            newtext = _args.location if _args.location else newlocs[idnum]
+            trace(2, 'New location for {}: {}', idnum, newtext)
             if text != newtext:
                 trace(1, 'Different {}: XML: {}, CSV: {}', idnum, text,
                       newtext)
@@ -74,7 +74,8 @@ def update_one_location(ol, idnum):
         text = location.text.strip().upper()
     else:
         text = None
-    newtext = newlocs[idnum]  # we've already checked that it's there
+
+    newtext = _args.location if _args.location else newlocs[idnum]
     if text != newtext:
         trace(2, '{}: Updated {} -> {}', idnum, text, newtext)
         location.text = newtext
@@ -105,8 +106,8 @@ def handle_update(idnum, elem):
             trace(1, '{}: Specified object location missing', idnum)
         del newlocs[idnum]
     else:
-        if _args.all:
-            trace(3, '{}: Not in CSV file', idnum)
+        if _args.warn:
+            trace(1, '{}: Not in CSV file', idnum)
     if updated or _args.all:
         outfile.write(ET.tostring(elem, encoding='us-ascii'))
         total_written += 1
@@ -133,8 +134,8 @@ def add_arguments(parser):
         parser.add_argument('outfile', help='''
             The output XML file.''')
     parser.add_argument('-a', '--all', action='store_true', help='''
-        Write all objects and issue a warning if an object is not in the detail
-        CSV file. The default is to only write updated objects. In either case
+        Write all objects and, if -w is selected, issue a warning if an object is not in
+        the detail CSV file. The default is to only write updated objects. In either case
         warn if an object in the CSV file is not in the input XML file.
         ''')
     if is_update:
@@ -156,6 +157,15 @@ def add_arguments(parser):
     parser.add_argument('--encoding', default='utf-8', help='''
         Set the input encoding. Default is utf-8. Output is always ascii.
         ''')
+    parser.add_argument('-l', '--location', help='''
+        Set the location for all of the objects. In this case the CSV file only needs a
+        single column containing the accession number.
+        ''')
+    parser.add_argument('-m', '--mapfile', required=True, help='''
+        The CSV file mapping the object number to its new location. The object ID
+        is in the first column (column 0). The new location is by default
+        in the second column (column 1) but can be changed by the --col option.
+        ''')
     parser.add_argument('-n', '--normal', action='store_true', help='''
         Update the normal location.
         Select one of "b", "n", and "c".''')
@@ -170,10 +180,8 @@ def add_arguments(parser):
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
-    parser.add_argument('-m', '--mapfile', required=True, help='''
-        The CSV file mapping the object number to its location. The object ID
-        is in the first column (column 0). The new location is by default
-        in the second column (column 1) but can be changed by the --col option.
+    parser.add_argument('-w', '--warn', action='store_true', help='''
+        Valid if -a is selected. Warn if an object in the XML file is not in the CSV file.
         ''')
 
 
@@ -202,6 +210,9 @@ def getargs():
         raise ValueError('Select one of "b", "n", and "c".')
     args.current |= args.both
     args.normal |= args.both
+    # Set a fake value for the new location as it will be taken from the --location value.
+    if args.location:
+        args.col = 0
     return args
 
 
