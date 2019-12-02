@@ -1,0 +1,15 @@
+CONDAENV=py7
+set -e
+if [[ "$CONDA_DEFAULT_ENV" != $CONDAENV ]]; then
+    echo Activating $CONDAENV...
+    eval "$(conda shell.bash hook)"
+    conda activate py7
+fi
+pushd ~/pyprj/hrm/modes
+INXML=`basename $1`
+INDIR=`dirname $1`
+mkdir -p $INDIR/pretty
+BASENAME=`python3 -c "print('$INXML'.split('.')[0])"`
+PRETTYPATH="$INDIR/pretty/${BASENAME}_pretty.xml"
+echo Creating: $PRETTYPATH
+python src/normalize_xml.py -p $1 $PRETTYPATH
