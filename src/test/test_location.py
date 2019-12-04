@@ -15,22 +15,22 @@ class TestLocation(unittest.TestCase):
     F = False
     TESTLOCATION = '/Users/mlg/pyprj/hrm/modes/data/test/location/xml'
     TESTFILES = [
-        ('location_test01.xml', T),  # 1 normal, 1 current
-        ('location_test02.xml', T),  # 1 normal, 2 current
-        ('location_test03.xml', F),  # date present in first current; shouldn't be
-        ('location_test04.xml', F),  # bad  DateBegin
-        ('location_test05.xml', F),  # missing DateBegin
-        ('location_test06.xml', F),  # DateEnd missing from old current
-        ('location_test07.xml', F),  # dates out of order
-        ('location_test08.xml', F),  # Unexpected ObjectLocation elementtype
-        ('location_test09.xml', F),  # multiple normal locations
-        ('location_test10.xml', F),  # missing current location
-        ('location_test11.xml', F),  # first location is not normal
+        ('location_test01.xml', T, '1 normal, 1 current'),
+        ('location_test02.xml', T, '1 normal, 2 current'),
+        ('location_test03.xml', T, 'dateend present in first current'),
+        ('location_test04.xml', F, 'bad  DateBegin'),
+        ('location_test05.xml', F, 'missing DateBegin'),
+        ('location_test06.xml', F, 'DateEnd missing from old current'),
+        ('location_test07.xml', F, 'dates oldest first, missing DateEnd'),
+        ('location_test08.xml', F, 'Unexpected ObjectLocation elementtype'),
+        ('location_test09.xml', F, 'multiple normal locations'),
+        ('location_test10.xml', F, 'missing current location'),
+        ('location_test11.xml', T, 'first location is not normal'),
         # 'location_test05.xml',
     ]
 
     def test_validate(self):
-        for filename, result in TestLocation.TESTFILES:
+        for filename, expected, msg in TestLocation.TESTFILES:
             with self.subTest(filename=filename):
                 testfile = os.path.join(TestLocation.TESTLOCATION, filename)
                 infile = open(testfile)
@@ -38,15 +38,15 @@ class TestLocation(unittest.TestCase):
                 elem = tree.find('Object')
                 idelem = elem.find('./ObjectIdentity/Number')
                 idnum = idelem.text if idelem is not None else None
-                valid = validate_locations(idnum, elem)
+                result = validate_locations(idnum, elem)
                 infile.close()
-                if result:
-                    self.assertTrue(valid)
+                if expected:
+                    self.assertTrue(result, msg=msg)
                 else:
-                    self.assertFalse(valid)
+                    self.assertFalse(result, msg=msg)
+
+
 """
-
-
 class TestLocation2(unittest.TestCase):
 
     def __init__(self, filename, result):
