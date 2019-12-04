@@ -30,8 +30,10 @@ def loadlocs():
     :return: the dictionary containing the mappings
     """
     location_dict = {}
+    if _args.subp == 'validate':
+        return location_dict
     loc_arg = _args.location
-    need_heading = True if _args.heading else False
+    need_heading = bool(_args.heading)
     with codecs.open(_args.mapfile, 'r', 'utf-8-sig') as mapfile:
         reader = csv.reader(mapfile)
         for row in reader:
@@ -259,6 +261,10 @@ def handle_update(idnum, elem):
         total_written += 1
 
 
+def handle_validate(idnum, elem):
+    pass
+
+
 def main():
     outfile.write(b'<?xml version="1.0" encoding="utf-8"?><Interchange>\n')
     for event, elem in ET.iterparse(infile):
@@ -267,7 +273,7 @@ def main():
         idelem = elem.find('./ObjectIdentity/Number')
         idnum = idelem.text if idelem is not None else None
         trace(3, 'idnum: {}', idnum)
-        _args.func(idnum, elem)  # handle_check() or handle_update()
+        _args.func(idnum, elem)  # handle_check() or handle_update() or handle_validate()
         if _args.short:
             break
     outfile.write(b'</Interchange>')
@@ -334,9 +340,9 @@ def add_arguments(parser):
         parser.add_argument('--reset_current', action='store_true', help='''
         Only output the most recent current location element for each object.
         ''')
-    parser.add_argument('-r', '--reason', default='', help='''
-        Insert this text as the reason for the move to the new current location.
-        ''')
+        parser.add_argument('-r', '--reason', default='', help='''
+            Insert this text as the reason for the move to the new current location.
+            ''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process a single object. For debugging.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -363,10 +369,15 @@ def getargs():
     update_parser = subparsers.add_parser('update', description='''
     Update the XML file from the location in the CSV file specified by -m.
     ''')
+    validate_parser = subparsers.add_parser('validate', description='''
+    Run the validate_locations function against the input file.
+    ''')
     check_parser.set_defaults(func=handle_check)
     update_parser.set_defaults(func=handle_update)
+    validate_parser.set_defaults(func=handle_validate)
     add_arguments(check_parser)
     add_arguments(update_parser)
+    add_arguments(validate_parser)
     args = parser.parse_args()
     if int(args.both) + int(args.current) + int(args.normal) != 1:
         raise ValueError('Select one of "b", "n", and "c".')
@@ -397,4 +408,4 @@ if __name__ == '__main__':
         print(f'Total Updated: {total_updated}/{total_in_csvfile}\n'
               f'Total Written: {total_written}')
     if verbose >= 1:
-        print(f'End location {sys.argv[1]}.')
+        print(f'End location {_args.subp}.')
