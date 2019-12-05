@@ -24,7 +24,7 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-def loadlocs():
+def loadcsv():
     """
     Read the CSV file containing objectid -> location mappings
     :return: the dictionary containing the mappings
@@ -78,70 +78,73 @@ def handle_check(idnum, elem):
 def validate_locations(idnum, elem):
     """
     :param idnum:
-    :param elem:
+    :param elem: The Object element
     :return: True if valid, False otherwise
     """
-    valid = True
     numnormal = numcurrent = 0
+    numnodateend = 0
     objlocs = elem.findall('./ObjectLocation')
+    currentlocs = []
     for ol in objlocs:
         loc = ol.get(ELEMENTTYPE)
         if loc == NORMAL_LOCATION:
             numnormal += 1
         elif loc == CURRENT_LOCATION:
             numcurrent += 1
+            datebegin = ol.find('./Date/DateBegin')
+            if datebegin is None or datebegin.text is None:
+                trace(1, 'E01 {}: No DateBegin for current location', idnum)
+                return False
+            try:
+                datebegindate = nd.date(datebegin.text)
+            except (ValueError, TypeError):
+                trace(1,'E02 {}: Invalid DateBegin for current location: "{}".', idnum,
+                      datebegin.text)
+                return False
+            dateend = ol.find('./Date/DateEnd')
+            if dateend is None or dateend.text is None:
+                numnodateend += 1
+                dateenddate = None
+            else:
+                try:
+                    dateenddate = nd.date(dateend.text)
+                except (ValueError, TypeError):
+                    trace(1, 'E03 {}: Invalid DateEnd for current location: "{}".', idnum,
+                          dateend.text)
+                    return False
+            currentlocs.append((datebegindate, dateenddate))
         else:
-            trace(1, '{}: Unexpected ObjectLocation elementtype = "{}"', idnum, loc)
+            trace(1, 'E04 {}: Unexpected ObjectLocation elementtype = "{}".', idnum, loc)
             return False
     if numnormal != 1:
-        trace(1, '{}: Expected one normal location, got {}', idnum, numnormal)
+        trace(1, 'E05 {}: Expected one normal location, got {}', idnum, numnormal)
         return False
     if numcurrent < 1:
-        trace(1, '{}: Expected one or more current locations, got 0', idnum)
-        valid = False
-    if not valid:
+        trace(1, 'E06 {}: Expected one or more current locations, got 0', idnum)
+        return False
+    if numnodateend != 1:
+        trace(1, 'E07 {}: Expected one current location with no DateEnd, got {}', idnum,
+              numnodateend)
         return False
 
-    # Confirm the first ObjectLocation is a normal location.
-    elttype = objlocs[0].get(ELEMENTTYPE)
-    if elttype != NORMAL_LOCATION:
-        trace(1, '{}: The first ObjectLocation is not the normal location', idnum)
+    # Check that the latest date is the one with no DateEnd.
+    currentlocs.sort(reverse=True)
+    if currentlocs[0][1] is not None:
+        trace(1, 'E08 {}: current location with no DateEnd is not the latest.', idnum)
         return False
-
-    # We now know that all remaining ObjectLocation elements are current date.
-    # The first current location must have a DateBegin but no DateEnd.
-    try:
-        datebegin = objlocs[1].find('./Date/DateBegin').text
-        datebegin = nd.date(datebegin)
-    except (AttributeError, ValueError, TypeError) as err:
-        trace(1, '{}: Bad DateBegin - {}', idnum, err)
-        return False
-    dateend = objlocs[1].find('./Date/DateEnd')
-    if dateend is not None:
-        trace(1, '{}: DateEnd present in first current location; should not be', idnum)
-        return False
-
-    # All remaining current location elements must be increasingly old and must have
-    # DateEnd elements.
-    previous_datebegin = datebegin
-    for ol in objlocs[2:]:
-        try:
-            modesdatebegin = ol.find('./Date/DateBegin').text
-            datebegin = nd.date(modesdatebegin)
-        except (AttributeError, ValueError, TypeError) as err:
-            # get might return None which barfs nd.date or bad format date
-            trace(1, '{}: Bad or missing DateBegin - {}', idnum, err)
-            return False
-        if datebegin >= previous_datebegin:
-            trace(1, '{}: Dates out of order. {} >= {}', idnum, datebegin,
-                  previous_datebegin)
-            return False
-        dateend = ol.find('./Date/DateEnd')
-        if dateend is None:
-            trace(1, '{}: DateEnd missing. DateBegin: {}', idnum, modesdatebegin)
-            return False
-        previous_datebegin = datebegin
-    return valid
+    if len(currentlocs) > 1:
+        prevbegin, prevend = currentlocs[0]
+        for nxtbegin, nxtend in currentlocs[1:]:
+            if nxtend < nxtbegin:
+                trace(1, 'E09 {}: begin date {} is younger than end date {}.', idnum,
+                      nxtbegin.isoformat(), nxtend.isoformat())
+                return False
+            if nxtend != prevbegin:
+                trace(1, 'E10 {}: begin date "{}" not equal to previous end date "{}".',
+                      idnum, str(prevbegin), str(nxtend))
+                return False
+            prevbegin = nxtbegin
+    return True
 
 
 def update_normal_location(ol, idnum):
@@ -262,11 +265,16 @@ def handle_update(idnum, elem):
 
 
 def handle_validate(idnum, elem):
-    pass
+    global total_failed, total_objects
+    total_objects += 1
+    valid = validate_locations(idnum, elem)
+    if not valid:
+        total_failed += 1
 
 
 def main():
-    outfile.write(b'<?xml version="1.0" encoding="utf-8"?><Interchange>\n')
+    if outfile:
+        outfile.write(b'<?xml version="1.0" encoding="utf-8"?><Interchange>\n')
     for event, elem in ET.iterparse(infile):
         if elem.tag != 'Object':
             continue
@@ -276,7 +284,8 @@ def main():
         _args.func(idnum, elem)  # handle_check() or handle_update() or handle_validate()
         if _args.short:
             break
-    outfile.write(b'</Interchange>')
+    if outfile:
+        outfile.write(b'</Interchange>')
     if not _args.short:  # Skip warning if only processing one object.
         for idnum in newlocs:
             trace(1, '{}: In CSV but not XML', idnum)
@@ -320,11 +329,12 @@ def add_arguments(parser):
         Set the location for all of the objects. In this case the CSV file only needs a
         single column containing the accession number.
         ''')
-    parser.add_argument('-m', '--mapfile', required=True, help='''
-        The CSV file mapping the object number to its new location. The object ID
-        is in the first column (column 0). The new location is by default
-        in the second column (column 1) but can be changed by the --col option.
-        ''')
+    if is_check or is_update:
+        parser.add_argument('-m', '--mapfile', required=True, help='''
+            The CSV file mapping the object number to its new location. The object ID
+            is in the first column (column 0). The new location is by default
+            in the second column (column 1) but can be changed by the --col option.
+            ''')
     parser.add_argument('-n', '--normal', action='store_true', help='''
         Update the normal location.
         Select one of "b", "n", and "c".''')
@@ -379,14 +389,15 @@ def getargs():
     add_arguments(update_parser)
     add_arguments(validate_parser)
     args = parser.parse_args()
-    if int(args.both) + int(args.current) + int(args.normal) != 1:
-        raise ValueError('Select one of "b", "n", and "c".')
-    args.current |= args.both
-    args.normal |= args.both
-    # Set a fake value for the new location column as it will be taken from the --location
-    # value instead of a column in the CSV file.
-    if args.location:
-        args.col = None
+    if is_check or is_update:
+        if int(args.both) + int(args.current) + int(args.normal) != 1:
+            raise ValueError('Select one of "b", "n", and "c".')
+        args.current |= args.both
+        args.normal |= args.both
+        # Set a fake value for the new location column as it will be taken from the --location
+        # value instead of a column in the CSV file.
+        if args.location:
+            args.col = None
     return args
 
 
@@ -394,18 +405,22 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     is_update = sys.argv[1] == 'update'
     is_check = sys.argv[1] == 'check'
+    is_validate = sys.argv[1] == 'validate'
     _args = getargs()
     verbose = _args.verbose
     infile = open(_args.infile, encoding=_args.encoding)
-    newlocs = loadlocs()
+    newlocs = loadcsv()
     total_in_csvfile = len(newlocs)
-    total_updated = 0
-    total_written = 0
+    total_updated = total_written = 0
+    total_failed = total_objects = 0  # validate only
     if is_update:
         outfile = open(_args.outfile, 'wb')
+    else:
+        outfile = None
     main()
     if is_update:
         print(f'Total Updated: {total_updated}/{total_in_csvfile}\n'
               f'Total Written: {total_written}')
-    if verbose >= 1:
-        print(f'End location {_args.subp}.')
+    if is_validate:
+        print(f'Total failed: {total_failed}/{total_objects}.')
+    trace(1, 'End location {}.', _args.subp)
