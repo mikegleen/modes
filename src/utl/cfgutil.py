@@ -1,5 +1,30 @@
 # -*- coding: utf-8 -*-
 """
+The configuration consists of a YAML file broken into multiple documents, separated by
+lines containing just "---" in the left three columns. Each document contains some of the
+following statements. Statements are case sensitive; all must be lower case. Commands
+can be column-generating or control statements.
+
+Statements:
+-----------
+cmd           Required. See below for a description of the individual commands.
+elt           Required. This describes the XSLT path to a relevant XML element.
+attribute     Required by the attrib and ifattrib commands.
+title         Optional for column-generating commands. If omitted, a best-guess title will
+              be created from the elt statement.
+value         Required for ifeq or ifattrib command.
+casesensitive By default, comparisons are case insensitive.
+
+Commands:
+---------
+column        This is the basic command to display the text of an element
+attrib        Like column except displays the value of the named attribute.
+if            Control command that selects an object to display if the element text is
+              populated.
+ifeq          Select an object if the element text equals the value statement text
+ifattrib      Like ifeq except compares the value against an attribute
+count         Displays the number of occurrences of an element under its parent
+
 
 """
 
@@ -71,7 +96,15 @@ def validate_yaml_cfg(cfg):
         valid_doc = True
         if not validate_yaml_stmts(document):
             valid_doc = False
-        command = document[Stmt.CMD]
+        command = document[Stmt.CMD] if Stmt in document else None
+        if command is None:
+            print('cmd statement is missing.')
+            valid = False
+            dump_document(document)
+            break
+        if Stmt.ELT not in document:
+            print(f'ELT statement missing, cmd: {command}')
+            valid_doc = False
         if not validate_yaml_cmd(command):
             valid_doc = False
         if command in Cmd.CONTROL_CMDS:
@@ -81,6 +114,10 @@ def validate_yaml_cfg(cfg):
         if command in (Cmd.IFEQ, Cmd.IFATTRIB):
             if Stmt.VALUE not in document:
                 print(f'value is required for {command} command.')
+                valid_doc = False
+        if command in (Cmd.ATTRIB, Cmd.IFATTRIB):
+            if Stmt.ATTRIBUTE not in document:
+                print(f'attribute is required for {command} command.')
                 valid_doc = False
         if not valid_doc:
             valid = False
