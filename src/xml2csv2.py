@@ -31,7 +31,7 @@ def opencsvwriter(filename):
 
 def main(inf, outf, cfgf):
     global nlines, not_found
-    cols = read_yaml_cfg(cfgf)
+    cols = read_yaml_cfg(cfgf, dump=_args.verbose >= 2)
     if not validate_yaml_cfg(cols):
         print('Config validation failed. Program aborted.')
         sys.exit(1)
