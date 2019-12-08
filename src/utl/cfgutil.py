@@ -96,7 +96,7 @@ def validate_yaml_cfg(cfg):
         valid_doc = True
         if not validate_yaml_stmts(document):
             valid_doc = False
-        command = document[Stmt.CMD] if Stmt in document else None
+        command = document[Stmt.CMD] if Stmt.CMD in document else None
         if command is None:
             print('cmd statement is missing.')
             valid = False
@@ -140,7 +140,7 @@ def mak_yaml_col_hdg(command, target, attrib):
     return target
 
 
-def read_yaml_cfg(cfgf):
+def read_yaml_cfg(cfgf, dump=False):
     cfg = list(yaml.safe_load_all(cfgf))
     for document in cfg:
         cmd = document[Stmt.CMD]
@@ -151,6 +151,8 @@ def read_yaml_cfg(cfgf):
             target = mak_yaml_col_hdg(cmd, elt, document.get('attrib'))
             if target:
                 document[Stmt.TITLE] = target
+        if dump:
+            dump_document(document)
     return cfg
 
 
