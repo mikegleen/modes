@@ -24,7 +24,7 @@ def main(inf):
         if _args.type and elementtype == _args.type:
             num = elem.find('./ObjectIdentity/Number')
             title = elem.find('./Identification/Title')
-            print(num.text, title.text[:50])
+            print(num.text, title.text[:_args.width])
     if _args.type:
         return
     for e, c in attribs.items():
@@ -42,13 +42,15 @@ def getargs():
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
+    parser.add_argument('-w', '--width', type=int, default=50, help='''
+        Set the width of the title printed. The default is 50.
+        ''')
     args = parser.parse_args()
     return args
 
 
 if __name__ == '__main__':
-    if sys.version_info.major < 3 or sys.version_info.minor < 6:
-        raise ImportError('requires Python 3.6')
+    assert sys.version_info >= (3, 6)
     _args = getargs()
     infile = open(_args.infile)
     main(infile)

@@ -26,10 +26,14 @@ class TestLocation(unittest.TestCase):
         ('location_test09.xml', F, 'multiple normal locations'),
         ('location_test10.xml', F, 'missing current location'),
         ('location_test11.xml', T, 'first location is not normal'),
-        # 'location_test05.xml',
+        ('location_test12.xml', F, 'Invalid DateEnd'),
+        ('location_test13.xml', F, 'current location with no DateEnd is not the latest.'),
+        ('location_test14.xml', F, 'begin date is younger than end date.'),
+        ('location_test15.xml', F, 'begin date is not equal previous end date.'),
     ]
 
     def test_validate(self):
+        print('\n')
         for filename, expected, msg in TestLocation.TESTFILES:
             with self.subTest(filename=filename):
                 testfile = os.path.join(TestLocation.TESTLOCATION, filename)

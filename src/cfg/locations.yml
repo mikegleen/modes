@@ -1,0 +1,16 @@
+---
+cmd: column
+elt: ./ObjectLocation[@elementtype="normal location"]/Location
+title: 'Normal Location'
+---
+cmd: column
+elt: ./ObjectLocation[@elementtype="current location"]/Location
+title: 'Current Location'
+---
+cmd: column
+elt: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
+title: 'Date Begin'
+---
+cmd: column
+elt: ./Identification/Title
+
