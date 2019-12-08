@@ -58,14 +58,16 @@ def main(inf, outf, cfgf):
             if element is None:
                 not_found += 1
                 trace(2, '"{}" is not found.', elt)
+                data.append('')
+                continue
             if command in (Cmd.ATTRIB, Cmd.IFATTRIB):
-                attribute = col.get(Stmt.ATTRIBUTE)
-            if attribute and element is not None:
+                attribute = col[Stmt.ATTRIBUTE]
+            if attribute:
                 text = element.get(attribute)
             elif command == 'count':
                 count = len(list(elem.findall(elt)))
                 text = f'{count}'
-            elif element is None or element.text is None:
+            elif element.text is None:
                 text = ''
             else:
                 text = element.text.strip()
@@ -82,8 +84,8 @@ def main(inf, outf, cfgf):
                     writerow = False
                     break
                 continue
-
             data.append(text)
+
         if writerow:
             nlines += 1
             outlist.append(data)
