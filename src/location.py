@@ -14,6 +14,7 @@ import utl.normalize_date as nd
 
 NORMAL_LOCATION = 'normal location'
 CURRENT_LOCATION = 'current location'
+PREVIOUS_LOCATION = 'previous location'
 ELEMENTTYPE = 'elementtype'
 
 verbose = 1  # overwritten by _args.verbose; set here for unittest
@@ -180,28 +181,26 @@ def update_current_location(elem, idnum):
     Insert a new current location element. If --reset_current is set, delete all of the
     existing current location elements.
 
-    The order of the ObjectLocation elements is that the first one in the document is
-    the normal location followed by the current location elements with the newest ones
-    first.
-
+    We've called validate_locations() so there is no need to test return values from
+    function calls.
     """
-    subelts = list(elem)
-    normlocix = 0
-    objlocfound = False
-    for elt in subelts:
-        normlocix += 1
-        if elt.tag == 'ObjectLocation':
-            objlocfound = True
-            break
-    if not objlocfound:
-        trace(1, '{}: Cannot find ObjectLocation', idnum)
-        return False
-    # normlocix is the index of the normal location (first index is 1). This is where we
-    # will insert the new current location element.
 
-    # Update the existing current location to have a DateEnd element
-    currentlocelem = elem.find('./ObjectLocation[2]')
-    locationelt = currentlocelem.find('./Location')
+    # Find the youngest current location
+    objlocs = elem.findall('./ObjectLocation')
+    ix = 0
+    youngest = [nd.date('1.1.1970'), None]
+    for ol in objlocs:
+        ix += 1
+        loc = ol.get(ELEMENTTYPE)
+        if loc == CURRENT_LOCATION:
+            datebegin = ol.find('./Date/DateBegin')
+            datebegindate = nd.date(datebegin.text)
+            if datebegindate > youngest[0]:
+                youngest = [datebegindate, ol]
+    ol = youngest[1]
+
+    # If the location hasn't changed, do nothing.
+    locationelt = ol.find('./Location')
     if locationelt.text is not None:
         text = locationelt.text.strip().upper()
     else:
@@ -210,17 +209,33 @@ def update_current_location(elem, idnum):
     if text == newlocation.upper():
         trace(2, 'Unchanged: {}: {}', idnum, text)
         return False
-    oldate = currentlocelem.find('./Date')
-    ET.SubElement(oldate, 'DateEnd').text = _args.date
 
-    # Insert a new ObjectLocation after the normal location
-    newloc = ET.Element('ObjectLocation')
-    newloc.set(ELEMENTTYPE, CURRENT_LOCATION)
-    ET.SubElement(newloc, 'Location').text = newlocation
-    locdate = ET.SubElement(newloc, 'Date')
+    # Insert the DateEnd text in the previous youngest current location
+    oldate = ol.find('./Date')
+    oldateend = oldate.find('./DateEnd')
+    if oldateend is None:
+        oldateend = ET.SubElement(oldate, 'DateEnd')
+    oldateend.text = _args.date
+    ol.set(ELEMENTTYPE, PREVIOUS_LOCATION)
+
+    # Create the new current location element.
+    newobjloc = ET.Element('ObjectLocation')
+    newobjloc.set(ELEMENTTYPE, CURRENT_LOCATION)
+    ET.SubElement(newobjloc, 'Location').text = newlocation
+    locdate = ET.SubElement(newobjloc, 'Date')
     ET.SubElement(locdate, 'DateBegin').text = _args.date
-    ET.SubElement(newloc, 'Reason').text = _args.reason
-    elem.insert(normlocix, newloc)  # insert the new element after the normal location
+    ET.SubElement(newobjloc, 'Reason').text = _args.reason
+
+    # Find the first current location and insert a new ObjectLocation before it
+    subelts = list(elem)
+    firstclix = 0  # index of the first current location
+    for elt in subelts:
+        firstclix += 1
+        if elt.tag == 'ObjectLocation' and elt.get(ELEMENTTYPE) == CURRENT_LOCATION:
+            break
+
+    # Update the existing current location to have a DateEnd element
+    elem.insert(firstclix - 1, newobjloc)  # insert the new element before the current location
     trace(2, '{}: Updated {} -> {}', idnum, text, newlocation)
     return True
 
