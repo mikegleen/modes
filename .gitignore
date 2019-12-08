@@ -110,4 +110,5 @@ stocktake/
 dev_backup/
 etc/
 temp/
+scans/
 
