@@ -9,7 +9,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
-from utl.normalize_obj_id import normalize
+from utl.normalize import normalize_id
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
             continue
         seq += 1
         num = elem.find('./ObjectIdentity/Number').text
-        num = normalize(num)
+        num = normalize_id(num)
         if num in objdict:
             print(f'seq {seq}, ID {num} is a duplicate, ignored.')
             continue

@@ -9,7 +9,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 # from utl import normalize_date as nd
-import utl.normalize_date as nd
+import utl.normalize as nd
 
 
 def trace(level, template, *args):

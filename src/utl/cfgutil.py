@@ -13,7 +13,9 @@ attribute     Required by the attrib and ifattrib commands.
 title         Optional for column-generating commands. If omitted, a best-guess title will
               be created from the elt statement.
 value         Required for ifeq or ifattrib command.
+normalize     Adjust this ID number so that it sorts in numeric order.
 casesensitive By default, comparisons are case insensitive.
+width         truncate columns to this width
 
 Commands:
 ---------
@@ -56,6 +58,8 @@ class Stmt:
     TITLE = 'title'
     VALUE = 'value'
     CASESENSITIVE = 'casesensitive'
+    NORMALIZE = 'normalize'
+    WIDTH = 'width'
 
 
 Cfg = namedtuple('Cfg', ('column', 'required'))

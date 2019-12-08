@@ -1,0 +1,16 @@
+cmd: column
+elt: ./ObjectLocation[@elementtype="current location"]/Location
+title: 'Current Location'
+---
+cmd: column
+elt: ./ObjectIdentity/Number
+title: 'ID'
+normalize:
+---
+cmd: column
+elt: ./References/Reference[@elementtype="First Published In"]/Title
+title: 'First Published'
+---
+cmd: column
+elt: ./Identification/Title
+width: 50

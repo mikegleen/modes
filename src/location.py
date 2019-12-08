@@ -10,7 +10,7 @@ from datetime import date
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-import utl.normalize_date as nd
+import utl.normalize as nd
 
 NORMAL_LOCATION = 'normal location'
 CURRENT_LOCATION = 'current location'

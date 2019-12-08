@@ -3,6 +3,7 @@
     Convert a datetime or date object to Modes format d[d].m[m].yyyy.
 """
 import datetime
+import re
 
 
 def modesdate(indate):
@@ -54,3 +55,27 @@ def vdate(indate: str):
         return None
     return d
 
+
+def normalize_id(objid):
+    """
+    The parameter is a string in the format of one of the types of object
+    identifiers in our Modes file.
+
+    Return a string normalized for sorting.
+
+    Input can be of the form JB001 or JB0001 or JB001a or SH1 or LDHRM/2018/1
+    or LDHRM.2018.1.
+    """
+    objid = objid.upper()
+    if objid.startswith('LDHRM'):
+        idlist = re.split(r'[/.]', objid)  # split on either "/" or "."
+        assert len(idlist) == 3
+        assert len(idlist[2]) <= 4
+        idlist[2] = f'{int(idlist[2]):0>4d}'
+        return '.'.join(idlist)
+    # Not an LDHRM/.. id
+    m = re.match(r'(\D*)(\d*)(.*)', objid)
+    if m:
+        return m.group(1) + f'{int(m.group(2)):0>4d}' + m.group(3)
+    else:
+        raise ValueError(f'Bad format objid: {objid}')

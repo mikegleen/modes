@@ -14,7 +14,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import read_yaml_cfg, yaml_fieldnames, Cmd, Stmt, validate_yaml_cfg
-
+from utl.normalize import normalize_id
 
 def trace(level, template, *args):
     if _args.verbose >= level:
@@ -31,13 +31,15 @@ def opencsvwriter(filename):
 
 def main(inf, outf, cfgf):
     global nlines, not_found
-    cols = read_yaml_cfg(cfgf, dump=_args.verbose >= 2)
-    if not validate_yaml_cfg(cols):
+    config = read_yaml_cfg(cfgf, dump=_args.verbose >= 2)
+    if not validate_yaml_cfg(config):
         print('Config validation failed. Program aborted.')
         sys.exit(1)
     outcsv = opencsvwriter(outf)
     outlist = []
-    targets = yaml_fieldnames(cols)
+    targets = yaml_fieldnames(config)
+    if _args.inhibit_number:
+        targets = targets[1:]
     trace(1, 'Columns: {}', ', '.join(targets))
     if _args.fields:
         outcsv.writerow(targets)
@@ -45,26 +47,30 @@ def main(inf, outf, cfgf):
         if elem.tag != 'Object':
             continue
         writerow = True
-        # data[0] = Id
-        data = [elem.find('./ObjectIdentity/Number').text]
-        # cols is a list of dicts, one dict per YAML document in the config
+        data = []
+        idelem = elem.find('./ObjectIdentity/Number')
+        idnum = idelem.text if idelem is not None else ''
+        trace(3, 'idnum: {}', idnum)
+        if not _args.inhibit_number:
+            data.append(idnum)
+        # config is a list of dicts, one dict per YAML document in the config
         # This maps to the columns in the output CSV file plus a few control commands.
-        for col in cols:
+        for document in config:
             text = ''
             attribute = None
-            command = col[Stmt.CMD]
-            elt = col[Stmt.ELT]
+            command = document[Stmt.CMD]
+            elt = document[Stmt.ELT]
             element = elem.find(elt)
             if element is None:
                 not_found += 1
-                trace(2, '"{}" is not found.', elt)
+                trace(2, '{}: "{}" is not found.', idnum, document[Stmt.TITLE])
                 data.append('')
                 continue
             if command in (Cmd.ATTRIB, Cmd.IFATTRIB):
-                attribute = col[Stmt.ATTRIBUTE]
+                attribute = document[Stmt.ATTRIBUTE]
             if attribute:
                 text = element.get(attribute)
-            elif command == 'count':
+            elif command == Cmd.COUNT:
                 count = len(list(elem.findall(elt)))
                 text = f'{count}'
             elif element.text is None:
@@ -75,15 +81,19 @@ def main(inf, outf, cfgf):
                 writerow = False
                 break
             if command in (Cmd.IFEQ, Cmd.IFATTRIB):
-                value = col[Stmt.VALUE]
+                value = document[Stmt.VALUE]
                 textvalue = text
-                if Stmt.CASESENSITIVE not in col:
+                if Stmt.CASESENSITIVE not in document:
                     value = value.lower()
                     textvalue = textvalue.lower()
                 if value != textvalue:
                     writerow = False
                     break
                 continue
+            if Stmt.NORMALIZE in document:
+                text = normalize_id(text)
+            if Stmt.WIDTH in document:
+                text = text[:document[Stmt.WIDTH]]
             data.append(text)
 
         if writerow:
@@ -109,6 +119,9 @@ def getargs():
         The output CSV file.''')
     parser.add_argument('-f', '--fields', action='store_true', help='''
         Write a row at the front of the CSV file containing the field names.'''
+                        )
+    parser.add_argument('-i', '--inhibit_number', action='store_true', help='''
+        Do not emit the accession number as the first column.'''
                         )
     parser.add_argument('-b', '--bom', action='store_true', help='''
         Insert a BOM at the front of the output CSV file.''')

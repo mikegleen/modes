@@ -6,7 +6,7 @@ import os.path
 import unittest
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-import utl.normalize_date as nd
+import utl.normalize as nd
 from location import validate_locations
 
 

@@ -12,7 +12,7 @@ from datetime import date
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from utl import normalize_date as nd
+from utl import normalize as nd
 
 
 def trace(level, template, *args):
