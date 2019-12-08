@@ -41,7 +41,7 @@ def one_object(obj):
             print(f'{object_number}: No DateBegin text')
             return False
         de = ol.find('./Date/DateEnd')
-        if de is not None:
+        if de is not None and de.text is not None:
             ol.set('elementtype', 'previous location')
             updated = True
     return updated
