@@ -43,12 +43,13 @@ import yaml
 class Cmd:
     ATTRIB = 'attrib'
     COLUMN = 'column'
+    GLOBAL = 'global'
     IF = 'if'  # if text is present
     COUNT = 'count'
     IFEQ = 'ifeq'  # requires value statement
     IFATTRIB = 'ifattrib'
     # Commands that do not produce a column in the output CSV file
-    CONTROL_CMDS = (IF, IFEQ, IFATTRIB)
+    CONTROL_CMDS = (IF, IFEQ, IFATTRIB, GLOBAL)
 
 
 class Stmt:
@@ -60,6 +61,7 @@ class Stmt:
     CASESENSITIVE = 'casesensitive'
     NORMALIZE = 'normalize'
     WIDTH = 'width'
+    INHIBIT_NUMBER = 'inhibit_number'
 
 
 Cfg = namedtuple('Cfg', ('column', 'required'))
@@ -106,7 +108,7 @@ def validate_yaml_cfg(cfg):
             valid = False
             dump_document(document)
             break
-        if Stmt.ELT not in document:
+        if Stmt.ELT not in document and command != Cmd.GLOBAL:
             print(f'ELT statement missing, cmd: {command}')
             valid_doc = False
         if not validate_yaml_cmd(command):
@@ -144,14 +146,30 @@ def mak_yaml_col_hdg(command, target, attrib):
     return target
 
 
+def yaml_global(config):
+    """
+
+    :param config:
+    :return: The global statements or None if none exist
+    """
+
+    for document in config:
+        if document[Stmt.CMD] == Cmd.GLOBAL:
+            global_stmts = {}
+            for stmt in document:
+                global_stmts[stmt] = document[stmt]
+            return global_stmts
+
+
 def read_yaml_cfg(cfgf, dump=False):
-    cfg = list(yaml.safe_load_all(cfgf))
+    # Might be None for an empty document, like trailing "---"
+    cfg = [c for c in yaml.safe_load_all(cfgf) if c is not None]
     for document in cfg:
         cmd = document[Stmt.CMD]
-        elt = document[Stmt.ELT]
+        elt = document.get(Stmt.ELT)
         # Specify the column title. If the command 'title' isn't specified, construct
         # the title from the trailing element name from the 'elt' command.
-        if 'title' not in document:
+        if 'title' not in document and cmd not in Cmd.CONTROL_CMDS:
             target = mak_yaml_col_hdg(cmd, elt, document.get('attrib'))
             if target:
                 document[Stmt.TITLE] = target
@@ -230,7 +248,9 @@ def mak_yaml_target(col):
     if title:
         return title
     command = col[Stmt.CMD]
-    target = col[Stmt.ELT]
+    target = col.get(Stmt.ELT)
+    if target is None:
+        return ""
     attrib = col.get(Stmt.ATTRIBUTE)
     if command == Cmd.ATTRIB:
         target += '@' + attrib
