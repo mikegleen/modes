@@ -14,7 +14,8 @@ import sys
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import read_yaml_cfg, yaml_fieldnames, Cmd, Stmt, validate_yaml_cfg
-from utl.normalize import normalize_id
+from utl.cfgutil import yaml_global
+from utl.normalize import normalize_id, denormalize_id
 
 def trace(level, template, *args):
     if _args.verbose >= level:
@@ -35,10 +36,12 @@ def main(inf, outf, cfgf):
     if not validate_yaml_cfg(config):
         print('Config validation failed. Program aborted.')
         sys.exit(1)
+    global_stmts = yaml_global(config)
+    inhibit_number = Stmt.INHIBIT_NUMBER in global_stmts
     outcsv = opencsvwriter(outf)
     outlist = []
     targets = yaml_fieldnames(config)
-    if _args.inhibit_number:
+    if inhibit_number:
         targets = targets[1:]
     trace(1, 'Columns: {}', ', '.join(targets))
     if _args.fields:
@@ -51,7 +54,7 @@ def main(inf, outf, cfgf):
         idelem = elem.find('./ObjectIdentity/Number')
         idnum = idelem.text if idelem is not None else ''
         trace(3, 'idnum: {}', idnum)
-        if not _args.inhibit_number:
+        if not inhibit_number:
             data.append(idnum)
         # config is a list of dicts, one dict per YAML document in the config
         # This maps to the columns in the output CSV file plus a few control commands.
@@ -59,9 +62,14 @@ def main(inf, outf, cfgf):
             text = ''
             attribute = None
             command = document[Stmt.CMD]
-            elt = document[Stmt.ELT]
-            element = elem.find(elt)
+            eltstr = document.get(Stmt.ELT)
+            if eltstr:
+                element = elem.find(eltstr)
+            else:
+                element = None
             if element is None:
+                if command == Cmd.GLOBAL:
+                    continue
                 not_found += 1
                 trace(2, '{}: "{}" is not found.', idnum, document[Stmt.TITLE])
                 data.append('')
@@ -71,7 +79,7 @@ def main(inf, outf, cfgf):
             if attribute:
                 text = element.get(attribute)
             elif command == Cmd.COUNT:
-                count = len(list(elem.findall(elt)))
+                count = len(list(elem.findall(eltstr)))
                 text = f'{count}'
             elif element.text is None:
                 text = ''
@@ -91,7 +99,9 @@ def main(inf, outf, cfgf):
                     break
                 continue
             if Stmt.NORMALIZE in document:
+                # print(idnum, f'"{text}"')
                 text = normalize_id(text)
+                # print(idnum, f'after: "{text}"')
             if Stmt.WIDTH in document:
                 text = text[:document[Stmt.WIDTH]]
             data.append(text)
@@ -102,7 +112,17 @@ def main(inf, outf, cfgf):
         if _args.short:
             break
     outlist.sort()
+    # Create a list such that for each column set a flag indicating whether the value
+    # needs to be de-normalized.
+    norm = []
+    for doc in config:
+        if doc[Stmt.CMD] in Cmd.CONTROL_CMDS:
+            continue
+        norm.append(Stmt.NORMALIZE in doc)
     for row in outlist:
+        for n, cell in enumerate(row):
+            if norm[n]:
+                row[n] = denormalize_id(cell)
         outcsv.writerow(row)
 
 
@@ -110,8 +130,9 @@ def getargs():
     parser = argparse.ArgumentParser(description='''
     Extract fields from an XML file, creating a CSV file with the specified
     fields. The first column is hard-coded as './ObjectIdentity/Number'.
-    Subsequent column_paths are defined in a DSL file containing "column" statements
-    each with one parameter, the XPATH of the column to extract.
+    Subsequent column_paths are defined in a YAML file containing "column" statements,
+    "elt" statements containg the XPATH of the column to extract and other statements to
+    control selection of objects to write to the CSV file.
         ''')
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
@@ -119,9 +140,6 @@ def getargs():
         The output CSV file.''')
     parser.add_argument('-f', '--fields', action='store_true', help='''
         Write a row at the front of the CSV file containing the field names.'''
-                        )
-    parser.add_argument('-i', '--inhibit_number', action='store_true', help='''
-        Do not emit the accession number as the first column.'''
                         )
     parser.add_argument('-b', '--bom', action='store_true', help='''
         Insert a BOM at the front of the output CSV file.''')
