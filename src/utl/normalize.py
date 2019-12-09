@@ -74,8 +74,26 @@ def normalize_id(objid):
         idlist[2] = f'{int(idlist[2]):0>4d}'
         return '.'.join(idlist)
     # Not an LDHRM/.. id
-    m = re.match(r'(\D*)(\d*)(.*)', objid)
+    m = re.match(r'(\D+)(\d+)(.*)', objid)
     if m:
         return m.group(1) + f'{int(m.group(2)):0>4d}' + m.group(3)
     else:
-        raise ValueError(f'Bad format objid: {objid}')
+        return objid
+
+
+def denormalize_id(objid):
+    if objid.startswith('LDHRM'):
+        idlist = re.split(r'[/.]', objid)  # split on either "/" or "."
+        assert len(idlist) == 3
+        assert len(idlist[2]) <= 4
+        idlist[2] = f'{int(idlist[2])}'
+        return '.'.join(idlist)
+    # Not an LDHRM/.. id
+    m = re.match(r'(\D+)(\d+)(.*)', objid)
+    if m:
+        if objid.startswith('JB'):
+            return m.group(1) + f'{int(m.group(2)):0>3d}' + m.group(3)
+        else:
+            return m.group(1) + f'{int(m.group(2))}' + m.group(3)
+    else:
+        return objid
