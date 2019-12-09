@@ -1,6 +1,11 @@
 cmd: global
 inhibit_number:
 ---
+cmd: ifattrib
+elt: .
+attribute: elementtype
+value: books
+---
 cmd: column
 elt: ./ObjectLocation[@elementtype="current location"]/Location
 title: 'Current Location'
@@ -12,13 +17,16 @@ title: 'ID'
 normalize:
 ---
 cmd: column
-elt: ./References/Reference[@elementtype="First Published In"]/Title
-title: 'First Published'
+elt: ./Production/Person[Role="author"]/PersonName
+title: 'Author'
+---
+cmd: column
+elt: ./Production/Organisation[Role="publisher"]/OrganisationName
+title: 'Publisher'
 ---
 cmd: column
 elt: ./Identification/Title
 width: 50
 ---
 cmd: column
-elt: ./Acquisition/SummaryText[@elementtype="Acquisition text to be displayed"]
-title: Acquisition
+elt: ./Production/Date
