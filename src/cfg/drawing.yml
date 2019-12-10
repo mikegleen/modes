@@ -1,0 +1,8 @@
+cmd: ifeq
+elt: ./Identification/ObjectName[@elementtype="Type of Object"]/Keyword
+value: drawing
+title: type of object
+---
+cmd: column
+elt: ./Identification/BriefDescription
+width: 60
