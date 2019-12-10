@@ -14,7 +14,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import read_yaml_cfg, yaml_fieldnames, Cmd, Stmt, validate_yaml_cfg
-from utl.cfgutil import yaml_global
+from utl.cfgutil import yaml_global, dump_document
 from utl.normalize import normalize_id, denormalize_id
 
 def trace(level, template, *args):
@@ -40,12 +40,12 @@ def main(inf, outf, cfgf):
     inhibit_number = Stmt.INHIBIT_NUMBER in global_stmts
     outcsv = opencsvwriter(outf)
     outlist = []
-    targets = yaml_fieldnames(config)
+    titles = yaml_fieldnames(config)
     if inhibit_number:
-        targets = targets[1:]
-    trace(1, 'Columns: {}', ', '.join(targets))
+        titles = titles[1:]  # Get rid of the leading 'Serial' entry
+    trace(1, 'Columns: {}', ', '.join(titles))
     if _args.fields:
-        outcsv.writerow(targets)
+        outcsv.writerow(titles)
     for event, elem in ET.iterparse(inf):
         if elem.tag != 'Object':
             continue
@@ -55,7 +55,7 @@ def main(inf, outf, cfgf):
         idnum = idelem.text if idelem is not None else ''
         trace(3, 'idnum: {}', idnum)
         if not inhibit_number:
-            data.append(idnum)
+            data.append(normalize_id(idnum))
         # config is a list of dicts, one dict per YAML document in the config
         # This maps to the columns in the output CSV file plus a few control commands.
         for document in config:
@@ -71,6 +71,7 @@ def main(inf, outf, cfgf):
                 if command == Cmd.GLOBAL:
                     continue
                 not_found += 1
+                # dump_document(document)
                 trace(2, '{}: "{}" is not found.', idnum, document[Stmt.TITLE])
                 data.append('')
                 continue
@@ -115,12 +116,15 @@ def main(inf, outf, cfgf):
     # Create a list such that for each column set a flag indicating whether the value
     # needs to be de-normalized.
     norm = []
+    if not inhibit_number:
+        norm.append(True)
+    lennorm = len(norm)
     for doc in config:
         if doc[Stmt.CMD] in Cmd.CONTROL_CMDS:
             continue
         norm.append(Stmt.NORMALIZE in doc)
     for row in outlist:
-        for n, cell in enumerate(row):
+        for n, cell in enumerate(row[:lennorm]):
             if norm[n]:
                 row[n] = denormalize_id(cell)
         outcsv.writerow(row)

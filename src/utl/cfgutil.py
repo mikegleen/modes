@@ -7,26 +7,29 @@ can be column-generating or control statements.
 
 Statements:
 -----------
-cmd           Required. See below for a description of the individual commands.
-elt           Required. This describes the XSLT path to a relevant XML element.
-attribute     Required by the attrib and ifattrib commands.
-title         Optional for column-generating commands. If omitted, a best-guess title will
-              be created from the elt statement.
-value         Required for ifeq or ifattrib command.
-normalize     Adjust this ID number so that it sorts in numeric order.
-casesensitive By default, comparisons are case insensitive.
-width         truncate columns to this width
+cmd            Required. See below for a description of the individual commands.
+elt            Required. This describes the XSLT path to a relevant XML element.
+attribute      Required by the attrib and ifattrib commands.
+title          Optional. If omitted, a best-guess title will be created from the elt
+               statement. If in a control document, this will be shown in diagnostics.
+value          Required for ifeq or ifattrib command.
+inhibit_number Do not write the ID number as the first column. This can be useful when
+               sorting on another column.
+normalize      Adjust this ID number so that it sorts in numeric order.
+casesensitive  By default, comparisons are case insensitive.
+width          truncate columns to this width
 
 Commands:
 ---------
 column        This is the basic command to display the text of an element
 attrib        Like column except displays the value of the named attribute.
-if            Control command that selects an object to display if the element text is
+if*           Control command that selects an object to display if the element text is
               populated.
-ifeq          Select an object if the element text equals the value statement text
-ifattrib      Like ifeq except compares the value against an attribute
+ifeq*         Select an object if the element text equals the value statement text
+ifattrib*     Like ifeq except compares the value against an attribute
 count         Displays the number of occurrences of an element under its parent
 
+* These command do not generate output columns.
 
 """
 
@@ -113,10 +116,6 @@ def validate_yaml_cfg(cfg):
             valid_doc = False
         if not validate_yaml_cmd(command):
             valid_doc = False
-        if command in Cmd.CONTROL_CMDS:
-            if Stmt.TITLE in document:
-                print(f'title is illegal for {command} command.')
-                valid_doc = False
         if command in (Cmd.IFEQ, Cmd.IFATTRIB):
             if Stmt.VALUE not in document:
                 print(f'value is required for {command} command.')
@@ -138,7 +137,7 @@ def mak_yaml_col_hdg(command, target, attrib):
     elif command == Cmd.COUNT:
         target = f'{target}(len)'
         # print(target)
-    elif command in Cmd.CONTROL_CMDS:
+    elif target is None:
         return None  # Not included in heading
     # command is 'column'
     h = target.split('/')[-1]  # trailing element name
@@ -148,17 +147,16 @@ def mak_yaml_col_hdg(command, target, attrib):
 
 def yaml_global(config):
     """
-
     :param config:
-    :return: The global statements or None if none exist
+    :return: A dict containing the global statements
     """
 
+    global_stmts = {}
     for document in config:
         if document[Stmt.CMD] == Cmd.GLOBAL:
-            global_stmts = {}
             for stmt in document:
                 global_stmts[stmt] = document[stmt]
-            return global_stmts
+    return global_stmts
 
 
 def read_yaml_cfg(cfgf, dump=False):
@@ -169,10 +167,8 @@ def read_yaml_cfg(cfgf, dump=False):
         elt = document.get(Stmt.ELT)
         # Specify the column title. If the command 'title' isn't specified, construct
         # the title from the trailing element name from the 'elt' command.
-        if 'title' not in document and cmd not in Cmd.CONTROL_CMDS:
-            target = mak_yaml_col_hdg(cmd, elt, document.get('attrib'))
-            if target:
-                document[Stmt.TITLE] = target
+        if 'title' not in document:  # and cmd not in Cmd.CONTROL_CMDS:
+            document[Stmt.TITLE] = mak_yaml_col_hdg(cmd, elt, document.get('attrib'))
         if dump:
             dump_document(document)
     return cfg
