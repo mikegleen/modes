@@ -14,8 +14,9 @@ import sys
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import read_yaml_cfg, yaml_fieldnames, Cmd, Stmt, validate_yaml_cfg
-from utl.cfgutil import yaml_global, dump_document
+from utl.cfgutil import yaml_global
 from utl.normalize import normalize_id, denormalize_id
+
 
 def trace(level, template, *args):
     if _args.verbose >= level:
@@ -145,8 +146,9 @@ def getargs():
     parser.add_argument('-f', '--fields', action='store_true', help='''
         Write a row at the front of the CSV file containing the field names.'''
                         )
-    parser.add_argument('-b', '--bom', action='store_true', help='''
-        Insert a BOM at the front of the output CSV file.''')
+    parser.add_argument('-b', '--bom', action='store_false', help='''
+        Normally a BOM is inserted at the front of the output CSV file. This option
+        inhibits that.''')
     parser.add_argument('-c', '--cfgfile', required=False, help='''
         The config file describing the column_paths to extract''')
     parser.add_argument('-s', '--short', action='store_true', help='''
