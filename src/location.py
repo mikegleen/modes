@@ -76,23 +76,25 @@ def handle_check(idnum, elem):
     del newlocs[idnum]
 
 
-def validate_locations(idnum, elem):
+def validate_locations(idnum, elem, strict=True):
     """
     :param idnum:
     :param elem: The Object element
+    :param strict: If False, allow gaps in the dates of the current and previous locations
     :return: True if valid, False otherwise
     """
     numnormal = numcurrent = 0
     numnodateend = 0
     objlocs = elem.findall('./ObjectLocation')
-    currentlocs = []
+    locationdates = []
     for ol in objlocs:
+        datebegin = ol.find('./Date/DateBegin')
+        dateend = ol.find('./Date/DateEnd')
         loc = ol.get(ELEMENTTYPE)
         if loc == NORMAL_LOCATION:
             numnormal += 1
         elif loc == CURRENT_LOCATION:
             numcurrent += 1
-            datebegin = ol.find('./Date/DateBegin')
             if datebegin is None or datebegin.text is None:
                 trace(1, 'E01 {}: No DateBegin for current location', idnum)
                 return False
@@ -102,49 +104,62 @@ def validate_locations(idnum, elem):
                 trace(1,'E02 {}: Invalid DateBegin for current location: "{}".', idnum,
                       datebegin.text)
                 return False
-            dateend = ol.find('./Date/DateEnd')
+            if dateend is not None and dateend.text is not None:
+                trace(1, 'E03 {}: DateEnd invalid for current location: "{}".', idnum,
+                      dateend.text)
+                return False
+            locationdates.append((datebegindate, None))  # None indicates this is current
+        elif loc == PREVIOUS_LOCATION:
+            try:
+                datebegindate = nd.date(datebegin.text)
+            except (ValueError, TypeError):
+                trace(1, 'E04 {}: Invalid DateBegin for previous location: "{}".', idnum,
+                      datebegin.text)
+                return False
             if dateend is None or dateend.text is None:
-                numnodateend += 1
-                dateenddate = None
-            else:
-                try:
-                    dateenddate = nd.date(dateend.text)
-                except (ValueError, TypeError):
-                    trace(1, 'E03 {}: Invalid DateEnd for current location: "{}".', idnum,
-                          dateend.text)
-                    return False
-            currentlocs.append((datebegindate, dateenddate))
+                trace(1, 'E05 {}: Missing DateEnd for previous location: "{}".', idnum,
+                      dateend.text)
+                return False
+            try:
+                dateenddate = nd.date(dateend.text)
+            except (ValueError, TypeError):
+                trace(1, 'E06 {}: Invalid DateEnd for previous location: "{}".', idnum,
+                      dateend.text)
+                return False
+            locationdates.append((datebegindate, dateenddate))
         else:
-            trace(1, 'E04 {}: Unexpected ObjectLocation elementtype = "{}".', idnum, loc)
+            trace(1, 'E07 {}: Unexpected ObjectLocation elementtype = "{}".', idnum, loc)
             return False
     if numnormal != 1:
-        trace(1, 'E05 {}: Expected one normal location, got {}', idnum, numnormal)
+        trace(1, 'E08 {}: Expected one normal location, got {}', idnum, numnormal)
         return False
-    if numcurrent < 1:
-        trace(1, 'E06 {}: Expected one or more current locations, got 0', idnum)
+    if numcurrent != 1:
+        trace(1, 'E09 {}: Expected one current location, got {}', idnum, numcurrent)
         return False
-    if numnodateend != 1:
-        trace(1, 'E07 {}: Expected one current location with no DateEnd, got {}', idnum,
-              numnodateend)
-        return False
+    if len(locationdates) == 1:
+        return True  # There are no previous locations
 
-    # Check that the latest date is the one with no DateEnd.
-    currentlocs.sort(reverse=True)
-    if currentlocs[0][1] is not None:
-        trace(1, 'E08 {}: current location with no DateEnd is not the latest.', idnum)
+    # Check that the youngest date is the current location and that there is no overlap.
+    locationdates.sort(reverse=True)
+    if locationdates[0][1] is not None:
+        trace(1, 'E08 {}: current location is not the youngest.', idnum)
         return False
-    if len(currentlocs) > 1:
-        prevbegin, prevend = currentlocs[0]
-        for nxtbegin, nxtend in currentlocs[1:]:
-            if nxtend < nxtbegin:
-                trace(1, 'E09 {}: begin date {} is younger than end date {}.', idnum,
-                      nxtbegin.isoformat(), nxtend.isoformat())
-                return False
-            if nxtend != prevbegin:
+    prevbegin, prevend = locationdates[0]
+    for nxtbegin, nxtend in locationdates[1:]:
+        if nxtend < nxtbegin:
+            trace(1, 'E09 {}: begin date {} is younger than end date {}.', idnum,
+                  nxtbegin.isoformat(), nxtend.isoformat())
+            return False
+        if nxtend != prevbegin:
+            if strict:
                 trace(1, 'E10 {}: begin date "{}" not equal to previous end date "{}".',
                       idnum, str(prevbegin), str(nxtend))
                 return False
-            prevbegin = nxtbegin
+            elif nxtend > prevbegin:
+                trace(1, 'E11 {}: Younger begin date "{}" overlaps with end date. "{}".',
+                      idnum, str(prevbegin), str(nxtend))
+                return False
+        prevbegin = nxtbegin
     return True
 
 
@@ -240,6 +255,9 @@ def update_current_location(elem, idnum):
     return True
 
 
+def update_previous_location(elem, idnum):
+    pass
+
 def handle_update(idnum, elem):
     """
     If the location in the newlocs dictionary is different from the location
@@ -265,6 +283,8 @@ def handle_update(idnum, elem):
                     break
         if _args.current:
             updated = update_current_location(elem, idnum)
+        if _args.previous:
+            updated = update_previous_location(elem, idnum)
         del newlocs[idnum]
     else:
         if _args.warn:
@@ -317,17 +337,12 @@ def add_arguments(parser):
         the detail CSV file. The default is to only write updated objects. In either case
         warn if an object in the CSV file is not in the input XML file.
         ''')
-    if is_update:
-        parser.add_argument('-b', '--both', action='store_true', help='''
-            Update both the current location and the normal location.
-            Select one of "b", "n", and "c".''')
     parser.add_argument('--col', type=int, default=1, help='''
         Specify the column in the CSV file containing the location.
         Default is 1 (first column is zero).
         ''')
     parser.add_argument('-c', '--current', action='store_true', help='''
-        Update the current location.
-        Select one of "b", "n", and "c".''')
+        Update the current location. Select one of "p", "n", and "c".''')
     if is_update:
         parser.add_argument('-d', '--date', default=nd.modesdate(date.today()), help='''
             Use this string as the date to store in the new ObjectLocation
@@ -351,8 +366,7 @@ def add_arguments(parser):
             in the second column (column 1) but can be changed by the --col option.
             ''')
     parser.add_argument('-n', '--normal', action='store_true', help='''
-        Update the normal location.
-        Select one of "b", "n", and "c".''')
+        Update the normal location. Select one of "p", "n", and "c".''')
     if is_check:
         parser.add_argument('--old', action='store_true', help='''
             The column selected is the "old" location, the one we are moving
@@ -361,6 +375,10 @@ def add_arguments(parser):
             the CSV file does match the value in the XML file which is not
             expected as the purpose is to update that value.
             ''')
+    parser.add_argument('-p', '--previous', action='store_true', help='''
+        Add a previous location. This locations start and end dates must not overlap with
+        an existing current or previous location's date(s).
+        Select one of "p", "n", and "c".''')
     if is_update:
         parser.add_argument('--reset_current', action='store_true', help='''
         Only output the most recent current location element for each object.
@@ -405,14 +423,14 @@ def getargs():
     add_arguments(validate_parser)
     args = parser.parse_args()
     if is_check or is_update:
-        if int(args.both) + int(args.current) + int(args.normal) != 1:
-            raise ValueError('Select one of "b", "n", and "c".')
-        args.current |= args.both
-        args.normal |= args.both
         # Set a fake value for the new location column as it will be taken from the --location
         # value instead of a column in the CSV file.
         if args.location:
             args.col = None
+        nloctypes = int(_args.current) + int(_args.normal) + int(_args.previous)
+        if nloctypes != 1:
+            print('Exactly one of -c, -n, or -p must be specified.')
+            sys.exit(1)
     return args
 
 
