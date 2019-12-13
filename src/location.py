@@ -42,12 +42,16 @@ def loadcsv():
                 # if --location is given just skip the first row
                 if not loc_arg and (row[_args.col].strip().lower()
                                     != _args.heading.lower()):
-                    print(f'Failed heading check. {row[_args.col].lower()} is not '
-                          f'{_args.heading.lower()}')
+                    print(f'Fatal error: Failed heading check. {row[_args.col].lower()} is not '
+                          f'{_args.heading.lower()}.')
                     sys.exit(1)
                 need_heading = False
                 continue
-            location_dict[row[0].strip()] = loc_arg if loc_arg else row[_args.col].strip()
+            objid = row[0].strip()
+            if objid in location_dict:
+                print(f'Fatal error: Duplicate object ID: {objid}.')
+                sys.exit(1)
+            location_dict[objid] = loc_arg if loc_arg else row[_args.col].strip()
     return location_dict
 
 
@@ -178,11 +182,11 @@ def update_normal_location(ol, idnum):
 
     newtext = _args.location if _args.location else newlocs[idnum]
     if text != newtext:
-        trace(2, '{}: Updated normal location {} -> {}', idnum, text, newtext)
+        trace(2, '{}: Updated normal {} -> {}', idnum, text, newtext)
         location.text = newtext
         updated = True
     else:
-        trace(2, 'Normal location unchanged: {}: {}', idnum, text)
+        trace(2, '{}: Normal location unchanged: {}', idnum, text)
     return updated
 
 
@@ -200,32 +204,58 @@ def update_current_location(elem, idnum):
     function calls.
     """
 
-    # Find the youngest current location
-    objlocs = elem.findall('./ObjectLocation')
-    ix = 0
-    youngest = [nd.date('1.1.1970'), None]
-    for ol in objlocs:
-        ix += 1
-        loc = ol.get(ELEMENTTYPE)
-        if loc == CURRENT_LOCATION:
-            datebegin = ol.find('./Date/DateBegin')
-            datebegindate = nd.date(datebegin.text)
-            if datebegindate > youngest[0]:
-                youngest = [datebegindate, ol]
-    ol = youngest[1]
+    # Find the current location
+    ol = elem.find('./ObjectLocation[@elementtype="current location"]')
 
     # If the location hasn't changed, do nothing.
     locationelt = ol.find('./Location')
     if locationelt.text is not None:
-        text = locationelt.text.strip().upper()
+        oldlocation = locationelt.text.strip().upper()
     else:
-        text = None
-    newlocation = _args.location if _args.location else newlocs[idnum]
-    if text == newlocation.upper():
-        trace(2, 'Unchanged: {}: {}', idnum, text)
-        return False
+        oldlocation = None
+    newlocationtext = _args.location if _args.location else newlocs[idnum]
+    if oldlocation == newlocationtext.upper():
+        trace(2, 'Unchanged: {}: {}', idnum, oldlocation)
+        if _args.force:
+            return True
+        else:
+            return False
 
-    # Insert the DateEnd text in the previous youngest current location
+    if _args.patch:
+        datebegin = ol.find('./Date/DateBegin')
+        oldlocation = ol.find('./Location')
+        datebegin.text = _args.date
+        oldlocationtext = oldlocation.text
+        oldlocation.text = newlocationtext
+        oldreason = ol.find('./Reason')
+        reasontext = _args.reason if _args.reason else 'Patched'
+        if oldreason is not None:
+            oldreason.text = reasontext
+        else:
+            ET.SubElement(ol, 'Reason').text = reasontext
+
+        trace(2, '{}: Patched current location {} -> {}', idnum, oldlocationtext,
+              newlocationtext)
+        return True
+
+    # Create the new current location element.
+    newobjloc = ET.Element('ObjectLocation')
+    newobjloc.set(ELEMENTTYPE, CURRENT_LOCATION)
+    ET.SubElement(newobjloc, 'Location').text = newlocationtext
+    locdate = ET.SubElement(newobjloc, 'Date')
+    ET.SubElement(locdate, 'DateBegin').text = _args.date
+    ET.SubElement(newobjloc, 'Reason').text = _args.reason
+
+    # Find the current location's index
+    subelts = list(elem)
+    clix = 0  # index of the current location
+    for elt in subelts:
+        clix += 1
+        if elt.tag == 'ObjectLocation' and elt.get(ELEMENTTYPE) == CURRENT_LOCATION:
+            break
+
+    # Insert the DateEnd text in the existing current location and convert it to a
+    # previous location
     oldate = ol.find('./Date')
     oldateend = oldate.find('./DateEnd')
     if oldateend is None:
@@ -233,30 +263,16 @@ def update_current_location(elem, idnum):
     oldateend.text = _args.date
     ol.set(ELEMENTTYPE, PREVIOUS_LOCATION)
 
-    # Create the new current location element.
-    newobjloc = ET.Element('ObjectLocation')
-    newobjloc.set(ELEMENTTYPE, CURRENT_LOCATION)
-    ET.SubElement(newobjloc, 'Location').text = newlocation
-    locdate = ET.SubElement(newobjloc, 'Date')
-    ET.SubElement(locdate, 'DateBegin').text = _args.date
-    ET.SubElement(newobjloc, 'Reason').text = _args.reason
-
-    # Find the first current location and insert a new ObjectLocation before it
-    subelts = list(elem)
-    firstclix = 0  # index of the first current location
-    for elt in subelts:
-        firstclix += 1
-        if elt.tag == 'ObjectLocation' and elt.get(ELEMENTTYPE) == CURRENT_LOCATION:
-            break
-
-    # Update the existing current location to have a DateEnd element
-    elem.insert(firstclix - 1, newobjloc)  # insert the new element before the current location
-    trace(2, '{}: Updated {} -> {}', idnum, text, newlocation)
+    # insert the new current location before the old current location (which is now a
+    # previous location.
+    elem.insert(clix - 1, newobjloc)
+    trace(2, '{}: Updated current {} -> {}', idnum, oldlocation, newlocationtext)
     return True
 
 
 def update_previous_location(elem, idnum):
-    pass
+    return True
+
 
 def handle_update(idnum, elem):
     """
@@ -275,12 +291,8 @@ def handle_update(idnum, elem):
             trace(1, 'Failed pre-update validation.')
             sys.exit(1)
         if _args.normal:
-            objlocs = elem.findall('./ObjectLocation')
-            for ol in objlocs:
-                loc = ol.get('elementtype')
-                if loc == NORMAL_LOCATION:
-                    updated = update_normal_location(ol, idnum)
-                    break
+            ol = elem.find('./ObjectLocation[@elementtype="normal location"]')
+            updated = update_normal_location(ol, idnum)
         if _args.current:
             updated = update_current_location(elem, idnum)
         if _args.previous:
@@ -305,6 +317,13 @@ def handle_validate(idnum, elem):
     valid = validate_locations(idnum, elem)
     if not valid:
         total_failed += 1
+
+
+def handle_select(idnum, elem):
+    if idnum in newlocs:
+        del newlocs[idnum]
+        outfile.write(ET.tostring(elem, encoding='us-ascii'))
+    return
 
 
 def main():
@@ -339,7 +358,7 @@ def add_arguments(parser):
         ''')
     parser.add_argument('--col', type=int, default=1, help='''
         Specify the column in the CSV file containing the location.
-        Default is 1 (first column is zero).
+        Default is 1 (first column is zero, containing the object serial number). 
         ''')
     parser.add_argument('-c', '--current', action='store_true', help='''
         Update the current location. Select one of "p", "n", and "c".''')
@@ -351,6 +370,9 @@ def add_arguments(parser):
     parser.add_argument('--encoding', default='utf-8', help='''
         Set the input encoding. Default is utf-8. Output is always ascii.
         ''')
+    parser.add_argument('-f', '--force', action='store_true', help='''
+        Write the object to the output file even if it hasn't been updated. This only
+        applies to objects whose ID appears in the CSV file. -a implies -f.''')
     parser.add_argument('--heading', help='''
         The first row of the map file contains a heading which must match the parameter
         (case insensitive).
@@ -375,6 +397,9 @@ def add_arguments(parser):
             the CSV file does match the value in the XML file which is not
             expected as the purpose is to update that value.
             ''')
+    parser.add_argument('--patch', action='store_true', help='''
+        Update the specified location in place without creating history. This is always
+        the behavior for normal locations but not for current or previous.''')
     parser.add_argument('-p', '--previous', action='store_true', help='''
         Add a previous location. This locations start and end dates must not overlap with
         an existing current or previous location's date(s).
@@ -409,6 +434,10 @@ def getargs():
     With no options, check that the location in the object specified by --col
     is the same as the location specified by -c or -n option in the XML file.
     ''')
+    select_parser = subparsers.add_parser('select', description='''
+    Select the objects named in the CSV file specified by -m and write them to the
+    output without modification. 
+    ''')
     update_parser = subparsers.add_parser('update', description='''
     Update the XML file from the location in the CSV file specified by -m.
     ''')
@@ -416,9 +445,11 @@ def getargs():
     Run the validate_locations function against the input file.
     ''')
     check_parser.set_defaults(func=handle_check)
+    select_parser.set_defaults(func=handle_select)
     update_parser.set_defaults(func=handle_update)
     validate_parser.set_defaults(func=handle_validate)
     add_arguments(check_parser)
+    add_arguments(select_parser)
     add_arguments(update_parser)
     add_arguments(validate_parser)
     args = parser.parse_args()
@@ -427,17 +458,18 @@ def getargs():
         # value instead of a column in the CSV file.
         if args.location:
             args.col = None
-        nloctypes = int(_args.current) + int(_args.normal) + int(_args.previous)
+        nloctypes = int(args.current) + int(args.previous)
         if nloctypes != 1:
-            print('Exactly one of -c, -n, or -p must be specified.')
+            print('Exactly one of -c or -p must be specified.')
             sys.exit(1)
     return args
 
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
-    is_update = sys.argv[1] == 'update'
     is_check = sys.argv[1] == 'check'
+    is_select = sys.argv[1] == 'select'
+    is_update = sys.argv[1] == 'update'
     is_validate = sys.argv[1] == 'validate'
     _args = getargs()
     verbose = _args.verbose
