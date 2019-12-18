@@ -33,7 +33,7 @@ def opencsvwriter(filename):
 
 def main(inf, outf, cfgf):
     global nlines, not_found
-    config = read_yaml_cfg(cfgf, dump=_args.verbose >= 2)
+    config = read_yaml_cfg(cfgf, title=True, dump=_args.verbose >= 2)
     if not validate_yaml_cfg(config):
         print('Config validation failed. Program aborted.')
         sys.exit(1)
@@ -60,25 +60,26 @@ def main(inf, outf, cfgf):
         # config is a list of dicts, one dict per YAML document in the config
         # This maps to the columns in the output CSV file plus a few control commands.
         for document in config:
-            text = ''
-            attribute = None
             command = document[Stmt.CMD]
+            if command == Cmd.GLOBAL:
+                continue
             eltstr = document.get(Stmt.ELT)
             if eltstr:
                 element = elem.find(eltstr)
             else:
                 element = None
             if element is None:
-                if command == Cmd.GLOBAL:
-                    continue
                 not_found += 1
                 # dump_document(document)
-                trace(2, '{}: "{}" is not found.', idnum, document[Stmt.TITLE])
+                trace(2, '{}: cmd {}, "{}" is not found.', idnum, command,
+                      document[Stmt.TITLE])
+                if command in Cmd.CONTROL_CMDS:
+                    writerow = False
+                    break
                 data.append('')
                 continue
             if command in (Cmd.ATTRIB, Cmd.IFATTRIB):
                 attribute = document[Stmt.ATTRIBUTE]
-            if attribute:
                 text = element.get(attribute)
             elif command == Cmd.COUNT:
                 count = len(list(elem.findall(eltstr)))
@@ -87,16 +88,20 @@ def main(inf, outf, cfgf):
                 text = ''
             else:
                 text = element.text.strip()
-            if not text and command == Cmd.IF:
+            if not text and command in (Cmd.IF, Cmd.IFATTRIB, Cmd.IFCONTAINS,
+                                        Cmd.IFEQ):
                 writerow = False
                 break
-            if command in (Cmd.IFEQ, Cmd.IFATTRIB):
+            if command in (Cmd.IFEQ, Cmd.IFATTRIB, Cmd.IFCONTAINS):
                 value = document[Stmt.VALUE]
                 textvalue = text
                 if Stmt.CASESENSITIVE not in document:
                     value = value.lower()
                     textvalue = textvalue.lower()
-                if value != textvalue:
+                if command == Cmd.IFCONTAINS and value not in textvalue:
+                    writerow = False
+                    break
+                elif command in (Cmd.IFEQ, Cmd.IFATTRIB) and value != textvalue:
                     writerow = False
                     break
                 continue
@@ -118,7 +123,7 @@ def main(inf, outf, cfgf):
     # needs to be de-normalized.
     norm = []
     if not inhibit_number:
-        norm.append(True)
+        norm.append(True)  # for the Serial number
     lennorm = len(norm)
     for doc in config:
         if doc[Stmt.CMD] in Cmd.CONTROL_CMDS:
