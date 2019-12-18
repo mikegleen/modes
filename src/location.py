@@ -197,8 +197,9 @@ def update_current_location(elem, idnum):
     :param idnum: the ObjectIdentity/Number text (we've tested that idnum is in newlocs)
     :return: True if the object is updated, False otherwise
 
-    Insert a new current location element. If --reset_current is set, delete all of the
-    existing current location elements.
+    If --patch is set, change the date on the current location. Otherwise, change the
+    current location into a previous location and insert a new current location element.
+    If --reset_current is set, delete all of the existing current location elements.
 
     We've called validate_locations() so there is no need to test return values from
     function calls.
@@ -294,9 +295,9 @@ def handle_update(idnum, elem):
             ol = elem.find('./ObjectLocation[@elementtype="normal location"]')
             updated = update_normal_location(ol, idnum)
         if _args.current:
-            updated = update_current_location(elem, idnum)
+            updated |= update_current_location(elem, idnum)
         if _args.previous:
-            updated = update_previous_location(elem, idnum)
+            updated |= update_previous_location(elem, idnum)
         del newlocs[idnum]
     else:
         if _args.warn:
@@ -397,13 +398,14 @@ def add_arguments(parser):
             the CSV file does match the value in the XML file which is not
             expected as the purpose is to update that value.
             ''')
-    parser.add_argument('--patch', action='store_true', help='''
+    if is_update:
+        parser.add_argument('--patch', action='store_true', help='''
         Update the specified location in place without creating history. This is always
         the behavior for normal locations but not for current or previous.''')
     parser.add_argument('-p', '--previous', action='store_true', help='''
         Add a previous location. This locations start and end dates must not overlap with
-        an existing current or previous location's date(s).
-        Select one of "p", "n", and "c".''')
+        an existing current or previous location's date(s). Select from "p",
+        "n", and "c". If "p" is specified, no others are allowed. ''')
     if is_update:
         parser.add_argument('--reset_current', action='store_true', help='''
         Only output the most recent current location element for each object.
@@ -442,7 +444,8 @@ def getargs():
     Update the XML file from the location in the CSV file specified by -m.
     ''')
     validate_parser = subparsers.add_parser('validate', description='''
-    Run the validate_locations function against the input file.
+    Run the validate_locations function against the input file. This validates all
+    locations and ignores the -c, -n, and -p options.
     ''')
     check_parser.set_defaults(func=handle_check)
     select_parser.set_defaults(func=handle_select)
