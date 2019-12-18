@@ -14,20 +14,25 @@ title          Optional. If omitted, a best-guess title will be created from the
                statement. If in a control document, this will be shown in diagnostics.
 value          Required for ifeq or ifattrib command.
 inhibit_number Do not write the ID number as the first column. This can be useful when
-               sorting on another column.
+               sorting on another column. Include this statement under a global
+               command.
 normalize      Adjust this ID number so that it sorts in numeric order.
 casesensitive  By default, comparisons are case insensitive.
 width          truncate columns to this width
 
 Commands:
 ---------
-column        This is the basic command to display the text of an element
 attrib        Like column except displays the value of the named attribute.
+column        This is the basic command to display the text of an element
+count         Displays the number of occurrences of an element under its parent
+global*       Contains statements that affect the overall output, not just a
+              specific column.
 if*           Control command that selects an object to display if the element text is
               populated.
-ifeq*         Select an object if the element text equals the value statement text
 ifattrib*     Like ifeq except compares the value against an attribute
-count         Displays the number of occurrences of an element under its parent
+ifcontains*   Select an object if the value in the value statement is contained
+              in the element text.
+ifeq*         Select an object if the element text equals the value statement text.
 
 * These command do not generate output columns.
 
@@ -49,10 +54,14 @@ class Cmd:
     GLOBAL = 'global'
     IF = 'if'  # if text is present
     COUNT = 'count'
-    IFEQ = 'ifeq'  # requires value statement
-    IFATTRIB = 'ifattrib'
+    IFEQ = 'ifeq'  # if the elt text equals the value statement
+    IFCONTAINS = 'ifcontains'
+    IFATTRIB = 'ifattrib'  # requires attribute statement
+    IFSERIAL = 'ifserial'
     # Commands that do not produce a column in the output CSV file
-    CONTROL_CMDS = (IF, IFEQ, IFATTRIB, GLOBAL)
+    CONTROL_CMDS = (IF, IFEQ, IFATTRIB, IFSERIAL, GLOBAL, IFCONTAINS)
+    NEEDVALUE_CMDS = (IFEQ, IFATTRIB, IFSERIAL, IFCONTAINS)
+    NEEDELT_CMDS = (ATTRIB, COLUMN, IF, COUNT, IFEQ, IFCONTAINS, IFATTRIB, )
 
 
 class Stmt:
@@ -111,15 +120,14 @@ def validate_yaml_cfg(cfg):
             valid = False
             dump_document(document)
             break
-        if Stmt.ELT not in document and command != Cmd.GLOBAL:
+        if command in Cmd.NEEDELT_CMDS and Stmt.ELT not in document:
             print(f'ELT statement missing, cmd: {command}')
             valid_doc = False
         if not validate_yaml_cmd(command):
             valid_doc = False
-        if command in (Cmd.IFEQ, Cmd.IFATTRIB):
-            if Stmt.VALUE not in document:
-                print(f'value is required for {command} command.')
-                valid_doc = False
+        if command in Cmd.NEEDVALUE_CMDS and Stmt.VALUE not in document:
+            print(f'value is required for {command} command.')
+            valid_doc = False
         if command in (Cmd.ATTRIB, Cmd.IFATTRIB):
             if Stmt.ATTRIBUTE not in document:
                 print(f'attribute is required for {command} command.')
@@ -159,15 +167,17 @@ def yaml_global(config):
     return global_stmts
 
 
-def read_yaml_cfg(cfgf, dump=False):
+def read_yaml_cfg(cfgf, title=False, dump=False):
     # Might be None for an empty document, like trailing "---"
     cfg = [c for c in yaml.safe_load_all(cfgf) if c is not None]
     for document in cfg:
         cmd = document[Stmt.CMD]
         elt = document.get(Stmt.ELT)
-        # Specify the column title. If the command 'title' isn't specified, construct
-        # the title from the trailing element name from the 'elt' command.
-        if 'title' not in document:  # and cmd not in Cmd.CONTROL_CMDS:
+        # Specify the column title. If the command 'title' isn't specified,
+        # construct the title from the trailing element name from the 'elt'
+        # statement. The validate_yaml_cfg function checks that the elt
+        # statement is there if needed.
+        if title and 'title' not in document and elt is not None:
             document[Stmt.TITLE] = mak_yaml_col_hdg(cmd, elt, document.get('attrib'))
         if dump:
             dump_document(document)
@@ -239,23 +249,6 @@ def read_cfg(cfgf):
     return cfg
 
 
-def mak_yaml_target(col):
-    title = col.get(Stmt.TITLE)
-    if title:
-        return title
-    command = col[Stmt.CMD]
-    target = col.get(Stmt.ELT)
-    if target is None:
-        return ""
-    attrib = col.get(Stmt.ATTRIBUTE)
-    if command == Cmd.ATTRIB:
-        target += '@' + attrib
-    elif command == 'count':
-        target = f'{target}(len)'
-        # print(target)
-    return target
-
-
 def maktarget(col):
     command, target, attrib = col
     if command == 'attrib':
@@ -276,8 +269,8 @@ def yaml_fieldnames(cols):
              the xpath statement
     """
     hdgs = ['Serial']  # hardcoded first entry
-    targets = [mak_yaml_target(col) for col in cols if col['cmd'] not in Cmd.CONTROL_CMDS]
-    for col in targets:
+    titles = [col[Stmt.TITLE] for col in cols if col[Stmt.CMD] not in Cmd.CONTROL_CMDS]
+    for col in titles:
         if col.startswith('.'):  # extract heading from elt statement
             h = col.split('/')[-1]  # trailing element name
             hdgs.append(h.split('[')[0])  # strip trailing [@xyz='def']
