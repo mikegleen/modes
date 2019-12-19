@@ -1,76 +1,76 @@
 ---
 # Process this object only if the elementtype attribute equals this value.
 cmd: ifattrib
-elt: '.'
+xpath: '.'
 attribute: elementtype
 value: 'Original Artwork'
 ---
 cmd: column
-elt: ./NumberOfItems
+xpath: ./NumberOfItems
 ---
 cmd: column
-elt: ./Identification/ObjectName[@elementtype="Type of Object"]/Keyword
+xpath: ./Identification/ObjectName[@elementtype="Type of Object"]/Keyword
 title: 'Type of Object'
 ---
 cmd: column
-elt: ./Production/Person[Role="artist"]/PersonName
+xpath: ./Production/Person[Role="artist"]/PersonName
 title: Artist
 ---
 cmd: column
-elt: ./Description/Material[Part="support"]/Keyword
+xpath: ./Description/Material[Part="support"]/Keyword
 title: On what
 ---
 cmd: column
-elt: ./Description/Measurement[Part="Mount"]/Reading
+xpath: ./Description/Measurement[Part="Mount"]/Reading
 title: 'Mount Size'
 ---
 cmd: column
-elt: ./Description/Measurement[Part="Frame"]/Reading
+xpath: ./Description/Measurement[Part="Frame"]/Reading
 title: 'Frame Size'
 ---
 cmd: column
-elt: ./ObjectLocation[@elementtype="current location"]/Location
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
 title: 'Current Location'
 ---
 cmd: column
-elt: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
+xpath: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
 title: 'Date Moved'
 ---
 cmd: column
-elt: ./ObjectLocation[@elementtype="current location"]/Reason
+xpath: ./ObjectLocation[@elementtype="current location"]/Reason
 title: 'Purpose of Move'
 ---
 cmd: column
-elt: ./Description/Condition
+xpath: ./Description/Condition
 ---
 cmd: column
-elt: ./Conservation/Type
+xpath: ./Conservation/Type
 title: 'Conservation Type'
 ---
 cmd: column
-elt: ./Conservation/Person
+xpath: ./Conservation/Person
 title: 'Conservation By Whom'
 ---
 cmd: column
-elt: ./Conservation/Date
+xpath: ./Conservation/Date
 title: 'Conservation Date'
 ---
 cmd: column
-elt: ./Reproduction[@elementtype="Digital Image"]/SummaryText
+xpath: ./Reproduction[@elementtype="Digital Image"]/SummaryText
 title: 'Digital Image'
 ---
 cmd: column
-elt: ./Acquisition/Method
+xpath: ./Acquisition/Method
 title: 'Acquisition Method'
 ---
 cmd: column
-elt: ./Acquisition/Date
+xpath: ./Acquisition/Date
 title: 'Acquisition Date'
 ---
 cmd: column
-elt: ./Acquisition/Person[Role="acquired from"]/PersonName
+xpath: ./Acquisition/Person[Role="acquired from"]/PersonName
 title: 'Acquired From'
 ---
 cmd: column
-elt: ./Description/Inscription/SummaryText
+xpath: ./Description/Inscription/SummaryText
 title: Inscription

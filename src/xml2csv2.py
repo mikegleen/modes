@@ -45,7 +45,7 @@ def main(inf, outf, cfgf):
     if inhibit_number:
         titles = titles[1:]  # Get rid of the leading 'Serial' entry
     trace(1, 'Columns: {}', ', '.join(titles))
-    if _args.fields:
+    if _args.heading:
         outcsv.writerow(titles)
     for event, elem in ET.iterparse(inf):
         if elem.tag != 'Object':
@@ -63,7 +63,7 @@ def main(inf, outf, cfgf):
             command = document[Stmt.CMD]
             if command == Cmd.GLOBAL:
                 continue
-            eltstr = document.get(Stmt.ELT)
+            eltstr = document.get(Stmt.XPATH)
             if eltstr:
                 element = elem.find(eltstr)
             else:
@@ -148,14 +148,14 @@ def getargs():
         The XML file saved from Modes.''')
     parser.add_argument('outfile',  help='''
         The output CSV file.''')
-    parser.add_argument('-f', '--fields', action='store_true', help='''
-        Write a row at the front of the CSV file containing the field names.'''
-                        )
     parser.add_argument('-b', '--bom', action='store_false', help='''
         Normally a BOM is inserted at the front of the output CSV file. This option
         inhibits that.''')
     parser.add_argument('-c', '--cfgfile', required=False, help='''
         The config file describing the column_paths to extract''')
+    parser.add_argument('--heading', action='store_true', help='''
+        Write a row at the front of the CSV file containing the field names.'''
+                        )
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''

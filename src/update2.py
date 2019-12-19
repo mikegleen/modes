@@ -51,9 +51,9 @@ def one_element(elem, idnum):
         if not newtext:
             trace(2, '{}: empty cell in CSV file', idnum)
             continue
-        target = elem.find(doc[Stmt.ELT])
+        target = elem.find(doc[Stmt.XPATH])
         if target is None:
-            trace(1, "{}: Cannot find target '{}'", idnum, doc[Stmt.ELT])
+            trace(1, "{}: Cannot find target '{}'", idnum, doc[Stmt.XPATH])
             return
         text = target.text
         if text != newtext or _args.all:

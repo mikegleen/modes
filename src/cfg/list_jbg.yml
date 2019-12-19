@@ -1,0 +1,17 @@
+---
+cmd: ifeq
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
+value: 'Joan Brinsmead Gallery'
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="normal location"]/Location
+title: Normal
+
+#---
+#cmd: column
+#xpath: './ObjectLocation[@elementtype="current location"]/Location'
+#title: Current
+#---
+#cmd: column
+#xpath: './ObjectLocation[@elementtype="current location"]/Date/DateBegin'
+#title: Current

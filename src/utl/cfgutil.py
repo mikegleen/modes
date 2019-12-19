@@ -66,7 +66,7 @@ class Cmd:
 
 class Stmt:
     CMD = 'cmd'
-    ELT = 'elt'
+    XPATH = 'xpath'
     ATTRIBUTE = 'attribute'
     TITLE = 'title'
     VALUE = 'value'
@@ -120,8 +120,8 @@ def validate_yaml_cfg(cfg):
             valid = False
             dump_document(document)
             break
-        if command in Cmd.NEEDELT_CMDS and Stmt.ELT not in document:
-            print(f'ELT statement missing, cmd: {command}')
+        if command in Cmd.NEEDELT_CMDS and Stmt.XPATH not in document:
+            print(f'XPATH statement missing, cmd: {command}')
             valid_doc = False
         if not validate_yaml_cmd(command):
             valid_doc = False
@@ -172,7 +172,7 @@ def read_yaml_cfg(cfgf, title=False, dump=False):
     cfg = [c for c in yaml.safe_load_all(cfgf) if c is not None]
     for document in cfg:
         cmd = document[Stmt.CMD]
-        elt = document.get(Stmt.ELT)
+        elt = document.get(Stmt.XPATH)
         # Specify the column title. If the command 'title' isn't specified,
         # construct the title from the trailing element name from the 'elt'
         # statement. The validate_yaml_cfg function checks that the elt

@@ -2,31 +2,31 @@ cmd: global
 inhibit_number:
 ---
 cmd: ifattrib
-elt: .
+xpath: .
 attribute: elementtype
 value: books
 ---
 cmd: column
-elt: ./ObjectLocation[@elementtype="current location"]/Location
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
 title: 'Current Location'
 normalize:
 ---
 cmd: column
-elt: ./ObjectIdentity/Number
+xpath: ./ObjectIdentity/Number
 title: 'ID'
 normalize:
 ---
 cmd: column
-elt: ./Production/Person[Role="author"]/PersonName
+xpath: ./Production/Person[Role="author"]/PersonName
 title: 'Author'
 ---
 cmd: column
-elt: ./Production/Organisation[Role="publisher"]/OrganisationName
+xpath: ./Production/Organisation[Role="publisher"]/OrganisationName
 title: 'Publisher'
 ---
 cmd: column
-elt: ./Identification/Title
+xpath: ./Identification/Title
 width: 50
 ---
 cmd: column
-elt: ./Production/Date
+xpath: ./Production/Date

@@ -7,11 +7,20 @@
     the corresponding elements.
 
     The YAML file contains multiple documents, separated by lines containing
-    "---"; each document corresponds to an element to be updated. The documents
-    may contain "title" statements. If one document contains a title statement,
-    they all must. If title statements are included, then the first row of the
-    CSV file contains column titles that must correspond to the titles in the
-    YAML file. The test is case-insensitive.
+    "---"; each document corresponds to an element to be updated. The following
+    example is of a single element to be updated. Note that if an explicit
+    title statement doesn't exist, it is extracted from the trailing element
+    of the xpath statement.
+
+        ---
+        cmd: column
+        xpath: ./ObjectLocation/Reason
+
+    The documents may contain "title" statements. If one document contains a
+    title statement, they all must. If title statements are included, then the
+    first row of the CSV file contains column titles that must correspond to the
+    titles in the YAML file. The test is case-insensitive. This feature is
+    invoked by the --heading option.
 
 """
 import argparse
@@ -21,7 +30,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-from utl.cfgutil import read_yaml_cfg, Stmt, Cmd
+from utl.cfgutil import read_yaml_cfg, Stmt, Cmd, validate_yaml_cfg
 
 
 def trace(level, template, *args):
@@ -66,14 +75,14 @@ def one_element(elem, idnum):
     :param idnum: the ObjectIdentity/Number text
     :return: True if updated, False otherwise
     """
-    global nupdated
+    global nupdated, nunchanged
     updated = False
     inewtexts = iter(newvals[idnum])  # we've already checked that it's there
     for doc in cfg:
         command = doc[Stmt.CMD]
         if command in Cmd.CONTROL_CMDS:
             continue  # Don't generate a column
-        xpath = doc[Stmt.ELT]
+        xpath = doc[Stmt.XPATH]
         try:
             newtext = next(inewtexts)
         except StopIteration:
@@ -83,7 +92,7 @@ def one_element(elem, idnum):
             continue
         target = elem.find(xpath)
         if target is None:
-            trace(1, "{}: Cannot find target '{}'", idnum, xpath)
+            trace(1, '{}: Cannot find target "{}"', idnum, xpath)
             return updated
         text = target.text
         if not text or _args.force:
@@ -92,7 +101,9 @@ def one_element(elem, idnum):
             updated = True
             nupdated += 1
         else:
-            trace(2, '{}: Unchanged: {} (new text = {})', idnum, text, newtext)
+            trace(2, '{}: Unchanged: "{}" (new text = "{}")', idnum, text,
+                  newtext)
+            nunchanged += 1
     return updated
 
 
@@ -110,14 +121,14 @@ def main():
         else:
             updated = False
             if not _args.ignore:
-                trace(1, 'Not in CSV file: {}', idnum)
+                trace(2, 'Not in CSV file: "{}"', idnum)
         if updated or _args.all:
             outfile.write(ET.tostring(elem, encoding='us-ascii'))
         if _args.short:
             break
     outfile.write(b'</Interchange>')
     for idnum in newvals:
-        trace(1, 'In CSV but not XML: {}', idnum)
+        trace(1, 'In CSV but not XML: "{}"', idnum)
 
 
 def getargs():
@@ -139,9 +150,9 @@ def getargs():
     parser.add_argument('-f', '--force', action='store_true', help='''
         Replace existing values. If not specified only empty elements will be
         inserted.''')
-    parser.add_argument('-g', '--ignore', action='store_true', help='''
-        Ignore indices missing from the CSV file. If not selected, trace
-        the missing index.''')
+    parser.add_argument('--missing', action='store_true', help='''
+        By default, ignore indices missing from the CSV file. If selected,
+        trace the missing index.''')
     parser.add_argument('--heading', action='store_true', help='''
         The first row of the map file contains a heading which must match the
         value of the title statement in the corresponding column document
@@ -161,11 +172,17 @@ def getargs():
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     _args = getargs()
-    nupdated = 0
+    nupdated = nunchanged = 0
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
-    cfg = read_yaml_cfg(_args.cfgfile, title=True)
+    cfg = read_yaml_cfg(_args.cfgfile, title=True, dump=_args.verbose > 1)
+    if not validate_yaml_cfg(cfg):
+        print('Config validation failed. Program aborted.')
+        sys.exit(1)
     newvals = loadnewvals()
     nnewvals = len(newvals)
     main()
-    trace(1, 'End update_from_csv. {}/{} objects updated.', nupdated, nnewvals)
+    trace(1, 'End update_from_csv. {}/{} object{} updated. {} existing'
+          ' element{} unchanged.', nupdated, nnewvals,
+          '' if nupdated == 1 else 's', nunchanged,
+          '' if nunchanged == 1 else 's')

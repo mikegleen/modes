@@ -2,23 +2,23 @@ cmd: global
 inhibit_number:
 ---
 cmd: column
-elt: ./ObjectLocation[@elementtype="current location"]/Location
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
 title: 'Current Location'
 normalize:
 ---
 cmd: column
-elt: ./ObjectIdentity/Number
+xpath: ./ObjectIdentity/Number
 title: 'ID'
 normalize:
 ---
 cmd: column
-elt: ./References/Reference[@elementtype="First Published In"]/Title
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
 title: 'First Published'
 ---
 cmd: column
-elt: ./Identification/Title
+xpath: ./Identification/Title
 width: 50
 ---
 cmd: column
-elt: ./Acquisition/SummaryText[@elementtype="Acquisition text to be displayed"]
+xpath: ./Acquisition/SummaryText[@elementtype="Acquisition text to be displayed"]
 title: Acquisition
