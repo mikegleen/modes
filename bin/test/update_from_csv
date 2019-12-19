@@ -1,0 +1,4 @@
+tpath=data/test/update_from_csv
+tst=$1
+shift
+python src/update_from_csv.py $tpath/xml/$tst.xml tmp/update_test.xml -c $tpath/yaml/$tst.yml -m  $tpath/csv/$tst.csv $*

@@ -105,6 +105,7 @@ src/.idea/
 data/
 out/
 prod_backup/
+prod_update/
 results/
 stocktake/
 dev_backup/

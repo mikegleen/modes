@@ -1,0 +1,11 @@
+cmd: ifcontains
+xpath: ./Identification/BriefDescription
+value: aej
+---
+cmd: column
+xpath: ./Identification/Title
+---
+cmd: column
+xpath: ./Identification/BriefDescription
+
+
