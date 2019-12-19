@@ -8,11 +8,11 @@ can be column-generating or control statements.
 Statements:
 -----------
 cmd            Required. See below for a description of the individual commands.
-elt            Required. This describes the XSLT path to a relevant XML element.
+xpath          Required. This describes the XSLT path to a relevant XML element.
 attribute      Required by the attrib and ifattrib commands.
 title          Optional. If omitted, a best-guess title will be created from the elt
                statement. If in a control document, this will be shown in diagnostics.
-value          Required for ifeq or ifattrib command.
+value          Required for ifeq or ifattrib or ifcontains command.
 inhibit_number Do not write the ID number as the first column. This can be useful when
                sorting on another column. Include this statement under a global
                command.
