@@ -47,9 +47,18 @@ def main(inf, outf, cfgf):
     trace(1, 'Columns: {}', ', '.join(titles))
     if _args.heading:
         outcsv.writerow(titles)
-    for event, elem in ET.iterparse(inf):
+    objectlevel = 0
+    for event, elem in ET.iterparse(infile, events=('start', 'end')):
+        if event == 'start':
+            if elem.tag == 'Object':
+                objectlevel += 1
+            continue
+        # It's an "end" event.
         if elem.tag != 'Object':
             continue
+        objectlevel -= 1
+        if objectlevel:
+            continue  # It's not a top level Object.
         writerow = True
         data = []
         idelem = elem.find('./ObjectIdentity/Number')
@@ -78,7 +87,7 @@ def main(inf, outf, cfgf):
                     break
                 data.append('')
                 continue
-            if command in (Cmd.ATTRIB, Cmd.IFATTRIB):
+            if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ):
                 attribute = document[Stmt.ATTRIBUTE]
                 text = element.get(attribute)
             elif command == Cmd.COUNT:
@@ -89,10 +98,10 @@ def main(inf, outf, cfgf):
             else:
                 text = element.text.strip()
             if not text and command in (Cmd.IF, Cmd.IFATTRIB, Cmd.IFCONTAINS,
-                                        Cmd.IFEQ):
+                                        Cmd.IFEQ, Cmd.IFATTRIBEQ):
                 writerow = False
                 break
-            if command in (Cmd.IFEQ, Cmd.IFATTRIB, Cmd.IFCONTAINS):
+            if command in (Cmd.IFEQ, Cmd.IFCONTAINS, Cmd.IFATTRIBEQ):
                 value = document[Stmt.VALUE]
                 textvalue = text
                 if Stmt.CASESENSITIVE not in document:
@@ -101,7 +110,7 @@ def main(inf, outf, cfgf):
                 if command == Cmd.IFCONTAINS and value not in textvalue:
                     writerow = False
                     break
-                elif command in (Cmd.IFEQ, Cmd.IFATTRIB) and value != textvalue:
+                elif command in (Cmd.IFEQ, Cmd.IFATTRIBEQ) and value != textvalue:
                     writerow = False
                     break
                 continue
@@ -124,11 +133,11 @@ def main(inf, outf, cfgf):
     norm = []
     if not inhibit_number:
         norm.append(True)  # for the Serial number
-    lennorm = len(norm)
     for doc in config:
         if doc[Stmt.CMD] in Cmd.CONTROL_CMDS:
             continue
         norm.append(Stmt.NORMALIZE in doc)
+    lennorm = len(norm)
     for row in outlist:
         for n, cell in enumerate(row[:lennorm]):
             if norm[n]:
