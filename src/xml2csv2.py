@@ -48,7 +48,7 @@ def main(inf, outf, cfgf):
     if _args.heading:
         outcsv.writerow(titles)
     objectlevel = 0
-    for event, elem in ET.iterparse(infile, events=('start', 'end')):
+    for event, elem in ET.iterparse(inf, events=('start', 'end')):
         if event == 'start':
             if elem.tag == 'Object':
                 objectlevel += 1
