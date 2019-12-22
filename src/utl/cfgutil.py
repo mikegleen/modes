@@ -29,7 +29,8 @@ global*       Contains statements that affect the overall output, not just a
               specific column.
 if*           Control command that selects an object to display if the element text is
               populated.
-ifattrib*     Like ifeq except compares the value against an attribute
+ifattrib*     Like if except tests for an attribute
+ifattribeq*   Like ifeq except compares the value against an attribute
 ifcontains*   Select an object if the value in the value statement is contained
               in the element text.
 ifeq*         Select an object if the element text equals the value statement text.
@@ -39,6 +40,7 @@ ifeq*         Select an object if the element text equals the value statement te
 """
 
 from collections import namedtuple
+import sys
 import yaml
 
 # The difference between the 'attrib' command and the attribute statement:
@@ -57,11 +59,14 @@ class Cmd:
     IFEQ = 'ifeq'  # if the elt text equals the value statement
     IFCONTAINS = 'ifcontains'
     IFATTRIB = 'ifattrib'  # requires attribute statement
+    IFATTRIBEQ = 'ifattribeq'  # requires attribute statement
     IFSERIAL = 'ifserial'
     # Commands that do not produce a column in the output CSV file
-    CONTROL_CMDS = (IF, IFEQ, IFATTRIB, IFSERIAL, GLOBAL, IFCONTAINS)
-    NEEDVALUE_CMDS = (IFEQ, IFATTRIB, IFSERIAL, IFCONTAINS)
-    NEEDELT_CMDS = (ATTRIB, COLUMN, IF, COUNT, IFEQ, IFCONTAINS, IFATTRIB, )
+    CONTROL_CMDS = (IF, IFEQ, IFATTRIB, IFSERIAL, GLOBAL, IFCONTAINS,
+                    IFATTRIBEQ)
+    NEEDVALUE_CMDS = (IFEQ, IFATTRIBEQ, IFSERIAL, IFCONTAINS)
+    NEEDXPATH_CMDS = (ATTRIB, COLUMN, IF, COUNT, IFEQ, IFCONTAINS, IFATTRIB,
+                      IFATTRIBEQ)
 
 
 class Stmt:
@@ -120,7 +125,7 @@ def validate_yaml_cfg(cfg):
             valid = False
             dump_document(document)
             break
-        if command in Cmd.NEEDELT_CMDS and Stmt.XPATH not in document:
+        if command in Cmd.NEEDXPATH_CMDS and Stmt.XPATH not in document:
             print(f'XPATH statement missing, cmd: {command}')
             valid_doc = False
         if not validate_yaml_cmd(command):
@@ -128,7 +133,7 @@ def validate_yaml_cfg(cfg):
         if command in Cmd.NEEDVALUE_CMDS and Stmt.VALUE not in document:
             print(f'value is required for {command} command.')
             valid_doc = False
-        if command in (Cmd.ATTRIB, Cmd.IFATTRIB):
+        if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ):
             if Stmt.ATTRIBUTE not in document:
                 print(f'attribute is required for {command} command.')
                 valid_doc = False
@@ -141,6 +146,9 @@ def validate_yaml_cfg(cfg):
 
 def mak_yaml_col_hdg(command, target, attrib):
     if command == Cmd.ATTRIB:
+        if attrib is None:
+            print('Fatal: attribute statement is missing.')
+            sys.exit(1)
         target += '@' + attrib
     elif command == Cmd.COUNT:
         target = f'{target}(len)'
@@ -171,6 +179,8 @@ def read_yaml_cfg(cfgf, title=False, dump=False):
     # Might be None for an empty document, like trailing "---"
     cfg = [c for c in yaml.safe_load_all(cfgf) if c is not None]
     for document in cfg:
+        if dump:
+            dump_document(document)
         cmd = document[Stmt.CMD]
         elt = document.get(Stmt.XPATH)
         # Specify the column title. If the command 'title' isn't specified,
@@ -178,10 +188,64 @@ def read_yaml_cfg(cfgf, title=False, dump=False):
         # statement. The validate_yaml_cfg function checks that the elt
         # statement is there if needed.
         if title and 'title' not in document and elt is not None:
-            document[Stmt.TITLE] = mak_yaml_col_hdg(cmd, elt, document.get('attrib'))
-        if dump:
-            dump_document(document)
+            document[Stmt.TITLE] = mak_yaml_col_hdg(cmd, elt,
+                                         document.get(Stmt.ATTRIBUTE))
     return cfg
+
+
+def select(elem, config):
+    """
+
+    :param elem: the Object element
+    :param config: the YAML configuration, a list of dicts
+    :return: selected is true if the Object element should be written out
+
+    """
+    # config is a list of dicts, one dict per YAML document in the config
+    # This maps to the columns in the output CSV file plus a few control commands.
+    selected = True
+    for document in config:
+        command = document[Stmt.CMD]
+        if command == Cmd.GLOBAL:
+            continue
+        eltstr = document.get(Stmt.XPATH)
+        if eltstr:
+            element = elem.find(eltstr)
+        else:
+            element = None
+        if element is None:
+            if command in Cmd.CONTROL_CMDS:
+                selected = False
+                break
+            continue
+        if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ):
+            attribute = document[Stmt.ATTRIBUTE]
+            text = element.get(attribute)
+        elif command == Cmd.COUNT:
+            count = len(list(elem.findall(eltstr)))
+            text = f'{count}'
+        elif element.text is None:
+            text = ''
+        else:
+            text = element.text.strip()
+        if not text and command in (Cmd.IF, Cmd.IFATTRIB, Cmd.IFCONTAINS,
+                                    Cmd.IFEQ, Cmd.IFATTRIBEQ):
+            selected = False
+            break
+        if command in (Cmd.IFEQ, Cmd.IFCONTAINS, Cmd.IFATTRIBEQ):
+            value = document[Stmt.VALUE]
+            textvalue = text
+            if Stmt.CASESENSITIVE not in document:
+                value = value.lower()
+                textvalue = textvalue.lower()
+            if command == Cmd.IFCONTAINS and value not in textvalue:
+                selected = False
+                break
+            elif command in (Cmd.IFEQ, Cmd.IFATTRIBEQ) and value != textvalue:
+                selected = False
+                break
+            continue
+    return selected
 
 
 def read_cfg(cfgf):
@@ -251,12 +315,12 @@ def read_cfg(cfgf):
 
 def maktarget(col):
     command, target, attrib = col
-    if command == 'attrib':
+    if command == Cmd.ATTRIB:
         target += '@' + attrib
-    elif command == 'count':
+    elif command == Cmd.COUNT:
         target = f'{target}(len)'
         # print(target)
-    elif command == 'ifattrib':
+    elif command == Cmd.IFATTRIB:
         return None  # Not included in heading
     return target
 
