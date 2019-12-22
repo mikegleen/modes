@@ -13,7 +13,7 @@ attribute      Required by the attrib and ifattrib commands.
 title          Optional. If omitted, a best-guess title will be created from the elt
                statement. If in a control document, this will be shown in diagnostics.
 value          Required for ifeq or ifattrib or ifcontains command.
-inhibit_number Do not write the ID number as the first column. This can be useful when
+skip_number    Do not write the ID number as the first column. This can be useful when
                sorting on another column. Include this statement under a global
                command.
 normalize      Adjust this ID number so that it sorts in numeric order.
@@ -73,17 +73,26 @@ class Stmt:
     CASESENSITIVE = 'casesensitive'
     NORMALIZE = 'normalize'
     WIDTH = 'width'
-    INHIBIT_NUMBER = 'inhibit_number'
+    SKIP_NUMBER = 'skip_number'
 
 
-Cfg = namedtuple('Cfg', ('column', 'required'))
+class Config:
+    __instance = None
 
+    @staticmethod
+    def get_config():
+        if Config.__instance is None:
+            raise Exception('Config instance not created.')
+        return Config.__instance
 
-def dump_document(document):
-    print('Document:')
-    for stmt in document:
-        print(f'     {stmt}: {document[stmt]}')
-    print('     ---')
+    def __init__(self):
+        """ Virtually private constructor. """
+        if Config.__instance is not None:
+            raise Exception("This class is a singleton!")
+        Config.__instance = self
+        col_docs = []  # documents that generate columns
+        cmd_docs = []  # control documents
+        
 
 
 def validate_yaml_cmd(cmd):
@@ -94,6 +103,13 @@ def validate_yaml_cmd(cmd):
     if not valid:
         print(f'{cmd} is not a valid command.')
     return valid
+
+
+def dump_document(document):
+    print('Document:')
+    for stmt in document:
+        print(f'     {stmt}: {document[stmt]}')
+    print('     ---')
 
 
 def validate_yaml_stmts(document):
@@ -184,83 +200,6 @@ def read_yaml_cfg(cfgf, title=False, dump=False):
     return cfg
 
 
-def read_cfg(cfgf):
-    """
-    :param cfgf: iterable (usually a file) containing lines of the form:
-                 column <xpath statement>
-                 count  <xpath statement>
-                 attrib <xpath statement>, <attribute name>
-                 required <xpath statement>
-            where the xpath statement points to an xml element within the file
-            The value returned may be None.
-
-            The command "attrib" is like "column" except instead of returning
-            the element's text, it returns the value of the named attribute.
-
-            The command "count" returns the number of occurrences of that
-            sub-element.
-
-    :return: a Cfg namedtuple containing two members:
-            First member:
-            a list of 3-tuples containing:
-                (0) the command name
-                (1) xpath statements which will be used to extract
-                    text values from an xml element.
-                (2) * In case of an attrib command, the attribute name whose
-                      value should be returned instead of the element's text
-                      value.
-                    * In case of a count command, optionally the minimum number
-                      of occurrences required for this line to be output.
-                    * If no parameter is required, None is returned as the
-                      third parameter.
-
-            Second member:
-            a list of "required" statements such that only an element with that
-                field populated will be included in the output
-            If cfgf is None, return a Cfg namedtuple with empty lists.
-
-    """
-    cfg = []
-    cols = []
-    reqd = []
-    if cfgf:
-        for line in cfgf:
-            line = line.strip()
-            if not line or line[0] == '#':
-                continue
-            row = line.split(None, 1)
-            assert len(row) > 1, f'Invalid command: "{line}"'
-            command = row[0].lower()
-            if command in (Cmd.COLUMN, Cmd.COUNT):
-                row[1] = row[1].strip('\'"')  # remove leading & trailing quotes
-                cols.append((command, row[1], None))
-            elif command == 'required':
-                reqd.append(row[1])
-            elif command in ('attrib', 'ifattrib'):
-                params = [command] + row[1].split(',')
-                params = [x.strip() for x in params]
-                if len(params) != 3:
-                    raise SyntaxError(f'Bad number of parameters in ATTRIB'
-                                      f' statement: "{line}".')
-                cols.append(params)
-            else:
-                raise SyntaxError(f'Unknown command: {command}.')
-        cfg = Cfg(cols, reqd)
-    return cfg
-
-
-def maktarget(col):
-    command, target, attrib = col
-    if command == 'attrib':
-        target += '@' + attrib
-    elif command == 'count':
-        target = f'{target}(len)'
-        # print(target)
-    elif command == 'ifattrib':
-        return None  # Not included in heading
-    return target
-
-
 def yaml_fieldnames(cols):
     """
     :param cols: the list produced by read_cfg or that list converted to
@@ -279,17 +218,3 @@ def yaml_fieldnames(cols):
     return hdgs
 
 
-def fieldnames(cols):
-    """
-    :param cols: the list produced by read_cfg or that list converted to
-                 a list of strings.
-    :return: a list of column headings extracted from the last subelement in
-             the xpath statement
-    """
-    hdgs = ['Serial']  # hardcoded first entry
-    targets = [maktarget(col) for col in cols]
-    for col in targets:
-        if col:
-            h = col.split('/')[-1]  # trailing element name
-            hdgs.append(h.split('[')[0])  # strip trailing [@xyz='def']
-    return hdgs

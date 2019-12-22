@@ -38,11 +38,11 @@ def main(inf, outf, cfgf):
         print('Config validation failed. Program aborted.')
         sys.exit(1)
     global_stmts = yaml_global(config)
-    inhibit_number = Stmt.INHIBIT_NUMBER in global_stmts
+    skip_number = Stmt.SKIP_NUMBER in global_stmts
     outcsv = opencsvwriter(outf)
     outlist = []
     titles = yaml_fieldnames(config)
-    if inhibit_number:
+    if skip_number:
         titles = titles[1:]  # Get rid of the leading 'Serial' entry
     trace(1, 'Columns: {}', ', '.join(titles))
     if _args.heading:
@@ -64,7 +64,7 @@ def main(inf, outf, cfgf):
         idelem = elem.find('./ObjectIdentity/Number')
         idnum = idelem.text if idelem is not None else ''
         trace(3, 'idnum: {}', idnum)
-        if not inhibit_number:
+        if not skip_number:
             data.append(normalize_id(idnum))
         # config is a list of dicts, one dict per YAML document in the config
         # This maps to the columns in the output CSV file plus a few control commands.
@@ -131,7 +131,7 @@ def main(inf, outf, cfgf):
     # Create a list such that for each column set a flag indicating whether the value
     # needs to be de-normalized.
     norm = []
-    if not inhibit_number:
+    if not skip_number:
         norm.append(True)  # for the Serial number
     for doc in config:
         if doc[Stmt.CMD] in Cmd.CONTROL_CMDS:

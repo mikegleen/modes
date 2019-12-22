@@ -1,5 +1,5 @@
 cmd: global
-inhibit_number:
+skip_number:
 ---
 cmd: ifattrib
 xpath: .

@@ -1,5 +1,5 @@
 cmd: global
-inhibit_number:
+skip_number:
 ---
 cmd: column
 xpath: ./ObjectLocation[@elementtype="current location"]/Location
