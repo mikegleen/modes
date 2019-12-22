@@ -20,5 +20,6 @@ xpath: ./Identification/Title
 width: 50
 ---
 cmd: column
-xpath: ./Acquisition/SummaryText[@elementtype="Acquisition text to be displayed"]
-title: Acquisition
+xpath: ./ObjectLocation[@elementtype="normal location"]/Location
+title: 'Normal Location'
+normalize:
