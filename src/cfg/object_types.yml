@@ -1,0 +1,6 @@
+cmd: global
+inhibit_number:
+---
+cmd: attrib
+xpath: .
+attribute: elementtype

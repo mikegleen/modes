@@ -1,0 +1,100 @@
+# -*- coding: utf-8 -*-
+"""
+    Output selected Object elements based on the YAML configuration file.
+
+"""
+import argparse
+import os.path
+import re
+import sys
+# noinspection PyPep8Naming
+import xml.etree.ElementTree as ET
+from utl.cfgutil import read_yaml_cfg, select, validate_yaml_cfg
+
+AEJSTR = r'([^(]*)\(?AEJ\s?(\d+)\)?(.*)'
+aejpat = re.compile(AEJSTR)
+
+
+def trace(level, template, *args):
+    if _args.verbose >= level:
+        print(template.format(*args))
+
+
+def one_object(oldobj):
+    """
+
+    :param oldobj: the Object from the old file
+    :return: None. The updated object is written to the output XML file.
+    """
+    global object_number
+    global selcount
+    selected = select(oldobj, config)
+    if selected:
+        selcount += 1
+        outfile.write(ET.tostring(oldobj, encoding=_args.encoding))
+
+
+def main():
+    if not validate_yaml_cfg(config):
+        print('Config validation failed. Program aborted.')
+        sys.exit(1)
+    declaration = f'<?xml version="1.0" encoding="{_args.encoding}"?>\n'
+    outfile.write(bytes(declaration, encoding=_args.encoding))
+    outfile.write(b'<Interchange>\n')
+    objectlevel = 0
+    for event, oldobject in ET.iterparse(infile, events=('start', 'end')):
+        if event == 'start':
+            if oldobject.tag == 'Object':
+                objectlevel += 1
+            continue
+        # It's an "end" event.
+        if oldobject.tag != 'Object':
+            continue
+        objectlevel -= 1
+        if objectlevel:
+            continue  # It's not a top level Object.
+        one_object(oldobject)
+        oldobject.clear()
+        if _args.short:
+            break
+    outfile.write(b'</Interchange>')
+
+
+def getargs():
+    parser = argparse.ArgumentParser(description='''
+        For objects where the type of object is "drawing", remove the extraneous text
+        "Drawing - " from the beginning of the BriefDescription element text.        
+        ''')
+    parser.add_argument('infile', help='''
+        The input XML file''')
+    parser.add_argument('outfile', help='''
+        The output XML file.''')
+    parser.add_argument('-c', '--cfgfile', required=True, help='''
+        The config file describing the Object elements to include in the
+        output''')
+    parser.add_argument('-e', '--encoding', default='us-ascii', help='''
+        Set the output encoding. The default is "us-ascii".
+        ''')
+    parser.add_argument('-s', '--short', action='store_true', help='''
+        Only process one object.''')
+    parser.add_argument('-v', '--verbose', type=int, default=1, help='''
+        Set the verbosity. The default is 1 which prints summary information.
+        ''')
+    args = parser.parse_args()
+    return args
+
+
+if __name__ == '__main__':
+    assert sys.version_info >= (3, 6)
+    selcount = 0
+    object_number = ''
+    _args = getargs()
+    infile = open(_args.infile)
+    outfile = open(_args.outfile, 'wb')
+    cfgfile = open(_args.cfgfile)
+    config = read_yaml_cfg(cfgfile, title=True, dump=_args.verbose >= 2)
+    main()
+    basename = os.path.basename(sys.argv[0])
+    print(f'{selcount} object{"" if selcount == 1 else "s"} selected.')
+    print(f'End {basename.split(".")[0]}')
+
