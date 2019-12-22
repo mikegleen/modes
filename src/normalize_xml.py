@@ -15,11 +15,20 @@ import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 def main():
     nlines = 0
     outfile.write(b'<?xml version="1.0" encoding="ASCII"?>\n<Interchange>')
-    if _args.newline:
+    if _args.newline or _args.pretty:
         outfile.write(b'\n')
-    for event, elem in ET.iterparse(infile):
+    objectlevel = 0
+    for event, elem in ET.iterparse(infile, events=('start', 'end')):
+        if event == 'start':
+            if elem.tag == 'Object':
+                objectlevel += 1
+            continue
+        # It's an "end" event.
         if elem.tag != 'Object':
             continue
+        objectlevel -= 1
+        if objectlevel:
+            continue  # It's not a top level Object.
         elem.text = elem.tail = None
         for e in elem.iter():
             # print(f'{e.tag} "{e.text}" "{e.tail}"')
