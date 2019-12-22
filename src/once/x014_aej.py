@@ -21,7 +21,7 @@ def trace(level, template, *args):
 
 
 def one_elt(elt):
-    global updatedcount
+    global selcount
     ident = elt.find('./Identification')
     if ident is None:
         print(f'{object_number}: Identification not found')
@@ -112,13 +112,13 @@ def getargs():
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
-    updatedcount = 0
+    selcount = 0
     object_number = ''
     _args = getargs()
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
     main()
     basename = os.path.basename(sys.argv[0])
-    print(f'{updatedcount} objects updated.')
+    print(f'{selcount} objects updated.')
     print(f'End {basename.split(".")[0]}')
 
