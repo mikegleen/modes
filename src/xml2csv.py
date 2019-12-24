@@ -13,8 +13,8 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-from utl.cfgutil import read_yaml_cfg, yaml_fieldnames, Cmd, Stmt, validate_yaml_cfg
-from utl.cfgutil import yaml_global
+from utl.cfgutil import Cmd, Stmt, yaml_fieldnames
+from utl.cfgutil import Config, select
 from utl.normalize import normalize_id, denormalize_id
 
 
@@ -31,19 +31,38 @@ def opencsvwriter(filename):
     return outcsv
 
 
+def one_document(document, elem):
+    command = document[Stmt.CMD]
+    eltstr = document.get(Stmt.XPATH)
+    if eltstr:
+        element = elem.find(eltstr)
+    else:
+        element = None
+    if element is None:
+        return None, command
+    if command == Cmd.ATTRIB:
+        attribute = document[Stmt.ATTRIBUTE]
+        text = element.get(attribute)
+    elif command == Cmd.COUNT:
+        count = len(list(elem.findall(eltstr)))
+        text = f'{count}'
+    elif element.text is None:
+        text = ''
+    else:
+        text = element.text.strip()
+    if Stmt.NORMALIZE in document:
+        text = normalize_id(text)
+    if Stmt.WIDTH in document:
+        text = text[:document[Stmt.WIDTH]]
+    return text, command
+
+
 def main(inf, outf, cfgf):
     global nlines, not_found
-    config = read_yaml_cfg(cfgf, title=True, dump=_args.verbose >= 2)
-    if not validate_yaml_cfg(config):
-        print('Config validation failed. Program aborted.')
-        sys.exit(1)
-    global_stmts = yaml_global(config)
-    skip_number = Stmt.SKIP_NUMBER in global_stmts
+    config = Config(cfgf, title=True, dump=_args.verbose >= 2)
     outcsv = opencsvwriter(outf)
     outlist = []
     titles = yaml_fieldnames(config)
-    if skip_number:
-        titles = titles[1:]  # Get rid of the leading 'Serial' entry
     trace(1, 'Columns: {}', ', '.join(titles))
     if _args.heading:
         outcsv.writerow(titles)
@@ -59,81 +78,37 @@ def main(inf, outf, cfgf):
         objectlevel -= 1
         if objectlevel:
             continue  # It's not a top level Object.
-        writerow = True
         data = []
         idelem = elem.find('./ObjectIdentity/Number')
         idnum = idelem.text if idelem is not None else ''
         trace(3, 'idnum: {}', idnum)
-        if not skip_number:
+
+        writerow = select(elem, config)
+        if not writerow:
+            continue
+        if not config.skip_number:
             data.append(normalize_id(idnum))
-        # config is a list of dicts, one dict per YAML document in the config
-        # This maps to the columns in the output CSV file plus a few control commands.
-        for document in config:
-            command = document[Stmt.CMD]
-            if command == Cmd.GLOBAL:
-                continue
-            eltstr = document.get(Stmt.XPATH)
-            if eltstr:
-                element = elem.find(eltstr)
-            else:
-                element = None
-            if element is None:
+
+        for document in config.col_docs:
+            text, command = one_document(document, elem)
+            if text is None:
                 not_found += 1
-                # dump_document(document)
                 trace(2, '{}: cmd {}, "{}" is not found.', idnum, command,
                       document[Stmt.TITLE])
-                if command in Cmd.CONTROL_CMDS:
-                    writerow = False
-                    break
-                data.append('')
-                continue
-            if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ):
-                attribute = document[Stmt.ATTRIBUTE]
-                text = element.get(attribute)
-            elif command == Cmd.COUNT:
-                count = len(list(elem.findall(eltstr)))
-                text = f'{count}'
-            elif element.text is None:
                 text = ''
-            else:
-                text = element.text.strip()
-            if not text and command in (Cmd.IF, Cmd.IFATTRIB, Cmd.IFCONTAINS,
-                                        Cmd.IFEQ, Cmd.IFATTRIBEQ):
-                writerow = False
-                break
-            if command in (Cmd.IFEQ, Cmd.IFCONTAINS, Cmd.IFATTRIBEQ):
-                value = document[Stmt.VALUE]
-                textvalue = text
-                if Stmt.CASESENSITIVE not in document:
-                    value = value.lower()
-                    textvalue = textvalue.lower()
-                if command == Cmd.IFCONTAINS and value not in textvalue:
-                    writerow = False
-                    break
-                elif command in (Cmd.IFEQ, Cmd.IFATTRIBEQ) and value != textvalue:
-                    writerow = False
-                    break
-                continue
-            if Stmt.NORMALIZE in document:
-                # print(idnum, f'"{text}"')
-                text = normalize_id(text)
-                # print(idnum, f'after: "{text}"')
-            if Stmt.WIDTH in document:
-                text = text[:document[Stmt.WIDTH]]
             data.append(text)
 
-        if writerow:
-            nlines += 1
-            outlist.append(data)
+        nlines += 1
+        outlist.append(data)
         if _args.short:
             break
     outlist.sort()
-    # Create a list such that for each column set a flag indicating whether the value
-    # needs to be de-normalized.
+    # Create a list such that for each column set a flag indicating whether the
+    # value needs to be de-normalized.
     norm = []
-    if not skip_number:
+    if not config.skip_number:
         norm.append(True)  # for the Serial number
-    for doc in config:
+    for doc in config.col_docs:
         if doc[Stmt.CMD] in Cmd.CONTROL_CMDS:
             continue
         norm.append(Stmt.NORMALIZE in doc)

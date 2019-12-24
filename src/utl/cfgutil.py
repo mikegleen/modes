@@ -89,14 +89,46 @@ class Config:
             raise Exception('Config instance not created.')
         return Config.__instance
 
-    def __init__(self):
-        """ Virtually private constructor. """
+    def __init__(self, yamlcfgfile, title=False, dump=False):
         if Config.__instance is not None:
-            raise Exception("This class is a singleton!")
+            raise ValueError("This class is a singleton!")
         Config.__instance = self
-        col_docs = []  # documents that generate columns
-        cmd_docs = []  # control documents
-        
+        self.col_docs = []  # documents that generate columns
+        self.cmd_docs = []  # control documents
+        self.skip_number = False
+        cfglist = _read_yaml_cfg(yamlcfgfile, title=title, dump=dump)
+        valid = validate_yaml_cfg(cfglist)
+        if not valid:
+            raise ValueError('Config failed validation.')
+        for document in cfglist:
+            cmd = document[Stmt.CMD]
+            if cmd in Cmd.CONTROL_CMDS:
+                if cmd == Cmd.GLOBAL:
+                    for stmt in document:
+                        if stmt == Stmt.CMD:
+                            continue
+                        elif stmt == Stmt.SKIP_NUMBER:
+                            self.skip_number = True
+                        else:
+                            print(f'Unknown statement, ignored: {stmt}.')
+                    continue
+                else:
+                    self.cmd_docs.append(document)
+            else:
+                self.col_docs.append(document)
+        self.norm = []  # True if this column needs to normalized/unnormalized
+        if not self.skip_number:
+            self.norm.append(True)  # for the Serial number
+        for doc in self.col_docs:
+            self.norm.append(Stmt.NORMALIZE in doc)
+        self.lennorm = len(self.norm)
+
+
+def dump_document(document):
+    print('Document:')
+    for stmt in document:
+        print(f'     {stmt}: {document[stmt]}')
+    print('     ---')
 
 
 def validate_yaml_cmd(cmd):
@@ -109,17 +141,8 @@ def validate_yaml_cmd(cmd):
     return valid
 
 
-def dump_document(document):
-    print('Document:')
-    for stmt in document:
-        print(f'     {stmt}: {document[stmt]}')
-    print('     ---')
-
-
 def validate_yaml_stmts(document):
     validlist = [getattr(Stmt, stmt) for stmt in dir(Stmt) if not stmt.startswith('_')]
-    # print(validlist)
-    # print(document)
     valid = True
     for stmt in document:
         if stmt not in validlist:
@@ -128,9 +151,9 @@ def validate_yaml_stmts(document):
     return valid
 
 
-def validate_yaml_cfg(cfg):
+def validate_yaml_cfg(cfglist):
     valid = True
-    for document in cfg:
+    for document in cfglist:
         valid_doc = True
         if not validate_yaml_stmts(document):
             valid_doc = False
@@ -140,10 +163,10 @@ def validate_yaml_cfg(cfg):
             valid = False
             dump_document(document)
             break
+        if not validate_yaml_cmd(command):
+            valid_doc = False
         if command in Cmd.NEEDXPATH_CMDS and Stmt.XPATH not in document:
             print(f'XPATH statement missing, cmd: {command}')
-            valid_doc = False
-        if not validate_yaml_cmd(command):
             valid_doc = False
         if command in Cmd.NEEDVALUE_CMDS and Stmt.VALUE not in document:
             print(f'value is required for {command} command.')
@@ -159,54 +182,28 @@ def validate_yaml_cfg(cfg):
     return valid
 
 
-def mak_yaml_col_hdg(command, target, attrib):
-    if command == Cmd.ATTRIB:
-        if attrib is None:
-            print('Fatal: attribute statement is missing.')
-            sys.exit(1)
-        target += '@' + attrib
-    elif command == Cmd.COUNT:
-        target = f'{target}(len)'
-        # print(target)
-    elif target is None:
-        return None  # Not included in heading
-    # command is 'column'
-    h = target.split('/')[-1]  # trailing element name
-    target = h.split('[')[0]  # strip trailing [@xyz='def']
-    return target
-
-
-def yaml_global(config):
-    """
-    :param config:
-    :return: A dict containing the global statements
-    """
-
-    global_stmts = {}
-    for document in config:
-        if document[Stmt.CMD] == Cmd.GLOBAL:
-            for stmt in document:
-                global_stmts[stmt] = document[stmt]
-    return global_stmts
-
-
-def read_yaml_cfg(cfgf, title=False, dump=False):
+def _read_yaml_cfg(cfgf, title=False, dump=False):
     # Might be None for an empty document, like trailing "---"
     cfg = [c for c in yaml.safe_load_all(cfgf) if c is not None]
     for document in cfg:
         if dump:
             dump_document(document)
         cmd = document[Stmt.CMD]
-        elt = document.get(Stmt.XPATH)
         # Specify the column title. If the command 'title' isn't specified,
         # construct the title from the trailing element name from the 'elt'
         # statement. The validate_yaml_cfg function checks that the elt
         # statement is there if needed.
-        if title and 'title' not in document and elt is not None:
-            document[Stmt.TITLE] = mak_yaml_col_hdg(cmd, elt,
-                                         document.get(Stmt.ATTRIBUTE))
+        if title and Stmt.TITLE not in document:
+            target = document.get(Stmt.XPATH)
+            attribute = document.get(Stmt.ATTRIBUTE)
+            h = target.split('/')[-1]  # trailing element name
+            target = h.split('[')[0]  # strip trailing [@xyz='def']
+            if attribute:
+                target += '@' + attribute
+            elif cmd == Cmd.COUNT:
+                target = f'{target}(n)'
+            document[Stmt.TITLE] = target
     return cfg
-
 
 
 def select(elem, config):
@@ -220,7 +217,7 @@ def select(elem, config):
     # config is a list of dicts, one dict per YAML document in the config
     # This maps to the columns in the output CSV file plus a few control commands.
     selected = True
-    for document in config:
+    for document in config.cmd_docs:
         command = document[Stmt.CMD]
         if command == Cmd.GLOBAL:
             continue
@@ -264,22 +261,15 @@ def select(elem, config):
     return selected
 
 
-
-def yaml_fieldnames(cols):
+def yaml_fieldnames(config):
     """
-    :param cols: the list produced by read_cfg or that list converted to
-                 a list of strings.
-    :return: a list of column headings extracted from the last subelement in
-             the xpath statement
+    :param config: The Config
+    :return: a list of column headings extracted from the column-generating
+    statements.
     """
-    hdgs = ['Serial']  # hardcoded first entry
-    titles = [col[Stmt.TITLE] for col in cols if col[Stmt.CMD] not in Cmd.CONTROL_CMDS]
-    for col in titles:
-        if col.startswith('.'):  # extract heading from elt statement
-            h = col.split('/')[-1]  # trailing element name
-            hdgs.append(h.split('[')[0])  # strip trailing [@xyz='def']
-        else:
-            hdgs.append(col)  # heading from title statement
+    hdgs = []
+    if not config.skip_number:
+        hdgs.append('Serial')  # hardcoded first entry
+    for doc in config.col_docs:
+        hdgs.append(doc[Stmt.TITLE])
     return hdgs
-
-
