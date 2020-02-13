@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 """
-    The input is two files, a YAML file and a CSV file.
-    The YAML file contains xslt definitions for elements to be updated from a
-    CSV file. The format of the CSV file is that the first column contains a
-    serial number and subsequent columns contain the values to be inserted into
-    the corresponding elements.
+
+    The input is three files, an XML file, a YAML file and a CSV file. The
+    XML file is the Modes database file to be updated. The YAML file
+    contains xslt definitions for elements to be updated from a CSV file.
+    The format of the CSV file is that the first column contains a serial
+    number and subsequent columns contain the values to be inserted into the
+    corresponding elements.
 
     The YAML file contains multiple documents, separated by lines containing
     "---"; each document corresponds to an element to be updated. The following
-    example is of a single element to be updated. Note that if an explicit
-    title statement doesn't exist, it is extracted from the trailing element
-    of the xpath statement.
+    example is of a single element to be updated.
 
         ---
         cmd: column
         xpath: ./ObjectLocation/Reason
 
     The documents may contain "title" statements. If one document contains a
-    title statement, they all must. If title statements are included, then the
-    first row of the CSV file contains column titles that must correspond to the
-    titles in the YAML file. The test is case-insensitive. This feature is
-    invoked by the --heading option.
+    title statement, they all must. If title statements are included,
+    then the first row of the CSV file contains column titles that must
+    correspond to the titles in the YAML file. The test is case-insensitive.
+    This feature is invoked by the --heading option.
 
 """
 import argparse
@@ -30,7 +30,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-from utl.cfgutil import read_yaml_cfg, Stmt, Cmd, validate_yaml_cfg
+from utl.cfgutil import Config, Stmt, Cmd
 
 
 def trace(level, template, *args):
@@ -47,12 +47,12 @@ def loadnewvals():
     with codecs.open(_args.mapfile, 'r', 'utf-8-sig') as mapfile:
         reader = csv.reader(mapfile)
         if _args.heading:
+            # Check that the first row in the CSV file contains the same
+            # column headings as in the title statements of the YAML file.
             row = next(reader)
             irow = iter(row)
-            next(irow)  # skip Serial
-            for doc in cfg:
-                if doc[Stmt.CMD] in Cmd.CONTROL_CMDS:
-                    continue
+            next(irow)  # skip Serial column
+            for doc in cfg.col_docs:
                 col = next(irow)
                 title = doc[Stmt.TITLE]
                 if col.lower() != title.lower():
@@ -78,9 +78,9 @@ def one_element(elem, idnum):
     global nupdated, nunchanged
     updated = False
     inewtexts = iter(newvals[idnum])  # we've already checked that it's there
-    for doc in cfg:
+    for doc in cfg.col_docs:
         command = doc[Stmt.CMD]
-        if command in Cmd.CONTROL_CMDS:
+        if command != Cmd.COLUMN:
             continue  # Don't generate a column
         xpath = doc[Stmt.XPATH]
         try:
@@ -120,7 +120,7 @@ def main():
             del newvals[idnum]
         else:
             updated = False
-            if not _args.ignore:
+            if _args.missing:
                 trace(2, 'Not in CSV file: "{}"', idnum)
         if updated or _args.all:
             outfile.write(ET.tostring(elem, encoding='us-ascii'))
@@ -133,10 +133,10 @@ def main():
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-        Read a CSV file containing two column_paths. The first column is the index and
-        the second column is the field defined by the XPATH statement in the DSL
-        file as defined in xml2csv.py. Update the XML file with data from the
-        CSV file.
+        Read a CSV file containing two or more column_paths. The first column
+        is the index and the following columns are the field(s) defined by the
+        XPATH statement in the DSL file as defined in xml2csv.py. Update the
+        XML file with data from the CSV file.
         ''')
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
@@ -146,7 +146,7 @@ def getargs():
         Write all objects. The default is to only write updated objects.''')
     parser.add_argument('-c', '--cfgfile', required=True,
                         type=argparse.FileType('r'), help='''
-        The YAML file describing the column_paths to update''')
+        The YAML file describing the column path(s) to update''')
     parser.add_argument('-f', '--force', action='store_true', help='''
         Replace existing values. If not specified only empty elements will be
         inserted.''')
@@ -175,10 +175,16 @@ if __name__ == '__main__':
     nupdated = nunchanged = 0
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
-    cfg = read_yaml_cfg(_args.cfgfile, title=True, dump=_args.verbose > 1)
-    if not validate_yaml_cfg(cfg):
-        print('Config validation failed. Program aborted.')
+    trace(1, 'Creating file: {}', _args.outfile)
+    cfg = Config(_args.cfgfile, title=True, dump=_args.verbose > 1)
+    for doc in cfg.col_docs:
+        if doc[Stmt.CMD] != Cmd.COLUMN:
+            print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting')
+            sys.exit(1)
+    for doc in cfg.ctrl_docs:
+        print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting.')
         sys.exit(1)
+
     newvals = loadnewvals()
     nnewvals = len(newvals)
     main()
