@@ -194,15 +194,19 @@ def update_current_location(elem, idnum):
     """
 
     :param elem: the Object element
-    :param idnum: the ObjectIdentity/Number text (we've tested that idnum is in newlocs)
+    :param idnum: the ObjectIdentity/Number text (we've tested that idnum is in
+     newlocs)
     :return: True if the object is updated, False otherwise
 
-    If --patch is set, change the date on the current location. Otherwise, change the
-    current location into a previous location and insert a new current location element.
-    If --reset_current is set, delete all of the existing current location elements.
+    If --patch is set, change the date on the current location. Otherwise,
+    change the current location into a previous location and insert a new
+    current location element.
 
-    We've called validate_locations() so there is no need to test return values from
-    function calls.
+    If --reset_current is set, delete all of the existing previous location elements.
+
+    We've called validate_locations() so there is no need to test return
+    values from function calls.
+
     """
 
     # Find the current location
@@ -264,15 +268,16 @@ def update_current_location(elem, idnum):
     oldateend.text = _args.date
     ol.set(ELEMENTTYPE, PREVIOUS_LOCATION)
 
-    # insert the new current location before the old current location (which is now a
-    # previous location.
+    # insert the new current location before the old current location (which is
+    # now a previous location.
     elem.insert(clix - 1, newobjloc)
     trace(2, '{}: Updated current {} -> {}', idnum, oldlocation, newlocationtext)
     return True
 
 
 def update_previous_location(elem, idnum):
-    return True
+    print('Update of previous location not implemented.')
+    sys.exit(1)
 
 
 def handle_update(idnum, elem):
@@ -368,19 +373,31 @@ def add_arguments(parser):
             Use this string as the date to store in the new ObjectLocation
             date. The default is today's date in Modes format (d.m.yyyy).
             ''')
+    parser.add_argument('--datebegin',
+                        help='''
+        Use this string as the date to store in the new previous ObjectLocation
+        date. The format must be in Modes format (d.m.yyyy).
+        ''')
+    parser.add_argument('--dateend', default=nd.modesdate(date.today()),
+                        help='''
+        Use this string as the date to store in the new previous ObjectLocation
+        date. The format must be in Modes format (d.m.yyyy).
+        ''')
     parser.add_argument('--encoding', default='utf-8', help='''
         Set the input encoding. Default is utf-8. Output is always ascii.
         ''')
     parser.add_argument('-f', '--force', action='store_true', help='''
         Write the object to the output file even if it hasn't been updated. This only
-        applies to objects whose ID appears in the CSV file. -a implies -f.''')
+        applies to objects whose ID appears in the CSV file. -a implies -f.
+        ''')
     parser.add_argument('--heading', help='''
         The first row of the map file contains a heading which must match the parameter
         (case insensitive).
         ''')
     parser.add_argument('-l', '--location', help='''
-        Set the location for all of the objects. In this case the CSV file only needs a
-        single column containing the accession number.
+        Set the location for all of the objects in the CSV file. In this 
+        case the CSV file only needs a single column containing the 
+        accession number.  
         ''')
     if is_check or is_update:
         parser.add_argument('-m', '--mapfile', required=True, help='''
@@ -403,9 +420,10 @@ def add_arguments(parser):
         Update the specified location in place without creating history. This is always
         the behavior for normal locations but not for current or previous.''')
     parser.add_argument('-p', '--previous', action='store_true', help='''
-        Add a previous location. This locations start and end dates must not overlap with
-        an existing current or previous location's date(s). Select from "p",
-        "n", and "c". If "p" is specified, no others are allowed. ''')
+        Add a previous location. This location's start and end dates must 
+        not overlap with an existing current or previous location's date(s). 
+        Select from "p", "n", and "c". If "p" is specified, no others are 
+        allowed. ''')
     if is_update:
         parser.add_argument('--reset_current', action='store_true', help='''
         Only output the most recent current location element for each object.
