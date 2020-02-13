@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 The configuration consists of a YAML file broken into multiple documents, separated by
-lines containing just "---" in the left three columns. Each document contains some of the
+lines containing "---" in the left three columns. Each document contains some of the
 following statements. Statements are case sensitive; all must be lower case. Commands
 can be column-generating or control statements.
 
@@ -10,55 +10,54 @@ Statements:
 cmd            Required. See below for a description of the individual commands.
 xpath          Required. This describes the XSLT path to a relevant XML element.
 attribute      Required by the attrib and ifattrib commands.
-title          Optional. If omitted, a best-guess title will be created from the elt
+title          Optional. If omitted, a best-guess title will be created from the xpath
                statement. If in a control document, this will be shown in diagnostics.
 value          Required for ifeq or ifattrib or ifcontains command.
-skip_number    Do not write the ID number as the first column. This can be useful when
-               sorting on another column. Include this statement under a global
-               command.
+skip_number**  Do not write the ID number as the first column. This can be useful when
+               sorting on another column.
 normalize      Adjust this ID number so that it sorts in numeric order.
 casesensitive  By default, comparisons are case insensitive.
-width          truncate columns to this width
+width          truncate this column to this number of characters
 
 Commands:
 ---------
 attrib        Like column except displays the value of the named attribute.
-column        This is the basic command to display the text of an element
-count         Displays the number of occurrences of an element under its parent
-global*       Contains statements that affect the overall output, not just a
-              specific column.
-if*           Control command that selects an object to display if the element text is
-              populated.
+column        This is the basic command to display the text of an element.
+count         Displays the number of occurrences of an element under its parent.
+global*       This document contains statements that affect the overall output,
+              not just a specific column.
+if*           Control command that selects an object to display if the element
+              text is populated.
 ifattrib*     Like if except tests for an attribute
 ifattribeq*   Like ifeq except compares the value against an attribute
 ifcontains*   Select an object if the value in the value statement is contained
               in the element text.
 ifeq*         Select an object if the element text equals the value statement text.
 
-* These command do not generate output columns.
+*  These command do not generate output columns.
+** These statements are only valid if the command is "global".
 
 """
 
-import sys
 import yaml
 
 # The difference between the 'attrib' command and the attribute statement:
 # The 'attrib' command is just like the column command except that the attribute
 # value as given in the attribute statement is extracted.
-# The 'attribute' statement is also used in the case of the 'ifattrib' command to name the
-# attribute to test against the 'value' statement.
+# The 'attribute' statement is also used in the case of the 'ifattrib' command to name
+# the attribute to test against the 'value' statement.
 
 
 class Cmd:
     ATTRIB = 'attrib'
     COLUMN = 'column'
+    COUNT = 'count'
     GLOBAL = 'global'
     IF = 'if'  # if text is present
-    COUNT = 'count'
-    IFEQ = 'ifeq'  # if the elt text equals the value statement
-    IFCONTAINS = 'ifcontains'
     IFATTRIB = 'ifattrib'  # requires attribute statement
     IFATTRIBEQ = 'ifattribeq'  # requires attribute statement
+    IFCONTAINS = 'ifcontains'
+    IFEQ = 'ifeq'  # if the elt text equals the value statement
     IFSERIAL = 'ifserial'
     # Commands that do not produce a column in the output CSV file
     CONTROL_CMDS = (IF, IFEQ, IFATTRIB, IFSERIAL, GLOBAL, IFCONTAINS,
@@ -94,8 +93,9 @@ class Config:
             raise ValueError("This class is a singleton!")
         Config.__instance = self
         self.col_docs = []  # documents that generate columns
-        self.cmd_docs = []  # control documents
+        self.ctrl_docs = []  # control documents
         self.skip_number = False
+        self.norm = []  # True if this column needs to normalized/unnormalized
         cfglist = _read_yaml_cfg(yamlcfgfile, title=title, dump=dump)
         valid = validate_yaml_cfg(cfglist)
         if not valid:
@@ -113,10 +113,9 @@ class Config:
                             print(f'Unknown statement, ignored: {stmt}.')
                     continue
                 else:
-                    self.cmd_docs.append(document)
+                    self.ctrl_docs.append(document)
             else:
                 self.col_docs.append(document)
-        self.norm = []  # True if this column needs to normalized/unnormalized
         if not self.skip_number:
             self.norm.append(True)  # for the Serial number
         for doc in self.col_docs:
@@ -132,8 +131,9 @@ def dump_document(document):
 
 
 def validate_yaml_cmd(cmd):
-    validlist = [getattr(Cmd, c) for c in dir(Cmd) if isinstance(getattr(Cmd, c), str)
-                 and not c.startswith('_')]
+    validlist = [getattr(Cmd, c) for c in dir(Cmd)
+                 if isinstance(getattr(Cmd, c), str) and not c.startswith('_')
+                 ]
     # print('validlist', validlist)
     valid = cmd in validlist
     if not valid:
@@ -157,12 +157,12 @@ def validate_yaml_cfg(cfglist):
         valid_doc = True
         if not validate_yaml_stmts(document):
             valid_doc = False
-        command = document[Stmt.CMD] if Stmt.CMD in document else None
-        if command is None:
+        if Stmt.CMD not in document:
             print('cmd statement is missing.')
             valid = False
             dump_document(document)
             break
+        command = document[Stmt.CMD]
         if not validate_yaml_cmd(command):
             valid_doc = False
         if command in Cmd.NEEDXPATH_CMDS and Stmt.XPATH not in document:
@@ -189,9 +189,9 @@ def _read_yaml_cfg(cfgf, title=False, dump=False):
         if dump:
             dump_document(document)
         cmd = document[Stmt.CMD]
-        # Specify the column title. If the command 'title' isn't specified,
-        # construct the title from the trailing element name from the 'elt'
-        # statement. The validate_yaml_cfg function checks that the elt
+        # Specify the column title. If the title isn't specified in the doc,
+        # construct the title from the trailing element name from the xpath
+        # statement. The validate_yaml_cfg function checks that the xpath
         # statement is there if needed.
         if title and Stmt.TITLE not in document:
             target = document.get(Stmt.XPATH)
@@ -214,10 +214,9 @@ def select(elem, config):
     :return: selected is true if the Object element should be written out
 
     """
-    # config is a list of dicts, one dict per YAML document in the config
-    # This maps to the columns in the output CSV file plus a few control commands.
+
     selected = True
-    for document in config.cmd_docs:
+    for document in config.ctrl_docs:
         command = document[Stmt.CMD]
         if command == Cmd.GLOBAL:
             continue
@@ -227,16 +226,11 @@ def select(elem, config):
         else:
             element = None
         if element is None:
-            if command in Cmd.CONTROL_CMDS:
-                selected = False
-                break
-            continue
+            selected = False
+            break
         if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ):
             attribute = document[Stmt.ATTRIBUTE]
             text = element.get(attribute)
-        elif command == Cmd.COUNT:
-            count = len(list(elem.findall(eltstr)))
-            text = f'{count}'
         elif element.text is None:
             text = ''
         else:
