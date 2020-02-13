@@ -9,10 +9,7 @@ import re
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from utl.cfgutil import read_yaml_cfg, select, validate_yaml_cfg
-
-AEJSTR = r'([^(]*)\(?AEJ\s?(\d+)\)?(.*)'
-aejpat = re.compile(AEJSTR)
+from utl.cfgutil import Config, select
 
 
 def trace(level, template, *args):
@@ -35,9 +32,6 @@ def one_object(oldobj):
 
 
 def main():
-    if not validate_yaml_cfg(config):
-        print('Config validation failed. Program aborted.')
-        sys.exit(1)
     declaration = f'<?xml version="1.0" encoding="{_args.encoding}"?>\n'
     outfile.write(bytes(declaration, encoding=_args.encoding))
     outfile.write(b'<Interchange>\n')
@@ -92,7 +86,7 @@ if __name__ == '__main__':
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
     cfgfile = open(_args.cfgfile)
-    config = read_yaml_cfg(cfgfile, title=True, dump=_args.verbose >= 2)
+    config = Config(cfgfile, title=True, dump=_args.verbose >= 2)
     main()
     basename = os.path.basename(sys.argv[0])
     print(f'{selcount} object{"" if selcount == 1 else "s"} selected.')
