@@ -28,14 +28,14 @@ def opencsvwriter(filename):
     csvfile = codecs.open(filename, 'w', encoding)
     outcsv = csv.writer(csvfile, delimiter=',')
     trace(1, 'Output: {}', filename)
-    return outcsv
+    return outcsv, csvfile
 
 
-def one_document(document, elem):
+def one_document(document, parent):
     command = document[Stmt.CMD]
     eltstr = document.get(Stmt.XPATH)
     if eltstr:
-        element = elem.find(eltstr)
+        element = parent.find(eltstr)
     else:
         element = None
     if element is None:
@@ -44,7 +44,7 @@ def one_document(document, elem):
         attribute = document[Stmt.ATTRIBUTE]
         text = element.get(attribute)
     elif command == Cmd.COUNT:
-        count = len(list(elem.findall(eltstr)))
+        count = len(list(parent.findall(eltstr)))
         text = f'{count}'
     elif element.text is None:
         text = ''
@@ -57,10 +57,13 @@ def one_document(document, elem):
     return text, command
 
 
-def main(inf, outf, cfgf):
-    global nlines, not_found
+def main(inf, cfgf, outfilename, args=None):
+    global _args
+    nlines = notfound = 0
+    if args:
+        _args = args  # if called by test driver
     config = Config(cfgf, title=True, dump=_args.verbose >= 2)
-    outcsv = opencsvwriter(outf)
+    outcsv, csvfile = opencsvwriter(outfilename)
     outlist = []
     titles = yaml_fieldnames(config)
     trace(1, 'Columns: {}', ', '.join(titles))
@@ -92,7 +95,7 @@ def main(inf, outf, cfgf):
         for document in config.col_docs:
             text, command = one_document(document, elem)
             if text is None:
-                not_found += 1
+                notfound += 1
                 trace(2, '{}: cmd {}, "{}" is not found.', idnum, command,
                       document[Stmt.TITLE])
                 text = ''
@@ -103,8 +106,8 @@ def main(inf, outf, cfgf):
         if _args.short:
             break
     outlist.sort()
-    # Create a list such that for each column set a flag indicating whether the
-    # value needs to be de-normalized.
+    # Create a list of flags indicating whether the value needs to be
+    # de-normalized.
     norm = []
     if not config.skip_number:
         norm.append(True)  # for the Serial number
@@ -118,6 +121,8 @@ def main(inf, outf, cfgf):
             if norm[n]:
                 row[n] = denormalize_id(cell)
         outcsv.writerow(row)
+    csvfile.close()
+    return nlines, notfound
 
 
 def getargs():
@@ -152,11 +157,9 @@ def getargs():
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     _args = getargs()
-    nlines = 0
-    not_found = 0
     infile = open(_args.infile)
-    cfgfile = open(_args.cfgfile) if _args.cfgfile else None
-    main(infile, _args.outfile, cfgfile)
-    trace(1, '{} lines written to {}.', nlines, _args.outfile)
+    cfgfile = open(_args.cfgfile)
+    n_lines, not_found = main(infile, cfgfile, _args.outfile)
+    trace(1, '{} lines written to {}', n_lines, _args.outfile)
     if not_found:
         trace(1, 'Warning: {} elements not found.', not_found)
