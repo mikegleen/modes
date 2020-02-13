@@ -4,4 +4,4 @@ if [[ $# -ne 3 ]]; then
 fi
 cp data/test/$1/csv/$2.csv data/test/$1/csv/$3.csv
 cp data/test/$1/xml/$2.xml data/test/$1/xml/$3.xml
-cp data/test/$1/yaml/$2.yml data/test/$1/yaml/$3.yml
+cp data/test/$1/yml/$2.yml data/test/$1/yml/$3.yml
