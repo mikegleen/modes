@@ -71,18 +71,20 @@ def main(inf, cfgf, outfilename, args=None):
         outcsv.writerow(titles)
     objectlevel = 0
     for event, elem in ET.iterparse(inf, events=('start', 'end')):
+        # print(event)
         if event == 'start':
-            if elem.tag == 'Object':
+            # print(elem.tag)
+            if elem.tag == config.record_tag:
                 objectlevel += 1
             continue
         # It's an "end" event.
-        if elem.tag != 'Object':
+        if elem.tag != config.record_tag:
             continue
         objectlevel -= 1
         if objectlevel:
             continue  # It's not a top level Object.
         data = []
-        idelem = elem.find('./ObjectIdentity/Number')
+        idelem = elem.find(config.record_id)
         idnum = idelem.text if idelem is not None else ''
         trace(3, 'idnum: {}', idnum)
 

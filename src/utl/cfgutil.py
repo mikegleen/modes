@@ -15,6 +15,10 @@ title          Optional. If omitted, a best-guess title will be created from the
 value          Required for ifeq or ifattrib or ifcontains command.
 skip_number**  Do not write the ID number as the first column. This can be useful when
                sorting on another column.
+record_tag**   This is the tag (of which there are usually many) that will be
+               the root for extracting columns. The default is 'Object'.
+record_id**    This is where the ID is found based on the root tag. The
+               default is './ObjectIdentity/Number'.
 normalize      Adjust this ID number so that it sorts in numeric order.
 casesensitive  By default, comparisons are case insensitive.
 width          truncate this column to this number of characters
@@ -77,6 +81,8 @@ class Stmt:
     NORMALIZE = 'normalize'
     WIDTH = 'width'
     SKIP_NUMBER = 'skip_number'
+    RECORD_TAG = 'record_tag'
+    RECORD_ID = 'record_id'
 
 
 class Config:
@@ -95,6 +101,8 @@ class Config:
         self.col_docs = []  # documents that generate columns
         self.ctrl_docs = []  # control documents
         self.skip_number = False
+        self.record_tag = 'Object'
+        self.record_id = './ObjectIdentity/Number'
         self.norm = []  # True if this column needs to normalized/unnormalized
         cfglist = _read_yaml_cfg(yamlcfgfile, title=title, dump=dump)
         valid = validate_yaml_cfg(cfglist)
@@ -109,12 +117,16 @@ class Config:
                             continue
                         elif stmt == Stmt.SKIP_NUMBER:
                             self.skip_number = True
+                        elif stmt == Stmt.RECORD_ID:
+                            self.record_id = document[stmt]
+                        elif stmt == Stmt.RECORD_TAG:
+                            self.record_tag = document[stmt]
                         else:
                             print(f'Unknown statement, ignored: {stmt}.')
                     continue
-                else:
+                else:  # not global
                     self.ctrl_docs.append(document)
-            else:
+            else:  # not control command
                 self.col_docs.append(document)
         if not self.skip_number:
             self.norm.append(True)  # for the Serial number
@@ -189,6 +201,8 @@ def _read_yaml_cfg(cfgf, title=False, dump=False):
         if dump:
             dump_document(document)
         cmd = document[Stmt.CMD]
+        if cmd in Cmd.CONTROL_CMDS:
+            continue
         # Specify the column title. If the title isn't specified in the doc,
         # construct the title from the trailing element name from the xpath
         # statement. The validate_yaml_cfg function checks that the xpath
