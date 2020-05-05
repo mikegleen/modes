@@ -106,6 +106,7 @@ def main(inf, cfgf, outfilename, args=None):
 
         nlines += 1
         outlist.append(data)
+        elem.clear()
         if _args.short:
             break
     outlist.sort()
