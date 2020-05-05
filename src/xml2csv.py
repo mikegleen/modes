@@ -10,6 +10,7 @@ import argparse
 import codecs
 import csv
 import sys
+import time
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
@@ -23,10 +24,10 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-def opencsvwriter(filename):
+def opencsvwriter(filename, delimiter):
     encoding = 'utf-8-sig' if _args.bom else 'utf-8'
     csvfile = codecs.open(filename, 'w', encoding)
-    outcsv = csv.writer(csvfile, delimiter=',')
+    outcsv = csv.writer(csvfile, delimiter=delimiter)
     trace(1, 'Output: {}', filename)
     return outcsv, csvfile
 
@@ -58,12 +59,12 @@ def one_document(document, parent):
 
 
 def main(inf, cfgf, outfilename, args=None):
-    global _args
+    global _args  # Need this for test driver
     nlines = notfound = 0
     if args:
         _args = args  # if called by test driver
     config = Config(cfgf, title=True, dump=_args.verbose >= 2)
-    outcsv, csvfile = opencsvwriter(outfilename)
+    outcsv, csvfile = opencsvwriter(outfilename, config.delimiter)
     outlist = []
     titles = yaml_fieldnames(config)
     trace(1, 'Columns: {}', ', '.join(titles))
@@ -161,7 +162,10 @@ if __name__ == '__main__':
     _args = getargs()
     infile = open(_args.infile)
     cfgfile = open(_args.cfgfile)
+    t1 = time.perf_counter()
     n_lines, not_found = main(infile, cfgfile, _args.outfile)
-    trace(1, '{} lines written to {}', n_lines, _args.outfile)
+    elapsed = time.perf_counter() - t1
+    trace(1, '{} lines written to {}. Elapsed: {:5.2f} seconds.', n_lines,
+          _args.outfile, elapsed)
     if not_found:
         trace(1, 'Warning: {} elements not found.', not_found)
