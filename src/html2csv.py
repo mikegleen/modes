@@ -128,8 +128,7 @@ if __name__ == '__main__':
     rowcount = 0
     outrowcount = 0
     tablenumber = 0
-    if sys.version_info.major < 3 or sys.version_info.minor < 6:
-        raise ImportError('requires Python 3.6')
+    assert sys.version_info >= (3, 6)
     main()
     print('\nEnd html2csv. {} rows read, {} rows written to {}'.
           format(rowcount, outrowcount, os.path.abspath(_args.outfile)))
