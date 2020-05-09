@@ -1,0 +1,34 @@
+# Handle Office of National Statistics Index of Placenames in Great Britain
+---
+cmd: global
+record_tag: Placemark
+record_id: './ExtendedData/SchemaData/SimpleData[@name="objectid_1"]'
+delimiter: '|'
+---
+cmd: column
+xpath: ./ExtendedData/SchemaData/SimpleData[@name="place15nm"]
+title: place15nm
+---
+cmd: column
+xpath: ./ExtendedData/SchemaData/SimpleData[@name="descnm"]
+title: descnm
+---
+cmd: column
+xpath: ./ExtendedData/SchemaData/SimpleData[@name="ctyhistnm"]
+title: ctyhistnm
+---
+cmd: column
+xpath: ./ExtendedData/SchemaData/SimpleData[@name="cty15nm"]
+title: cty15nm
+---
+cmd: column
+xpath: ./ExtendedData/SchemaData/SimpleData[@name="lad15nm"]
+title: lad15nm
+---
+cmd: column
+xpath: ./ExtendedData/SchemaData/SimpleData[@name="lat"]
+title: lat
+---
+cmd: column
+xpath: ./ExtendedData/SchemaData/SimpleData[@name="long_"]
+title: long
