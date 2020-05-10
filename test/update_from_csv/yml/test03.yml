@@ -1,0 +1,7 @@
+#cmd: ifattribeq
+#xpath: ./ObjectLocation
+#attribute: elementtype
+#value: no location
+#---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="current location"]/Reason

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="ASCII"?>
+<Interchange>
+<Object elementtype="Original Artwork">
+	<ObjectIdentity>
+		<Number>TEST04A</Number>
+	</ObjectIdentity>
+	<DummyElement />
+	<DummyElement />
+	<ObjectLocation elementtype="normal location">
+		<Location>S9</Location>
+	</ObjectLocation>
+	<ObjectLocation elementtype="current location">
+		<Location>S9</Location>
+		<Date>
+			<DateBegin>27.9.2017</DateBegin>
+		</Date>
+		<Reason/>
+	</ObjectLocation>
+	<Description>
+		<SummaryText/>
+		<Material>
+			<Part>medium</Part>
+			<Keyword/>
+		</Material>
+		<Material>
+			<Part>support</Part>
+			<Keyword/>
+		</Material>
+    </Description>
+	<DummyElement />
+</Object>
+<Object elementtype="Original Artwork">
+	<ObjectIdentity>
+		<Number>TEST04B</Number>
+	</ObjectIdentity>
+	<ObjectLocation elementtype="normal location">
+		<Location>S9</Location>
+	</ObjectLocation>
+	<ObjectLocation elementtype="current location">
+		<Location>S9</Location>
+		<Date>
+			<DateBegin>27.9.2017</DateBegin>
+		</Date>
+		<Reason/>
+	</ObjectLocation>
+	<Description>
+		<SummaryText>summarytext</SummaryText>
+    </Description>
+    <Material>
+        <Part>medium</Part>
+        <Keyword/>
+    </Material>
+    <Material>
+        <Part>support</Part>
+        <Keyword/>
+    </Material>
+</Object></Interchange>

@@ -1,0 +1,8 @@
+# Simple test that one field is updated.
+# Instructions:
+#   Call with option "--heading"
+# Result:
+#   Field Reason should contain "Like to move".
+---
+cmd: column
+xpath: ./ObjectLocation/Reason

@@ -1,0 +1,8 @@
+# Test that one field is not updated unless --force is specified.
+# Instructions:
+#   Call with option "--heading"
+# Result:
+#   Field Reason should contain "Like to move".
+---
+cmd: column
+xpath: ./ObjectLocation/Reason

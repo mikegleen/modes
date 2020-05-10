@@ -1,0 +1,8 @@
+---
+cmd: column
+xpath: ./Description/Material[Part="medium"]/Keyword
+title: Medium
+---
+cmd: column
+xpath: ./Description/Material[Part="support"]/Keyword
+title: Support

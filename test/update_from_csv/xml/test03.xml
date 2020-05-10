@@ -1,0 +1,21 @@
+<?xml version="1.0"?><Interchange>
+<Object elementtype="Original Artwork">
+	<ObjectIdentity>
+		<Number>TEST03</Number>
+	</ObjectIdentity>
+	<DummyElement />
+	<DummyElement />
+	<ObjectLocation elementtype="normal location">
+		<Location>S9</Location>
+	</ObjectLocation>
+	<ObjectLocation elementtype="current location">
+		<Location>S9</Location>
+		<Date>
+			<DateBegin>27.9.2017</DateBegin>
+		</Date>
+		<Reason>Like to move</Reason>
+	</ObjectLocation>
+	<DummyElement />
+	<DummyElement />
+</Object>
+</Interchange>
