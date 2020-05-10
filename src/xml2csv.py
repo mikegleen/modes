@@ -3,8 +3,9 @@
     Extract fields from an XML file, creating a CSV file with the specified
     fields.
 
-    The first column is hard-coded as './ObjectIdentity/Number'. Subsequent
-    column_paths are defined in a YAML file.
+    The default first column is hard-coded as './ObjectIdentity/Number'.
+    Subsequent column_paths are defined in a YAML file. See cfgutil.py for
+    a description of the YAML file.
 """
 import argparse
 import codecs
@@ -93,7 +94,7 @@ def main(inf, cfgf, outfilename, args=None):
         if not writerow:
             continue
         if not config.skip_number:
-            data.append(normalize_id(idnum))
+            data.append(normalize_id(idnum, _args.verbose))
 
         for document in config.col_docs:
             text, command = one_document(document, elem)
@@ -145,7 +146,8 @@ def getargs():
         Normally a BOM is inserted at the front of the output CSV file. This option
         inhibits that.''')
     parser.add_argument('-c', '--cfgfile', required=False, help='''
-        The config file describing the column_paths to extract''')
+        The config file describing the column_paths to extract'''
+                        )
     parser.add_argument('--heading', action='store_true', help='''
         Write a row at the front of the CSV file containing the field names.'''
                         )

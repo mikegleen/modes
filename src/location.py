@@ -109,7 +109,7 @@ def validate_locations(idnum, elem, strict=True):
                       datebegin.text)
                 return False
             if dateend is not None and dateend.text is not None:
-                trace(1, 'E03 {}: DateEnd invalid for current location: "{}".', idnum,
+                trace(1, 'E03 {}: DateEnd not allowed for current location: "{}".', idnum,
                       dateend.text)
                 return False
             locationdates.append((datebegindate, None))  # None indicates this is current

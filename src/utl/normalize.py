@@ -56,7 +56,7 @@ def vdate(indate: str):
     return d
 
 
-def normalize_id(objid):
+def normalize_id(objid, verbose=1):
     """
     The parameter is a string in the format of one of the types of object
     identifiers in our Modes file.
@@ -64,7 +64,7 @@ def normalize_id(objid):
     Return a string normalized for sorting.
 
     Input can be of the form JB001 or JB0001 or JB001a or SH1 or LDHRM/2018/1
-    or LDHRM.2018.1.
+    or LDHRM.2018.1. Input can also be a simple integer.
     """
     objid = objid.upper()
     if objid.startswith('LDHRM'):
@@ -76,9 +76,15 @@ def normalize_id(objid):
     # Not an LDHRM/.. id
     m = re.match(r'(\D+)(\d+)(.*)', objid)
     if m:
-        return m.group(1) + f'{int(m.group(2)):0>4d}' + m.group(3)
-    else:
-        return objid
+        newobjid = m.group(1) + f'{int(m.group(2)):08d}' + m.group(3)
+        if verbose > 1:
+            print(f'normalize: {objid} -> {newobjid}')
+        return newobjid
+    elif objid.isnumeric() and len(objid) <= 8:
+        newobjid = f'{int(objid):08d}'
+        if verbose > 1:
+            print(f'normalize: {objid} -> {newobjid}')
+        return newobjid
 
 
 def denormalize_id(objid):
@@ -95,5 +101,7 @@ def denormalize_id(objid):
             return m.group(1) + f'{int(m.group(2)):0>3d}' + m.group(3)
         else:
             return m.group(1) + f'{int(m.group(2))}' + m.group(3)
+    elif objid.isnumeric():
+        return objid.lstrip('0')
     else:
         return objid

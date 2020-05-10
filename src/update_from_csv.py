@@ -6,7 +6,8 @@
     contains xslt definitions for elements to be updated from a CSV file.
     The format of the CSV file is that the first column contains a serial
     number and subsequent columns contain the values to be inserted into the
-    corresponding elements.
+    corresponding elements. Note that there is no entry in the YAML file
+    for the serial number in the CSV file.
 
     The YAML file contains multiple documents, separated by lines containing
     "---"; each document corresponds to an element to be updated. The following
@@ -40,8 +41,9 @@ def trace(level, template, *args):
 
 def loadnewvals():
     """
-    Read the CSV file containing objectid -> new element value
-    :return: the dictionary containing the mappings
+    Read the CSV file containing objectid -> new element values
+    :return: the dictionary containing the mappings where the key is the
+             objectid and the value is a list of the remaining columns
     """
     newval_dict = {}
     with codecs.open(_args.mapfile, 'r', 'utf-8-sig') as mapfile:
@@ -60,7 +62,7 @@ def loadnewvals():
                           ' in CSV file')
                     sys.exit(1)
         for row in reader:
-            newval_dict[row[0].strip()] = [val.strip() for val in row[1:]]
+            newval_dict[row[0].strip().upper()] = [val.strip() for val in row[1:]]
     return newval_dict
 
 
@@ -77,7 +79,7 @@ def one_element(elem, idnum):
     """
     global nupdated, nunchanged
     updated = False
-    inewtexts = iter(newvals[idnum])  # we've already checked that it's there
+    inewtexts = iter(newvals[idnum.upper()])  # we've already checked that it's there
     for doc in cfg.col_docs:
         command = doc[Stmt.CMD]
         if command != Cmd.COLUMN:
@@ -86,9 +88,13 @@ def one_element(elem, idnum):
         try:
             newtext = next(inewtexts)
         except StopIteration:
-            trace(2, '{}: short line', idnum)
-            return updated
-        if not newtext:
+            newtext = ""
+            if not _args.force:
+                trace(2, '{}: short line stopped updating. -force not specified',
+                      idnum)
+        if not newtext and not _args.force:
+            trace(2, '{}: empty field in CSV ignored. -force not specified',
+                  idnum)
             continue
         target = elem.find(xpath)
         if target is None:
@@ -117,7 +123,7 @@ def main():
         trace(3, 'idnum: {}', idnum)
         if idnum and idnum in newvals:
             updated = one_element(elem, idnum)
-            del newvals[idnum]
+            del newvals[idnum.upper()]
         else:
             updated = False
             if _args.missing:
@@ -149,7 +155,13 @@ def getargs():
         The YAML file describing the column path(s) to update''')
     parser.add_argument('-f', '--force', action='store_true', help='''
         Replace existing values. If not specified only empty elements will be
-        inserted.''')
+        inserted.
+        If a row in the CSV file has fewer columns than the number of
+        columns specified in the YAML file, replace the text with an empty
+        string. The default is to stop processing that row at that point and
+        only update the columns containing data.
+        Allow replacing text fields with empty values from the CSV file.
+        ''')
     parser.add_argument('--missing', action='store_true', help='''
         By default, ignore indices missing from the CSV file. If selected,
         trace the missing index.''')
@@ -169,6 +181,18 @@ def getargs():
     return args
 
 
+def check_cfg(c):
+    errs = 0
+    for doc in cfg.col_docs:
+        if doc[Stmt.CMD] != Cmd.COLUMN:
+            print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting')
+            errs += 1
+    for doc in cfg.ctrl_docs:
+        print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting.')
+        errs += 1
+    return errs
+
+
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     _args = getargs()
@@ -177,16 +201,13 @@ if __name__ == '__main__':
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Creating file: {}', _args.outfile)
     cfg = Config(_args.cfgfile, title=True, dump=_args.verbose > 1)
-    for doc in cfg.col_docs:
-        if doc[Stmt.CMD] != Cmd.COLUMN:
-            print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting')
-            sys.exit(1)
-    for doc in cfg.ctrl_docs:
-        print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting.')
+    errors = check_cfg(cfg)
+    if errors:
+        print(f'{errors} errors found. Aborting.')
         sys.exit(1)
-
     newvals = loadnewvals()
     nnewvals = len(newvals)
+    trace(1, 'Input file: {}', _args.infile)
     main()
     trace(1, 'End update_from_csv. {}/{} object{} updated. {} existing'
           ' element{} unchanged.', nupdated, nnewvals,

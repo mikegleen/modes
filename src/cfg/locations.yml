@@ -13,4 +13,7 @@ title: 'Date Begin'
 ---
 cmd: column
 xpath: ./Identification/Title
-
+---
+cmd: global
+record_tag: Object
+record_id: './ObjectIdentity/Number'

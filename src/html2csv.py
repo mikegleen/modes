@@ -50,7 +50,7 @@ def handle_one_row(row):
 
     if not csvrow:
         return 1, csvrow
-    if _args.inhibit_upper:
+    if not _args.inhibit_upper:
         try:
             csvrow[0] = csvrow[0].upper()
             csvrow[0] = re.sub(r'\s', '', csvrow[0])
@@ -110,8 +110,8 @@ def getargs():
     parser.add_argument('-t', '--table', type=int, default=0, help='''
         Select a single table to process. The default is to process all tables.
         ''')
-    parser.add_argument('-u', '--inhibit_upper', action='store_false',
-                        default=True, help='''
+    parser.add_argument('-u', '--inhibit_upper', action='store_true',
+                        default=False, help='''
         By default, the first column is converted to upper case and white
         space characters are removed.
         If specified, inhibit this conversion.

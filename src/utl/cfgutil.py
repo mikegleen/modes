@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-The configuration consists of a YAML file broken into multiple documents, separated by
-lines containing "---" in the left three columns. Each document contains some of the
-following statements. Statements are case sensitive; all must be lower case. Commands
-can be column-generating or control statements.
+The configuration consists of a YAML file broken into multiple documents,
+separated by lines containing "---" in the left three columns. Each document
+contains some of the following statements. Statements are case sensitive; all
+must be lower case. Commands can be column-generating or control statements.
 
 Statements:
 -----------
@@ -13,15 +13,18 @@ attribute      Required by the attrib and ifattrib commands.
 title          Optional. If omitted, a best-guess title will be created from the xpath
                statement. If in a control document, this will be shown in diagnostics.
 value          Required for ifeq or ifattrib or ifcontains command.
-skip_number**  Do not write the ID number as the first column. This can be useful when
-               sorting on another column.
-record_tag**   This is the tag (of which there are usually many) that will be
-               the root for extracting columns. The default is 'Object'.
-record_id**    This is where the ID is found based on the root tag. The
-               default is './ObjectIdentity/Number'.
 normalize      Adjust this ID number so that it sorts in numeric order.
 casesensitive  By default, comparisons are case insensitive.
 width          truncate this column to this number of characters
+delimiter**    The character to use for the CSV file field separator. The
+               default is ",".
+record_tag**   This is the tag (of which there are usually many) that will be
+               the root for extracting columns. The default is 'Object'.
+record_id**    This is where the ID is found based on the root tag. The
+               default is './ObjectIdentity/Number'. In addition to being
+               output as column 1 by default, the ID is used in error messages.
+skip_number**  Do not write the ID number as the first column. This can be useful when
+               sorting on another column.
 
 Commands:
 ---------
@@ -83,6 +86,7 @@ class Stmt:
     SKIP_NUMBER = 'skip_number'
     RECORD_TAG = 'record_tag'
     RECORD_ID = 'record_id'
+    DELIMITER = 'delimiter'
 
 
 class Config:
@@ -95,6 +99,21 @@ class Config:
         return Config.__instance
 
     def __init__(self, yamlcfgfile, title=False, dump=False):
+        def set_globals():
+            for stmt in document:
+                if stmt == Stmt.CMD:
+                    continue
+                elif stmt == Stmt.SKIP_NUMBER:
+                    self.skip_number = True
+                elif stmt == Stmt.RECORD_ID:
+                    self.record_id = document[stmt]
+                elif stmt == Stmt.RECORD_TAG:
+                    self.record_tag = document[stmt]
+                elif stmt == Stmt.DELIMITER:
+                    self.delimiter = document[stmt]
+                else:
+                    print(f'Unknown statement, ignored: {stmt}.')
+
         if Config.__instance is not None:
             raise ValueError("This class is a singleton!")
         Config.__instance = self
@@ -103,31 +122,22 @@ class Config:
         self.skip_number = False
         self.record_tag = 'Object'
         self.record_id = './ObjectIdentity/Number'
-        self.norm = []  # True if this column needs to normalized/unnormalized
+        self.delimiter = ','
         cfglist = _read_yaml_cfg(yamlcfgfile, title=title, dump=dump)
         valid = validate_yaml_cfg(cfglist)
         if not valid:
             raise ValueError('Config failed validation.')
         for document in cfglist:
             cmd = document[Stmt.CMD]
-            if cmd in Cmd.CONTROL_CMDS:
-                if cmd == Cmd.GLOBAL:
-                    for stmt in document:
-                        if stmt == Stmt.CMD:
-                            continue
-                        elif stmt == Stmt.SKIP_NUMBER:
-                            self.skip_number = True
-                        elif stmt == Stmt.RECORD_ID:
-                            self.record_id = document[stmt]
-                        elif stmt == Stmt.RECORD_TAG:
-                            self.record_tag = document[stmt]
-                        else:
-                            print(f'Unknown statement, ignored: {stmt}.')
-                    continue
-                else:  # not global
-                    self.ctrl_docs.append(document)
+            if cmd == Cmd.GLOBAL:
+                set_globals()
+            elif cmd in Cmd.CONTROL_CMDS:
+                self.ctrl_docs.append(document)
             else:  # not control command
                 self.col_docs.append(document)
+        self.norm = []  # True if this column needs to normalized/unnormalized
+        # Do this as a separate step because we don't know whether we need
+        # to include the serial number until all of the documents are read.
         if not self.skip_number:
             self.norm.append(True)  # for the Serial number
         for doc in self.col_docs:
