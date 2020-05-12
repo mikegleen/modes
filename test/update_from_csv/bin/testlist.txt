@@ -1,1 +1,4 @@
 TEST01 --heading -v 0
+TEST02 --heading -v 0
+TEST03 --heading -v 0
+TEST04 --heading --force -v 0

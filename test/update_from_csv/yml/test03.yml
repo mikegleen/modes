@@ -1,7 +1,4 @@
-#cmd: ifattribeq
-#xpath: ./ObjectLocation
-#attribute: elementtype
-#value: no location
-#---
+# test03 -- Do not update the reason because it already has data
+#
 cmd: column
 xpath: ./ObjectLocation[@elementtype="current location"]/Reason

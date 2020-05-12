@@ -19,9 +19,4 @@ tpath=test/$app
 tst=$1  # get the test name
 shift  # now $* contains the parameters to pass to the app
 python src/$app.py $tpath/xml/$tst.xml $tpath/results/$tst.xml -c $tpath/yml/$tst.yml -m  $tpath/csv/$tst.csv $*
-diff -q $tpath/baseline/$tst.xml $tpath/results/$tst.xml &>/dev/null
-if [ $? ]  # if bad compare
-then
-# display the names of the offending files
 diff -q $tpath/baseline/$tst.xml $tpath/results/$tst.xml
-fi

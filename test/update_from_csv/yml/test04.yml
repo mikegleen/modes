@@ -1,8 +1,4 @@
----
+# test04 -- like test03 except use --force to force the update
+#
 cmd: column
-xpath: ./Description/Material[Part="medium"]/Keyword
-title: Medium
----
-cmd: column
-xpath: ./Description/Material[Part="support"]/Keyword
-title: Support
+xpath: ./ObjectLocation[@elementtype="current location"]/Reason
