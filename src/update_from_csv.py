@@ -183,11 +183,11 @@ def getargs():
 
 def check_cfg(c):
     errs = 0
-    for doc in cfg.col_docs:
+    for doc in c.col_docs:
         if doc[Stmt.CMD] != Cmd.COLUMN:
             print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting')
             errs += 1
-    for doc in cfg.ctrl_docs:
+    for doc in c.ctrl_docs:
         print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting.')
         errs += 1
     return errs
@@ -201,9 +201,8 @@ if __name__ == '__main__':
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Creating file: {}', _args.outfile)
     cfg = Config(_args.cfgfile, title=True, dump=_args.verbose > 1)
-    errors = check_cfg(cfg)
-    if errors:
-        print(f'{errors} errors found. Aborting.')
+    if errors := check_cfg(cfg):
+        trace(1, '{errors} errors found. Aborting.', errors)
         sys.exit(1)
     newvals = loadnewvals()
     nnewvals = len(newvals)
