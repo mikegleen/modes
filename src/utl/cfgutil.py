@@ -20,7 +20,7 @@ delimiter**    The character to use for the CSV file field separator. The
                default is ",".
 record_tag**   This is the tag (of which there are usually many) that will be
                the root for extracting columns. The default is 'Object'.
-record_id**    This is where the ID is found based on the root tag. The
+record_id_xpath**    This is where the ID is found based on the root tag. The
                default is './ObjectIdentity/Number'. In addition to being
                output as column 1 by default, the ID is used in error messages.
 skip_number**  Do not write the ID number as the first column. This can be useful when
@@ -41,7 +41,7 @@ ifcontains*   Select an object if the value in the value statement is contained
               in the element text.
 ifeq*         Select an object if the element text equals the value statement text.
 
-*  These command do not generate output columns.
+*  These commands do not generate output columns.
 ** These statements are only valid if the command is "global".
 
 """
@@ -56,6 +56,12 @@ import yaml
 
 
 class Cmd:
+    """
+    Define the configuration commands. This is the value of the "cmd:" statement.
+
+    IMPORTANT: Variables that are not literal commands must be prefaced with
+    the "_" character to separate them from variables that are literal commands.
+    """
     ATTRIB = 'attrib'
     COLUMN = 'column'
     COUNT = 'count'
@@ -67,14 +73,45 @@ class Cmd:
     IFEQ = 'ifeq'  # if the elt text equals the value statement
     IFSERIAL = 'ifserial'
     # Commands that do not produce a column in the output CSV file
-    CONTROL_CMDS = (IF, IFEQ, IFATTRIB, IFSERIAL, GLOBAL, IFCONTAINS,
-                    IFATTRIBEQ)
-    NEEDVALUE_CMDS = (IFEQ, IFATTRIBEQ, IFSERIAL, IFCONTAINS)
-    NEEDXPATH_CMDS = (ATTRIB, COLUMN, IF, COUNT, IFEQ, IFCONTAINS, IFATTRIB,
-                      IFATTRIBEQ)
+    _CONTROL_CMDS = (IF, IFEQ, IFATTRIB, IFSERIAL, GLOBAL, IFCONTAINS,
+                     IFATTRIBEQ)
+    _NEEDVALUE_CMDS = (IFEQ, IFATTRIBEQ, IFSERIAL, IFCONTAINS)
+    _NEEDXPATH_CMDS = (ATTRIB, COLUMN, IF, COUNT, IFEQ, IFCONTAINS, IFATTRIB,
+                       IFATTRIBEQ)
+
+    @staticmethod
+    def get_needxpath_cmds():
+        return Cmd._NEEDXPATH_CMDS
+
+    @staticmethod
+    def get_needvalue_cmds():
+        return Cmd._NEEDVALUE_CMDS
+
+    @staticmethod
+    def get_control_cmds():
+        return Cmd._CONTROL_CMDS
+
+    @staticmethod
+    def validate_yaml_cmd(cmd):
+        validlist = [getattr(Cmd, c) for c in dir(Cmd)
+                     if isinstance(getattr(Cmd, c), str) and not c.startswith('_')
+                     ]
+        # print('validlist', validlist)
+        valid = cmd in validlist
+        if not valid:
+            print(f'{cmd} is not a valid command.')
+        return valid
 
 
 class Stmt:
+    """
+    Define the configuration statements.
+
+    IMPORTANT: Variables that are not literal statements must be prefaced with
+    the "_" character to separate them from variables that are literal statements.
+    This is because we do a dir(Stmt) to get a list of valid statements,
+    excluding those beginning with '_'.
+    """
     CMD = 'cmd'
     XPATH = 'xpath'
     ATTRIBUTE = 'attribute'
@@ -85,8 +122,29 @@ class Stmt:
     WIDTH = 'width'
     SKIP_NUMBER = 'skip_number'
     RECORD_TAG = 'record_tag'
-    RECORD_ID = 'record_id'
+    RECORD_ID_XPATH = 'record_id_xpath'
     DELIMITER = 'delimiter'
+    _DEFAULT_RECORD_TAG = 'Object'
+    _DEFAULT_RECORD_ID_XPATH = './ObjectIdentity/Number'
+
+    @staticmethod
+    def get_default_record_id_xpath():
+        return Stmt._DEFAULT_RECORD_ID_XPATH
+
+    @staticmethod
+    def get_default_record_tag():
+        return Stmt._DEFAULT_RECORD_TAG
+
+    @staticmethod
+    def validate_yaml_stmts(document):
+        validlist = [getattr(Stmt, stmt) for stmt in dir(Stmt)
+                     if not stmt.startswith('_')]
+        valid = True
+        for stmt in document:
+            if stmt not in validlist:
+                print(f'"{stmt}" is not a valid statement.')
+                valid = False
+        return valid
 
 
 class Config:
@@ -98,6 +156,14 @@ class Config:
             raise Exception('Config instance not created.')
         return Config.__instance
 
+    @staticmethod
+    def reset_config():
+        """
+        This is necessary when called by test_xml2csv
+        :return: None
+        """
+        Config.__instance = None
+
     def __init__(self, yamlcfgfile, title=False, dump=False):
         def set_globals():
             for stmt in document:
@@ -105,8 +171,8 @@ class Config:
                     continue
                 elif stmt == Stmt.SKIP_NUMBER:
                     self.skip_number = True
-                elif stmt == Stmt.RECORD_ID:
-                    self.record_id = document[stmt]
+                elif stmt == Stmt.RECORD_ID_XPATH:
+                    self.record_id_xpath = document[stmt]
                 elif stmt == Stmt.RECORD_TAG:
                     self.record_tag = document[stmt]
                 elif stmt == Stmt.DELIMITER:
@@ -120,8 +186,8 @@ class Config:
         self.col_docs = []  # documents that generate columns
         self.ctrl_docs = []  # control documents
         self.skip_number = False
-        self.record_tag = 'Object'
-        self.record_id = './ObjectIdentity/Number'
+        self.record_tag = Stmt.get_default_record_tag()
+        self.record_id_xpath = Stmt.get_default_record_id_xpath()
         self.delimiter = ','
         cfglist = _read_yaml_cfg(yamlcfgfile, title=title, dump=dump)
         valid = validate_yaml_cfg(cfglist)
@@ -131,7 +197,7 @@ class Config:
             cmd = document[Stmt.CMD]
             if cmd == Cmd.GLOBAL:
                 set_globals()
-            elif cmd in Cmd.CONTROL_CMDS:
+            elif cmd in Cmd.get_control_cmds():
                 self.ctrl_docs.append(document)
             else:  # not control command
                 self.col_docs.append(document)
@@ -152,32 +218,11 @@ def dump_document(document):
     print('     ---')
 
 
-def validate_yaml_cmd(cmd):
-    validlist = [getattr(Cmd, c) for c in dir(Cmd)
-                 if isinstance(getattr(Cmd, c), str) and not c.startswith('_')
-                 ]
-    # print('validlist', validlist)
-    valid = cmd in validlist
-    if not valid:
-        print(f'{cmd} is not a valid command.')
-    return valid
-
-
-def validate_yaml_stmts(document):
-    validlist = [getattr(Stmt, stmt) for stmt in dir(Stmt) if not stmt.startswith('_')]
-    valid = True
-    for stmt in document:
-        if stmt not in validlist:
-            print(f'"{stmt}" is not a valid statement.')
-            valid = False
-    return valid
-
-
 def validate_yaml_cfg(cfglist):
     valid = True
     for document in cfglist:
         valid_doc = True
-        if not validate_yaml_stmts(document):
+        if not Stmt.validate_yaml_stmts(document):
             valid_doc = False
         if Stmt.CMD not in document:
             print('cmd statement is missing.')
@@ -185,12 +230,12 @@ def validate_yaml_cfg(cfglist):
             dump_document(document)
             break
         command = document[Stmt.CMD]
-        if not validate_yaml_cmd(command):
+        if not Cmd.validate_yaml_cmd(command):
             valid_doc = False
-        if command in Cmd.NEEDXPATH_CMDS and Stmt.XPATH not in document:
+        if command in Cmd.get_needxpath_cmds() and Stmt.XPATH not in document:
             print(f'XPATH statement missing, cmd: {command}')
             valid_doc = False
-        if command in Cmd.NEEDVALUE_CMDS and Stmt.VALUE not in document:
+        if command in Cmd.get_needvalue_cmds() and Stmt.VALUE not in document:
             print(f'value is required for {command} command.')
             valid_doc = False
         if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ):
@@ -211,7 +256,7 @@ def _read_yaml_cfg(cfgf, title=False, dump=False):
         if dump:
             dump_document(document)
         cmd = document[Stmt.CMD]
-        if cmd in Cmd.CONTROL_CMDS:
+        if cmd in Cmd.get_control_cmds():
             continue
         # Specify the column title. If the title isn't specified in the doc,
         # construct the title from the trailing element name from the xpath
@@ -238,7 +283,6 @@ def select(elem, config):
     :return: selected is true if the Object element should be written out
 
     """
-
     selected = True
     for document in config.ctrl_docs:
         command = document[Stmt.CMD]
@@ -258,6 +302,7 @@ def select(elem, config):
         elif element.text is None:
             text = ''
         else:
+            # noinspection PyUnresolvedReferences
             text = element.text.strip()
         if not text and command in (Cmd.IF, Cmd.IFATTRIB, Cmd.IFCONTAINS,
                                     Cmd.IFEQ, Cmd.IFATTRIBEQ):
