@@ -26,7 +26,7 @@ def trace(level, template, *args):
 
 
 def opencsvwriter(filename, delimiter):
-    encoding = 'utf-8-sig' if _args.bom else 'utf-8'
+    encoding = 'utf-8' if _args.nobom else 'utf-8-sig'
     csvfile = codecs.open(filename, 'w', encoding)
     outcsv = csv.writer(csvfile, delimiter=delimiter)
     trace(1, 'Output: {}', filename)
@@ -59,20 +59,25 @@ def one_document(document, parent):
     return text, command
 
 
-def main(inf, cfgf, outfilename, args=None):
-    global _args  # Need this for test driver
+def main(argv):  # can be called either by __main__ or test_xml2csv
+    global _args
+    _args = getargs(argv)
+    infilename = _args.infile
+    outfilename = _args.outfile
+    cfgfilename = _args.cfgfile
+    infile = open(infilename)
+    cfgfile = open(cfgfilename)
     nlines = notfound = 0
-    if args:
-        _args = args  # if called by test driver
-    config = Config(cfgf, title=True, dump=_args.verbose >= 2)
-    outcsv, csvfile = opencsvwriter(outfilename, config.delimiter)
+    Config.reset_config()  # needed by test_xml2csv
+    config = Config(cfgfile, title=True, dump=_args.verbose >= 2)
+    outcsv, outfile = opencsvwriter(outfilename, config.delimiter)
     outlist = []
     titles = yaml_fieldnames(config)
     trace(1, 'Columns: {}', ', '.join(titles))
     if _args.heading:
         outcsv.writerow(titles)
     objectlevel = 0
-    for event, elem in ET.iterparse(inf, events=('start', 'end')):
+    for event, elem in ET.iterparse(infile, events=('start', 'end')):
         # print(event)
         if event == 'start':
             # print(elem.tag)
@@ -86,7 +91,7 @@ def main(inf, cfgf, outfilename, args=None):
         if objectlevel:
             continue  # It's not a top level Object.
         data = []
-        idelem = elem.find(config.record_id)
+        idelem = elem.find(config.record_id_xpath)
         idnum = idelem.text if idelem is not None else ''
         trace(3, 'idnum: {}', idnum)
 
@@ -117,7 +122,7 @@ def main(inf, cfgf, outfilename, args=None):
     if not config.skip_number:
         norm.append(True)  # for the Serial number
     for doc in config.col_docs:
-        if doc[Stmt.CMD] in Cmd.CONTROL_CMDS:
+        if doc[Stmt.CMD] in Cmd.get_control_cmds():
             continue
         norm.append(Stmt.NORMALIZE in doc)
     lennorm = len(norm)
@@ -126,11 +131,13 @@ def main(inf, cfgf, outfilename, args=None):
             if norm[n]:
                 row[n] = denormalize_id(cell)
         outcsv.writerow(row)
-    csvfile.close()
+    infile.close()
+    cfgfile.close()
+    outfile.close()
     return nlines, notfound
 
 
-def getargs():
+def getargs(argv=None):
     parser = argparse.ArgumentParser(description='''
     Extract fields from an XML file, creating a CSV file with the specified
     fields. The first column is hard-coded as './ObjectIdentity/Number'.
@@ -142,7 +149,7 @@ def getargs():
         The XML file saved from Modes.''')
     parser.add_argument('outfile',  help='''
         The output CSV file.''')
-    parser.add_argument('-b', '--bom', action='store_false', help='''
+    parser.add_argument('-b', '--nobom', action='store_true', help='''
         Normally a BOM is inserted at the front of the output CSV file. This option
         inhibits that.''')
     parser.add_argument('-c', '--cfgfile', required=False, help='''
@@ -156,17 +163,18 @@ def getargs():
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
-    args = parser.parse_args()
+    # print(argv)
+    # print(sys.argv)
+    # sys.argv = argv
+    args = parser.parse_args(args=argv[1:])
     return args
 
 
 if __name__ == '__main__':
+    global _args
     assert sys.version_info >= (3, 6)
-    _args = getargs()
-    infile = open(_args.infile)
-    cfgfile = open(_args.cfgfile)
     t1 = time.perf_counter()
-    n_lines, not_found = main(infile, cfgfile, _args.outfile)
+    n_lines, not_found = main(sys.argv)
     elapsed = time.perf_counter() - t1
     trace(1, '{} lines written to {}. Elapsed: {:5.2f} seconds.', n_lines,
           _args.outfile, elapsed)
