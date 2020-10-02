@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET
 
 import utl.cfgutil as cfgutil
 
+
 def trace(level, template, *args):
     if _args.verbose >= level:
         print(template.format(*args))
@@ -30,13 +31,12 @@ def opencsvwriter(filename):
 def main(inf, outf, dslf):
     global nrows, tally, nobjects, titles
     outcsv = opencsvwriter(outf)
-    config = cfgutil.read_yaml_cfg(dslf)
-    cfg = config.columns
-    if not cfgutil.validate_yaml_cfg(cfg):
-        sys.exit(1)
-    # Exclude "ifattrib" as it doesn't create a column
-    titles = [stmt['title'] for stmt in cfg if 'title' in stmt]
-    titles = ['ID'] + titles
+    config = cfgutil.Config(dslf, title=True,
+                            dump=True if _args.verbose > 1 else False)
+    col_docs = config.col_docs
+    titles = [stmt['title'] for stmt in col_docs if 'title' in stmt]
+    if not config.skip_number:
+        titles = ['ID'] + titles
     trace(1, 'columns: {}', ', '.join([str(x) for x in titles]))
     if _args.fields:
         outcsv.writerow(titles)
@@ -47,11 +47,11 @@ def main(inf, outf, dslf):
         nobjects += 1
         # data[0] = Id
         data = [elem.find('./ObjectIdentity/Number').text]
-        for stmt in cfg:
+        for stmt in col_docs:
             cmd = stmt['cmd']
             elt = stmt['elt']
             attrib = stmt.get('attribute')
-            e = elem.find(elt)
+            e: ET.Element = elem.find(elt)
             if cmd == 'attrib':
                 text = e.get(attrib)
             elif cmd == 'ifattrib':
@@ -66,7 +66,7 @@ def main(inf, outf, dslf):
                 count = len(list(elem.findall(elt)))
                 text = f'{count}'
             elif cmd == 'required':
-                text = e.text.strip()
+                text = e.text.strip() if e.text else None
                 if not text:
                     writerow = False
                     break
