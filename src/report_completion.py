@@ -12,7 +12,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-import utl.cfgutil as cfgutil
+from utl.cfgutil import Config, Stmt
 
 
 def trace(level, template, *args):
@@ -30,31 +30,32 @@ def main(inf, dslf):
     nobjects = 0
     nrows = 0
     tally = collections.defaultdict(int)
-    config = cfgutil.Config(dslf, title=True,
-                            dump=True if _args.verbose > 1 else False)
+    config = Config(dslf, title=True,
+                    dump=True if _args.verbose > 1 else False)
     col_docs = config.col_docs
-    titles = [stmt['title'] for stmt in col_docs]
+    titles = [stmt[Stmt.TITLE] for stmt in col_docs]
     if not config.skip_number:
         titles = ['ID'] + titles
     trace(1, 'columns: {}', ', '.join([str(x) for x in titles]))
     for event, elem in ET.iterparse(inf):
         if elem.tag != 'Object':
             continue
-        writerow = cfgutil.select(elem)
+        writerow = config.select(elem)
         nobjects += 1
         # data[0] = Id unless skip_number is set in the config
         data = []
         if not config.skip_number:
-            data = [elem.find(config.record_tag.text)]
+            data = [elem.find(config.record_id_xpath).text]
+            trace(3, 'ID={} XPATH={}', data[0], config.record_id_xpath)
         for stmt in col_docs:
-            cmd = stmt['cmd']
-            elt = stmt['elt']
+            cmd = stmt[Stmt.CMD]
+            xpath = stmt[Stmt.XPATH]
             attribute = stmt.get('attribute')
-            e: ET.Element = elem.find(elt)
+            e: ET.Element = elem.find(xpath)
             if cmd == 'attrib':
                 text = e.get(attribute)
             elif cmd == 'count':
-                count = len(list(elem.findall(elt)))
+                count = len(list(elem.findall(xpath)))
                 text = f'{count}'
             elif e is None or e.text is None:
                 text = ''
@@ -63,6 +64,8 @@ def main(inf, dslf):
             if _args.maxwidth:
                 text = text[:_args.maxwidth]
             data.append(text)
+            if _args.list and not text:
+                print(f'Field missing: {stmt[Stmt.TITLE]}, ID={data[0]}')
         if writerow:
             # For each column count the rows where that column is populated.
             for i, dat in enumerate(data):
@@ -100,12 +103,12 @@ def getargs():
     ''', formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
-    parser.add_argument('-b', '--bom', action='store_true', help='''
-        Insert a BOM at the front of the output CSV file.''')
     parser.add_argument('-c', '--cfgfile', help='''
         The YAML file describing the column paths to extract''')
     parser.add_argument('-j', '--jsonfile', help='''
         The JSON file to write the results to''')
+    parser.add_argument('-l', '--list', action='store_true', help='''
+        Display the ID of objects missing fields''')
     parser.add_argument('-m', '--maxwidth', type=int, help='''
         The maximum column width in the output CSV file. The default is unlimited.''')
     parser.add_argument('-s', '--short', action='store_true', help='''
