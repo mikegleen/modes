@@ -8,6 +8,8 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
+from utl.zipmagic import openfile
+
 
 def trace(level, template, *args):
     if _args.verbose >= level:
@@ -52,5 +54,5 @@ def getargs():
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     _args = getargs()
-    infile = open(_args.infile)
+    infile = openfile(_args.infile)
     main(infile)
