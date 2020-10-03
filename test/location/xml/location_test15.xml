@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="ASCII"?>
+<Interchange><Object elementtype="Original Artwork">
+	<ObjectIdentity>
+		<Number>TEST15</Number>
+	</ObjectIdentity>
+	<DummyElement />
+	<DummyElement />
+	<ObjectLocation elementtype="normal location">
+		<Location>S9</Location>
+	</ObjectLocation>
+	<ObjectLocation elementtype="current location">
+		<Location>S9</Location>
+		<Date>
+			<DateBegin>20.9.2017</DateBegin>
+		</Date>
+		<Reason/>
+	</ObjectLocation>
+	<ObjectLocation elementtype="current location">
+		<Location>S9</Location>
+		<Date>
+			<DateBegin>18.9.2017</DateBegin>
+			<DateEnd>19.9.2017</DateEnd>
+		</Date>
+		<Reason/>
+	</ObjectLocation>
+	<DummyElement />
+	<DummyElement />
+</Object>
+</Interchange>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="ASCII"?>
+<Interchange><Object elementtype="Original Artwork">
+	<ObjectIdentity>
+		<Number>TEST04</Number>
+	</ObjectIdentity>
+	<ObjectLocation elementtype="normal location">
+		<Location>S9</Location>
+	</ObjectLocation>
+	<ObjectLocation elementtype="current location">
+		<Location>S9</Location>
+		<Date>
+			<DateBegin>99.9.2017</DateBegin>
+		</Date>
+		<Reason/>
+	</ObjectLocation>
+</Object>
+</Interchange>

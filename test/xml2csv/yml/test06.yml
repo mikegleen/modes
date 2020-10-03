@@ -1,0 +1,4 @@
+---
+cmd: attrib
+xpath: ./ObjectLocation
+attribute: elementtype

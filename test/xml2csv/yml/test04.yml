@@ -1,0 +1,7 @@
+---
+cmd: ifeq
+xpath: ./ObjectIdentity/Number
+value: test01
+---
+cmd: column
+xpath: ./ObjectLocation/Reason

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ASCII"?>
+<Interchange><Object elementtype="Original Artwork">
+	<ObjectIdentity>
+		<Number>TEST10</Number>
+	</ObjectIdentity>
+	<ObjectLocation elementtype="normal location">
+		<Location>S9</Location>
+	</ObjectLocation>
+</Object>
+</Interchange>

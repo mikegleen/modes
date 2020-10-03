@@ -5,6 +5,9 @@ testsrun=0
 #
 function run {
     let "testsrun++"
+    if [[ "${tst:0:1}" == "-"]]; then
+        tst=${tst:1}
+    fi
     $ap $*
     if (( $? ))
     then
