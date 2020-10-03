@@ -21,7 +21,7 @@ def main():
             continue
         seq += 1
         num = elem.find('./ObjectIdentity/Number').text
-        num = normalize_id(num)
+        num = normalize_id(num, _args.mdacode)
         if num in objdict:
             print(f'seq {seq}, ID {num} is a duplicate, ignored.')
             continue
@@ -42,6 +42,10 @@ def getargs():
         The sorted XML file.''')
     parser.add_argument('--encoding', default='utf-8', help='''
         Set the input encoding. Default is utf-8. Output is always ascii.
+        ''')
+    parser.add_argument('-m', '--mdacode', default='LDHRM', help='''
+        Specify the MDA code, used in normalizing the accession number.
+        The default is "LDHRM".
         ''')
     args = parser.parse_args()
     return args

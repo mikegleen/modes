@@ -53,7 +53,7 @@ def one_document(document, parent):
     else:
         text = element.text.strip()
     if Stmt.NORMALIZE in document:
-        text = normalize_id(text)
+        text = normalize_id(text, _args.mdacode)
     if Stmt.WIDTH in document:
         text = text[:document[Stmt.WIDTH]]
     return text, command
@@ -99,7 +99,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         if not writerow:
             continue
         if not config.skip_number:
-            data.append(normalize_id(idnum, _args.verbose))
+            data.append(normalize_id(idnum, _args.mdacode, verbose=_args.verbose))
 
         for document in config.col_docs:
             text, command = one_document(document, elem)
@@ -129,7 +129,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     for row in outlist:
         for n, cell in enumerate(row[:lennorm]):
             if norm[n]:
-                row[n] = denormalize_id(cell)
+                row[n] = denormalize_id(cell, _args.mdacode)
         outcsv.writerow(row)
     infile.close()
     cfgfile.close()
@@ -158,6 +158,10 @@ def getargs(argv=None):
     parser.add_argument('--heading', action='store_true', help='''
         Write a row at the front of the CSV file containing the field names.'''
                         )
+    parser.add_argument('-m', '--mdacode', default='LDHRM', help='''
+        Specify the MDA code, used in normalizing the accession number.
+        The default is "LDHRM".
+        ''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''

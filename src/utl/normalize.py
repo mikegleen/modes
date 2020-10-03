@@ -56,7 +56,7 @@ def vdate(indate: str):
     return d
 
 
-def normalize_id(objid, verbose=1):
+def normalize_id(objid, mdacode='LDHRM', verbose=1):
     """
     The parameter is a string in the format of one of the types of object
     identifiers in our Modes file.
@@ -67,7 +67,7 @@ def normalize_id(objid, verbose=1):
     or LDHRM.2018.1. Input can also be a simple integer.
     """
     objid = objid.upper()
-    if objid.startswith('LDHRM'):
+    if objid.startswith(mdacode):
         idlist = re.split(r'[/.]', objid)  # split on either "/" or "."
         assert len(idlist) == 3
         assert len(idlist[2]) <= 4
@@ -85,10 +85,11 @@ def normalize_id(objid, verbose=1):
         if verbose > 1:
             print(f'normalize: {objid} -> {newobjid}')
         return newobjid
+    raise ValueError(f'Unsupported accession ID format: {objid}')
 
 
-def denormalize_id(objid):
-    if objid.startswith('LDHRM'):
+def denormalize_id(objid, mdacode):
+    if objid.startswith(mdacode):
         idlist = re.split(r'[/.]', objid)  # split on either "/" or "."
         assert len(idlist) == 3
         assert len(idlist[2]) <= 4
