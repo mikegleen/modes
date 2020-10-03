@@ -1,0 +1,8 @@
+---
+cmd: column
+xpath: ./Identification/Title
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="normal location"]/Location
+title: 'Normal Location'
+
