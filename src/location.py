@@ -2,6 +2,12 @@
 """
 Utility for handling object location updating and checking.
 
+There are three location types recorded in the XML database, the normal,
+current, and previous locations. There may be multiple previous locations. The
+input CSV file (the "map" file) only applies to one of these location types. So
+if you need to update multiple types, you must prepare separate input CSV files
+and run this program more than once.
+
 """
 import argparse
 import codecs
@@ -399,7 +405,7 @@ def add_arguments(parser):
         case the CSV file only needs a single column containing the 
         accession number.  
         ''')
-    if is_check or is_update:
+    if is_check or is_select or is_update:
         parser.add_argument('-m', '--mapfile', required=True, help='''
             The CSV file mapping the object number to its new location. The object ID
             is in the first column (column 0). The new location is by default
@@ -422,8 +428,8 @@ def add_arguments(parser):
     parser.add_argument('-p', '--previous', action='store_true', help='''
         Add a previous location. This location's start and end dates must 
         not overlap with an existing current or previous location's date(s). 
-        Select from "p", "n", and "c". If "p" is specified, no others are 
-        allowed. ''')
+        Select from "p", "n", and "c". If "p" is specified, you must specify
+        --datebegin and --dateend. ''')
     if is_update:
         parser.add_argument('--reset_current', action='store_true', help='''
         Only output the most recent current location element for each object.
