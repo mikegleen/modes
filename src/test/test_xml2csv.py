@@ -4,35 +4,38 @@
 """
 import os.path
 import unittest
-# noinspection PyPep8Naming
-import xml.etree.ElementTree as ET
-from xml2csv import main, getargs
+from xml2csv import main
 
 
 class TestXml2csv(unittest.TestCase):
-    TESTLOCATION = '/Users/mlg/pyprj/hrm/modes/test/xml2csv'
-    DEFAULT_FIXEDPARAMS = ['--heading', '-v', '0']
-    TESTFILES = [
-        # (test number, expected rows, expected not found, columns in 1st row
-        (1, 1, 0, None),
-        (2, 1, 0, None),
-        (3, 1, 1, None),
-        (4, 1, 0, None),
-        (5, 0, 0, None),
-        (6, 2, 0, None),
-    ]
+    longMessage = True
 
-    def onetest(self, test_tuple):
+
+TESTLOCATION = '/Users/mlg/pyprj/hrm/modes/test/xml2csv'
+DEFAULT_FIXEDPARAMS = ['--heading', '-v', '0']
+TESTFILES = [
+    # (test number, expected rows, expected not found, cmd line params
+    (1, 1, 0, None),
+    (2, 1, 0, None),
+    (3, 1, 1, None),
+    (4, 1, 0, None),
+    (5, 0, 0, None),
+    (6, 2, 0, None),
+]
+
+
+def make_onetest(test_tuple):
+
+    def onetest(self):
         (testnum, expected_rows, expected_notfound, fixedparams) = test_tuple
         if fixedparams is None:
-            fixedparams = TestXml2csv.DEFAULT_FIXEDPARAMS
+            fixedparams = DEFAULT_FIXEDPARAMS
         filename = f'test{testnum:02}'
-        xmlfilename = os.path.join(TestXml2csv.TESTLOCATION, 'xml',
-                                   filename + '.xml')
-        ymlfilename = os.path.join(TestXml2csv.TESTLOCATION, 'yml',
-                                   filename + '.yml')
-        csvfilename = os.path.join(TestXml2csv.TESTLOCATION, 'results',
-                                   filename + '.csv')
+        xmlfilename = os.path.join(TESTLOCATION, 'xml', filename + '.xml')
+        ymlfilename = os.path.join(TESTLOCATION, 'yml', filename + '.yml')
+        csvfilename = os.path.join(TESTLOCATION, 'results', filename + '.csv')
+        # Simulate sys.argv with the program name as argv[0]. This will be
+        # skipped when the main function calls argparse.parser.parse_args
         params = (['dummy_prog_name', xmlfilename, csvfilename, '-c',
                    ymlfilename] + fixedparams)
         n_rows, n_notfound = main(params)
@@ -40,13 +43,19 @@ class TestXml2csv(unittest.TestCase):
                          f'Expected rows, actual rows in {filename}')
         self.assertEqual(expected_notfound, n_notfound,
                          f'Expected not found, actual not found in {filename}')
+    return onetest
 
-    def test_xml2csv(self):
-        print('\n')
-        for test_tuple in TestXml2csv.TESTFILES:
-            with self.subTest():
-                self.onetest(test_tuple)
+
+def test_xml2csv(self):
+    print('\n')
+
+
+def maintest():
+    for test_tuple in TESTFILES:
+        onetest_func = make_onetest(test_tuple)
+        setattr(TestXml2csv, f'test_{test_tuple[0]:02}', onetest_func)
+    unittest.main()
 
 
 if __name__ == '__main__':
-    unittest.main()
+    maintest()

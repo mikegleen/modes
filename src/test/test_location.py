@@ -12,7 +12,7 @@ from location import validate_locations
 class TestLocation(unittest.TestCase):
     T = True
     F = False
-    TESTLOCATION = '/Users/mlg/pyprj/hrm/modes/data/test/location/xml'
+    TESTLOCATION = '/Users/mlg/pyprj/hrm/modes/test/location/xml'
     TESTFILES = [
         ('location_test01.xml', T, '1 normal, 1 current'),
         ('location_test02.xml', F, '1 normal, 2 current'),
@@ -71,40 +71,6 @@ class TestLocation(unittest.TestCase):
                 else:
                     self.assertFalse(result, msg=msg)
 
-
-"""
-class TestLocation2(unittest.TestCase):
-
-    def __init__(self, filename, result):
-        self.filename = filename
-        self.result = result
-        super().__init__()
-
-    def test_validate(self):
-        testfile = os.path.join(TestLocation.TESTLOCATION, self.filename)
-        infile = open(testfile)
-        tree = ET.parse(infile)
-        elem = tree.find('Object')
-        idelem = elem.find('./ObjectIdentity/Number')
-        idnum = idelem.text if idelem is not None else None
-        valid = validate_locations(idnum, elem)
-        infile.close()
-        if self.result:
-            self.assertTrue(valid)
-        else:
-            self.assertFalse(valid)
-
-
-def test_location_suite():
-    suite = unittest.TestSuite()
-    for filename, result in TestLocation.TESTLOCATION:
-        suite.addTest(TestLocation2(filename, result))
-    return suite
-
-if __name__ == '__main__':
-    runner = unittest.TextTestRunner()
-    runner.run(test_location_suite())
-"""
 
 if __name__ == '__main__':
     unittest.main()
