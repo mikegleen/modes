@@ -26,7 +26,7 @@ record_id_xpath**    This is where the ID is found based on the root tag. The
 skip_number**  Do not write the ID number as the first column. This can be useful when
                sorting on another column.
 
-Commands:
+Commands:     These commands are the single parameter on the cmd statement.
 ---------
 attrib        Like column except displays the value of the named attribute.
 column        This is the basic command to display the text of an element.
@@ -164,7 +164,7 @@ class Config:
         """
         Config.__instance = None
 
-    def __init__(self, yamlcfgfile, title=False, dump=False):
+    def __init__(self, yamlcfgfile, title: bool = False, dump: bool = False):
         def set_globals():
             for stmt in document:
                 if stmt == Stmt.CMD:
@@ -210,6 +210,55 @@ class Config:
             self.norm.append(Stmt.NORMALIZE in doc)
         self.lennorm = len(self.norm)
 
+    def select(self, elem):
+        """
+
+        :param elem: the Object element
+        :param config: the YAML configuration, a Config object
+        :return: selected is true if the Object element should be written out
+
+        """
+
+        selected = True
+        for document in self.ctrl_docs:
+            command = document[Stmt.CMD]
+            if command == Cmd.GLOBAL:
+                continue
+            eltstr = document.get(Stmt.XPATH)
+            if eltstr:
+                element = elem.find(eltstr)
+            else:
+                element = None
+            if element is None:
+                selected = False
+                break
+            if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ):
+                attribute = document[Stmt.ATTRIBUTE]
+                text = element.get(attribute)
+            elif element.text is None:
+                text = ''
+            else:
+                # noinspection PyUnresolvedReferences
+                text = element.text.strip()
+            if not text and command in (Cmd.IF, Cmd.IFATTRIB, Cmd.IFCONTAINS,
+                                        Cmd.IFEQ, Cmd.IFATTRIBEQ):
+                selected = False
+                break
+            if command in (Cmd.IFEQ, Cmd.IFCONTAINS, Cmd.IFATTRIBEQ):
+                value = document[Stmt.VALUE]
+                textvalue = text
+                if Stmt.CASESENSITIVE not in document:
+                    value = value.lower()
+                    textvalue = textvalue.lower()
+                if command == Cmd.IFCONTAINS and value not in textvalue:
+                    selected = False
+                    break
+                elif command in (Cmd.IFEQ, Cmd.IFATTRIBEQ) and value != textvalue:
+                    selected = False
+                    break
+                continue
+        return selected
+
 
 def dump_document(document):
     print('Document:')
@@ -249,7 +298,16 @@ def validate_yaml_cfg(cfglist):
     return valid
 
 
-def _read_yaml_cfg(cfgf, title=False, dump=False):
+def _read_yaml_cfg(cfgf, title: bool = False, dump: bool = False):
+    """
+    Called by the Config constructor.
+    :param cfgf: The YAML file specifying the configuration
+    :param title: if True, guarantee that all columns have a title. This is
+                    necessary if, e.g., we are creating an output CSV file
+                    with a title row.
+    :param dump: if True, dump YAML documents as processed.
+    :return: A list of dicts, each of which is a YAML document
+    """
     # Might be None for an empty document, like trailing "---"
     cfg = [c for c in yaml.safe_load_all(cfgf) if c is not None]
     for document in cfg:
@@ -274,54 +332,6 @@ def _read_yaml_cfg(cfgf, title=False, dump=False):
             document[Stmt.TITLE] = target
     return cfg
 
-
-def select(elem, config):
-    """
-
-    :param elem: the Object element
-    :param config: the YAML configuration, a list of dicts
-    :return: selected is true if the Object element should be written out
-
-    """
-    selected = True
-    for document in config.ctrl_docs:
-        command = document[Stmt.CMD]
-        if command == Cmd.GLOBAL:
-            continue
-        eltstr = document.get(Stmt.XPATH)
-        if eltstr:
-            element = elem.find(eltstr)
-        else:
-            element = None
-        if element is None:
-            selected = False
-            break
-        if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ):
-            attribute = document[Stmt.ATTRIBUTE]
-            text = element.get(attribute)
-        elif element.text is None:
-            text = ''
-        else:
-            # noinspection PyUnresolvedReferences
-            text = element.text.strip()
-        if not text and command in (Cmd.IF, Cmd.IFATTRIB, Cmd.IFCONTAINS,
-                                    Cmd.IFEQ, Cmd.IFATTRIBEQ):
-            selected = False
-            break
-        if command in (Cmd.IFEQ, Cmd.IFCONTAINS, Cmd.IFATTRIBEQ):
-            value = document[Stmt.VALUE]
-            textvalue = text
-            if Stmt.CASESENSITIVE not in document:
-                value = value.lower()
-                textvalue = textvalue.lower()
-            if command == Cmd.IFCONTAINS and value not in textvalue:
-                selected = False
-                break
-            elif command in (Cmd.IFEQ, Cmd.IFATTRIBEQ) and value != textvalue:
-                selected = False
-                break
-            continue
-    return selected
 
 
 def yaml_fieldnames(config):
