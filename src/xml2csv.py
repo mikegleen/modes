@@ -16,7 +16,7 @@ import time
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Cmd, Stmt, yaml_fieldnames
-from utl.cfgutil import Config, select
+from utl.cfgutil import Config
 from utl.normalize import normalize_id, denormalize_id
 
 
@@ -95,7 +95,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         idnum = idelem.text if idelem is not None else ''
         trace(3, 'idnum: {}', idnum)
 
-        writerow = select(elem, config)
+        writerow = config.select(elem)
         if not writerow:
             continue
         if not config.skip_number:
