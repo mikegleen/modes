@@ -88,8 +88,9 @@ def main():
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-        For objects where the type of object is "drawing", remove the extraneous text
-        "Drawing - " from the beginning of the BriefDescription element text.        
+    Populate the Reference[@elementtype="AE Johnson Number"] element with the
+    AEJ number found in the title. Remove the number from the Title and
+    BriefDescription elements.
         ''')
     parser.add_argument('infile', help='''
         The input XML file''')
