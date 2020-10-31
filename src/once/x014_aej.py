@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-        For objects where the type of object is "drawing", remove the extraneous text
-        "Drawing - " from the beginning of the BriefDescription element text.
-
+    Populate the Reference[@elementtype="AE Johnson Number"] element with the
+    AEJ number found in the title.
 """
 import argparse
 import os.path
@@ -51,7 +50,7 @@ def one_elt(elt):
             if aejnum != mb.group(2):
                 print(f'{object_number}: title/description AEJ mismatch.')
             des.text = f'{mb.group(1)}{mb.group(3)}'
-    updatedcount += 1
+    selcount += 1
     return True
 
 
