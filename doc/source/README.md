@@ -22,11 +22,12 @@ must be lower case. Commands can be column-generating or control statements.
 + __xpath__          Required. This describes the XSLT path to a relevant XML element.
 + __attribute__      Required by the __*attrib*__ and __*ifattrib*__ commands.
 + __title__          Optional. If omitted, a best-guess title will be created from the xpath
-statement. If in a control document, this will be shown in diagnostics.
+                    statement. If in a control document, this will be shown in diagnostics.
 + __value__          Required for __*ifeq*__ or __*ifattrib*__ or __*ifcontains*__ command.
 + __normalize__      Adjust this ID number so that it sorts in numeric order.
 + __casesensitive__  By default, comparisons are case insensitive.
 + __width__          truncate this column to this number of characters
++ __required__       Issue an error message if this field is missing or empty. Valid only on a control command (if...).
 + __delimiter**__    The character to use for the CSV file field separator. The
                default is ",".
 + __record_tag**__   This is the tag (of which there are usually many) that will be
