@@ -108,15 +108,21 @@ def _one_idnum(idnum: str):
 
 
 def read_include_list():
+    """
+    Read the optional CSV file from the --include argument. Build a list
+    of accession IDs in upper case for use by cfgutil.select.
+    :return: a list
+    """
     if not _args.include:
         return None
     col = _args.include_column
     ilist = []
     includereader = csv.reader(open(_args.include))
     for n in range(_args.include_skip):  # default = 1
-        next(includereader)  # skip header
+        skipped = next(includereader)  # skip header
+        trace(1, 'Skipping row in "include" file: {}', skipped)
     for row in includereader:
-        idnum = row[col].upper()
+        idnum = row[col].upper()  # cfgutil.select requires uppercase
         ilist += _one_idnum(idnum)
     return ilist
 
