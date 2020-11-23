@@ -8,6 +8,7 @@ from zipfile import ZipFile
 
 
 def openfile(filename, mode='r'):
+    # magic.from_file returns a descriptor string like "Zip archive data..."
     if magic.from_file(filename).lower().startswith('zip'):
         myzip = ZipFile(filename)
         names = myzip.namelist()
@@ -15,3 +16,4 @@ def openfile(filename, mode='r'):
     else:
         file = open(filename, mode)
     return file
+
