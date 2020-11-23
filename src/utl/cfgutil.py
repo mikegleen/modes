@@ -16,6 +16,7 @@ value          Required for ifeq or ifattrib or ifcontains command.
 normalize      Adjust this ID number so that it sorts in numeric order.
 casesensitive  By default, comparisons are case insensitive.
 width          truncate this column to this number of characters
+required       Issue an error message if this field is missing or empty.
 delimiter**    The character to use for the CSV file field separator. The
                default is ",".
 record_tag**   This is the tag (of which there are usually many) that will be
@@ -28,7 +29,8 @@ skip_number**  Do not write the ID number as the first column. This can be usefu
 
 Commands:     These commands are the single parameter on the cmd statement.
 ---------
-attrib        Like column except displays the value of the named attribute.
+attrib        Like column except displays the value of the attribute named in
+              the attribute statement.
 column        This is the basic command to display the text of an element.
 count         Displays the number of occurrences of an element under its parent.
 global*       This document contains statements that affect the overall output,
@@ -119,6 +121,7 @@ class Stmt:
     VALUE = 'value'
     CASESENSITIVE = 'casesensitive'
     NORMALIZE = 'normalize'
+    REQUIRED = 'required'
     WIDTH = 'width'
     SKIP_NUMBER = 'skip_number'
     RECORD_TAG = 'record_tag'
@@ -210,16 +213,21 @@ class Config:
             self.norm.append(Stmt.NORMALIZE in doc)
         self.lennorm = len(self.norm)
 
-    def select(self, elem):
+    def select(self, elem, include_list=None):
         """
-
         :param elem: the Object element
-        :param config: the YAML configuration, a Config object
+        :param include_list: A list of id numbers of objects to be included
+                             in the output CSV file. The list must be all
+                             uppercase.
         :return: selected is true if the Object element should be written out
-
         """
 
         selected = True
+        idelem = elem.find(self.record_id_xpath)
+        idnum = idelem.text if idelem is not None else None
+        if include_list:
+            if not idnum or idnum.upper() not in include_list:
+                return False
         for document in self.ctrl_docs:
             command = document[Stmt.CMD]
             if command == Cmd.GLOBAL:
@@ -230,6 +238,9 @@ class Config:
             else:
                 element = None
             if element is None:
+                if Stmt.REQUIRED in document:
+                    print(f'*** Required element {eltstr} is missing from'
+                          f' {idnum}. Object excluded.')
                 selected = False
                 break
             if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ):
@@ -240,10 +251,14 @@ class Config:
             else:
                 # noinspection PyUnresolvedReferences
                 text = element.text.strip()
-            if not text and command in (Cmd.IF, Cmd.IFATTRIB, Cmd.IFCONTAINS,
-                                        Cmd.IFEQ, Cmd.IFATTRIBEQ):
-                selected = False
-                break
+            if not text:
+                if Stmt.REQUIRED in document:
+                    print(f'*** Required text in {eltstr} is missing from'
+                          f' {idnum}. Object excluded.')
+                if command in (Cmd.IF, Cmd.IFATTRIB, Cmd.IFCONTAINS,
+                               Cmd.IFEQ, Cmd.IFATTRIBEQ):
+                    selected = False
+                    break
             if command in (Cmd.IFEQ, Cmd.IFCONTAINS, Cmd.IFATTRIBEQ):
                 value = document[Stmt.VALUE]
                 textvalue = text
@@ -300,7 +315,9 @@ def validate_yaml_cfg(cfglist):
 
 def _read_yaml_cfg(cfgf, title: bool = False, dump: bool = False):
     """
-    Called by the Config constructor.
+    Called by the Config constructor. Return the YAML documents with minor
+    additions.
+
     :param cfgf: The YAML file specifying the configuration
     :param title: if True, guarantee that all columns have a title. This is
                     necessary if, e.g., we are creating an output CSV file
@@ -309,6 +326,8 @@ def _read_yaml_cfg(cfgf, title: bool = False, dump: bool = False):
     :return: A list of dicts, each of which is a YAML document
     """
     # Might be None for an empty document, like trailing "---"
+    if cfgf is None:
+        return []
     cfg = [c for c in yaml.safe_load_all(cfgf) if c is not None]
     for document in cfg:
         if dump:
@@ -331,7 +350,6 @@ def _read_yaml_cfg(cfgf, title: bool = False, dump: bool = False):
                 target = f'{target}(n)'
             document[Stmt.TITLE] = target
     return cfg
-
 
 
 def yaml_fieldnames(config):
