@@ -33,7 +33,8 @@ def trace(level, template, *args):
 
 def loadcsv():
     """
-    Read the CSV file containing objectid -> location mappings
+    Read the CSV file containing objectid -> location mappings, specified
+    by the --mapfile argument.
     :return: the dictionary containing the mappings
     """
     location_dict = {}
@@ -298,7 +299,7 @@ def handle_update(idnum, elem):
     """
     global total_updated, total_written
     updated = False
-    if idnum in newlocs:
+    if idnum in newlocs:  # newlocs: list returned by loadcsv()
         if not validate_locations(idnum, elem):
             trace(1, 'Failed pre-update validation.')
             sys.exit(1)
@@ -332,7 +333,7 @@ def handle_validate(idnum, elem):
 
 
 def handle_select(idnum, elem):
-    if idnum in newlocs:
+    if idnum in newlocs:  # newlocs: list returned by loadcsv()
         del newlocs[idnum]
         outfile.write(ET.tostring(elem, encoding='us-ascii'))
     return
@@ -360,7 +361,7 @@ def main():
 def add_arguments(parser):
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
-    if is_update:
+    if is_update or is_select:
         parser.add_argument('outfile', help='''
             The output XML file.''')
     parser.add_argument('-a', '--all', action='store_true', help='''
