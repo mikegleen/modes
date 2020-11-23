@@ -2,7 +2,7 @@
 ---
 cmd: global
 record_tag: Placemark
-record_id: './ExtendedData/SchemaData/SimpleData[@name="objectid_1"]'
+record_id_xpath: './ExtendedData/SchemaData/SimpleData[@name="objectid_1"]'
 delimiter: '|'
 ---
 cmd: column

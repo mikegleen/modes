@@ -4,8 +4,9 @@ xpath: '.'
 attribute: elementtype
 value: 'Original Artwork'
 ---
-cmd: column
-xpath: ./ObjectIdentity/Number
+cmd: if
+xpath: ./Identification/Title
+required: # report error if missing
 ---
 cmd: column
 xpath: ./Identification/Title

@@ -16,4 +16,4 @@ xpath: ./Identification/Title
 ---
 cmd: global
 record_tag: Object
-record_id: './ObjectIdentity/Number'
+record_id_xpath: './ObjectIdentity/Number'
