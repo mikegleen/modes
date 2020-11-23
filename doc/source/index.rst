@@ -7,9 +7,14 @@ Welcome to Modes's documentation!
 =================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 3
 
+   README
+
+.. argparse::
+   :filename: ../src/xml2csv.py
+   :func: getparser
+   :prog: xml2csv.py
 
 
 Indices and tables
