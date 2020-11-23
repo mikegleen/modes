@@ -36,11 +36,13 @@ def main(inf, dslf):
     titles = [stmt[Stmt.TITLE] for stmt in col_docs]
     if not config.skip_number:
         titles = ['ID'] + titles
-    trace(1, 'columns: {}', ', '.join([str(x) for x in titles]))
+    trace(2, 'columns: {}', ', '.join([str(x) for x in titles]))
     for event, elem in ET.iterparse(inf):
         if elem.tag != 'Object':
             continue
         writerow = config.select(elem)
+        # if not (writerow := config.select(elem)):
+        #     continue
         nobjects += 1
         # data[0] = Id unless skip_number is set in the config
         data = []
@@ -76,6 +78,9 @@ def main(inf, dslf):
     trace(1, f'{nobjects} objects read.')
     trace(1, f'{nrows} objects selected.')
     tallylist = []
+    if nrows == 0:
+        print('No rows selected.')
+        return
     for ix, title in enumerate(titles):
         percent = math.floor(float(tally[ix]) * 100. / float(nrows))
         print(f'{str(title):25} {tally[ix]:3}/{nrows} ({percent}%)')
@@ -87,6 +92,7 @@ def main(inf, dslf):
 
 
 def getargs():
+    # noinspection PyTypeChecker
     parser = argparse.ArgumentParser(description='''
     Extract fields from an XML file, creating a CSV file with the specified
     fields. The first column is hard-coded as './ObjectIdentity/Number'.
