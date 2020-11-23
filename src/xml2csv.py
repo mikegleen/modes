@@ -212,7 +212,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     return nlines, notfound
 
 
-def getargs(argv=None):
+def getparser():  # called either by getargs or sphinx
     parser = argparse.ArgumentParser(description='''
     Extract fields from an XML file, creating a CSV file with the specified
     fields. See the README file for details about the configuration file.
@@ -256,6 +256,11 @@ def getargs(argv=None):
     # print(argv)
     # print(sys.argv)
     # sys.argv = argv
+    return parser
+
+
+def getargs(argv):
+    parser = getparser()
     args = parser.parse_args(args=argv[1:])
     return args
 
