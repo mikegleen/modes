@@ -83,6 +83,7 @@ def main():
     trace(1, 'Input: {}', _args.infile)
     outcsv = opencsvwriter(_args.outfile)
     trace(1, 'Output: {}', _args.outfile)
+    trace(1, "Encoding: {}", _args.encoding)
     soup = Bs(htmlfile, 'html.parser')  # , 'html5lib')
     tables = soup.find_all('table')
     for table in tables:
@@ -130,7 +131,7 @@ if __name__ == '__main__':
     tablenumber = 0
     assert sys.version_info >= (3, 6)
     main()
-    print('\nEnd html2csv. {} rows read, {} rows written to {}'.
+    print('---\nEnd html2csv. {} rows read, {} rows written to {}'.
           format(rowcount, outrowcount, os.path.abspath(_args.outfile)))
 
 
