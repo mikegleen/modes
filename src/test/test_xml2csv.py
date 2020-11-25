@@ -4,11 +4,17 @@
 """
 import os.path
 import unittest
-from xml2csv import main
+from xml2csv import main, _one_idnum
 
 
 class TestXml2csv(unittest.TestCase):
     longMessage = True
+
+    def test_one_idnum(self):
+        idlist = []
+        for idnum in IDNUM_TESTS:
+            idlist += _one_idnum(idnum)
+        self.assertEqual(idlist, IDNUM_RESULTS)
 
 
 TESTLOCATION = '/Users/mlg/pyprj/hrm/modes/test/xml2csv'
@@ -22,6 +28,10 @@ TESTFILES = [
     (5, 0, 0, None),
     (6, 2, 0, None),
 ]
+
+IDNUM_TESTS = 'JB001 jb002-3 jb004-05'.split()
+IDNUM_TESTS = 'JB021-24'.split()
+IDNUM_RESULTS = ['JB021', 'JB022', 'JB023', 'JB024']
 
 
 def make_onetest(test_tuple):
@@ -47,7 +57,8 @@ def make_onetest(test_tuple):
 
 
 def test_xml2csv(self):
-    print('\n')
+    # print('\n')
+    pass
 
 
 def maintest():

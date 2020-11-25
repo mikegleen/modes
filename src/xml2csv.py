@@ -29,7 +29,7 @@ def trace(level, template, *args):
 
 
 def opencsvwriter(filename, delimiter):
-    encoding = 'utf-8' if _args.nobom else 'utf-8-sig'
+    encoding = 'utf-8-sig' if _args.bom else 'utf-8'
     csvfile = codecs.open(filename, 'w', encoding)
     outcsv = csv.writer(csvfile, delimiter=delimiter)
     trace(1, 'Output: {}', filename)
@@ -222,9 +222,11 @@ def getparser():  # called either by getargs or sphinx
         a zipped file.''')
     parser.add_argument('outfile',  help='''
         The output CSV file.''')
-    parser.add_argument('-b', '--nobom', action='store_true', help='''
-        Normally a BOM is inserted at the front of the output CSV file. This
-        option inhibits that.''')
+    parser.add_argument('-b', '--bom', action='store_true', help='''
+        Select this option to insert a BOM at the front of the output CSV file.
+        Use this option when the CSV file is to be imported into Excel so that
+        the proper character set (UTF-8) is used.
+        ''')
     parser.add_argument('-c', '--cfgfile', required=False, help='''
         The config file describing the column_paths to extract. If omitted,
         only the accession numbers will be output.''')

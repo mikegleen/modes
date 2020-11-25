@@ -10,11 +10,7 @@ Welcome to Modes's documentation!
    :maxdepth: 3
 
    README
-
-.. argparse::
-   :filename: ../src/xml2csv.py
-   :func: getparser
-   :prog: xml2csv.py
+   xml2csv
 
 
 Indices and tables

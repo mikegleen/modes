@@ -15,7 +15,7 @@ specification of XML fields and control over whether records are
 selected for processing.
 
 The configuration consists of a YAML file broken into multiple
-documents, separated by lines containing “---” in the left three columns.
+documents, separated by lines containing ``---`` in the left three columns.
 Each document roughly corresponds to a column to write to the CSV file.
 Each document contains some of the following statements. Statements are
 case sensitive; all must be lower case. Commands can be
@@ -40,18 +40,27 @@ Statements
 -  **width** truncate this column to this number of characters
 -  **required** Issue an error message if this field is missing or
    empty. Valid only with a control command (**if** ...).
--  **delimiter\*\*** The character to use for the CSV file field
+-  **delimiter\*** The character to use for the CSV file field
    separator. The default is “,”.
--  **record_tag\*\*** This is the tag (of which there are usually many)
+-  **record_tag\*** This is the tag (of which there are usually many)
    that will be the root for extracting columns. The default is
    ‘Object’.
--  **record_id_xpath\*\*** This is where the ID is found based on the
+-  **record_id_xpath\*** This is where the ID is found based on the
    root tag. The default is ‘./ObjectIdentity/Number’. In addition to
    being output as column 1 by default, the ID is used in error
    messages.
--  **skip_number\*\*** Do not automatically write the ID number as the
+-  **skip_number\*** Do not automatically write the ID number as the
    first column. This can be useful when sorting on another column. The
    ID number can be manually inserted as another column.
+
+
+| \* These statements
+   are only valid if the command is **global**. ## xml2csv.py Extract
+   fields from an XML file, creating a CSV file with the fields as
+   specified in the configuration. ## location.py Do updating, listing and
+   validating of object locations. If updating a current location, a
+   previous location element is created.
+
 
 Commands
 ~~~~~~~~
@@ -78,9 +87,3 @@ statement in the document.
    statement text.
 
  | \* These commands do not generate output columns.
- | \*\* These statements
-   are only valid if the command is **global**. ## xml2csv.py Extract
-   fields from an XML file, creating a CSV file with the fields as
-   specified in the configuration. ## location.py Do updating, listing and
-   validating of object locations. If updating a current location, a
-   previous location element is created.
