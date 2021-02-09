@@ -14,7 +14,9 @@ import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
 def main():
     nlines = 0
-    outfile.write(b'<?xml version="1.0" encoding="ASCII"?>\n<Interchange>')
+    declaration = ('<?xml version="1.0" encoding="'
+                   f'{_args.output_encoding}"?>\n<Interchange>')
+    outfile.write(bytes(declaration, _args.output_encoding))
     if _args.newline or _args.pretty:
         outfile.write(b'\n')
     objectlevel = 0
@@ -36,13 +38,15 @@ def main():
                 e.text = ' '.join(e.text.strip().split())
             if e.tail:
                 e.tail = ' '.join(e.tail.strip().split())
-        xmlstring = ET.tostring(elem, encoding='us-ascii')
+        xmlstring = ET.tostring(elem, encoding=_args.output_encoding,
+                                xml_declaration=False)
         if _args.pretty:
             reparsed = minidom.parseString(xmlstring)
-            prettyxmlstring = reparsed.toprettyxml(indent="\t", encoding='ascii')
+            prettyxml = reparsed.toprettyxml(indent="\t",
+                                             encoding=_args.output_encoding)
             # toprettyxml inserts '<?xml....' at the front. Remove it.
-            prettyxmlstring = prettyxmlstring.split(b'\n', 1)[1]
-            outfile.write(prettyxmlstring)
+            prettyxml = prettyxml.split(b'\n', 1)[1]
+            outfile.write(prettyxml)
         else:
             outfile.write(xmlstring)
         nlines += 1
@@ -60,15 +64,19 @@ def main():
 def getargs():
     parser = argparse.ArgumentParser(description='''
         Modify the XML structure. Remove leading and trailing spaces and
-        convert multiple spaces to single spaces. The output encoding is
-        US-ASCII. The input encoding defaults to UTF-8 but may be changed.
+        convert multiple spaces to single spaces.
         ''')
     parser.add_argument('infile', help='''
         The input XML file''')
     parser.add_argument('outfile', help='''
         The output XML file.''')
-    parser.add_argument('-e', '--encoding', default='utf-8', help='''
-        Set the input encoding.
+    parser.add_argument('-e', '--input_encoding', default=None, help='''
+        Set the input encoding. The encoding defaults to UTF-8. If set, you
+        must also set --output_encoding.
+        ''')
+    parser.add_argument('-g', '--output_encoding', default=None, help='''
+        Set the output encoding. The encoding defaults to UTF-8. If set, you
+        must also set --input_encoding.
         ''')
     parser.add_argument('-n', '--newline', action='store_true', help='''
         If set, add a newline character at the end of each object element.
@@ -81,12 +89,19 @@ def getargs():
         Set the verbosity. The default is 1 which prints summary information.
         ''')
     args = parser.parse_args()
+    e = args.input_encoding
+    g = args.output_encoding
+    if (e and not g) or (g and not e):
+        raise ValueError(
+            'Both input and output encoding must be specified.')
+    elif not e:
+        args.input_encoding = args.output_encoding = 'UTF-8'
     return args
 
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     _args = getargs()
-    infile = open(_args.infile, encoding=_args.encoding)
+    infile = open(_args.infile, encoding=_args.input_encoding)
     outfile = open(_args.outfile, 'wb')
     main()
