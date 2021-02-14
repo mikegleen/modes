@@ -12,7 +12,7 @@ xpath          Required. This describes the XSLT path to a relevant XML element.
 attribute      Required by the attrib and ifattrib commands.
 title          Optional. If omitted, a best-guess title will be created from the xpath
                statement. If in a control document, this will be shown in diagnostics.
-value          Required for ifeq or ifattrib or ifcontains command.
+value          Required for keyword or if... commands.
 normalize      Adjust this ID number so that it sorts in numeric order.
 casesensitive  By default, comparisons are case insensitive.
 width          truncate this column to this number of characters
@@ -33,12 +33,22 @@ attrib        Like column except displays the value of the attribute named in
               the attribute statement.
 column        This is the basic command to display the text of an element.
 count         Displays the number of occurrences of an element under its parent.
+keyword       Find the element specified by the xpath statement whose text
+              equals the text in the value statement and then return the
+              first Keyword sub-element's text.
 global*       This document contains statements that affect the overall output,
               not just a specific column.
 if*           Control command that selects an object to display if the element
               text is populated.
 ifattrib*     Like if except tests for an attribute
 ifattribeq*   Like ifeq except compares the value against an attribute
+              Example:
+                cmd: ifattribeq
+                xpath: .
+                attribute: elementtype
+                value: fine art
+                ---
+ifattribnoteq*  Similar to iffattribeq
 ifcontains*   Select an object if the value in the value statement is contained
               in the element text.
 ifeq*         Select an object if the element text equals the value statement text.
@@ -53,8 +63,8 @@ import yaml
 # The difference between the 'attrib' command and the attribute statement:
 # The 'attrib' command is just like the column command except that the attribute
 # value as given in the attribute statement is extracted.
-# The 'attribute' statement is also used in the case of the 'ifattrib' command to name
-# the attribute to test against the 'value' statement.
+# The 'attribute' statement is also used in the case of the 'ifattrib' command
+# to name the attribute to test against the 'value' statement.
 
 
 class Cmd:
@@ -68,18 +78,22 @@ class Cmd:
     COLUMN = 'column'
     COUNT = 'count'
     GLOBAL = 'global'
+    KEYWORD = 'keyword'
     IF = 'if'  # if text is present
     IFATTRIB = 'ifattrib'  # requires attribute statement
     IFATTRIBEQ = 'ifattribeq'  # requires attribute statement
+    IFATTRIBNOTEQ = 'ifattribnoteq'  # requires attribute statement
     IFCONTAINS = 'ifcontains'
     IFEQ = 'ifeq'  # if the elt text equals the value statement
+    IFNOTEQ = 'ifnoteq'  # if the elt text does not equal the value statement
     IFSERIAL = 'ifserial'
     # Commands that do not produce a column in the output CSV file
-    _CONTROL_CMDS = (IF, IFEQ, IFATTRIB, IFSERIAL, GLOBAL, IFCONTAINS,
-                     IFATTRIBEQ)
-    _NEEDVALUE_CMDS = (IFEQ, IFATTRIBEQ, IFSERIAL, IFCONTAINS)
-    _NEEDXPATH_CMDS = (ATTRIB, COLUMN, IF, COUNT, IFEQ, IFCONTAINS, IFATTRIB,
-                       IFATTRIBEQ)
+    _CONTROL_CMDS = (IF, IFEQ, IFNOTEQ, IFATTRIB, IFSERIAL, GLOBAL, IFCONTAINS,
+                     IFATTRIBEQ, IFATTRIBNOTEQ)
+    _NEEDVALUE_CMDS = (KEYWORD, IFNOTEQ, IFATTRIBEQ, IFATTRIBNOTEQ, IFSERIAL,
+                       IFCONTAINS)
+    _NEEDXPATH_CMDS = (ATTRIB, COLUMN, KEYWORD, IF, COUNT, IFEQ, IFNOTEQ,
+                       IFCONTAINS, IFATTRIB, IFATTRIBEQ, IFATTRIBNOTEQ)
 
     @staticmethod
     def get_needxpath_cmds():
@@ -168,6 +182,14 @@ class Config:
         Config.__instance = None
 
     def __init__(self, yamlcfgfile, title: bool = False, dump: bool = False):
+        """
+
+        :param yamlcfgfile:
+        :param title: If no title statement exists, create one from the
+                      XPATH statement.
+        :param dump: If True, print the YAML documents
+        :returns: the Config instance or None if the YAML file is not given
+        """
         def set_globals():
             for stmt in document:
                 if stmt == Stmt.CMD:
@@ -182,7 +204,6 @@ class Config:
                     self.delimiter = document[stmt]
                 else:
                     print(f'Unknown statement, ignored: {stmt}.')
-
         if Config.__instance is not None:
             raise ValueError("This class is a singleton!")
         Config.__instance = self
@@ -243,7 +264,8 @@ class Config:
                           f' {idnum}. Object excluded.')
                 selected = False
                 break
-            if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ):
+            if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ,
+                           Cmd.IFATTRIBNOTEQ):
                 attribute = document[Stmt.ATTRIBUTE]
                 text = element.get(attribute)
             elif element.text is None:
@@ -259,7 +281,8 @@ class Config:
                                Cmd.IFEQ, Cmd.IFATTRIBEQ):
                     selected = False
                     break
-            if command in (Cmd.IFEQ, Cmd.IFCONTAINS, Cmd.IFATTRIBEQ):
+            if command in (Cmd.IFEQ, Cmd.IFNOTEQ, Cmd.IFCONTAINS,
+                           Cmd.IFATTRIBEQ, Cmd.IFATTRIBNOTEQ):
                 value = document[Stmt.VALUE]
                 textvalue = text
                 if Stmt.CASESENSITIVE not in document:
@@ -268,7 +291,12 @@ class Config:
                 if command == Cmd.IFCONTAINS and value not in textvalue:
                     selected = False
                     break
-                elif command in (Cmd.IFEQ, Cmd.IFATTRIBEQ) and value != textvalue:
+                elif (command in (Cmd.IFEQ, Cmd.IFATTRIBEQ)
+                      and value != textvalue):
+                    selected = False
+                    break
+                elif (command in (Cmd.IFNOTEQ,Cmd.IFATTRIBNOTEQ)
+                      and value == textvalue):
                     selected = False
                     break
                 continue
