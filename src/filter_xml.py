@@ -9,7 +9,7 @@ import re
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from utl.cfgutil import Config, select
+from utl.cfgutil import Config
 
 
 def trace(level, template, *args):
@@ -25,7 +25,7 @@ def one_object(oldobj):
     """
     global object_number
     global selcount
-    selected = select(oldobj, config)
+    selected = config.select(oldobj)
     if selected:
         selcount += 1
         outfile.write(ET.tostring(oldobj, encoding=_args.encoding))
@@ -63,11 +63,24 @@ def getargs():
         The input XML file''')
     parser.add_argument('outfile', help='''
         The output XML file.''')
-    parser.add_argument('-c', '--cfgfile', required=True, help='''
+    parser.add_argument('-c', '--cfgfile', required=False, help='''
         The config file describing the Object elements to include in the
         output''')
     parser.add_argument('-e', '--encoding', default='us-ascii', help='''
         Set the output encoding. The default is "us-ascii".
+        ''')
+    parser.add_argument('--include', required=False, help='''
+        A CSV file specifying the accession numbers of records to process.
+        If omitted, all records will be processed based on configuration
+        statements.''')
+    parser.add_argument('--include_column', required=False, type=int,
+                        default=0, help='''
+        The column number containing the accession number in the file
+        specified by the --select option. The default is 0, the first column.'''
+                        )
+    parser.add_argument('--include_skip', type=int, default=1, help='''
+        The number of rows to skip at the front of the include file. The
+        default is 1, usually the heading.
         ''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object.''')
@@ -85,7 +98,7 @@ if __name__ == '__main__':
     _args = getargs()
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
-    cfgfile = open(_args.cfgfile)
+    cfgfile = open(_args.cfgfile) if _args.cfgfile else None
     config = Config(cfgfile, title=True, dump=_args.verbose >= 2)
     main()
     basename = os.path.basename(sys.argv[0])
