@@ -5,6 +5,8 @@
 import datetime
 import re
 
+DEFAULT_MDA_CODE = 'LDHRM'
+
 
 def modesdate(indate):
     """
@@ -12,6 +14,18 @@ def modesdate(indate):
     year attributes.
     :return: a string in Modes format d[d].m[m].yyyy.
     """
+    d = indate.day
+    m = indate.month
+    y = indate.year
+    return f'{d}.{m}.{y}'
+
+
+def modesdatefromisoformat(instr):
+    """
+    :param instr: A string in the format yyyy-mm-dd
+    :return: a string in Modes format d[d].m[m].yyyy.
+    """
+    indate = datetime.date.fromisoformat(instr)
     d = indate.day
     m = indate.month
     y = indate.year
@@ -56,7 +70,7 @@ def vdate(indate: str):
     return d
 
 
-def normalize_id(objid, mdacode='LDHRM', verbose=1):
+def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1):
     """
     The parameter is a string in the format of one of the types of object
     identifiers in our Modes file.
