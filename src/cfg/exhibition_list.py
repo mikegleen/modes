@@ -1,17 +1,17 @@
-EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName
-1,15/10/2016,08/01/2017,Heath Robinson at War
-2,21/01/2017,26/03/2017,The Brothers Robinson
-3,01/04/2017,11/06/2017,Edward Ardizzone’s Illustrations
-4,17/06/2017,03/09/2017,Rejuvenated Junk
-5,09/09/2017,26/11/2017,Visualizing the Water Babies
-6,02/12/2017,18/02/2018,Heath Robinson’s World of Advertising
-7,24/02/2018,20/05/2018,Neo-Romantic Book Illustrations in Britain 1943-1955
-8,26/05/2018,19/08/2018,"A Curious Turn: Moving, Mechanical Sculpture"
-9,25/08/2018,18/11/2018,Peter Pan and Other Lost Children
-10,01/11/2018,18/11/2018,Special Mini Exhibition in Honour of WWI Centenary
-11,24/11/2018,24/02/2019,Heath Robinson’s Home Life
-12,02/03/2019,19/05/2019,The Beardsley Generation
-13,25/05/2019,01/09/2019,Tim Lewis: Post Nature
-14,07/09/2019,24/11/2019,Heath Robinson Watercolours
-15,30/11/2019,23/02/2020,Fairies in Illustration
-16,29/02/2020,20/03/2021,Charles Keeping Illustrations'''
+EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
+1,2016-10-15,2017-01-08,Heath Robinson at War
+2,2017-01-21,2017-03-26,The Brothers Robinson
+3,2017-04-01,2017-06-11,Edward Ardizzone’s Illustrations
+4,2017-06-17,2017-09-03,Rejuvenated Junk
+5,2017-09-09,2017-11-26,Visualizing the Water Babies
+6,2017-12-02,2018-02-18,Heath Robinson’s World of Advertising
+7,2018-02-24,2018-05-20,Neo-Romantic Book Illustrations in Britain 1943-1955
+8,2018-05-26,2018-08-19,"A Curious Turn: Moving, Mechanical Sculpture"
+9,2018-08-25,2018-11-18,Peter Pan and Other Lost Children
+10,2018-11-01,2018-11-18,Special Mini Exhibition in Honour of WWI Centenary
+11,2018-11-24,2019-02-24,Heath Robinson’s Home Life
+12,2019-03-02,2019-05-19,The Beardsley Generation
+13,2019-05-25,2019-09-01,Tim Lewis: Post Nature
+14,2019-09-07,2019-11-24,Heath Robinson Watercolours
+15,2019-11-30,2020-02-23,Fairies in Illustration
+16,2020-02-29,2021-03-20,Charles Keeping Illustrations'''

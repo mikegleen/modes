@@ -115,10 +115,8 @@ def get_exhibition_dict():
     next(reader)  # skip heading
     exdic = {int(row[0]):
              Exhibition(ExNum=row[0],
-                        DateBegin=modesdate(datetime.strptime(row[1],
-                                                              '%d/%m/%Y')),
-                        DateEnd=modesdate(datetime.strptime(row[2],
-                                                            '%d/%m/%Y')),
+                        DateBegin=modesdate(datetime.fromisoformat(row[1])),
+                        DateEnd=modesdate(datetime.fromisoformat(row[2])),
                         ExhibitionName=row[3],
                         Place=row[4] if len(row) >= 5 else 'HRM'
                         ) for row in reader}
