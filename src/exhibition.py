@@ -60,6 +60,7 @@ def one_element(elem, idnum, exhibition: Exhibition):
         subelt = ET.SubElement(dateelt, 'DateEnd')
         subelt.text = exhibition.DateEnd
         return newelt
+
     trace(2, 'one_element: {} {}', denormalize_id(idnum), exhibition)
     elts = list(elem)  # the children of Object
     lastexix = None  # index of the last Exhibition element
@@ -154,7 +155,7 @@ def main():
     outfile.write(b'<?xml version="1.0"?><Interchange>\n')
     exmap = get_csv_dict(_args.mapfile)  # serial -> exhibition #
     exdict = get_exhibition_dict()  # exhibition # -> Exhibition tuple
-    visited = set()
+    written = 0
     for event, elem in ET.iterparse(infile):
         if elem.tag != 'Object':
             continue
@@ -163,22 +164,21 @@ def main():
         idnum = normalize_id(idnum)
         trace(3, 'idnum: {}', idnum)
         if idnum and idnum in exmap:
-            if idnum in visited:
-                raise ValueError(f'Duplicate accession number in CSV: {idnum}')
             exnum = exmap[idnum]
             one_element(elem, idnum, exdict[exnum])
             del exmap[idnum]
-            visited.add(idnum)
             updated = True
         else:
             updated = False
         if updated or _args.all:
             outfile.write(ET.tostring(elem, encoding='utf-8'))
+            written += 1
         if updated and _args.short:
             break
     outfile.write(b'</Interchange>')
     for idnum in exmap:
         trace(1, 'In CSV but not XML: "{}"', idnum)
+    trace(1, f'End exhibition.py. {written} objects written.')
 
 
 def getargs():
@@ -229,7 +229,3 @@ if __name__ == '__main__':
     trace(1, 'Input file: {}', _args.infile)
     trace(1, 'Creating file: {}', _args.outfile)
     main()
-    # trace(1, 'End update_from_csv. {}/{} object{} updated. {} existing'
-    #       ' element{} unchanged.', nupdated, nnewvals,
-    #       '' if nupdated == 1 else 's', nunchanged,
-    #       '' if nunchanged == 1 else 's')
