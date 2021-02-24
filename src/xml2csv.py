@@ -11,15 +11,14 @@
 import argparse
 import codecs
 import csv
-import re
 import sys
 import time
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Cmd, Stmt, yaml_fieldnames
-from utl.cfgutil import Config
-from utl.normalize import normalize_id, denormalize_id
+from utl.cfgutil import Config, read_include_list
+from utl.normalize import normalize_id, denormalize_id, DEFAULT_MDA_CODE
 from utl.zipmagic import openfile
 
 
@@ -39,6 +38,7 @@ def opencsvwriter(filename, delimiter):
 def one_document(document, parent):
     command = document[Stmt.CMD]
     eltstr = document.get(Stmt.XPATH)
+    text = None
     if eltstr:
         element = parent.find(eltstr)
     else:
@@ -51,6 +51,11 @@ def one_document(document, parent):
     elif command == Cmd.COUNT:
         count = len(list(parent.findall(eltstr)))
         text = f'{count}'
+    elif command == Cmd.KEYWORD:
+        value = document[Stmt.VALUE]
+        if element.text.strip() == value:
+            keyword = element.find('Keyword')
+            text = keyword.text.strip()
     elif element.text is None:
         text = ''
     else:
@@ -60,71 +65,6 @@ def one_document(document, parent):
     if Stmt.WIDTH in document:
         text = text[:document[Stmt.WIDTH]]
     return text, command
-
-
-def _one_idnum(idnum: str):
-    """
-    Called from read_include_list.
-
-    :param idnum: An accession number or a range of numbers. If it is a range,
-    indicated by a hyphen anywhere in the string, the format of the number is:
-        idnum::= <prefix>-<suffix>
-        suffix ::= <n digits>
-        prefix ::= <any text><n digits>
-        The suffix is a string of digits.
-        The prefix consists of any text followed by a string of digits of the
-        same length as the suffix.
-    :return: A list containing zero or more idnums. If idnum is just a single
-    number, then it will be returned inside a list. If there is an error,
-    an empty list will be returned. If a range is specified, then multiple
-    idnums will be returned in the list.
-
-        For example: JB021-024 or JB021-24. These produce identical results:
-        ['JB021', 'JB022', 'JB023', 'JB024']
-    """
-    jlist = []
-    if '-' in idnum:  # if ID is actually a range like JB021-23
-        if m := re.match(r'(.+)-(.+)$', idnum):
-            try:
-                lastidnum = int(m[2])
-                lastidlen = len(m[2])
-                # now get the trailing part of the first id that's the same
-                # length as the lastid part
-                firstidnum = int(m[1][-lastidlen:])
-                prefix = m[1][:-lastidlen]
-                for suffix in range(firstidnum, lastidnum + 1):
-                    ssuffix = str(suffix)
-                    pad = '0' * (lastidlen - len(ssuffix))
-                    newidnum = f'{prefix}{pad}{ssuffix}'
-                    jlist.append(newidnum)
-            except ValueError as v:
-                trace(0, 'Bad accession number, contains "-" but not well'
-                         ' formed: {}', m[2])
-        else:
-            trace(0, 'Bad accession number, failed pattern match:', idnum)
-    else:
-        jlist.append(idnum)
-    return jlist
-
-
-def read_include_list():
-    """
-    Read the optional CSV file from the --include argument. Build a list
-    of accession IDs in upper case for use by cfgutil.select.
-    :return: a list
-    """
-    if not _args.include:
-        return None
-    col = _args.include_column
-    ilist = []
-    includereader = csv.reader(open(_args.include))
-    for n in range(_args.include_skip):  # default = 1
-        skipped = next(includereader)  # skip header
-        trace(1, 'Skipping row in "include" file: {}', skipped)
-    for row in includereader:
-        idnum = row[col].upper()  # cfgutil.select requires uppercase
-        ilist += _one_idnum(idnum)
-    return ilist
 
 
 def main(argv):  # can be called either by __main__ or test_xml2csv
@@ -149,7 +89,8 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     if _args.heading:
         outcsv.writerow(titles)
     objectlevel = 0
-    includes = read_include_list()
+    includes = read_include_list(_args.include, _args.include_column,
+                                 _args.include_skip, _args.verbose)
     for event, elem in ET.iterparse(infile, events=('start', 'end')):
         # print(event)
         if event == 'start':
@@ -227,7 +168,7 @@ def getparser():  # called either by getargs or sphinx
         Use this option when the CSV file is to be imported into Excel so that
         the proper character set (UTF-8) is used.
         ''')
-    parser.add_argument('-c', '--cfgfile', required=False, help='''
+    parser.add_argument('-c', '--cfgfile', required=True, help='''
         The config file describing the column_paths to extract. If omitted,
         only the accession numbers will be output.''')
     parser.add_argument('--heading', action='store_true', help='''
@@ -247,9 +188,9 @@ def getparser():  # called either by getargs or sphinx
         The number of rows to skip at the front of the include file. The
         default is 1, usually the heading.
         ''')
-    parser.add_argument('-m', '--mdacode', default='LDHRM', help='''
+    parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.
-        The default is "LDHRM". ''')
+        The default is "{DEFAULT_MDA_CODE}". ''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''

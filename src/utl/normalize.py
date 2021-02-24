@@ -56,8 +56,8 @@ def date(indate: str):
 
 def vdate(indate: str):
     """
-    This is similar to the date function above but more restrictive. It is used to
-    validate that a string is a complete Modes format date.
+    This is similar to the date function above but more restrictive. It is used
+    to validate that a string is a complete Modes format date.
 
     :param indate:
     :return: A datetime.datetime object or None if the string is not valid.
@@ -80,6 +80,8 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1):
     Input can be of the form JB001 or JB0001 or JB001a or SH1 or LDHRM/2018/1
     or LDHRM.2018.1. Input can also be a simple integer.
     """
+    if objid is None:
+        return None
     objid = objid.upper()
     if objid.startswith(mdacode):
         idlist = re.split(r'[/.]', objid)  # split on either "/" or "."
@@ -102,7 +104,7 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1):
     raise ValueError(f'Unsupported accession ID format: {objid}')
 
 
-def denormalize_id(objid, mdacode):
+def denormalize_id(objid, mdacode=DEFAULT_MDA_CODE):
     if objid.startswith(mdacode):
         idlist = re.split(r'[/.]', objid)  # split on either "/" or "."
         assert len(idlist) == 3
@@ -112,7 +114,7 @@ def denormalize_id(objid, mdacode):
     # Not an LDHRM/.. id
     m = re.match(r'(\D+)(\d+)(.*)', objid)
     if m:
-        if objid.startswith('JB'):
+        if objid.startswith('JB'):  # pad with leading zeroes to 3 columns
             return m.group(1) + f'{int(m.group(2)):0>3d}' + m.group(3)
         else:
             return m.group(1) + f'{int(m.group(2))}' + m.group(3)

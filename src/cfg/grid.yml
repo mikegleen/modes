@@ -1,0 +1,31 @@
+# Produce a full listing with as many interesting columns as needed
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
+title: First Published
+---
+cmd: column
+xpath: ./Identification/Title
+width: 75
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="normal location"]/Location
+title: Normal Location
+normalize:
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
+title: Current Location
+normalize:
+---
+cmd: column
+xpath: ./Description/Material[Part="medium"]/Keyword
+title: Medium
+---
+cmd: column
+xpath: ./Description/Material[Part="support"]/Keyword
+title: Support
+---
+cmd: column
+xpath: ./Identification/ObjectName[@elementtype="Type of Object"]/Keyword
+title: 'Type of Object'
+---

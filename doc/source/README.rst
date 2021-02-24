@@ -32,7 +32,7 @@ Statements
 -  **title** Optional. If omitted, a best-guess title will be created
    from the xpath statement. If in a control document, this will be
    shown in diagnostics.
--  **value** Required for **ifeq** or **ifattrib** or **ifcontains**
+-  **value** Required for **ifeq** or **ifattribeq** or **ifcontains**
    command.
 -  **normalize** Adjust this ID number so that it sorts in numeric
    order.
@@ -55,11 +55,7 @@ Statements
 
 
 | \* These statements
-   are only valid if the command is **global**. ## xml2csv.py Extract
-   fields from an XML file, creating a CSV file with the fields as
-   specified in the configuration. ## location.py Do updating, listing and
-   validating of object locations. If updating a current location, a
-   previous location element is created.
+   are only valid if the command is **global**.
 
 
 Commands
@@ -68,22 +64,46 @@ Commands
 Each document has one **cmd** statement, which is usually the first
 statement in the document.
 
+Column-generating Commands
+++++++++++++++++++++++++++
+
 -  **attrib** Like **column** except displays the value of the attribute
    named in the **attribute** statement.
 -  **column** This is the basic command to display the text of an
    element.
 -  **count** Displays the number of occurrences of an element under its
    parent.
--  **global\*** This document contains statements that affect the
+
+Control Commands
+++++++++++++++++
+
+These commands do not generate output columns.
+
+-  **global** This document contains statements that affect the
    overall output, not just a specific column.
--  **if\*** Control command that selects an object to display if the
+-  **if** Control command that selects an object to display if the
    element text is populated.
--  **ifattrib\*** Like **if** except tests for an attribute
--  **ifattribeq\*** Like **ifeq** except compares the value against an
+-  **ifattrib** Like **if** except tests for an attribute
+-  **ifattribeq** Like **ifeq** except compares the value against an
    attribute
--  **ifcontains\*** Select an object if the value in the **value**
+-  **ifcontains** Select an object if the value in the **value**
    statement is contained in the element text.
--  **ifeq\*** Select an object if the element text equals the **value**
+-  **ifeq** Select an object if the element text equals the **value**
    statement text.
 
- | \* These commands do not generate output columns.
+Utility Programs
+----------------
+
+xml2csv.py
+~~~~~~~~~~
+
+Extract
+fields from an XML file, creating a CSV file with the fields as
+specified in the configuration.
+
+location.py
+~~~~~~~~~~~
+Do updating, listing and
+validating of object locations. If updating a current location, a
+previous location element is created.
+

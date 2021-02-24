@@ -1,8 +1,8 @@
----
-cmd: ifattrib
-xpath: '.'
-attribute: elementtype
-value: 'Original Artwork'
+#---
+#cmd: ifattrib
+#xpath: '.'
+#attribute: elementtype
+#value: 'Original Artwork'
 ---
 cmd: if
 xpath: ./Identification/Title

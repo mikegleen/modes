@@ -1,0 +1,69 @@
+cmd: ifattribnoteq
+xpath: .
+attribute: elementtype
+value: fine art
+---
+cmd: column
+xpath: ./Identification/Title
+---
+cmd: column
+xpath: ./Identification/Classification/Keyword
+title: Classification
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype='current location']/Location
+title: current location
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype='current location']/Date/DateBegin
+title: current loc date
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype='normal location']/Location
+title: normal location
+---
+cmd: column
+xpath: ./Production/SummaryText
+---
+cmd: column
+xpath: ./Production/Person/Role
+---
+cmd: column
+xpath: ./Production/Person/PersonName
+---
+cmd: column
+xpath: ./Production/Date/DateBegin
+---
+cmd: keyword
+xpath: ./Description/Aspect
+value: medium
+title: medium
+---
+cmd: column
+xpath: ./Description/Measurement[Part='image']/Reading
+title: Image
+---
+cmd: column
+xpath: ./Description/Material[Part='support']/Keyword
+title: support
+---
+cmd: column
+xpath: ./Acquisition/Method
+title: Acquisition-Method
+---
+cmd: column
+xpath: ./Acquisition/Person/Role
+title: Acquisition-Role
+---
+cmd: column
+xpath: ./Acquisition/Person/PersonName
+title: Acquisition-PersonName
+---
+cmd: column
+xpath: ./Acquisition/Date
+title: Acquisition-Date
+---
+cmd: column
+xpath: ./Acquisition/Conditions
+title: Acquisition-Conditions
+---

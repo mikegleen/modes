@@ -57,7 +57,8 @@ ifeq*         Select an object if the element text equals the value statement te
 ** These statements are only valid if the command is "global".
 
 """
-
+import csv
+import re
 import yaml
 
 # The difference between the 'attrib' command and the attribute statement:
@@ -234,73 +235,82 @@ class Config:
             self.norm.append(Stmt.NORMALIZE in doc)
         self.lennorm = len(self.norm)
 
-    def select(self, elem, include_list=None):
-        """
-        :param elem: the Object element
-        :param include_list: A list of id numbers of objects to be included
-                             in the output CSV file. The list must be all
-                             uppercase.
-        :return: selected is true if the Object element should be written out
-        """
+    def select(self, elem, include_list=None, exclude=False):
+        return select(self, elem, include_list, exclude)
 
-        selected = True
-        idelem = elem.find(self.record_id_xpath)
-        idnum = idelem.text if idelem is not None else None
-        if include_list:
-            if not idnum or idnum.upper() not in include_list:
-                return False
-        for document in self.ctrl_docs:
-            command = document[Stmt.CMD]
-            if command == Cmd.GLOBAL:
-                continue
-            eltstr = document.get(Stmt.XPATH)
-            if eltstr:
-                element = elem.find(eltstr)
-            else:
-                element = None
-            if element is None:
-                if Stmt.REQUIRED in document:
-                    print(f'*** Required element {eltstr} is missing from'
-                          f' {idnum}. Object excluded.')
+
+def select(cfg: Config, elem, include_list=None, exclude=False):
+    """
+    :param cfg: the Config instance
+    :param elem: the Object element
+    :param include_list: A list of id numbers of objects to be included
+                         in the output CSV file. The list must be all
+                         uppercase.
+    :param exclude: Treat the include list as an exclude list.
+    :return: selected is true if the Object element should be written out
+    """
+
+    selected = True
+    idelem = elem.find(cfg.record_id_xpath)
+    idnum = idelem.text if idelem is not None else None
+    if idnum and exclude and include_list:
+        if idnum.upper() in include_list:
+            return False
+    elif include_list:
+        if not idnum or idnum.upper() not in include_list:
+            return False
+    for document in cfg.ctrl_docs:
+        command = document[Stmt.CMD]
+        if command == Cmd.GLOBAL:
+            continue
+        eltstr = document.get(Stmt.XPATH)
+        if eltstr:
+            element = elem.find(eltstr)
+        else:
+            element = None
+        if element is None:
+            if Stmt.REQUIRED in document:
+                print(f'*** Required element {eltstr} is missing from'
+                      f' {idnum}. Object excluded.')
+            selected = False
+            break
+        if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ,
+                       Cmd.IFATTRIBNOTEQ):
+            attribute = document[Stmt.ATTRIBUTE]
+            text = element.get(attribute)
+        elif element.text is None:
+            text = ''
+        else:
+            # noinspection PyUnresolvedReferences
+            text = element.text.strip()
+        if not text:
+            if Stmt.REQUIRED in document:
+                print(f'*** Required text in {eltstr} is missing from'
+                      f' {idnum}. Object excluded.')
+            if command in (Cmd.IF, Cmd.IFATTRIB, Cmd.IFCONTAINS,
+                           Cmd.IFEQ, Cmd.IFATTRIBEQ):
                 selected = False
                 break
-            if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ,
-                           Cmd.IFATTRIBNOTEQ):
-                attribute = document[Stmt.ATTRIBUTE]
-                text = element.get(attribute)
-            elif element.text is None:
-                text = ''
-            else:
-                # noinspection PyUnresolvedReferences
-                text = element.text.strip()
-            if not text:
-                if Stmt.REQUIRED in document:
-                    print(f'*** Required text in {eltstr} is missing from'
-                          f' {idnum}. Object excluded.')
-                if command in (Cmd.IF, Cmd.IFATTRIB, Cmd.IFCONTAINS,
-                               Cmd.IFEQ, Cmd.IFATTRIBEQ):
-                    selected = False
-                    break
-            if command in (Cmd.IFEQ, Cmd.IFNOTEQ, Cmd.IFCONTAINS,
-                           Cmd.IFATTRIBEQ, Cmd.IFATTRIBNOTEQ):
-                value = document[Stmt.VALUE]
-                textvalue = text
-                if Stmt.CASESENSITIVE not in document:
-                    value = value.lower()
-                    textvalue = textvalue.lower()
-                if command == Cmd.IFCONTAINS and value not in textvalue:
-                    selected = False
-                    break
-                elif (command in (Cmd.IFEQ, Cmd.IFATTRIBEQ)
-                      and value != textvalue):
-                    selected = False
-                    break
-                elif (command in (Cmd.IFNOTEQ,Cmd.IFATTRIBNOTEQ)
-                      and value == textvalue):
-                    selected = False
-                    break
-                continue
-        return selected
+        if command in (Cmd.IFEQ, Cmd.IFNOTEQ, Cmd.IFCONTAINS,
+                       Cmd.IFATTRIBEQ, Cmd.IFATTRIBNOTEQ):
+            value = document[Stmt.VALUE]
+            textvalue = text
+            if Stmt.CASESENSITIVE not in document:
+                value = value.lower()
+                textvalue = textvalue.lower()
+            if command == Cmd.IFCONTAINS and value not in textvalue:
+                selected = False
+                break
+            elif (command in (Cmd.IFEQ, Cmd.IFATTRIBEQ)
+                  and value != textvalue):
+                selected = False
+                break
+            elif (command in (Cmd.IFNOTEQ,Cmd.IFATTRIBNOTEQ)
+                  and value == textvalue):
+                selected = False
+                break
+            continue
+    return selected
 
 
 def dump_document(document):
@@ -392,3 +402,66 @@ def yaml_fieldnames(config):
     for doc in config.col_docs:
         hdgs.append(doc[Stmt.TITLE])
     return hdgs
+
+
+def read_include_list(includes_file, include_column, include_skip, verbos=1):
+    """
+    Read the optional CSV file from the --include argument. Build a list
+    of accession IDs in upper case for use by cfgutil.select.
+    :return: a list
+    """
+
+    def one_idnum(idstr: str):
+        """
+        :param idstr: An accession number or a range of numbers. If it is a range,
+        indicated by a hyphen anywhere in the string, the format of the number is:
+            idstr ::= <prefix>-<suffix>
+            prefix ::= <any text><n digits>
+            suffix ::= <n digits>
+            The prefix consists of any text followed by a string of digits of the
+            same length as the suffix.
+            The suffix is a string of digits.
+        :return: A list containing zero or more idnums. If idnum is just a single
+        number, then it will be returned inside a list. If there is an error,
+        an empty list will be returned. If a range is specified, then multiple
+        idnums will be returned in the list.
+
+            For example: JB021-024 or JB021-24. These produce identical results:
+            ['JB021', 'JB022', 'JB023', 'JB024']
+        """
+        jlist = []
+        if '-' in idstr:  # if ID is actually a range like JB021-23
+            if m := re.match(r'(.+)-(.+)$', idstr):
+                try:
+                    lastidnum = int(m[2])
+                    lastidlen = len(m[2])
+                    # now get the trailing part of the first id that's the same
+                    # length as the lastid part
+                    firstidnum = int(m[1][-lastidlen:])
+                    prefix = m[1][:-lastidlen]
+                    for suffix in range(firstidnum, lastidnum + 1):
+                        ssuffix = str(suffix)
+                        pad = '0' * (lastidlen - len(ssuffix))
+                        newidnum = f'{prefix}{pad}{ssuffix}'
+                        jlist.append(newidnum)
+                except ValueError as v:
+                    print(f'Bad accession number, contains "-" but not well'
+                          f' formed: {m[2]}')
+            else:
+                print('Bad accession number, failed pattern match:', idstr)
+        else:
+            jlist.append(idstr)
+        return jlist
+
+    if not includes_file:
+        return None
+    ilist = set()
+    includereader = csv.reader(open(includes_file))
+    for n in range(include_skip):  # default = 1
+        skipped = next(includereader)  # skip header
+        if verbos >= 1:
+            print(f'Skipping row in "include" file: {skipped}')
+    for row in includereader:
+        idnum = row[include_column].upper()  # cfgutil.select requires uppercase
+        ilist.update(one_idnum(idnum))
+    return ilist

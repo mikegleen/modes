@@ -118,7 +118,7 @@ def main():
     for event, elem in ET.iterparse(infile):
         if elem.tag != 'Object':
             continue
-        idelem = elem.find('./ObjectIdentity/Number')
+        idelem = elem.find(cfg[Stmt.RECORD_ID_XPATH])
         idnum = idelem.text if idelem is not None else None
         trace(3, 'idnum: {}', idnum)
         if idnum and idnum in newvals:

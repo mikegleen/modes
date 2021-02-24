@@ -9,7 +9,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
-from utl.normalize import normalize_id
+from utl.normalize import normalize_id, DEFAULT_MDA_CODE
 
 
 def main():
@@ -43,9 +43,9 @@ def getargs():
     parser.add_argument('--encoding', default='utf-8', help='''
         Set the input encoding. Default is utf-8. Output is always ascii.
         ''')
-    parser.add_argument('-m', '--mdacode', default='LDHRM', help='''
+    parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.
-        The default is "LDHRM".
+        The default is "{DEFAULT_MDA_CODE}".
         ''')
     args = parser.parse_args()
     return args

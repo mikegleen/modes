@@ -9,7 +9,7 @@ import re
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from utl.cfgutil import Config
+from utl.cfgutil import Config, read_include_list
 
 
 def trace(level, template, *args):
@@ -25,29 +25,34 @@ def one_object(oldobj):
     """
     global object_number
     global selcount
-    selected = config.select(oldobj)
+    selected = config.select(oldobj, includes, _args.exclude)
     if selected:
         selcount += 1
         outfile.write(ET.tostring(oldobj, encoding=_args.encoding))
 
 
 def main():
+    global selcount
     declaration = f'<?xml version="1.0" encoding="{_args.encoding}"?>\n'
     outfile.write(bytes(declaration, encoding=_args.encoding))
     outfile.write(b'<Interchange>\n')
     objectlevel = 0
     for event, oldobject in ET.iterparse(infile, events=('start', 'end')):
         if event == 'start':
-            if oldobject.tag == 'Object':
+            if oldobject.tag == config.record_tag:
                 objectlevel += 1
             continue
         # It's an "end" event.
-        if oldobject.tag != 'Object':
+        if oldobject.tag != config.record_tag:
             continue
         objectlevel -= 1
         if objectlevel:
             continue  # It's not a top level Object.
         one_object(oldobject)
+        selected = config.select(oldobject, includes, _args.exclude)
+        if selected:
+            selcount += 1
+            outfile.write(ET.tostring(oldobject, encoding=_args.encoding))
         oldobject.clear()
         if _args.short:
             break
@@ -87,6 +92,8 @@ def getargs():
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
+    parser.add_argument('-x', '--exclude', action='store_true', help='''
+        Treat the include list as an exclude list.''')
     args = parser.parse_args()
     return args
 
@@ -98,8 +105,13 @@ if __name__ == '__main__':
     _args = getargs()
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
-    cfgfile = open(_args.cfgfile) if _args.cfgfile else None
-    config = Config(cfgfile, title=True, dump=_args.verbose >= 2)
+    if _args.cfgfile:
+        cfgfile = open(_args.cfgfile)
+        config = Config(cfgfile, title=True, dump=_args.verbose >= 2)
+    else:
+        config = None
+    includes = read_include_list(_args.include, _args.include_column,
+                                 _args.include_skip, _args.verbose)
     main()
     basename = os.path.basename(sys.argv[0])
     print(f'{selcount} object{"" if selcount == 1 else "s"} selected.')

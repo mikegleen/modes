@@ -1,0 +1,12 @@
+cmd: ifattribeq
+xpath: .
+attribute: elementtype
+value: fine art
+---
+cmd: column
+xpath: ./Identification/Title
+---
+cmd: column
+xpath: ./Identification/BriefDescription
+
+

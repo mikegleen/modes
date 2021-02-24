@@ -40,33 +40,6 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-def loadnewvals():
-    """
-    Read the CSV file containing objectid -> new element values
-    :return: the dictionary containing the mappings where the key is the
-             objectid and the value is a list of the remaining columns
-    """
-    newval_dict = {}
-    with codecs.open(_args.incsvfile, 'r', 'utf-8-sig') as incsvfile:
-        reader = csv.reader(incsvfile)
-        if _args.heading:
-            # Check that the first row in the CSV file contains the same
-            # column headings as in the title statements of the YAML file.
-            row = next(reader)
-            irow = iter(row)
-            next(irow)  # skip Serial column
-            for doc in cfg.col_docs:
-                col = next(irow)
-                title = doc[Stmt.TITLE]
-                if col.lower() != title.lower():
-                    print(f'Mismatch on heading: "{title}" in config != {col}'
-                          ' in CSV file')
-                    sys.exit(1)
-        for row in reader:
-            newval_dict[row[0].strip().upper()] = [val.strip() for val in row[1:]]
-    return newval_dict
-
-
 def main():
     global nrows
     if _args.prolog:
@@ -150,7 +123,7 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     _args = getargs()
     templatefile = open(_args.templatefile)
-    incsvfile = open(_args.incsvfile, newline='', encoding='utf-8-sig')
+    incsvfile = codecs.open(_args.incsvfile, 'r', encoding='utf-8-sig')
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Input file: {}', _args.incsvfile)
     trace(1, 'Creating file: {}', _args.outfile)

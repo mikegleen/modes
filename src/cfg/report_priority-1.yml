@@ -1,9 +1,9 @@
----
-# Process this object only if the elementtype attribute equals this value.
-cmd: ifattrib
-xpath: '.'
-attribute: elementtype
-value: 'Original Artwork'
+#---
+## Process this object only if the elementtype attribute equals this value.
+#cmd: ifattrib
+#xpath: '.'
+#attribute: elementtype
+#value: 'Original Artwork'
 ---
 cmd: column
 xpath: ./NumberOfItems

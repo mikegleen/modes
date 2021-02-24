@@ -3,7 +3,7 @@ set -e
 if [[ "$CONDA_DEFAULT_ENV" != $CONDAENV ]]; then
     echo Activating $CONDAENV...
     eval "$(conda shell.bash hook)"
-    conda activate py7
+    conda activate py8
 fi
 pushd ~/pyprj/hrm/modes
 INXML=`basename $1`

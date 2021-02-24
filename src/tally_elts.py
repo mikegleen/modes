@@ -17,11 +17,12 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-def one_object(parent, document, tally, idnum):
+def one_object(parent, document, tally, lastid, idnum):
     """
     :param parent: the Object from the old file
     :param document: The YAML document with config info
     :param tally: the dict containing the accumulated count
+    :param lastid: dict containing the last object id that updated this entry
     :param idnum:
     :return: None.
     """
@@ -35,6 +36,7 @@ def one_object(parent, document, tally, idnum):
         if _args.caseinsensitive:
             text = text.lower()
         tally[text] += 1
+        lastid[text] = idnum
 
 
 def main():
@@ -43,6 +45,7 @@ def main():
         nofinds = 0
         objectlevel = 0
         tally = defaultdict(int)
+        lastid = {}
         infile = open(_args.infile)
         for event, oldobject in ET.iterparse(infile, events=('start', 'end')):
             if event == 'start':
@@ -58,14 +61,15 @@ def main():
             idelem = oldobject.find(config.record_id_xpath)
             idnum = idelem.text if idelem is not None else ''
             trace(3, 'idnum: {}', idnum)
-            one_object(oldobject, doc, tally, idnum)
+            one_object(oldobject, doc, tally, lastid, idnum)
             oldobject.clear()
-        print('\n' + doc[Stmt.XPATH])
+        print(f"\n{doc[Stmt.XPATH]} ({len(tally)}"
+              f" unique value{'s' if len(tally) > 1 else ''})")
         print(f'{"-" * len(doc[Stmt.XPATH])}')
         for word, count in sorted(tally.items()):
             # s = word.encode()
             # print(f'{count:4},"{word}","{[hex(i) for i in s]}"')
-            print(f'{count:4},"{word}"')
+            print(f'{count:4},"{word}"{", " + lastid[word] if count == 1 else ""}')
         if nofinds:
             print(f'Nofinds: {nofinds}')
         infile.close()
@@ -73,8 +77,7 @@ def main():
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-        For objects where the type of object is "drawing", remove the extraneous text
-        "Drawing - " from the beginning of the BriefDescription element text.        
+    For each config entry, report the count of different text values.
         ''')
     parser.add_argument('infile', help='''
         The input XML file''')

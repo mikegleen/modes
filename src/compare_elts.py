@@ -41,18 +41,24 @@ def one_object(parent, doc1, doc2, idnum):
     text2 = get_text(doc2)
     trace(3, '    {}', text1)
     trace(3, '    {}', text2)
-    if text1 == text2:
-        trace(3, '    {}', 'hit')
-        return 1, 0, 0
+    if not text1:
+        trace(3, '    {}', 'text1 empty')
+        return 0, 0, 0, 1, 0
+    elif not text2:
+        trace(3, '    {}', 'text2 empty')
+        return 0, 0, 0, 0, 1
+    elif text1 == text2:
+        trace(3, '    {}', 'identical')
+        return 1, 0, 0, 0, 0
     elif text1 in text2:
         trace(3, '    {}', 'like')
-        return 0, 1, 0
+        return 0, 1, 0, 0, 0
     elif text2 in text1:
         trace(3, '    {}', 'revlike')
-        return 0, 0, 1
+        return 0, 0, 1, 0, 0
     else:
         trace(3, '    {}', 'nomatch')
-        return 0, 0, 0
+        return 0, 0, 0, 0, 0
 
 
 def main():
@@ -61,6 +67,7 @@ def main():
     infile = open(_args.infile)
     objectlevel = 0
     nhits = nlikes = nrevlikes = nnomatch = 0
+    nnot1 = nnot2 = 0
     for event, oldobject in ET.iterparse(infile, events=('start', 'end')):
         if event == 'start':
             if oldobject.tag == 'Object':
@@ -75,13 +82,17 @@ def main():
         idelem = oldobject.find(config.record_id_xpath)
         idnum = idelem.text if idelem is not None else ''
         trace(3, 'idnum: {}', idnum)
-        hits, likes, revlikes = one_object(oldobject, doc_a, doc_b, idnum)
+        hits, likes, revlikes, not1, not2 = one_object(oldobject, doc_a, doc_b, idnum)
         nhits += hits
         nlikes += likes
         nrevlikes += revlikes
+        nnot1 += not1
+        nnot2 += not2
         nnomatch += 1 - (hits + likes + revlikes)
         oldobject.clear()
-    print(f'{nhits=} {nlikes=} {nrevlikes=} {nnomatch=}')
+    print(f'identical: {nhits}\ntitle in description: {nlikes}\ndescription in title: {nrevlikes}\nnomatch: {nnomatch}')
+    print(f'title empty: {nnot1}')
+    print(f'description empty: {nnot2}')
 
 
 def getargs():
