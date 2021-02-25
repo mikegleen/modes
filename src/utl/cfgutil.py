@@ -404,54 +404,55 @@ def yaml_fieldnames(config):
     return hdgs
 
 
+def one_idnum(idstr: str):
+    """
+    :param idstr: An accession number or a range of numbers. If it is a range,
+    indicated by a hyphen anywhere in the string, the format of the number is:
+        idstr ::= <prefix>-<suffix>
+        prefix ::= <any text><n digits>
+        suffix ::= <n digits>
+        The prefix consists of any text followed by a string of digits of the
+        same length as the suffix.
+        The suffix is a string of digits.
+    :return: A list containing zero or more idnums. If idnum is just a single
+    number, then it will be returned inside a list. If there is an error,
+    an empty list will be returned. If a range is specified, then multiple
+    idnums will be returned in the list.
+
+        For example: JB021-024 or JB021-24. These produce identical results:
+        ['JB021', 'JB022', 'JB023', 'JB024']
+    """
+    jlist = []
+    if '-' in idstr:  # if ID is actually a range like JB021-23
+        if m := re.match(r'(.+)-(.+)$', idstr):
+            try:
+                lastidnum = int(m[2])
+                lastidlen = len(m[2])
+                # now get the trailing part of the first id that's the same
+                # length as the lastid part
+                firstidnum = int(m[1][-lastidlen:])
+                prefix = m[1][:-lastidlen]
+                for suffix in range(firstidnum, lastidnum + 1):
+                    ssuffix = str(suffix)
+                    pad = '0' * (lastidlen - len(ssuffix))
+                    newidnum = f'{prefix}{pad}{ssuffix}'
+                    jlist.append(newidnum)
+            except ValueError as v:
+                print(f'Bad accession number, contains "-" but not well'
+                      f' formed: {m[2]}')
+        else:
+            print('Bad accession number, failed pattern match:', idstr)
+    else:
+        jlist.append(idstr)
+    return jlist
+
+
 def read_include_list(includes_file, include_column, include_skip, verbos=1):
     """
     Read the optional CSV file from the --include argument. Build a list
     of accession IDs in upper case for use by cfgutil.select.
     :return: a list
     """
-
-    def one_idnum(idstr: str):
-        """
-        :param idstr: An accession number or a range of numbers. If it is a range,
-        indicated by a hyphen anywhere in the string, the format of the number is:
-            idstr ::= <prefix>-<suffix>
-            prefix ::= <any text><n digits>
-            suffix ::= <n digits>
-            The prefix consists of any text followed by a string of digits of the
-            same length as the suffix.
-            The suffix is a string of digits.
-        :return: A list containing zero or more idnums. If idnum is just a single
-        number, then it will be returned inside a list. If there is an error,
-        an empty list will be returned. If a range is specified, then multiple
-        idnums will be returned in the list.
-
-            For example: JB021-024 or JB021-24. These produce identical results:
-            ['JB021', 'JB022', 'JB023', 'JB024']
-        """
-        jlist = []
-        if '-' in idstr:  # if ID is actually a range like JB021-23
-            if m := re.match(r'(.+)-(.+)$', idstr):
-                try:
-                    lastidnum = int(m[2])
-                    lastidlen = len(m[2])
-                    # now get the trailing part of the first id that's the same
-                    # length as the lastid part
-                    firstidnum = int(m[1][-lastidlen:])
-                    prefix = m[1][:-lastidlen]
-                    for suffix in range(firstidnum, lastidnum + 1):
-                        ssuffix = str(suffix)
-                        pad = '0' * (lastidlen - len(ssuffix))
-                        newidnum = f'{prefix}{pad}{ssuffix}'
-                        jlist.append(newidnum)
-                except ValueError as v:
-                    print(f'Bad accession number, contains "-" but not well'
-                          f' formed: {m[2]}')
-            else:
-                print('Bad accession number, failed pattern match:', idstr)
-        else:
-            jlist.append(idstr)
-        return jlist
 
     if not includes_file:
         return None
