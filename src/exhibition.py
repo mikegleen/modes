@@ -23,13 +23,13 @@ import argparse
 import codecs
 from collections import namedtuple
 import csv
-from datetime import datetime
+from datetime import date
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 from cfg.exhibition_list import EXSTR
 from utl.cfgutil import Stmt
-from utl.normalize import modesdate, normalize_id, denormalize_id
+from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
 
 Exhibition = namedtuple('Exhibition',
                         'ExNum DateBegin DateEnd ExhibitionName Place')
@@ -40,10 +40,10 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-def one_element(elem, idnum, exhibition: Exhibition):
+def one_object(objelt, idnum, exhibition: Exhibition):
     """
 
-    :param elem: the Object
+    :param objelt: the Object
     :param idnum: the ObjectIdentity/Number text (for trace)
     :param exhibition: the Exhibition tuple corresponding to exhibition_list.py
     :return: None. The exhibition is inserted into the Object element.
@@ -56,51 +56,82 @@ def one_element(elem, idnum, exhibition: Exhibition):
         subelt.text = exhibition.Place
         dateelt = ET.SubElement(newelt, 'Date')
         subelt = ET.SubElement(dateelt, 'DateBegin')
-        subelt.text = exhibition.DateBegin
+        subelt.text = modesdate(exhibition.DateBegin)
         subelt = ET.SubElement(dateelt, 'DateEnd')
-        subelt.text = exhibition.DateEnd
-        return newelt
+        subelt.text = modesdate(exhibition.DateEnd)
+        return datefrommodes(exhibition.DateBegin), subelt
 
-    trace(2, 'one_element: {} {}', denormalize_id(idnum), exhibition)
-    elts = list(elem)  # the children of Object
-    lastexix = None  # index of the last Exhibition element
+    def one_exhibition(exhib_elt):
+        """
+        :param exhib_elt: an Exhibition element (under Object)
+        :return: 0 if it is an empty template
+                 1 if the input element if the ExhibitionName is different from
+                    the one we are inserting
+                 2 (also update the values) if the ExhibitionName values match
+        """
+        exhname = exhib_elt.find('ExhibitionName')
+        if exhname is None:
+            return 0  # This is an empty Exhibition template
+        if exhname.text != exhibition.ExhibitionName:
+            return 1  # not a match so just keep this element as is
+        # The names match so update the values
+        subelts = list(exhib_elt)
+        for subelt in subelts:
+            tag = subelt.tag
+            if tag == "ExhibitionName":
+                subelt.text = exhibition.ExhibitionName
+            elif tag == "Place":
+                subelt.text = exhibition.Place
+            elif tag == "Date":
+                dates = list(subelt)
+                for dateelt in dates:
+                    if dateelt.tag == 'DateBegin':
+                        dateelt.text = modesdate(exhibition.DateBegin)
+                    elif dateelt.tag == 'DateEnd':
+                        dateelt.text = modesdate(exhibition.DateBegin)
+            else:
+                trace(1, 'ID {}: Unknown subelt in {} Exhibition element: {},' 
+                      ' element not updated.', display_id, tag)
+        return 2
+    # end one_exhibition
+
+    display_id = denormalize_id(idnum)
+    trace(2, 'one_element: {} {}', display_id, exhibition)
+    elts = list(objelt)  # the children of Object
+    exhibs_to_insert = list()
+    exhibs_to_remove = list()
     firstexix = None
-    nexelts = 0  # number of Exhibition elements
+    need_new = True
     for n, elt in enumerate(elts):
         if elt.tag == "Exhibition":
-            exname = elt.find('ExhibitionName')
-            # print(f'{exname.text=}')
-            # print(f'{exhibition.ExhibitionName=}')
-            if exname is not None and exname.text == exhibition.ExhibitionName:
-                trace(1, 'Object number {}: Replacing "{}"',
-                      denormalize_id(idnum), exhibition.ExhibitionName)
+            status = one_exhibition(elt)
+            if status:
+                # Assume DateBegin exists
+                begindate = datefrommodes(elt.find('./Date/DateBegin').text)
+                exhibs_to_insert.append((begindate, elt))
+                if status == 2:
+                    need_new = False
+            else:
+                exhibs_to_remove.append(elt)
+            if firstexix is None:
                 firstexix = n
-                nexelts = -1  # bypass special cases below
-                del elem[n]
-                break
-            elif firstexix is None:
-                firstexix = n
-            nexelts += 1
-            lastexix = n
-    if nexelts == 0:
-        etype = elem.get('elementtype')
+    if firstexix is None:  # no Exhibition elements were found
+        etype = objelt.get('elementtype')
         trace(1, 'Object number {}: No Exhibition element. etype: {}',
               idnum, etype)
         for n, elt in enumerate(elts):
             if elt.tag == "Acquisition":
                 firstexix = n + 1  # insert the new elt after <Acquisition>
                 break
-    elif nexelts == 1:
-        exhib = elts[lastexix]
-        ename = exhib.find('./ExhibitionName')
-        if ename is None:
-            # There is no exhibition name so this element is the empty one
-            # from the template.
-            # elem.remove(exhib)
-            del elem[lastexix]
-    # Insert the new Exhibition elment before the first existing one.
-    exhib = new_exhib()
-    elem.insert(firstexix, exhib)
+    if need_new:
+        newexhibit = new_exhib()
+        exhibs_to_insert.append(newexhibit)
+    for exhib in exhibs_to_insert:
+        objelt.remove(exhib)
+    for exhib in exhibs_to_remove:
+        objelt.remove(exhib)
+    for exhib in sorted(exhibs_to_insert, reverse=True):
+        objelt.insert(firstexix, exhib)
 
 
 def get_exhibition_dict():
@@ -116,8 +147,8 @@ def get_exhibition_dict():
     next(reader)  # skip heading
     exdic = {int(row[0]):
              Exhibition(ExNum=row[0],
-                        DateBegin=modesdate(datetime.fromisoformat(row[1])),
-                        DateEnd=modesdate(datetime.fromisoformat(row[2])),
+                        DateBegin=date.fromisoformat(row[1]),
+                        DateEnd=date.fromisoformat(row[2]),
                         ExhibitionName=row[3],
                         Place=row[4] if len(row) >= 5 else 'HRM'
                         ) for row in reader}
@@ -165,7 +196,7 @@ def main():
         trace(3, 'idnum: {}', idnum)
         if idnum and idnum in exmap:
             exnum = exmap[idnum]
-            one_element(elem, idnum, exdict[exnum])
+            one_object(elem, idnum, exdict[exnum])
             del exmap[idnum]
             updated = True
         else:
