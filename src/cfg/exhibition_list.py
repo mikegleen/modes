@@ -1,3 +1,5 @@
+# EXSTR is processed by exhibition.py to create a dictionary for reference
+# when updating the Modes XML file.
 EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 1,2016-10-15,2017-01-08,Heath Robinson at War
 2,2017-01-21,2017-03-26,The Brothers Robinson
@@ -14,4 +16,6 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 13,2019-05-25,2019-09-01,Tim Lewis: Post Nature
 14,2019-09-07,2019-11-24,Heath Robinson Watercolours
 15,2019-11-30,2020-02-23,Fairies in Illustration
-16,2020-02-29,2021-03-20,Charles Keeping Illustrations'''
+16,2020-02-29,2021-03-20,Charles Keeping Illustrations
+17,2018-01-20,2018-04-15,,Mottisfont Abbey
+18,2003-11-03,2004-01-18,,Dulwich Picture Gallery'''
