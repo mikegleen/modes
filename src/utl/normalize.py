@@ -32,7 +32,7 @@ def modesdatefromisoformat(instr):
     return f'{d}.{m}.{y}'
 
 
-def date(indate: str):
+def datefrommodes(indate: str):
     """
         Return a datetime.date object from a string in Modes format which can be:
             d.m.yyyy
