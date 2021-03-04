@@ -1,6 +1,7 @@
 """
     Create a list of accession numbers of objects displayed at the Dulwich
-    Museum.
+    Museum by fuzzy matching the title from the catalog with the titles in
+    the Modes database.
 """
 import codecs
 import csv
@@ -16,6 +17,7 @@ INTXTFILENAME = 'data/geoff/dulwich_1.txt'
 INXMLFILENAME = 'results/xml/pretty/2021-02-24_water_pretty.xml'
 OUTCSVFILENAME = 'results/csv/exhibitions/dulwich.csv'
 TRACE = 1
+MINSCORE = 90
 PRINTFOUND = True
 PRINTNOTFOUND = True
 
@@ -67,12 +69,16 @@ def main():
         # title = re.sub(r'[^\w\s]', '', m.group(2))
         extracted = process.extract(title, titles, limit=2)
         best, bestscore = extracted[0]
+        nextbest, nextscore = extracted[1]
         edited = []
         for ttl, score in extracted:
             edited.append((iddict[ttl], ttl[:50], score))
-        if best in iddict and bestscore >= 90:
+        if best in iddict and bestscore >= MINSCORE:
             found = True
             found_id = iddict[best]
+            if nextscore >= MINSCORE:
+                print(f'Warning: {found_id} next score >= {MINSCORE} '
+                      f'next best: {iddict[nextbest]}')
             nfound += 1
         else:
             found = False
