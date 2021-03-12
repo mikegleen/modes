@@ -86,6 +86,8 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     outlist = []
     titles = yaml_fieldnames(config)
     trace(1, 'Columns: {}', ', '.join(titles))
+    if not _args.heading:
+        trace(1, 'Heading row not written.')
     if _args.heading:
         outcsv.writerow(titles)
     objectlevel = 0
@@ -112,6 +114,8 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         writerow = config.select(elem, includes)
         if not writerow:
             continue
+        if includes:
+            includes.remove(idnum.upper())
         if not config.skip_number:
             # Insert the ID number as the first column.
             data.append(normalize_id(idnum, _args.mdacode, verbose=_args.verbose))
@@ -120,7 +124,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
             text, command = one_document(document, elem)
             if text is None:
                 notfound += 1
-                trace(2, '{}: cmd {}, "{}" is not found.', idnum, command,
+                trace(2, '{}: cmd: {}, "{}" is not found in XML.', idnum, command,
                       document[Stmt.TITLE])
                 text = ''
             data.append(text)
@@ -150,6 +154,15 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     if cfgfile:
         cfgfile.close()
     outfile.close()
+    if len(includes):
+        if _args.verbose == 1:
+            print(f'{len(includes)} items in include list not in XML.')
+        if _args.verbose > 1:
+            print('In include list but not xml:')
+            for accnum in includes:
+                print(accnum)
+    if not _args.bom:
+        trace(1, 'BOM not written.')
     return nlines, notfound
 
 
@@ -217,4 +230,4 @@ if __name__ == '__main__':
     trace(1, '{} lines written to {}. Elapsed: {:5.2f} seconds.', n_lines,
           _args.outfile, elapsed)
     if not_found:
-        trace(1, 'Warning: {} elements not found.', not_found)
+        trace(1, 'Warning: {} elements not found in XML.', not_found)
