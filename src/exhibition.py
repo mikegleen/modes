@@ -1,12 +1,13 @@
 """
     Import exhibition information into a Modes XML file.
 
-    Input: exhibition list maintained in src/cfg/exhibition_list
-           input XML file.
-           CSV file of objects in an exhibition. CSV format:
+    Input: - exhibition list maintained in src/cfg/exhibition_list.py
+           - input XML file.
+           - CSV file of objects in an exhibition. CSV format:
                accession#,[exhibition#]
            The exhibition # is optional and is ignored if the --exhibition
-           parameter is given.
+           parameter is given. The accession number may contain a string
+           specifying multiple numbers of the form JB001-003.
     Output: updated XML file
 
     The Exhibition group template is:
@@ -29,7 +30,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 from cfg.exhibition_list import EXSTR
-from utl.cfgutil import Stmt
+from utl.cfgutil import Stmt, expand_idnum
 from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
 
 Exhibition = namedtuple('Exhibition',
@@ -115,7 +116,7 @@ def one_object(objelt, idnum, exhibition: Exhibition, catalog_num=None):
             status = one_exhibition(elt)
             if status:  # 1 or 2
                 # Assume DateBegin exists
-                begindate = datefrommodes(elt.find('./Date/DateBegin').text)
+                begindate, _ = datefrommodes(elt.find('./Date/DateBegin').text)
                 exhibs_to_insert.append((begindate, elt))
                 if status == 2:
                     need_new = False
@@ -177,20 +178,30 @@ def get_csv_dict(csvfile):
     :return: A dict with the key of the accession number and the value being
              the exhibition number.
     """
+    def one_accession_number(accno):
+        try:
+            accnum = normalize_id(accno)
+        except ValueError:
+            print(f"Skipping in csv: {accno}")
+            return
+        if accnum in cdict:
+            raise KeyError(f'Duplicate accession number: {accnum}')
+        cataloguenumber = None
+        if _args.col_cat is not None:
+            cataloguenumber = row[_args.col_cat]
+        # print(row)
+        # print(exhibition, cataloguenumber)
+        cdict[accnum] = (exhibition, cataloguenumber)
+
     with codecs.open(csvfile, 'r', 'utf-8-sig') as mapfile:
         cdict = {}
         reader = csv.reader(mapfile)
         for n in range(_args.skiprows):
             next(reader)
         for row in reader:
-            accnum = row[_args.col_acc]
-            if not accnum:
+            accnumber = row[_args.col_acc]
+            if not accnumber:
                 continue  # blank accession number
-            try:
-                accnum = normalize_id(accnum)
-            except ValueError:
-                print(f"Skipping in csv: {accnum}")
-                continue
             if _args.exhibition:
                 exhibition = _args.exhibition
             else:
@@ -198,16 +209,13 @@ def get_csv_dict(csvfile):
                 try:
                     exhibition = int(row[col_ex])
                 except IndexError as e:
-                    print(f'Missing column {col_ex}, accession #: {accnum}')
+                    print(f'Missing column {col_ex}, accession #: {accnumber}')
                     raise e
-            if accnum in cdict:
-                raise ValueError(f'Duplicate accession number: {accnum}')
-            cataloguenumber = None
-            if _args.col_cat is not None:
-                cataloguenumber = row[_args.col_cat]
-            # print(row)
-            # print(exhibition, cataloguenumber)
-            cdict[accnum] = (exhibition, cataloguenumber)
+            # The "accnumber" might actually be a range of accession numbers
+            # in the form JB001-002:
+            accnumlist = expand_idnum(accnumber)
+            for accn in accnumlist:
+                one_accession_number(accn)
     trace(2, 'get_csv_dict: {}', cdict)
     return cdict
 

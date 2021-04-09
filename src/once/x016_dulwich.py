@@ -11,7 +11,6 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 from utl.cfgutil import Stmt
-# from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
 
 INTXTFILENAME = 'data/geoff/dulwich_1.txt'
 INXMLFILENAME = 'results/xml/pretty/2021-02-24_water_pretty.xml'

@@ -61,6 +61,13 @@ def loadnewvals():
                     print(f'Mismatch on heading: "{title}" in config != {col}'
                           ' in CSV file')
                     sys.exit(1)
+        elif _args.skip_rows:
+            skiprows = _args.skip_rows
+            for n in range(skiprows):  # default = 1
+                skipped = next(skiprows)  # skip header
+                if _args.verbos >= 1:
+                    print(f'Skipping row in map file: {skipped}')
+
         for row in reader:
             newval_dict[row[0].strip().upper()] = [val.strip() for val in row[1:]]
     return newval_dict
@@ -114,12 +121,12 @@ def one_element(elem, idnum):
 
 
 def main():
-    outfile.write(b'<?xml version="1.0"?><Interchange>\n')
+    outfile.write(b'<?xml version="1.0" encoding="UTF-8"?><Interchange>\n')
     for event, elem in ET.iterparse(infile):
         if elem.tag != 'Object':
             continue
-        idelem = elem.find(cfg[Stmt.RECORD_ID_XPATH])
-        idnum = idelem.text if idelem is not None else None
+        idelem = elem.find(cfg.record_id_xpath)
+        idnum = idelem.text.upper() if idelem is not None else None
         trace(3, 'idnum: {}', idnum)
         if idnum and idnum in newvals:
             updated = one_element(elem, idnum)
@@ -129,7 +136,7 @@ def main():
             if _args.missing:
                 trace(2, 'Not in CSV file: "{}"', idnum)
         if updated or _args.all:
-            outfile.write(ET.tostring(elem, encoding='us-ascii'))
+            outfile.write(ET.tostring(elem, encoding='utf-8'))
         if _args.short:
             break
     outfile.write(b'</Interchange>')
@@ -168,12 +175,16 @@ def getargs():
     parser.add_argument('--heading', action='store_true', help='''
         The first row of the map file contains a heading which must match the
         value of the title statement in the corresponding column document
-        (case insensitive).
+        (case insensitive). Do not use this and --skip_rows.
         ''')
     parser.add_argument('-m', '--mapfile', required=True, help='''
         The CSV file mapping the object number to the new element value(s).''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
+    parser.add_argument('--skip_rows', type=int, default=0, help='''
+        Skip rows at the beginning of the CSV file. Do not use this and
+        --heading.
+        ''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')

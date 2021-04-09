@@ -37,7 +37,7 @@ def main():
     for row in reader:
         row['HumanDate'] = britishdatefrommodes(row['Date Produced'])
         try:
-            dfm = datefrommodes(row['Date Produced'])
+            dfm, _ = datefrommodes(row['Date Produced'])
             row['IsoDate'] = dfm.isoformat()
         except ValueError:
             row['IsoDate'] = 'unknown'

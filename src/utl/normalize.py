@@ -8,16 +8,27 @@ import re
 DEFAULT_MDA_CODE = 'LDHRM'
 
 
-def modesdate(indate):
+def modesdate(indate: datetime.date, nfields: int = 3):
     """
     :param indate: An object like a datetime or date that has month, day and
     year attributes.
-    :return: a string in Modes format d[d].m[m].yyyy.
+    :param nfields: Number of fields to write
+    :return: a string in Modes format depending on the value of nfields:
+             1 -> yyyy
+             2 -> m[m].yyyy
+             3 -> d[d].m[m].yyyy
     """
     d = indate.day
     m = indate.month
     y = indate.year
-    return f'{d}.{m}.{y}'
+    if nfields == 3:
+        return f'{d}.{m}.{y}'
+    elif nfields == 2:
+        return f'{m}.{y}'
+    elif nfields == 1:
+        return f'{y}'
+    else:
+        raise ValueError(f'Number of fields not in 1..3: {nfields}')
 
 
 def modesdatefromisoformat(instr):
@@ -32,26 +43,51 @@ def modesdatefromisoformat(instr):
     return f'{d}.{m}.{y}'
 
 
-def datefrommodes(indate: str):
+def datefrommodes(indate: str) -> tuple[datetime.date, int]:
     """
-        Return a datetime.date object from a string in Modes format which can be:
+        Parse a string in Modes format which can be:
             d.m.yyyy
             or m.yyyy
             or yyyy
-        If day or month aren't given, the default values are returned. The day and month
-        should not have leading zeros.
+        If day or month aren't given, the default values are returned. The day
+        and month should not have leading zeros.
     :param indate:
-    :return: datetime.date if a valid date exists otherwise a ValueError is raised.
+    :return: A tuple containing datetime.date and a status if a valid date
+             exists otherwise a ValueError is raised.
              A TypeError is raised if indate is None.
+             A ValueError if the date format is not parseable.
+             The status contains the number of parts found in the date.
     """
     try:
         d = datetime.datetime.strptime(indate, '%d.%m.%Y').date()
+        nparts = 3
     except ValueError:
         try:
             d = datetime.datetime.strptime(indate, '%m.%Y').date()
+            nparts = 2
         except ValueError:
             d = datetime.datetime.strptime(indate, '%Y').date()
-    return d
+            nparts = 1
+    return d, nparts
+
+
+def britishdatefrommodes(indate: str):
+    """
+    :param indate: A string containing a Modes date.
+    :return: A string like "17 Aug 1909" or "Aug 1909" or "1909" or "unknown"
+    """
+    try:
+        d, nparts = datefrommodes(indate)
+    except ValueError:
+        return 'unknown'
+    if nparts == 1:
+        return indate
+    elif nparts == 2:
+        return f'{d.strftime("%b %Y")}'
+    elif nparts == 3:
+        return f'{d.day} {d.strftime("%b %Y")}'  # no leading zero on day
+    else:
+        return 'unknown'
 
 
 def vdate(indate: str):
@@ -60,7 +96,7 @@ def vdate(indate: str):
     to validate that a string is a complete Modes format date.
 
     :param indate:
-    :return: A datetime.datetime object or None if the string is not valid.
+    :return: A datetime.date object or None if the string is not valid.
              A TypeError is raised if indate is None.
     """
     try:
@@ -93,12 +129,12 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1):
     m = re.match(r'(\D+)(\d+)(.*)', objid)
     if m:
         newobjid = m.group(1) + f'{int(m.group(2)):08d}' + m.group(3)
-        if verbose > 1:
+        if verbose > 2:
             print(f'normalize: {objid} -> {newobjid}')
         return newobjid
     elif objid.isnumeric() and len(objid) <= 8:
         newobjid = f'{int(objid):08d}'
-        if verbose > 1:
+        if verbose > 2:
             print(f'normalize: {objid} -> {newobjid}')
         return newobjid
     raise ValueError(f'Unsupported accession ID format: {objid}')
@@ -122,3 +158,7 @@ def denormalize_id(objid, mdacode=DEFAULT_MDA_CODE):
         return objid.lstrip('0')
     else:
         return objid
+
+
+if __name__ == '__main__':
+    print('This module is not callable. Try src/normalize_xml.py')

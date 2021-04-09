@@ -8,6 +8,8 @@ input CSV file (the "map" file) only applies to one of these location types. So
 if you need to update multiple types, you must prepare separate input CSV files
 and run this program more than once.
 
+Exception: When updating a current location, a previous location element is
+created (unless the --patch option is selected).
 """
 import argparse
 import codecs
@@ -49,7 +51,8 @@ def loadcsv():
                 # if --location is given just skip the first row
                 if not loc_arg and (row[_args.col].strip().lower()
                                     != _args.heading.lower()):
-                    print(f'Fatal error: Failed heading check. {row[_args.col].lower()} is not '
+                    print(f'Fatal error: Failed heading check. '
+                          f'{row[_args.col].lower()} is not '
                           f'{_args.heading.lower()}.')
                     sys.exit(1)
                 need_heading = False
@@ -110,42 +113,49 @@ def validate_locations(idnum, elem, strict=True):
                 trace(1, 'E01 {}: No DateBegin for current location', idnum)
                 return False
             try:
-                datebegindate = nd.date(datebegin.text)
+                datebegindate, _ = nd.datefrommodes(datebegin.text)
             except (ValueError, TypeError):
-                trace(1,'E02 {}: Invalid DateBegin for current location: "{}".', idnum,
-                      datebegin.text)
+                trace(1,
+                      'E02 {}: Invalid DateBegin for current location: "{}".',
+                      idnum, datebegin.text)
                 return False
             if dateend is not None and dateend.text is not None:
-                trace(1, 'E03 {}: DateEnd not allowed for current location: "{}".', idnum,
-                      dateend.text)
+                trace(1,
+                      'E03 {}: DateEnd not allowed for current location: "{}".',
+                      idnum, dateend.text)
                 return False
             locationdates.append((datebegindate, None))  # None indicates this is current
         elif loc == PREVIOUS_LOCATION:
             try:
-                datebegindate = nd.date(datebegin.text)
+                datebegindate, _ = nd.datefrommodes(datebegin.text)
             except (ValueError, TypeError):
-                trace(1, 'E04 {}: Invalid DateBegin for previous location: "{}".', idnum,
-                      datebegin.text)
+                trace(1,
+                      'E04 {}: Invalid DateBegin for previous location: "{}".',
+                      idnum, datebegin.text)
                 return False
             if dateend is None or dateend.text is None:
-                trace(1, 'E05 {}: Missing DateEnd for previous location: "{}".', idnum,
-                      dateend.text)
+                trace(1, 'E05 {}: Missing DateEnd for previous location.',
+                      idnum)
                 return False
             try:
-                dateenddate = nd.date(dateend.text)
+                dateenddate, _ = nd.datefrommodes(dateend.text)
             except (ValueError, TypeError):
-                trace(1, 'E06 {}: Invalid DateEnd for previous location: "{}".', idnum,
-                      dateend.text)
+                trace(1,
+                      'E06 {}: Invalid DateEnd for previous location: "{}".',
+                      idnum, dateend.text)
                 return False
             locationdates.append((datebegindate, dateenddate))
         else:
-            trace(1, 'E07 {}: Unexpected ObjectLocation elementtype = "{}".', idnum, loc)
+            trace(1, 'E07 {}: Unexpected ObjectLocation elementtype = "{}".',
+                  idnum, loc)
             return False
     if numnormal != 1:
-        trace(1, 'E08 {}: Expected one normal location, got {}', idnum, numnormal)
+        trace(1, 'E08 {}: Expected one normal location, got {}',
+              idnum, numnormal)
         return False
     if numcurrent != 1:
-        trace(1, 'E09 {}: Expected one current location, got {}', idnum, numcurrent)
+        trace(1, 'E09 {}: Expected one current location, got {}',
+              idnum, numcurrent)
         return False
     if len(locationdates) == 1:
         return True  # There are no previous locations
@@ -454,7 +464,8 @@ def getargs():
         from a CSV file with rows of the format: <object number>,<location>.
         If the location in the CSV file differs from the location in the XML
         file, update the Date/DateBegin element to today's date unless the
-        --date option is specified.
+        --date option is specified. If a new current location is being set,
+        create a previous location from the existing current location.
         ''')
     subparsers = parser.add_subparsers(dest='subp')
     check_parser = subparsers.add_parser('check', description='''
@@ -470,7 +481,8 @@ def getargs():
     ''')
     validate_parser = subparsers.add_parser('validate', description='''
     Run the validate_locations function against the input file. This validates all
-    locations and ignores the -c, -n, and -p options.
+    locations and ignores the -c, -n, and -p options. Check that dates exist
+    and do not overlap.
     ''')
     check_parser.set_defaults(func=handle_check)
     select_parser.set_defaults(func=handle_select)

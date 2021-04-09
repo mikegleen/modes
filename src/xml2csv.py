@@ -154,7 +154,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     if cfgfile:
         cfgfile.close()
     outfile.close()
-    if len(includes):
+    if includes and len(includes):
         if _args.verbose == 1:
             print(f'{len(includes)} items in include list not in XML.')
         if _args.verbose > 1:
@@ -189,14 +189,14 @@ def getparser():  # called either by getargs or sphinx
         These are defined by the "title" statements in the config or inferred
         from the xpath.''')
     parser.add_argument('--include', required=False, help='''
-        A CSV file specifying the accession numbers of records to process.
-        If omitted, all records will be processed based on configuration
-        statements.''')
+        A CSV file specifying the accession numbers of objects to be processed.
+        If omitted, all records will be processed. In either case, objects will
+        be output based on configuration statements.''')
     parser.add_argument('--include_column', required=False, type=int,
                         default=0, help='''
         The column number containing the accession number in the file
-        specified by the --select option. The default is 0, the first column.'''
-                        )
+        specified by the --include option. The default is 0, the first column.
+        ''')
     parser.add_argument('--include_skip', type=int, default=1, help='''
         The number of rows to skip at the front of the include file. The
         default is 1, usually the heading.
