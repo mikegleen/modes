@@ -404,7 +404,7 @@ def yaml_fieldnames(config):
     return hdgs
 
 
-def one_idnum(idstr: str):
+def expand_idnum(idstr: str) -> list[str]:
     """
     :param idstr: An accession number or a range of numbers. If it is a range,
     indicated by a hyphen anywhere in the string, the format of the number is:
@@ -426,16 +426,14 @@ def one_idnum(idstr: str):
     if '-' in idstr:  # if ID is actually a range like JB021-23
         if m := re.match(r'(.+)-(.+)$', idstr):
             try:
-                lastidnum = int(m[2])
+                lastidnum = int(m[2])  # raise ValueError if not integer
                 lastidlen = len(m[2])
                 # now get the trailing part of the first id that's the same
                 # length as the lastid part
                 firstidnum = int(m[1][-lastidlen:])
                 prefix = m[1][:-lastidlen]
                 for suffix in range(firstidnum, lastidnum + 1):
-                    ssuffix = str(suffix)
-                    pad = '0' * (lastidlen - len(ssuffix))
-                    newidnum = f'{prefix}{pad}{ssuffix}'
+                    newidnum = f'{prefix}{suffix:0{lastidlen}}'
                     jlist.append(newidnum)
             except ValueError as v:
                 print(f'Bad accession number, contains "-" but not well'
@@ -451,18 +449,24 @@ def read_include_list(includes_file, include_column, include_skip, verbos=1):
     """
     Read the optional CSV file from the --include argument. Build a list
     of accession IDs in upper case for use by cfgutil.select.
-    :return: a list
+    :return: a set
     """
 
     if not includes_file:
         return None
-    ilist = set()
+    includeset = set()
     includereader = csv.reader(open(includes_file))
     for n in range(include_skip):  # default = 1
         skipped = next(includereader)  # skip header
         if verbos >= 1:
             print(f'Skipping row in "include" file: {skipped}')
     for row in includereader:
-        idnum = row[include_column].upper()  # cfgutil.select requires uppercase
-        ilist.update(one_idnum(idnum))
-    return ilist
+        idnum = row[include_column].upper()  # cfgutil.select needs uppercase
+        idnumlist: list[str] = expand_idnum(idnum)
+        if verbos >= 1:
+            for num in idnumlist:
+                if num in includeset:
+                    print(f'Warning: Duplicate id number in include '
+                          f'file, {num}, ignored.')
+        includeset.update(idnumlist)  # one_idnum() returns a list
+    return includeset
