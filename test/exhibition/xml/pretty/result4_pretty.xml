@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Interchange>
+<Object elementtype="Original Artwork">
+	<ObjectIdentity>
+		<Number>JB001</Number>
+	</ObjectIdentity>
+	<NumberOfItems/>
+	<Identification>
+		<ObjectName elementtype="Type of Object">
+			<Keyword>drawing</Keyword>
+		</ObjectName>
+		<Title>Pan, children and roses falling from above</Title>
+		<BriefDescription>Pan, children and roses falling from above</BriefDescription>
+	</Identification>
+	<Production>
+		<SummaryText>Unpublished</SummaryText>
+		<Person>
+			<Role>artist</Role>
+			<PersonName>Robinson, William Heath</PersonName>
+			<Note/>
+		</Person>
+		<Date>
+			<DateBegin>nk</DateBegin>
+			<DateEnd/>
+		</Date>
+	</Production>
+	<Description>
+		<SummaryText/>
+		<Inscription>
+			<SummaryText/>
+		</Inscription>
+		<Measurement>
+			<Part>Image</Part>
+			<Dimension>height x width</Dimension>
+			<Reading>390x160</Reading>
+		</Measurement>
+		<Measurement>
+			<Part>Mount</Part>
+			<Dimension>height x width</Dimension>
+			<Reading>no mount</Reading>
+		</Measurement>
+		<Measurement>
+			<Part>Frame</Part>
+			<Dimension>height x width</Dimension>
+			<Reading/>
+		</Measurement>
+		<Condition>
+			<Note>Unmounted, needs cleaning</Note>
+		</Condition>
+		<Completeness>
+			<Note/>
+		</Completeness>
+		<Material>
+			<Part>medium</Part>
+			<Keyword>pencil</Keyword>
+			<Keyword/>
+		</Material>
+		<Material>
+			<Part>support</Part>
+			<Keyword/>
+		</Material>
+		<Note/>
+	</Description>
+	<ObjectLocation elementtype="normal location">
+		<Location>S9</Location>
+	</ObjectLocation>
+	<ObjectLocation elementtype="current location">
+		<Location>S9</Location>
+		<Date>
+			<DateBegin>27.9.2017</DateBegin>
+		</Date>
+		<Reason/>
+	</ObjectLocation>
+	<Conservation>
+		<Type/>
+		<Person/>
+		<Date/>
+	</Conservation>
+	<Exhibition>
+		<ExhibitionName>Heath Robinson at War</ExhibitionName>
+		<Place>HRM</Place>
+		<Date>
+			<DateBegin>16.10.2016</DateBegin>
+			<DateEnd>8.1.2017</DateEnd>
+		</Date>
+	</Exhibition>
+	<Exhibition>
+		<ExhibitionName>The Brothers Robinson</ExhibitionName>
+		<Place>HRM</Place>
+		<Date>
+			<DateBegin>21.1.2017</DateBegin>
+			<DateEnd>26.3.2017</DateEnd>
+		</Date>
+	</Exhibition>
+	<Exhibition>
+		<ExhibitionName>Rejuvenated Junk</ExhibitionName>
+		<Place>HRM</Place>
+		<Date>
+			<DateBegin>17.6.2017</DateBegin>
+			<DateEnd>3.9.2017</DateEnd>
+		</Date>
+	</Exhibition>
+	<Reproduction elementtype="Digital Image">
+		<Filename/>
+		<SummaryText/>
+	</Reproduction>
+	<Acquisition>
+		<Method>gift</Method>
+		<Person>
+			<Role>acquired from</Role>
+			<PersonName>Denis Brinsmead</PersonName>
+		</Person>
+		<Date>1992</Date>
+		<Funding elementtype="Sponsorship"/>
+		<SummaryText elementtype="Acquisition text">Part of the Joan Brinsmead collection</SummaryText>
+		<SummaryText elementtype="Conservation text"/>
+	</Acquisition>
+	<References>
+		<Reference elementtype="AE Johnson Number"/>
+		<Reference elementtype="First Published In">
+			<Title/>
+			<Date/>
+		</Reference>
+		<Reference elementtype="Reproduced In">
+			<Title/>
+			<Date/>
+		</Reference>
+	</References>
+	<RelatedObject elementtype="Mounted With">
+		<ObjectIdentity>
+			<Number/>
+		</ObjectIdentity>
+		<Note/>
+	</RelatedObject>
+</Object>
+</Interchange>
