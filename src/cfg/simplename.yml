@@ -1,0 +1,20 @@
+cmd: ifattribeq
+xpath: ./Identification/ObjectName
+attribute: elementtype
+value: simple name
+---
+cmd: attrib
+xpath: .
+attribute: elementtype
+title: elementtype
+---
+cmd: column
+xpath: ./Identification/ObjectName[@elementtype="simple name"]/Keyword
+title: 'simple name'
+---
+cmd: column
+xpath: ./Identification/ObjectName[@elementtype="other name"]/Keyword
+title: " other name"
+---
+cmd: column
+xpath: ./Identification/BriefDescription

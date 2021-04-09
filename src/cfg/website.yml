@@ -1,0 +1,18 @@
+cmd: column
+xpath: ./Identification/Title
+---
+cmd: column
+xpath: ./Description/Material[Part="medium"]/Keyword
+title: Medium
+---
+cmd: column
+xpath: ./Production/Date/DateBegin
+title: Date Produced
+---
+cmd: column
+xpath: ./Exhibition/Place
+title: Exhibition Place
+---
+cmd: column
+xpath: ./Exhibition/ExhibitionName
+title: Exhibition Name

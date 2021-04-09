@@ -1,3 +1,5 @@
 cmd: column
 xpath: ./Identification/Title
-
+---
+cmd: column
+xpath: ./Identification/BriefDescription

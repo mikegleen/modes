@@ -1,0 +1,5 @@
+cmd: if
+xpath: ./References/Reference/Date
+---
+cmd: column
+xpath: ./References/Reference/Date
