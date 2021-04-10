@@ -18,5 +18,4 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 15,2019-11-30,2020-02-23,Fairies in Illustration
 16,2020-02-29,2021-03-20,Charles Keeping Illustrations
 17,2018-01-20,2018-04-15,Heath Robinson: Dreams and Machines,Mottisfont Abbey
-18,2003-11-03,2004-01-18,Dulwich,Dulwich Picture Gallery
-'''
+18,2003-11-03,2004-01-18,Dulwich,Dulwich Picture Gallery'''
