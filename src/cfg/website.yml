@@ -13,6 +13,6 @@ cmd: column
 xpath: ./Exhibition/Place
 title: Exhibition Place
 ---
-cmd: column
+cmd: multiple
 xpath: ./Exhibition/ExhibitionName
 title: Exhibition Name

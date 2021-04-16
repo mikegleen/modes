@@ -1,28 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 
-    The input is three files, an XML template file, a YAML file and a CSV file.
-    The XML template contains one Object record to populate. The YAML file
-    contains xslt definitions for elements to be inserted from a CSV file.
-    The format of the CSV file is that the first column contains a serial
-    number and subsequent columns contain the values to be inserted into the
-    corresponding elements. Note that there is no entry in the YAML file
-    for the serial number in the CSV file.
-
-    The YAML file contains multiple documents, separated by lines containing
-    "---"; each document corresponds to an element to be updated. The following
-    example is of a single element to be updated.
-
-        ---
-        cmd: column
-        xpath: ./ObjectLocation/Reason
-
-    The documents may contain "title" statements. If one document contains a
-    title statement, they all must. If title statements are included,
-    then the first row of the CSV file contains column titles that must
-    correspond to the titles in the YAML file. The test is case-insensitive.
-    This feature is invoked by the --heading option.
-
 """
 import argparse
 import codecs

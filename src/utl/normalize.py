@@ -71,7 +71,40 @@ def datefrommodes(indate: str) -> tuple[datetime.date, int]:
     return d, nparts
 
 
-def britishdatefrommodes(indate: str):
+def datefrombritishdate(indate: str) -> tuple[datetime.date, int, str]:
+    """
+        Parse a string in Modes format (see datefrommodes) or
+        a British date which can be:
+            "d mmm yyyy"
+            or "m yyyy"
+            It can also be yyyy but this is treated as Modes format
+        If day or month aren't given, the default values are returned. The day
+        and month should not have leading zeros.
+    :param indate:
+    :return: A tuple containing datetime.date and a part count followed by a
+             date type indicator if a valid date exists otherwise a
+             ValueError is raised.
+             A TypeError is raised if indate is None.
+             A ValueError if the date format is not parseable.
+             The date type indicator contains 'modestype' if the date is Modes
+             format and 'britishtype' if the date is British format.
+    """
+
+    try:
+        d, nparts = datefrommodes(indate)
+        return d, nparts, 'modestype'
+    except ValueError:
+        pass
+    try:
+        d = datetime.datetime.strptime(indate, '%d %b %Y').date()
+        nparts = 3
+    except ValueError:
+        d = datetime.datetime.strptime(indate, '%b %Y').date()
+        nparts = 2
+    return d, nparts, 'britishtype'
+
+
+def britishdatefrommodes(indate: str) -> str:
     """
     :param indate: A string containing a Modes date.
     :return: A string like "17 Aug 1909" or "Aug 1909" or "1909" or "unknown"

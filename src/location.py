@@ -384,7 +384,9 @@ def add_arguments(parser):
         Default is 1 (first column is zero, containing the object serial number). 
         ''')
     parser.add_argument('-c', '--current', action='store_true', help='''
-        Update the current location. Select one of "p", "n", and "c".''')
+        Update the current location and change the old current location to a
+        previous location. See the descrption of "n" and "p".
+        ''')
     if is_update:
         parser.add_argument('-d', '--date', default=nd.modesdate(date.today()), help='''
             Use this string as the date to store in the new ObjectLocation
@@ -408,8 +410,8 @@ def add_arguments(parser):
         applies to objects whose ID appears in the CSV file. -a implies -f.
         ''')
     parser.add_argument('--heading', help='''
-        The first row of the map file contains a heading which must match the parameter
-        (case insensitive).
+        The first row of the map file contains a heading which must match the
+        parameter (case insensitive).
         ''')
     parser.add_argument('-l', '--location', help='''
         Set the location for all of the objects in the CSV file. In this 
@@ -417,13 +419,14 @@ def add_arguments(parser):
         accession number.  
         ''')
     if is_check or is_select or is_update:
-        parser.add_argument('-m', '--mapfile', required=True, help='''
-            The CSV file mapping the object number to its new location. The object ID
-            is in the first column (column 0). The new location is by default
-            in the second column (column 1) but can be changed by the --col option.
+        parser.add_argument('-m', '--mapfile', help='''
+            The CSV file mapping the object number to its new location. The
+            object ID is in the first column (column 0). The new location is by
+            default in the second column (column 1) but can be changed by the
+            --col option. This is ignored if --object is specified.
             ''')
     parser.add_argument('-n', '--normal', action='store_true', help='''
-        Update the normal location. Select one of "p", "n", and "c".''')
+        Update the normal location. See the description for "p" and "c".''')
     if is_check:
         parser.add_argument('--old', action='store_true', help='''
             The column selected is the "old" location, the one we are moving
@@ -432,15 +435,22 @@ def add_arguments(parser):
             the CSV file does match the value in the XML file which is not
             expected as the purpose is to update that value.
             ''')
+    parser.add_argument('-j', '--object', help='''
+        Specify a single object to be processed. If specified, do not specify
+        the CSV file containing object numbers and locations (--mapfile). You
+        must also specify --location.
+        ''')
     if is_update:
         parser.add_argument('--patch', action='store_true', help='''
         Update the specified location in place without creating history. This is always
-        the behavior for normal locations but not for current or previous.''')
+        the behavior for normal locations but not for current or previous.
+        ''')
     parser.add_argument('-p', '--previous', action='store_true', help='''
         Add a previous location. This location's start and end dates must 
         not overlap with an existing current or previous location's date(s). 
-        Select from "p", "n", and "c". If "p" is specified, you must specify
-        --datebegin and --dateend. ''')
+        If "p" is selected, do not select "n" or "c". If "p" is specified, you
+        must specify --datebegin and --dateend.
+        ''')
     if is_update:
         parser.add_argument('--reset_current', action='store_true', help='''
         Only output the most recent current location element for each object.
@@ -514,7 +524,13 @@ if __name__ == '__main__':
     _args = getargs()
     verbose = _args.verbose
     infile = open(_args.infile, encoding=_args.encoding)
-    newlocs = loadcsv()
+    if _args.object:
+        if not _args.location:
+            raise(ValueError('You specified the object id. You must also '
+                             'specify the location.'))
+        newlocs = {_args.object.upper(): _args.location}
+    else:
+        newlocs = loadcsv()
     total_in_csvfile = len(newlocs)
     total_updated = total_written = 0
     total_failed = total_objects = 0  # validate only

@@ -189,6 +189,11 @@ def get_csv_dict(csvfile):
         cataloguenumber = None
         if _args.col_cat is not None:
             cataloguenumber = row[_args.col_cat]
+            try:
+                # convert "33." to 33
+                cataloguenumber = int(float(cataloguenumber))
+            except ValueError:
+                pass  # ok, doesn't have to be an integer
         # print(row)
         # print(exhibition, cataloguenumber)
         cdict[accnum] = (exhibition, cataloguenumber)
@@ -262,6 +267,7 @@ def getargs():
         column is the optional exhibition number.
         (see --exhibition for details).
         ''')
+    megroup = parser.add_mutually_exclusive_group()
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
     parser.add_argument('outfile', help='''
@@ -274,15 +280,17 @@ def getargs():
     parser.add_argument('--col_cat', type=int, help='''
         The zero-based column containing the catalog number of the
         object in the corresponding exhibition. ''')
-    parser.add_argument('--col_ex', default=1, type=int, help='''
+    megroup.add_argument('--col_ex', type=int, help='''
         The zero-based column containing the exhibition number.
-        Ignored if --exhibition is specified. ''')
-    parser.add_argument('-e', '--exhibition', type=int, help='''
+        Do not specify this if --exhibition is specified. ''')
+    megroup.add_argument('-e', '--exhibition', type=int, help='''
         The exhibition number, corresponding to the data in exhibition_list.py
-        to apply to all objects in the CSV file.''')
+        to apply to all objects in the CSV file. Do not specify this if
+        --col_ex is specified.''')
     parser.add_argument('-m', '--mapfile', required=True, help='''
-        The CSV file mapping the object number to the exhibition number
-        (but see --exhibition). There is no heading row.''')
+        The CSV file mapping the object number to the catalog number and
+        exhibition number. (but see --exhibition). There is no heading row
+        (but see --skiprows).''')
     parser.add_argument('-s', '--skiprows', type=int, default=0, help='''
         Number of lines to skip at the start of the CSV file''')
     parser.add_argument('--short', action='store_true', help='''

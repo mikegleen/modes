@@ -19,6 +19,10 @@ width          truncate this column to this number of characters
 required       Issue an error message if this field is missing or empty.
 delimiter**    The character to use for the CSV file field separator. The
                default is ",".
+multiple_delimiter  The character to use within a column to separate the
+               values when used with the multiple command. The statement may
+               appear under the global command or a specific multiple command,
+               which takes precedence. The default is "|".
 record_tag**   This is the tag (of which there are usually many) that will be
                the root for extracting columns. The default is 'Object'.
 record_id_xpath**    This is where the ID is found based on the root tag. The
@@ -31,7 +35,10 @@ Commands:     These commands are the single parameter on the cmd statement.
 ---------
 attrib        Like column except displays the value of the attribute named in
               the attribute statement.
-column        This is the basic command to display the text of an element.
+column        This is the basic command to display the text of an element. Only
+              the first element is returned if there are more than one.
+multiple      Like column except it produces a delimiter-separated list of
+              values.
 count         Displays the number of occurrences of an element under its parent.
 keyword       Find the element specified by the xpath statement whose text
               equals the text in the value statement and then return the
@@ -77,6 +84,7 @@ class Cmd:
     """
     ATTRIB = 'attrib'
     COLUMN = 'column'
+    MULTIPLE = 'multiple'
     COUNT = 'count'
     GLOBAL = 'global'
     KEYWORD = 'keyword'
@@ -135,6 +143,7 @@ class Stmt:
     TITLE = 'title'
     VALUE = 'value'
     CASESENSITIVE = 'casesensitive'
+    MULTIPLE_DELIMITER = 'multiple_delimiter'
     NORMALIZE = 'normalize'
     REQUIRED = 'required'
     WIDTH = 'width'
@@ -203,6 +212,8 @@ class Config:
                     self.record_tag = document[stmt]
                 elif stmt == Stmt.DELIMITER:
                     self.delimiter = document[stmt]
+                elif stmt == Stmt.MULTIPLE_DELIMITER:
+                    self.multiple_delimiter = document[stmt]
                 else:
                     print(f'Unknown statement, ignored: {stmt}.')
         if Config.__instance is not None:
@@ -214,6 +225,7 @@ class Config:
         self.record_tag = Stmt.get_default_record_tag()
         self.record_id_xpath = Stmt.get_default_record_id_xpath()
         self.delimiter = ','
+        self.multiple_delimiter = '|'
         cfglist = _read_yaml_cfg(yamlcfgfile, title=title, dump=dump)
         valid = validate_yaml_cfg(cfglist)
         if not valid:

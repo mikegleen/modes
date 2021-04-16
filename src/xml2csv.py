@@ -35,7 +35,7 @@ def opencsvwriter(filename, delimiter):
     return outcsv, csvfile
 
 
-def one_document(document, parent):
+def one_document(document, parent, config: Config):
     command = document[Stmt.CMD]
     eltstr = document.get(Stmt.XPATH)
     text = None
@@ -56,6 +56,12 @@ def one_document(document, parent):
         if element.text.strip() == value:
             keyword = element.find('Keyword')
             text = keyword.text.strip()
+    elif command == Cmd.MULTIPLE:
+        elements = parent.findall(eltstr)
+        delimiter = config.multiple_delimiter
+        if Stmt.MULTIPLE_DELIMITER in document:
+            delimiter = document[Stmt.MULTIPLE_DELIMITER]
+        text = delimiter.join([e.text for e in elements])
     elif element.text is None:
         text = ''
     else:
@@ -121,7 +127,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
             data.append(normalize_id(idnum, _args.mdacode, verbose=_args.verbose))
 
         for document in config.col_docs:
-            text, command = one_document(document, elem)
+            text, command = one_document(document, elem, config)
             if text is None:
                 notfound += 1
                 trace(2, '{}: cmd: {}, "{}" is not found in XML.', idnum, command,
