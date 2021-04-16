@@ -42,6 +42,10 @@ Statements
    empty. Valid only with a control command (**if** ...).
 -  **delimiter\*** The character to use for the CSV file field
    separator. The default is “,”.
+-  **multiple_delimiter\***  The character to use within a column to separate the
+   values when used with the multiple command. The statement may
+   appear under the global command or a specific multiple command,
+   which takes precedence. The default is "|".
 -  **record_tag\*** This is the tag (of which there are usually many)
    that will be the root for extracting columns. The default is
    ‘Object’.
@@ -71,6 +75,8 @@ Column-generating Commands
    named in the **attribute** statement.
 -  **column** This is the basic command to display the text of an
    element.
+-  **multiple** Like column except it produces a delimiter-separated list of
+   values.
 -  **count** Displays the number of occurrences of an element under its
    parent.
 
