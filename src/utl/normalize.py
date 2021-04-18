@@ -6,6 +6,8 @@ import datetime
 import re
 
 DEFAULT_MDA_CODE = 'LDHRM'
+MODESTYPE = 'modestype'
+BRITISHTYPE = 'britishtype'
 
 
 def modesdate(indate: datetime.date, nfields: int = 3):
@@ -76,8 +78,8 @@ def datefrombritishdate(indate: str) -> tuple[datetime.date, int, str]:
         Parse a string in Modes format (see datefrommodes) or
         a British date which can be:
             "d mmm yyyy"
-            or "m yyyy"
-            It can also be yyyy but this is treated as Modes format
+            or "mmm yyyy"
+            It can also be yyyy but this is treated as Modes format.
         If day or month aren't given, the default values are returned. The day
         and month should not have leading zeros.
     :param indate:
@@ -92,7 +94,7 @@ def datefrombritishdate(indate: str) -> tuple[datetime.date, int, str]:
 
     try:
         d, nparts = datefrommodes(indate)
-        return d, nparts, 'modestype'
+        return d, nparts, MODESTYPE
     except ValueError:
         pass
     try:
@@ -101,7 +103,7 @@ def datefrombritishdate(indate: str) -> tuple[datetime.date, int, str]:
     except ValueError:
         d = datetime.datetime.strptime(indate, '%b %Y').date()
         nparts = 2
-    return d, nparts, 'britishtype'
+    return d, nparts, BRITISHTYPE
 
 
 def britishdatefrommodes(indate: str) -> str:
