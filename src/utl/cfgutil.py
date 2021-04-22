@@ -265,11 +265,13 @@ def select(cfg: Config, elem, include_list=None, exclude=False):
     selected = True
     idelem = elem.find(cfg.record_id_xpath)
     idnum = idelem.text if idelem is not None else None
+    # print(f'{idnum=}')
     if idnum and exclude and include_list:
         if idnum.upper() in include_list:
             return False
-    elif include_list:
+    elif include_list is not None:
         if not idnum or idnum.upper() not in include_list:
+            # print('select return false')
             return False
     for document in cfg.ctrl_docs:
         command = document[Stmt.CMD]
