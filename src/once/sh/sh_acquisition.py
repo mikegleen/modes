@@ -124,8 +124,8 @@ def one_object(objelt: ET.Element, idnum: str, conserved: set[str],
         trace(1, 'No find funding: {}', idnum)
         return None
     summarytext = ET.Element('SummaryText')
-    summarytext.text = ('Purchased with the assistance of the National Heritage '
-                        'Memorial Fund and the ArtFund.')
+    summarytext.text = ('Purchased with the assistance of the National '
+                        'Heritage Memorial Fund and the ArtFund.')
     funding.append(summarytext)
     cons = acq.find('./SummaryText[@elementtype="Conservation text"]')
     if cons is not None:
