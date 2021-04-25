@@ -341,7 +341,7 @@ def validate_yaml_cfg(cfglist):
         if not Stmt.validate_yaml_stmts(document):
             valid_doc = False
         if Stmt.CMD not in document:
-            print('cmd statement is missing.')
+            print('ERROR: cmd statement is missing.')
             valid = False
             dump_document(document)
             break
@@ -349,14 +349,19 @@ def validate_yaml_cfg(cfglist):
         if not Cmd.validate_yaml_cmd(command):
             valid_doc = False
         if command in Cmd.get_needxpath_cmds() and Stmt.XPATH not in document:
-            print(f'XPATH statement missing, cmd: {command}')
+            print(f'ERROR: XPATH statement missing, cmd: {command}')
             valid_doc = False
         if command in Cmd.get_needvalue_cmds() and Stmt.VALUE not in document:
-            print(f'value is required for {command} command.')
+            print(f'ERROR: value is required for {command} command.')
             valid_doc = False
         if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ):
             if Stmt.ATTRIBUTE not in document:
-                print(f'attribute is required for {command} command.')
+                print(f'ERROR: attribute is required for {command} command.')
+                valid_doc = False
+        if command not in Cmd.get_control_cmds():
+            if Stmt.REQUIRED in document:
+                print(f'ERROR: "required" not allowed for {command} command.'
+                      f' Use an "if" command.')
                 valid_doc = False
         if not valid_doc:
             valid = False
