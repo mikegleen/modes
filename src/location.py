@@ -49,10 +49,10 @@ def loadcsv():
         for row in reader:
             if need_heading:
                 # if --location is given just skip the first row
-                if not loc_arg and (row[_args.col].strip().lower()
+                if not loc_arg and (row[_args.col_loc].strip().lower()
                                     != _args.heading.lower()):
                     print(f'Fatal error: Failed heading check. '
-                          f'{row[_args.col].lower()} is not '
+                          f'{row[_args.col_loc].lower()} is not '
                           f'{_args.heading.lower()}.')
                     sys.exit(1)
                 need_heading = False
@@ -61,7 +61,7 @@ def loadcsv():
             if objid in location_dict:
                 print(f'Fatal error: Duplicate object ID: {objid}.')
                 sys.exit(1)
-            location_dict[objid] = loc_arg if loc_arg else row[_args.col].strip()
+            location_dict[objid] = loc_arg if loc_arg else row[_args.col_loc].strip()
     return location_dict
 
 
@@ -162,7 +162,7 @@ def validate_locations(idnum, elem, strict=True):
 
     # Check that the youngest date is the current location and that there is no overlap.
     locationdates.sort(reverse=True)
-    if locationdates[0][1] is not None:
+    if locationdates[0][1] is not None:  # should not have an end date
         trace(1, 'E08 {}: current location is not the youngest.', idnum)
         return False
     prevbegin, prevend = locationdates[0]
@@ -330,7 +330,7 @@ def handle_update(idnum, elem):
     if updated:
         total_updated += 1
     if updated or _args.all:
-        outfile.write(ET.tostring(elem, encoding='us-ascii'))
+        outfile.write(ET.tostring(elem, encoding='utf-8'))
         total_written += 1
 
 
@@ -345,7 +345,7 @@ def handle_validate(idnum, elem):
 def handle_select(idnum, elem):
     if idnum in newlocs:  # newlocs: list returned by loadcsv()
         del newlocs[idnum]
-        outfile.write(ET.tostring(elem, encoding='us-ascii'))
+        outfile.write(ET.tostring(elem, encoding='utf-8'))
     return
 
 
@@ -375,25 +375,25 @@ def add_arguments(parser):
         parser.add_argument('outfile', help='''
             The output XML file.''')
     parser.add_argument('-a', '--all', action='store_true', help='''
-        Write all objects and, if -w is selected, issue a warning if an object is not in
-        the detail CSV file. The default is to only write updated objects. In either case
-        warn if an object in the CSV file is not in the input XML file.
-        ''')
-    parser.add_argument('--col', type=int, default=1, help='''
-        Specify the column in the CSV file containing the location.
-        Default is 1 (first column is zero, containing the object serial number). 
-        ''')
+        Write all objects and, if -w is selected, issue a warning if an object
+        is not in the detail CSV file. The default is to only write updated
+        objects. In either case warn if an object in the CSV file is not in the
+        input XML file. ''')
+    parser.add_argument('--col_acc', type=int, default=0, help='''
+        The zero-based column containing the accession number of the
+        object to be updated. The default is column zero.''')
+    parser.add_argument('--col_loc', type=int, default=1, help='''
+        The zero-based column containing the location of the
+        object to be updated. The default is column 1.''')
     parser.add_argument('-c', '--current', action='store_true', help='''
         Update the current location and change the old current location to a
-        previous location. See the descrption of "n" and "p".
-        ''')
+        previous location. See the descrption of "n" and "p". ''')
     if is_update:
         parser.add_argument('-d', '--date', default=nd.modesdate(date.today()), help='''
             Use this string as the date to store in the new ObjectLocation
             date. The default is today's date in Modes format (d.m.yyyy).
             ''')
-    parser.add_argument('--datebegin',
-                        help='''
+    parser.add_argument('--datebegin', help='''
         Use this string as the date to store in the new previous ObjectLocation
         date. The format must be in Modes format (d.m.yyyy).
         ''')
@@ -403,7 +403,7 @@ def add_arguments(parser):
         date. The format must be in Modes format (d.m.yyyy).
         ''')
     parser.add_argument('--encoding', default='utf-8', help='''
-        Set the input encoding. Default is utf-8. Output is always ascii.
+        Set the input encoding. Default is utf-8. Output is always utf-8.
         ''')
     parser.add_argument('-f', '--force', action='store_true', help='''
         Write the object to the output file even if it hasn't been updated. This only
@@ -423,7 +423,7 @@ def add_arguments(parser):
             The CSV file mapping the object number to its new location. The
             object ID is in the first column (column 0). The new location is by
             default in the second column (column 1) but can be changed by the
-            --col option. This is ignored if --object is specified.
+            --col_loc option. This is ignored if --object is specified.
             ''')
     parser.add_argument('-n', '--normal', action='store_true', help='''
         Update the normal location. See the description for "p" and "c".''')
@@ -479,7 +479,7 @@ def getargs():
         ''')
     subparsers = parser.add_subparsers(dest='subp')
     check_parser = subparsers.add_parser('check', description='''
-    With no options, check that the location in the object specified by --col
+    With no options, check that the location in the object specified by --col_loc
     is the same as the location specified by -c or -n option in the XML file.
     ''')
     select_parser = subparsers.add_parser('select', description='''
@@ -507,7 +507,7 @@ def getargs():
         # Set a fake value for the new location column as it will be taken from the --location
         # value instead of a column in the CSV file.
         if args.location:
-            args.col = None
+            args.col_loc = None
         nloctypes = int(args.current) + int(args.previous)
         if nloctypes != 1:
             print('Exactly one of -c or -p must be specified.')
