@@ -1,7 +1,28 @@
-cmd: ifattribeq
-xpath: ./Identification/ObjectName
+#cmd: ifattribeq
+#xpath: ./Identification/ObjectName
+#attribute: elementtype
+#value: simple name
+#required:
+---
+cmd: ifattrib
+xpath: .
 attribute: elementtype
-value: simple name
+title: elementtype
+required:
+---
+cmd: if
+xpath: ./Identification/ObjectName[@elementtype="simple name"]/Keyword
+title: 'simple name'
+required:
+---
+cmd: if
+xpath: ./Identification/ObjectName[@elementtype="other name"]/Keyword
+title: " other name"
+required:
+---
+cmd: if
+xpath: ./Identification/BriefDescription
+required:
 ---
 cmd: attrib
 xpath: .
