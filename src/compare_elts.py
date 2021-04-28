@@ -17,13 +17,14 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-def one_object(parent, doc1, doc2, idnum):
+def one_object(parent, doc1, doc2, idnum) -> tuple:
     """
     :param parent: the Object from the old file
     :param doc1: 
     :param doc2:
     :param idnum:
-    :return: tuple (1,0) = exact match, (0,1) = similar
+    :return: 5-tuple with 1 if true, otherwise zero:
+    (match, text1 in text2, text2 in text 1, text1 empty, text2 empty)
     """
     def get_text(doc):
         eltstr = doc[Stmt.XPATH]
@@ -64,11 +65,13 @@ def one_object(parent, doc1, doc2, idnum):
 def main():
     doc_a = config.col_docs[0]
     doc_b = config.col_docs[1]
-    infile = open(_args.infile)
     objectlevel = 0
     nhits = nlikes = nrevlikes = nnomatch = 0
     nnot1 = nnot2 = 0
-    for event, oldobject in ET.iterparse(infile, events=('start', 'end')):
+    results = ['Match', f'{doc_a[Stmt.TITLE]} in {doc_b[Stmt.TITLE]}',
+               f'{doc_b[Stmt.TITLE]} in {doc_a[Stmt.TITLE]}']
+    for event, oldobject in ET.iterparse(_args.infile,
+                                         events=('start', 'end')):
         if event == 'start':
             if oldobject.tag == 'Object':
                 objectlevel += 1
@@ -82,17 +85,26 @@ def main():
         idelem = oldobject.find(config.record_id_xpath)
         idnum = idelem.text if idelem is not None else ''
         trace(3, 'idnum: {}', idnum)
-        hits, likes, revlikes, not1, not2 = one_object(oldobject, doc_a, doc_b, idnum)
+        response = one_object(oldobject, doc_a, doc_b, idnum)
+        hits, likes, revlikes, not1, not2 = response
         nhits += hits
         nlikes += likes
         nrevlikes += revlikes
         nnot1 += not1
         nnot2 += not2
-        nnomatch += 1 - (hits + likes + revlikes)
+        ismatch = hits + likes + revlikes  # 0 or 1
+        nnomatch += 1 - ismatch
+        if _args.output and ismatch:
+            print(f'{idnum},' + ''.join(
+                [results[i] for i, x in enumerate(response[:3]) if x]),
+                  file=_args.output)
         oldobject.clear()
-    print(f'identical: {nhits}\ntitle in description: {nlikes}\ndescription in title: {nrevlikes}\nnomatch: {nnomatch}')
-    print(f'title empty: {nnot1}')
-    print(f'description empty: {nnot2}')
+    print(f'identical: {nhits}')
+    print(f'{doc_a[Stmt.TITLE]} in {doc_b[Stmt.TITLE]}: {nlikes}')
+    print(f'{doc_b[Stmt.TITLE]} in {doc_a[Stmt.TITLE]}: {nrevlikes}')
+    print(f'nomatch: {nnomatch}')
+    print(f'{doc_a[Stmt.TITLE]} empty: {nnot1}')
+    print(f'{doc_b[Stmt.TITLE]} empty: {nnot2}')
 
 
 def getargs():
@@ -100,13 +112,16 @@ def getargs():
     For the first two documents in the config file, compare the elements and
     report how many are identical and how many are similar.
         ''')
-    parser.add_argument('infile', help='''
+    parser.add_argument('infile', type=argparse.FileType('r'), help='''
         The input XML file''')
     parser.add_argument('-c', '--cfgfile', required=True, help='''
         The config file describing the Object elements to compare
         ''')
     parser.add_argument('-i', '--caseinsensitive', action='store_true', help='''
         Convert all values to lower case.''')
+    parser.add_argument('-o', '--output', type=argparse.FileType('w'),
+                        dest='output', help='''
+        If specified, the CSV file with per-object values.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
