@@ -262,10 +262,10 @@ def main():
 def getargs():
     parser = argparse.ArgumentParser(description='''
         Import exhibition information into a Modes XML file.
-        Read a CSV file containing one or two columns. The first column is
-        the accession number whose record should be updated. The second
-        column is the optional exhibition number.
-        (see --exhibition for details).
+        Read a CSV file containing one, two, or three columns containing 
+        the accession number whose record should be updated, the
+        optional exhibition number, and the optional catalog number
+        (see the parameters below for details).
         ''')
     megroup = parser.add_mutually_exclusive_group()
     parser.add_argument('infile', help='''
@@ -276,10 +276,11 @@ def getargs():
         Write all objects. The default is to only write updated objects.''')
     parser.add_argument('--col_acc', default=0, type=int, help='''
         The zero-based column containing the accession number of the
-        object to be updated. ''')
+        object to be updated. The default is column zero.''')
     parser.add_argument('--col_cat', type=int, help='''
         The zero-based column containing the catalog number of the
-        object in the corresponding exhibition. ''')
+        object in the corresponding exhibition. The default is to not create
+        a catalog number sub-element.''')
     megroup.add_argument('--col_ex', type=int, help='''
         The zero-based column containing the exhibition number.
         Do not specify this if --exhibition is specified. ''')
