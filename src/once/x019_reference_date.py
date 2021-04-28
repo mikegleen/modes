@@ -8,7 +8,7 @@ import resource
 import sys
 
 from utl.cfgutil import Stmt
-from utl.normalize import modesdate, datefrombritishdate
+from utl.normalize import modesdate, datefrombritishdate, MODESTYPE
 
 
 def trace(level, template, *args):
@@ -36,7 +36,7 @@ def one_object(objelt: ET.Element, idnum: str) -> bool:
             newdate, partcount, datetype = datefrombritishdate(refdatetext)
         except ValueError:
             continue
-        if datetype == 'modestype':  # if it's already a Modes format date
+        if datetype == MODESTYPE:  # if it's already a Modes format date
             continue
         mdate = modesdate(newdate, partcount)
         refdate.text = mdate
