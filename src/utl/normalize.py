@@ -48,17 +48,16 @@ def modesdatefromisoformat(instr):
 def datefrommodes(indate: str) -> tuple[datetime.date, int]:
     """
         Parse a string in Modes format which can be:
-            d.m.yyyy
-            or m.yyyy
-            or yyyy
+            d.m.yyyy    (3 parts)
+            or m.yyyy   (2 parts)
+            or yyyy     (1 part)
         If day or month aren't given, the default values are returned. The day
         and month should not have leading zeros.
     :param indate:
-    :return: A tuple containing datetime.date and a status if a valid date
+    :return: A tuple containing datetime.date and a part count if a valid date
              exists otherwise a ValueError is raised.
              A TypeError is raised if indate is None.
              A ValueError if the date format is not parseable.
-             The status contains the number of parts found in the date.
     """
     try:
         d = datetime.datetime.strptime(indate, '%d.%m.%Y').date()
@@ -115,7 +114,7 @@ def britishdatefrommodes(indate: str) -> str:
         d, nparts = datefrommodes(indate)
     except ValueError:
         return 'unknown'
-    if nparts == 1:
+    if nparts == 1:  # just the year
         return indate
     elif nparts == 2:
         return f'{d.strftime("%b %Y")}'
@@ -123,6 +122,22 @@ def britishdatefrommodes(indate: str) -> str:
         return f'{d.day} {d.strftime("%b %Y")}'  # no leading zero on day
     else:
         return 'unknown'
+
+
+def modesdatefrombritishdate(indate: str) -> tuple[str, int, str]:
+    """
+
+    :param indate: A string in probably dd mmm yyyy but maybe modes format,
+                   dd.mm.yyyy
+    :return: A tuple of a string in Modes format, partcount, datetype where
+             datetype is the original format, either MODESTYPE or BRITISHTYPE.
+             It would be MODESTYPE if only the year was given.
+    """
+    newdate, partcount, datetype = datefrombritishdate(indate)
+    if datetype == MODESTYPE:
+        return indate, partcount, datetype
+    mdate = modesdate(newdate, partcount)
+    return mdate, partcount, datetype
 
 
 def vdate(indate: str):
