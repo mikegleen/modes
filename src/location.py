@@ -98,7 +98,6 @@ def validate_locations(idnum, elem, strict=True):
     :return: True if valid, False otherwise
     """
     numnormal = numcurrent = 0
-    numnodateend = 0
     objlocs = elem.findall('./ObjectLocation')
     locationdates = []
     for ol in objlocs:
