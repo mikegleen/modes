@@ -9,7 +9,7 @@ cmd: column
 xpath: ./Production/Date/DateBegin
 title: Date Produced
 ---
-cmd: column
+cmd: multiple
 xpath: ./Exhibition/Place
 title: Exhibition Place
 ---

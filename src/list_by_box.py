@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-    Create a CSV file with the objects'
+    Create a CSV file with the object location as the first field.
+    Parameters:
+        1. Input XML file
+        2. Optional output CSV file. If omitted, output is to STDOUT.
 """
-import codecs
+
 import csv
-import html
 import re
 import sys
 # noinspection PyPep8Naming
@@ -36,23 +38,7 @@ def one_object(elt):
     else:
         location = 'unknown'
     title = elt.find('./Identification/Title').text
-    if title:
-        pass
-        title = title.replace('\u0091', '‘')  # 145
-        title = title.replace('\u0092', '’')
-        title = title.replace('\u0093', '“')
-        title = title.replace('\u0094', '”')
-        title = title.replace('\u0096', '–')
-        # title = title.encode('ascii', 'xmlcharrefreplace')
-        # # if b'Roberson' in title:
-        # #     print(title)
-        # title = str(title)
-        # title = title.replace('&#147;', '')
-        # title = title.replace('&#148;', '')
-        # title = html.unescape(title)
-        # # if 'Roberson' in title:
-        # #     print(title)
-    row = [pad_loc(location), num, location, title]
+    row = [pad_loc(location), num, location, title[:60]]
     writer.writerow(row)
 
 
@@ -64,10 +50,12 @@ def main():
 
 
 if __name__ == '__main__':
-    if sys.version_info.major < 3 or sys.version_info.minor < 6:
-        raise ImportError('requires Python 3.6')
+    assert sys.version_info >= (3, 6)
     infile = open(sys.argv[1])
     # outfile = codecs.open(sys.argv[2], 'w', 'utf-8-sig')
-    outfile = open(sys.argv[2], 'w', newline='')
+    if len(sys.argv) < 3:
+        outfile = sys.stdout
+    else:
+        outfile = open(sys.argv[2], 'w', newline='')
     writer = csv.writer(outfile)
     main()
