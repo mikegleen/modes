@@ -319,7 +319,7 @@ def select(cfg: Config, elem, include_list=None, exclude=False):
                   and value != textvalue):
                 selected = False
                 break
-            elif (command in (Cmd.IFNOTEQ,Cmd.IFATTRIBNOTEQ)
+            elif (command in (Cmd.IFNOTEQ, Cmd.IFATTRIBNOTEQ)
                   and value == textvalue):
                 selected = False
                 break
@@ -454,7 +454,7 @@ def expand_idnum(idstr: str) -> list[str]:
                 for suffix in range(firstidnum, lastidnum + 1):
                     newidnum = f'{prefix}{suffix:0{lastidlen}}'
                     jlist.append(newidnum)
-            except ValueError as v:
+            except ValueError:
                 print(f'Bad accession number, contains "-" but not well'
                       f' formed: {m[2]}')
         else:
