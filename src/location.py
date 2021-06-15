@@ -368,10 +368,10 @@ def main():
 
 
 def add_arguments(parser):
-    parser.add_argument('infile', help='''
+    parser.add_argument('-i', '--infile', required=True, help='''
         The XML file saved from Modes.''')
     if is_update or is_select:
-        parser.add_argument('outfile', help='''
+        parser.add_argument('-o ', '--outfile', required=True, help='''
             The output XML file.''')
     parser.add_argument('-a', '--all', action='store_true', help='''
         Write all objects and, if -w is selected, issue a warning if an object

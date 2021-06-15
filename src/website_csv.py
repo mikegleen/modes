@@ -1,6 +1,9 @@
 """
     Add a column to a CSV file with the decade a work was created based on
     the 'Date Produced' column.
+
+    Merge the 'Exhibition Name' and 'Exhibition Place' columns producing a
+    single column of Name (Place).
 """
 import argparse
 import codecs
@@ -27,7 +30,8 @@ def decade(datestr):
 def main():
     global nrows
     reader = csv.DictReader(incsvfile)
-    r: list = list(reader.fieldnames)
+    r = list(reader.fieldnames[:4])  # Serial, Title, Medium, Date Produced
+    r.append('Exhibition')
     r.append('HumanDate')
     r.append('IsoDate')
     r.append('Decade')
@@ -35,15 +39,29 @@ def main():
     writer.writeheader()
     nrows = 0
     for row in reader:
-        row['HumanDate'] = britishdatefrommodes(row['Date Produced'])
+        newrow = dict()
+        newrow['Serial'] = row['Serial']
+        newrow['Title'] = row['Title']
+        newrow['Medium'] = row['Medium']
+        newrow['Date Produced'] = row['Date Produced']
+        newrow['HumanDate'] = britishdatefrommodes(row['Date Produced'])
         try:
             dfm, _ = datefrommodes(row['Date Produced'])
-            row['IsoDate'] = dfm.isoformat()
+            newrow['IsoDate'] = dfm.isoformat()
         except ValueError:
-            row['IsoDate'] = 'unknown'
-        row['Decade'] = decade(row['Date Produced'])
+            newrow['IsoDate'] = 'unknown'
+        newrow['Decade'] = decade(row['Date Produced'])
+        places = row['Exhibition Place'].split('|')
+        names = row['Exhibition Name'].split('|')
+        if len(places) != len(names):
+            print(f'Exhibition name/place mismatch count: {row["Serial"]}')
+            continue
         # print(row)
-        writer.writerow(row)
+        exhibition = []
+        for np in zip(names, places):
+            exhibition.append(f'{np[0]}({np[1]})')
+        newrow['Exhibition'] = '|'.join(exhibition)
+        writer.writerow(newrow)
         nrows += 1
 
 
