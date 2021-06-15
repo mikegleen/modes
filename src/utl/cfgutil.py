@@ -337,6 +337,8 @@ def dump_document(document):
 def validate_yaml_cfg(cfglist):
     valid = True
     for document in cfglist:
+        # Do not change this to valid_doc = Stmt.val.... to allow for more
+        # tests before this one.
         valid_doc = True
         if not Stmt.validate_yaml_stmts(document):
             valid_doc = False
