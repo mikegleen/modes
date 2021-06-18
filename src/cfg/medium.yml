@@ -1,0 +1,11 @@
+---
+cmd: multiple
+xpath: ./Description/Material[Part="medium"]/Keyword
+title: Medium
+---
+cmd: if
+xpath: ./Description/Material[Part="medium"]/Keyword
+title: if_Medium
+---
+cmd: global
+# skip_number:
