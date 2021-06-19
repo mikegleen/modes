@@ -30,7 +30,7 @@ def decade(datestr):
 def main():
     global nrows
     reader = csv.DictReader(incsvfile)
-    r = list(reader.fieldnames[:4])  # Serial, Title, Medium, Date Produced
+    r = list(reader.fieldnames[:3])  # Serial, Title, Medium, Date Produced
     r.append('Exhibition')
     r.append('HumanDate')
     r.append('IsoDate')
@@ -43,7 +43,7 @@ def main():
         newrow['Serial'] = row['Serial']
         newrow['Title'] = row['Title']
         newrow['Medium'] = row['Medium']
-        newrow['Date Produced'] = row['Date Produced']
+        # newrow['Date Produced'] = row['Date Produced']
         newrow['HumanDate'] = britishdatefrommodes(row['Date Produced'])
         try:
             dfm, _ = datefrommodes(row['Date Produced'])
@@ -65,10 +65,9 @@ def main():
         nrows += 1
 
 
-def getargs():
+def getparser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='''
-    Read a CSV file, recode one column and write the CSV file.
-        ''')
+    Read a CSV file, recode one column and write the CSV file.''')
     parser.add_argument('incsvfile', help='''
         The CSV file containing data to be inserted into the XML template.''')
     parser.add_argument('outfile', help='''
@@ -76,16 +75,21 @@ def getargs():
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
-        Set the verbosity. The default is 1 which prints summary information.
-        ''')
-    args = parser.parse_args()
+        Set the verbosity. The default is 1 which prints summary
+        information.''')
+    return parser
+
+
+def getargs(argv):
+    parser = getparser()
+    args = parser.parse_args(args=argv[1:])
     return args
 
 
 if __name__ == '__main__':
     global nrows
     assert sys.version_info >= (3, 8)
-    _args = getargs()
+    _args = getargs(sys.argv)
     incsvfile = codecs.open(_args.incsvfile, 'r', encoding='utf-8-sig')
     outfile = open(_args.outfile, 'w')
     trace(1, 'Input file: {}', _args.incsvfile)
