@@ -10,6 +10,7 @@ Modes Python Library
    :maxdepth: 3
 
    csv2xml
+   docx2csv
    exhibition
    location
    update_from_csv
@@ -123,39 +124,45 @@ These commands do not generate output columns.
 
 Utility Programs
 ----------------
+All programs are executed by calling:
 
-csv2xml.py
-~~~~~~~~~~
+::
 
+   python src/<name>.py
+
+The appropriate environment must be active. On my system this is done
+by calling ``conda activate py8`` prior to calling the program.
+
+:doc:`csv2xml`
+~~~~~~~~~~~~~~
 Create XML elements from data in a CSV file and a template XML file.
 
-xml2csv.py
-~~~~~~~~~~
+:doc:`docx2csv`
+~~~~~~~~~~~~~~~
+Read a DOCX file, extract any tables, and convert them to CSV.
 
-Extract
-fields from an XML file, creating a CSV file with the fields as
-specified in the configuration. See :doc:`xml2csv`.
+:doc:`exhibition`
+~~~~~~~~~~~~~~~~~
+Import exhibition information into a Modes XML file.
 
-location.py
-~~~~~~~~~~~
+:doc:`location`
+~~~~~~~~~~~~~~~
 Do updating, listing and
 validating of object locations. If updating a current location, a
-previous location element is created. See :doc:`location`.
+previous location element is created.
 
-websitecsv.py
-~~~~~~~~~~~~~
-
-Utility for recoding fields for loading to the website collection
-at heathrobinsonmuseum.org. See :doc:`websitecsv`.
-
-update_from_csv.py
-~~~~~~~~~~~~~~~~~~
-
+:doc:`update_from_csv`
+~~~~~~~~~~~~~~~~~~~~~~
 Update an XML file driven by a YAML configuration file with
-input data from a CSV file. See :doc:`update_from_csv`.
+input data from a CSV file.
 
-exhibition.py
-~~~~~~~~~~~~~
+:doc:`websitecsv`
+~~~~~~~~~~~~~~~~~
+Utility for recoding fields for loading to the website collection
+at heathrobinsonmuseum.org.
 
-Import exhibition information into a Modes XML file.
-See :doc:`exhibition`.
+:doc:`xml2csv`
+~~~~~~~~~~~~~~
+Extract
+fields from an XML file, creating a CSV file with the fields as
+specified in the configuration.
