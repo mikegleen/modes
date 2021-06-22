@@ -61,7 +61,10 @@ def one_document(document, parent, config: Config):
         delimiter = config.multiple_delimiter
         if Stmt.MULTIPLE_DELIMITER in document:
             delimiter = document[Stmt.MULTIPLE_DELIMITER]
-        text = delimiter.join([e.text for e in elements])
+        # print(f'{elements=}')
+        # for e in elements:
+        #     print(f'{e.text=}')
+        text = delimiter.join([e.text for e in elements if e.text is not None])
     elif element.text is None:
         text = ''
     else:

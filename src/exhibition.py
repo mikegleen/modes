@@ -32,6 +32,7 @@ import xml.etree.ElementTree as ET
 from cfg.exhibition_list import EXSTR
 from utl.cfgutil import Stmt, expand_idnum
 from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
+from utl.normalize import sphinxify
 
 Exhibition = namedtuple('Exhibition',
                         'ExNum DateBegin DateEnd ExhibitionName Place')
@@ -259,7 +260,7 @@ def main():
              f'of which {numupdated} updated.')
 
 
-def getargs():
+def getparser():
     parser = argparse.ArgumentParser(description='''
         Import exhibition information into a Modes XML file.
         Read a CSV file containing one, two, or three columns containing 
@@ -281,17 +282,18 @@ def getargs():
         The zero-based column containing the catalog number of the
         object in the corresponding exhibition. The default is to not create
         a catalog number sub-element.''')
-    megroup.add_argument('--col_ex', type=int, help='''
+    megroup.add_argument('--col_ex', type=int, help=sphinxify('''
         The zero-based column containing the exhibition number.
-        Do not specify this if --exhibition is specified. ''')
-    megroup.add_argument('-e', '--exhibition', type=int, help='''
+        Do not specify this if --exhibition is specified. It is mandatory
+        otherwise.''', called_from_sphinx))
+    megroup.add_argument('-e', '--exhibition', type=int, help=sphinxify('''
         The exhibition number, corresponding to the data in exhibition_list.py
         to apply to all objects in the CSV file. Do not specify this if
-        --col_ex is specified.''')
-    parser.add_argument('-m', '--mapfile', required=True, help='''
+        --col_ex is specified.''', called_from_sphinx))
+    parser.add_argument('-m', '--mapfile', required=True, help=sphinxify('''
         The CSV file mapping the object number to the catalog number and
         exhibition number. (but see --exhibition). There is no heading row
-        (but see --skiprows).''')
+        (but see --skiprows).''', called_from_sphinx))
     parser.add_argument('-s', '--skiprows', type=int, default=0, help='''
         Number of lines to skip at the start of the CSV file''')
     parser.add_argument('--short', action='store_true', help='''
@@ -299,13 +301,22 @@ def getargs():
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
-    args = parser.parse_args()
+    return parser
+
+
+def getargs(argv):
+    parser = getparser()
+    args = parser.parse_args(args=argv[1:])
     return args
+
+
+called_from_sphinx = True
 
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
-    _args = getargs()
+    called_from_sphinx = False
+    _args = getargs(sys.argv)
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Input file: {}', _args.infile)

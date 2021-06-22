@@ -32,6 +32,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Config, Stmt, Cmd
+from utl.normalize import sphinxify
 
 
 def trace(level, template, *args):
@@ -144,11 +145,11 @@ def main():
         trace(1, 'In CSV but not XML: "{}"', idnum)
 
 
-def getargs():
+def getparser():
     parser = argparse.ArgumentParser(description='''
         Read a CSV file containing two or more column_paths. The first column
         is the index and the following columns are the field(s) defined by the
-        XPATH statement in the DSL file as defined in xml2csv.py. Update the
+        XPATH statement in the YAML configuration file. Update the
         XML file with data from the CSV file.
         ''')
     parser.add_argument('infile', help='''
@@ -181,14 +182,18 @@ def getargs():
         The CSV file mapping the object number to the new element value(s).''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
-    parser.add_argument('--skip_rows', type=int, default=0, help='''
+    parser.add_argument('--skip_rows', type=int, default=0, help=sphinxify('''
         Skip rows at the beginning of the CSV file. Do not use this and
-        --heading.
-        ''')
+        --heading. ''', called_from_sphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
-    args = parser.parse_args()
+    return parser
+
+
+def getargs(argv):
+    parser = getparser()
+    args = parser.parse_args(args=argv[1:])
     return args
 
 
@@ -204,9 +209,13 @@ def check_cfg(c):
     return errs
 
 
+called_from_sphinx = True
+
+
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
-    _args = getargs()
+    called_from_sphinx = False
+    _args = getargs(sys.argv)
     nupdated = nunchanged = 0
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')

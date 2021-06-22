@@ -210,5 +210,13 @@ def denormalize_id(objid, mdacode=DEFAULT_MDA_CODE):
         return objid
 
 
+def sphinxify(txt: str, calledfromsphinx: bool) -> str:
+    """ Sphinx displays '--' as '—' so partially work around that. """
+    if not calledfromsphinx:
+        return txt
+    txt = re.sub(r'(--\w+)', r'``\1``', txt)
+    return txt
+
+
 if __name__ == '__main__':
     print('This module is not callable. Try src/normalize_xml.py')

@@ -67,9 +67,14 @@ def main():
 
 def getparser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='''
-    Read a CSV file, recode one column and write the CSV file.''')
+    Read a CSV file, recode columns and write the CSV file. The Exhibition
+    Name and Exhibition Place columns are merged into a "name(place)" format.
+    The Date Produced column (in Modes format) is deleted and replaced by a
+    human-friendly column and an ISO date column.''')
     parser.add_argument('incsvfile', help='''
-        The CSV file containing data to be inserted into the XML template.''')
+        The CSV file containing data to be inserted into the XML template. The
+        input is expected to have been produced by xml2csv.py using the
+        website.yml config file.''')
     parser.add_argument('outfile', help='''
         The output CSV file.''')
     parser.add_argument('-s', '--short', action='store_true', help='''

@@ -292,7 +292,7 @@ def update_current_location(elem, idnum):
 
 
 def update_previous_location(elem, idnum):
-    print('Update of previous location not implemented.')
+    print(f'Update of previous location not implemented. {elem=} {idnum=}')
     sys.exit(1)
 
 
@@ -368,21 +368,27 @@ def main():
 
 
 def add_arguments(parser):
+    global is_update, is_check, is_select, is_validate  # Needed for Sphinx
+    if 'is_update' not in globals():
+        is_update = True
+        is_check = True
+        is_select = True
+        is_validate = True
     parser.add_argument('-i', '--infile', required=True, help='''
         The XML file saved from Modes.''')
     if is_update or is_select:
-        parser.add_argument('-o ', '--outfile', required=True, help='''
+        parser.add_argument('-o', '--outfile', required=True, help='''
             The output XML file.''')
     parser.add_argument('-a', '--all', action='store_true', help='''
         Write all objects and, if -w is selected, issue a warning if an object
         is not in the detail CSV file. The default is to only write updated
         objects. In either case warn if an object in the CSV file is not in the
-        input XML file. ''')
+        input XML file.''')
     parser.add_argument('--col_acc', type=int, default=0, help='''
         The zero-based column containing the accession number of the
         object to be updated. The default is column zero.''')
     parser.add_argument('--col_loc', type=int, default=1, help='''
-        The zero-based column containing the location of the
+        The zero-based column containing the new location of the
         object to be updated. The default is column 1.''')
     parser.add_argument('-c', '--current', action='store_true', help='''
         Update the current location and change the old current location to a
@@ -418,12 +424,13 @@ def add_arguments(parser):
         accession number.  
         ''')
     if is_check or is_select or is_update:
-        parser.add_argument('-m', '--mapfile', help='''
-            The CSV file mapping the object number to its new location. The
-            object ID is in the first column (column 0). The new location is by
+        parser.add_argument('-m', '--mapfile', help=nd.sphinxify('''
+            The CSV file mapping the object number to its new location. By
+            default, the accession number is in the first column (column 0) but 
+            this can be changed by the --col_acc option. The new location is by
             default in the second column (column 1) but can be changed by the
             --col_loc option. This is ignored if --object is specified.
-            ''')
+            ''', called_from_sphinx))
     parser.add_argument('-n', '--normal', action='store_true', help='''
         Update the normal location. See the description for "p" and "c".''')
     if is_check:
@@ -434,25 +441,28 @@ def add_arguments(parser):
             the CSV file does match the value in the XML file which is not
             expected as the purpose is to update that value.
             ''')
-    parser.add_argument('-j', '--object', help='''
+    helptxt = nd.sphinxify('''
         Specify a single object to be processed. If specified, do not specify
         the CSV file containing object numbers and locations (--mapfile). You
         must also specify --location.
-        ''')
+        ''', called_from_sphinx)
+    parser.add_argument('-j', '--object', help=helptxt)
     if is_update:
         parser.add_argument('--patch', action='store_true', help='''
         Update the specified location in place without creating history. This is always
         the behavior for normal locations but not for current or previous.
         ''')
-    parser.add_argument('-p', '--previous', action='store_true', help='''
+    parser.add_argument('-p', '--previous', action='store_true',
+                        help=nd.sphinxify('''
         Add a previous location. This location's start and end dates must 
         not overlap with an existing current or previous location's date(s). 
         If "p" is selected, do not select "n" or "c". If "p" is specified, you
         must specify --datebegin and --dateend.
-        ''')
+        ''', called_from_sphinx))
     if is_update:
         parser.add_argument('--reset_current', action='store_true', help='''
-        Only output the most recent current location element for each object.
+        Only output the most recent current location element for each object,
+        deleting all previous locations.
         ''')
         parser.add_argument('-r', '--reason', default='', help='''
             Insert this text as the reason for the move to the new current location.
@@ -467,7 +477,7 @@ def add_arguments(parser):
         ''')
 
 
-def getargs():
+def getparser():
     parser = argparse.ArgumentParser(description='''
         Set the normal location and/or current location to the new location
         from a CSV file with rows of the format: <object number>,<location>.
@@ -477,10 +487,10 @@ def getargs():
         create a previous location from the existing current location.
         ''')
     subparsers = parser.add_subparsers(dest='subp')
-    check_parser = subparsers.add_parser('check', description='''
+    check_parser = subparsers.add_parser('check', description=nd.sphinxify('''
     With no options, check that the location in the object specified by --col_loc
     is the same as the location specified by -c or -n option in the XML file.
-    ''')
+    ''', called_from_sphinx))
     select_parser = subparsers.add_parser('select', description='''
     Select the objects named in the CSV file specified by -m and write them to the
     output without modification. 
@@ -501,10 +511,15 @@ def getargs():
     add_arguments(select_parser)
     add_arguments(update_parser)
     add_arguments(validate_parser)
-    args = parser.parse_args()
+    return parser
+
+
+def getargs(argv):
+    parser = getparser()
+    args = parser.parse_args(args=argv[1:])
     if is_check or is_update:
-        # Set a fake value for the new location column as it will be taken from the --location
-        # value instead of a column in the CSV file.
+        # Set a fake value for the new location column as it will be taken from
+        #  the --location value instead of a column in the CSV file.
         if args.location:
             args.col_loc = None
         nloctypes = int(args.current) + int(args.previous)
@@ -514,13 +529,17 @@ def getargs():
     return args
 
 
+called_from_sphinx = True
+
+
 if __name__ == '__main__':
+    called_from_sphinx = False
     assert sys.version_info >= (3, 6)
     is_check = sys.argv[1] == 'check'
     is_select = sys.argv[1] == 'select'
     is_update = sys.argv[1] == 'update'
     is_validate = sys.argv[1] == 'validate'
-    _args = getargs()
+    _args = getargs(sys.argv)
     verbose = _args.verbose
     infile = open(_args.infile, encoding=_args.encoding)
     if _args.object:

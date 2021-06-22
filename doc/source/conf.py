@@ -13,16 +13,16 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('../../src'))
-# print(f'PATH = {sys.path}')
+
 
 # -- Project information -----------------------------------------------------
 
 project = 'Modes'
-copyright = '2020, Mike Gleen'
+copyright = '2021, Mike Gleen'
 author = 'Mike Gleen'
 
 # The full version, including alpha/beta/rc tags
-release = '0.1'
+release = '1.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -34,7 +34,6 @@ extensions = [
         'sphinxarg.ext',  # for argparse
         'sphinx.ext.autodoc',
 ]
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

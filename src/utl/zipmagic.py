@@ -17,3 +17,6 @@ def openfile(filename, mode='r'):
         file = open(filename, mode)
     return file
 
+
+if __name__ == '__main__':
+    print('This module is not callable.')

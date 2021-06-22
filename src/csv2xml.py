@@ -46,12 +46,17 @@ def main():
         outfile.write(b'</Interchange>')
 
 
-def getargs():
+def getparser():
     parser = argparse.ArgumentParser(description='''
-        Read a CSV file containing two or more column_paths. The first column
+        Read a CSV file containing two or more colums. The first column
         is the index and the following columns are the field(s) defined by the
-        XPATH statement in the DSL file as defined in cfgutil.py. Create an
-        XML file with data from the CSV file.
+        XPATH statement in the config file. Create an
+        XML file with data from the CSV file based on a template of the
+        XML structure.
+        
+        The first column's heading value must be 'Serial'. Subsequent columns
+        must match the corresponding title in the configuration file. The
+        config file may contain only "column" commands.
         ''')
     parser.add_argument('incsvfile', help='''
         The CSV file containing data to be inserted into the XML template.''')
@@ -62,11 +67,6 @@ def getargs():
     parser.add_argument('-c', '--cfgfile', required=True,
                         type=argparse.FileType('r'), help='''
         The YAML file describing the column path(s) to update''')
-    parser.add_argument('--heading', action='store_true', help='''
-        The first row of the CSV file contains a heading which must match the
-        value of the title statement in the corresponding column document
-        (case insensitive).
-        ''')
     parser.add_argument('-p', '--prolog', action='store_true', help='''
         Insert an XML prolog at the front of the file and an <Interchange>
         element as the root.''')
@@ -75,7 +75,12 @@ def getargs():
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
-    args = parser.parse_args()
+    return parser
+
+
+def getargs(argv):
+    parser = getparser()
+    args = parser.parse_args(args=argv[1:])
     return args
 
 
@@ -99,7 +104,7 @@ def check_cfg(c):
 if __name__ == '__main__':
     global nrows
     assert sys.version_info >= (3, 6)
-    _args = getargs()
+    _args = getargs(sys.argv)
     templatefile = open(_args.templatefile)
     incsvfile = codecs.open(_args.incsvfile, 'r', encoding='utf-8-sig')
     outfile = open(_args.outfile, 'wb')
