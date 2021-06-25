@@ -6,6 +6,8 @@ from docx import Document
 import csv
 import sys
 
+from utl.normalize import sphinxify
+
 
 def trace(level, template, *args):
     if _args.verbose >= level:
@@ -61,14 +63,15 @@ def getparser():
         Use this option when the CSV file is to be imported into Excel so that
         the proper character set (UTF-8) is used.
         ''')
-    parser.add_argument('-e', '--exclude', help='''
-        Exclude this row if this text appears in the specified column. The
-        default is column 0.
-        ''')
-    parser.add_argument('--exclude_column', type=int, default=0, help='''
-        Specify the column to check for row exclusion. The
-        default is column 0.
-        ''')
+    parser.add_argument('-e', '--exclude', help=sphinxify('''
+        Exclude this row if this text appears in the column specified by the
+        --exclude_column argument.
+        ''', called_from_sphinx))
+    parser.add_argument('--exclude_column', type=int, default=0,
+                        help=sphinxify('''
+        Specify the column to check for row exclusion. The default is
+        column 0. This argument is ignored if --exclude is not specified.
+        ''', called_from_sphinx))
     parser.add_argument('-t', '--table', type=int, default=0, help='''
         Select a single table to process. The default is to process all tables.
         ''')
@@ -94,8 +97,12 @@ def getargs(argv):
     return args
 
 
+called_from_sphinx = True
+
+
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
+    called_from_sphinx = False
     _args = getargs(sys.argv)
     infile = open(_args.infile, 'rb')
     if _args.bom:
