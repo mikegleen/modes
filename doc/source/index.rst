@@ -9,6 +9,7 @@ Modes Python Library
 .. toctree::
    :maxdepth: 3
 
+   compare_elts
    csv2xml
    docx2csv
    exhibition
@@ -133,6 +134,10 @@ All programs are executed by calling:
 The appropriate environment must be active. On my system this is done
 by calling ``conda activate py8`` prior to calling the program.
 
+:doc:`compare_elts`
+~~~~~~~~~~~~~~~~~~~
+Compare two elements in the same Object.
+
 :doc:`csv2xml`
 ~~~~~~~~~~~~~~
 Create XML elements from data in a CSV file and a template XML file.
@@ -144,6 +149,22 @@ Read a DOCX file, extract any tables, and convert them to CSV.
 :doc:`exhibition`
 ~~~~~~~~~~~~~~~~~
 Import exhibition information into a Modes XML file.
+
+list_by_box
+~~~~~~~~~~~
+Create a CSV file with the object location as the first field.
+Parameters:
+
+1. Input XML file
+2. Optional output CSV file. If omitted, output is to STDOUT.
+
+Output must be sorted. The expected use is:
+
+::
+
+   python src/list_by_box.py infile.xml | sort >output.csv
+
+There is no separate documentation page for this program.
 
 :doc:`location`
 ~~~~~~~~~~~~~~~
