@@ -11,6 +11,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Config, Stmt, Cmd
+from utl.normalize import sphinxify
 
 
 def trace(level, template, *args):
@@ -47,17 +48,18 @@ def main():
 
 
 def getparser():
-    parser = argparse.ArgumentParser(description='''
+    parser = argparse.ArgumentParser(description=sphinxify('''
         Read a CSV file containing two or more colums. The first column
         is the index and the following columns are the field(s) defined by the
         XPATH statement in the config file. Create an
         XML file with data from the CSV file based on a template of the
         XML structure.
         
-        The first column's heading value must be 'Serial'. Subsequent columns
+        The first column's heading value must be 'Serial' or an alternative
+        set by --serial parameter. Subsequent columns
         must match the corresponding title in the configuration file. The
         config file may contain only "column" commands.
-        ''')
+        ''', calledfromsphinx))
     parser.add_argument('incsvfile', help='''
         The CSV file containing data to be inserted into the XML template.''')
     parser.add_argument('templatefile', help='''
@@ -70,6 +72,8 @@ def getparser():
     parser.add_argument('-p', '--prolog', action='store_true', help='''
         Insert an XML prolog at the front of the file and an <Interchange>
         element as the root.''')
+    parser.add_argument('--serial', default='Serial', help='''
+        The first column's heading must be this value.''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -101,9 +105,13 @@ def check_cfg(c):
     return errs
 
 
+calledfromsphinx = True
+
+
 if __name__ == '__main__':
     global nrows
     assert sys.version_info >= (3, 6)
+    calledfromsphinx = True
     _args = getargs(sys.argv)
     templatefile = open(_args.templatefile)
     incsvfile = codecs.open(_args.incsvfile, 'r', encoding='utf-8-sig')
