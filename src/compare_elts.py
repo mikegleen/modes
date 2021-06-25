@@ -20,7 +20,7 @@ def trace(level, template, *args):
 def one_object(parent, doc1, doc2, idnum) -> tuple:
     """
     :param parent: the Object from the old file
-    :param doc1: 
+    :param doc1:
     :param doc2:
     :param idnum:
     :return: 5-tuple with 1 if true, otherwise zero:
@@ -68,6 +68,7 @@ def main():
     objectlevel = 0
     nhits = nlikes = nrevlikes = nnomatch = 0
     nnot1 = nnot2 = 0
+    ntotal = 0
     results = ['Match', f'{doc_a[Stmt.TITLE]} in {doc_b[Stmt.TITLE]}',
                f'{doc_b[Stmt.TITLE]} in {doc_a[Stmt.TITLE]}']
     for event, oldobject in ET.iterparse(_args.infile,
@@ -86,6 +87,7 @@ def main():
         idnum = idelem.text if idelem is not None else ''
         trace(3, 'idnum: {}', idnum)
         response = one_object(oldobject, doc_a, doc_b, idnum)
+        ntotal += 1
         hits, likes, revlikes, not1, not2 = response
         nhits += hits
         nlikes += likes
@@ -105,12 +107,17 @@ def main():
     print(f'nomatch: {nnomatch}')
     print(f'{doc_a[Stmt.TITLE]} empty: {nnot1}')
     print(f'{doc_b[Stmt.TITLE]} empty: {nnot2}')
+    print(f'{ntotal=}')
 
 
-def getargs():
+def getparser():
     parser = argparse.ArgumentParser(description='''
-    For the first two documents in the config file, compare the elements and
-    report how many are identical and how many are similar.
+    This script expects two entries in the config. It will display the count
+    of times the two entries were identical and when they were "alike",
+    meaning that the contents of one was in the other.
+    
+    This is a somewhat specialized use case where the Title and BriefDescription
+    fields duplicate each other.
         ''')
     parser.add_argument('infile', type=argparse.FileType('r'), help='''
         The input XML file''')
@@ -118,20 +125,29 @@ def getargs():
         The config file describing the Object elements to compare
         ''')
     parser.add_argument('-i', '--caseinsensitive', action='store_true', help='''
-        Convert all values to lower case.''')
+        Convert all values to lower case before comparison.''')
     parser.add_argument('-o', '--output', type=argparse.FileType('w'),
                         dest='output', help='''
         If specified, the CSV file with per-object values.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
-    args = parser.parse_args()
+    return parser
+
+
+def getargs(argv):
+    parser = getparser()
+    args = parser.parse_args(args=argv[1:])
     return args
+
+
+called_from_sphinx = True
 
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
-    _args = getargs()
+    called_from_sphinx = False
+    _args = getargs(sys.argv)
     cfgfile = open(_args.cfgfile)
     config = Config(cfgfile, title=True, dump=_args.verbose >= 2)
     main()
