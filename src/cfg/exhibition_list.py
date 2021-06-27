@@ -20,7 +20,7 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 17,2018-01-20,2018-04-15,Heath Robinson: Dreams and Machines,Mottisfont Abbey
 18,2003-11-03,2004-01-18,Dulwich,Dulwich Picture Gallery
 19,2019-04-01,2019-06-30,Heath Robinson Runs Again,NMOC
-20,2021-07-03,2021-08-28,Heath Robinson Exhibition,Haslemere,Haslemere Museum'''
+20,2021-07-03,2021-08-28,"Heath Robinson Exhibition, Haslemere",Haslemere Museum'''
 
 if __name__ == '__main__':
-    print('This module is not callable. Try src/normalize_xml.py')
+    print('This module is not callable.')
