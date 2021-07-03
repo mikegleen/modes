@@ -19,7 +19,6 @@ def trace(level, template, *args):
 
 def one_object(oldobj):
     """
-
     :param oldobj: the Object from the old file
     :return: None. The updated object is written to the output XML file.
     """
