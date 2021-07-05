@@ -19,6 +19,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 import utl.normalize as nd
+from utl.cfgutil import expand_idnum
 
 NORMAL_LOCATION = 'normal location'
 CURRENT_LOCATION = 'current location'
@@ -103,10 +104,19 @@ def validate_locations(idnum, elem, strict=True):
     for ol in objlocs:
         datebegin = ol.find('./Date/DateBegin')
         dateend = ol.find('./Date/DateEnd')
-        loc = ol.get(ELEMENTTYPE)
-        if loc == NORMAL_LOCATION:
+        loctype = ol.get(ELEMENTTYPE)
+        if loctype == NORMAL_LOCATION:
             numnormal += 1
-        elif loc == CURRENT_LOCATION:
+        elif loctype == CURRENT_LOCATION:
+            loc = ol.find('./Location')
+            if loc is None:
+                trace(1, 'E10 {}: Missing ObjectLocation/Location element',
+                      idnum)
+                return False
+            # Skip the validation if the current location is empty. This can
+            # happen after adding a new object.
+            if not loc.text:
+                return True
             numcurrent += 1
             if datebegin is None or datebegin.text is None:
                 trace(1, 'E01 {}: No DateBegin for current location', idnum)
@@ -124,7 +134,7 @@ def validate_locations(idnum, elem, strict=True):
                       idnum, dateend.text)
                 return False
             locationdates.append((datebegindate, None))  # None indicates this is current
-        elif loc == PREVIOUS_LOCATION:
+        elif loctype == PREVIOUS_LOCATION:
             try:
                 datebegindate, _ = nd.datefrommodes(datebegin.text)
             except (ValueError, TypeError):
@@ -146,7 +156,7 @@ def validate_locations(idnum, elem, strict=True):
             locationdates.append((datebegindate, dateenddate))
         else:
             trace(1, 'E07 {}: Unexpected ObjectLocation elementtype = "{}".',
-                  idnum, loc)
+                  idnum, loctype)
             return False
     if numnormal != 1:
         trace(1, 'E08 {}: Expected one normal location, got {}',
@@ -235,6 +245,16 @@ def update_current_location(elem, idnum):
     else:
         oldlocation = None
     newlocationtext = _args.location if _args.location else newlocs[idnum]
+
+    # If the current location is empty, just insert the new location without
+    # creating a previous location.
+    if not oldlocation:
+        trace(2, 'Inserting location into empty current location: {}: {}',
+              idnum, newlocationtext)
+        locationelt.text = newlocationtext
+        datebegin = ol.find('./Date/DateBegin')
+        datebegin.text = _args.date
+        return True
     if oldlocation == newlocationtext.upper():
         trace(2, 'Unchanged: {}: {}', idnum, oldlocation)
         if _args.force:
@@ -287,6 +307,14 @@ def update_current_location(elem, idnum):
     # insert the new current location before the old current location (which is
     # now a previous location.
     elem.insert(clix - 1, newobjloc)
+
+    if _args.reset_current:
+        subelts = elem.findall('./ObjectLocation')
+        for elt in subelts:
+            if elt.get(ELEMENTTYPE) == PREVIOUS_LOCATION:
+                trace(2, 'Removing previous location from {}.', idnum)
+                elem.remove(elt)
+
     trace(2, '{}: Updated current {} -> {}', idnum, oldlocation, newlocationtext)
     return True
 
@@ -367,30 +395,33 @@ def main():
             trace(1, '{}: In CSV but not XML', idnum)
 
 
-def add_arguments(parser):
+def add_arguments(parser, command):
     global is_update, is_check, is_select, is_validate  # Needed for Sphinx
     if 'is_update' not in globals():
-        is_update = True
-        is_check = True
-        is_select = True
-        is_validate = True
+        is_update = True if command == 'update' else False
+        is_check = True if command == 'check' else False
+        is_select = True if command == 'select' else False
+        is_validate = True if command == 'validate' else False
     parser.add_argument('-i', '--infile', required=True, help='''
         The XML file saved from Modes.''')
     if is_update or is_select:
         parser.add_argument('-o', '--outfile', required=True, help='''
             The output XML file.''')
-    parser.add_argument('-a', '--all', action='store_true', help='''
+    if is_check or is_update or is_select:
+        parser.add_argument('-a', '--all', action='store_true', help='''
         Write all objects and, if -w is selected, issue a warning if an object
         is not in the detail CSV file. The default is to only write updated
         objects. In either case warn if an object in the CSV file is not in the
         input XML file.''')
-    parser.add_argument('--col_acc', type=int, default=0, help='''
+    if is_update:
+        parser.add_argument('--col_acc', type=int, default=0, help='''
         The zero-based column containing the accession number of the
         object to be updated. The default is column zero.''')
-    parser.add_argument('--col_loc', type=int, default=1, help='''
+        parser.add_argument('--col_loc', type=int, default=1, help='''
         The zero-based column containing the new location of the
         object to be updated. The default is column 1.''')
-    parser.add_argument('-c', '--current', action='store_true', help='''
+    if is_update or is_check:
+        parser.add_argument('-c', '--current', action='store_true', help='''
         Update the current location and change the old current location to a
         previous location. See the descrption of "n" and "p". ''')
     if is_update:
@@ -398,19 +429,20 @@ def add_arguments(parser):
             Use this string as the date to store in the new ObjectLocation
             date. The default is today's date in Modes format (d.m.yyyy).
             ''')
-    parser.add_argument('--datebegin', help='''
+        parser.add_argument('--datebegin', help='''
         Use this string as the date to store in the new previous ObjectLocation
         date. The format must be in Modes format (d.m.yyyy).
         ''')
-    parser.add_argument('--dateend', default=nd.modesdate(date.today()),
-                        help='''
+        parser.add_argument('--dateend', default=nd.modesdate(date.today()),
+                            help='''
         Use this string as the date to store in the new previous ObjectLocation
         date. The format must be in Modes format (d.m.yyyy).
         ''')
     parser.add_argument('--encoding', default='utf-8', help='''
         Set the input encoding. Default is utf-8. Output is always utf-8.
         ''')
-    parser.add_argument('-f', '--force', action='store_true', help='''
+    if is_update:
+        parser.add_argument('-f', '--force', action='store_true', help='''
         Write the object to the output file even if it hasn't been updated. This only
         applies to objects whose ID appears in the CSV file. -a implies -f.
         ''')
@@ -418,7 +450,8 @@ def add_arguments(parser):
         The first row of the map file contains a heading which must match the
         parameter (case insensitive).
         ''')
-    parser.add_argument('-l', '--location', help='''
+    if is_update or is_check:
+        parser.add_argument('-l', '--location', help='''
         Set the location for all of the objects in the CSV file. In this 
         case the CSV file only needs a single column containing the 
         accession number.  
@@ -431,7 +464,8 @@ def add_arguments(parser):
             default in the second column (column 1) but can be changed by the
             --col_loc option. This is ignored if --object is specified.
             ''', called_from_sphinx))
-    parser.add_argument('-n', '--normal', action='store_true', help='''
+    if is_update or is_check:
+        parser.add_argument('-n', '--normal', action='store_true', help='''
         Update the normal location. See the description for "p" and "c".''')
     if is_check:
         parser.add_argument('--old', action='store_true', help='''
@@ -441,25 +475,23 @@ def add_arguments(parser):
             the CSV file does match the value in the XML file which is not
             expected as the purpose is to update that value.
             ''')
-    helptxt = nd.sphinxify('''
+    if is_update:
+        parser.add_argument('-j', '--object', help=nd.sphinxify('''
         Specify a single object to be processed. If specified, do not specify
         the CSV file containing object numbers and locations (--mapfile). You
         must also specify --location.
-        ''', called_from_sphinx)
-    parser.add_argument('-j', '--object', help=helptxt)
-    if is_update:
+        ''', called_from_sphinx))
         parser.add_argument('--patch', action='store_true', help='''
         Update the specified location in place without creating history. This is always
         the behavior for normal locations but not for current or previous.
         ''')
-    parser.add_argument('-p', '--previous', action='store_true',
-                        help=nd.sphinxify('''
+        parser.add_argument('-p', '--previous', action='store_true',
+                            help=nd.sphinxify('''
         Add a previous location. This location's start and end dates must 
         not overlap with an existing current or previous location's date(s). 
         If "p" is selected, do not select "n" or "c". If "p" is specified, you
         must specify --datebegin and --dateend.
         ''', called_from_sphinx))
-    if is_update:
         parser.add_argument('--reset_current', action='store_true', help='''
         Only output the most recent current location element for each object,
         deleting all previous locations.
@@ -507,10 +539,10 @@ def getparser():
     select_parser.set_defaults(func=handle_select)
     update_parser.set_defaults(func=handle_update)
     validate_parser.set_defaults(func=handle_validate)
-    add_arguments(check_parser)
-    add_arguments(select_parser)
-    add_arguments(update_parser)
-    add_arguments(validate_parser)
+    add_arguments(check_parser, 'check')
+    add_arguments(select_parser, 'select')
+    add_arguments(update_parser, 'update')
+    add_arguments(validate_parser, 'update')
     return parser
 
 
@@ -541,17 +573,19 @@ if __name__ == '__main__':
     is_validate = sys.argv[1] == 'validate'
     _args = getargs(sys.argv)
     verbose = _args.verbose
-    infile = open(_args.infile, encoding=_args.encoding)
     if _args.object:
         if not _args.location:
             raise(ValueError('You specified the object id. You must also '
                              'specify the location.'))
-        newlocs = {_args.object.upper(): _args.location}
+        objectlist = expand_idnum(_args.object)
+        newlocs = {obj: _args.location for obj in objectlist}
+        trace(2, 'Object(s) specified, newlocs= {}', newlocs)
     else:
         newlocs = loadcsv()
     total_in_csvfile = len(newlocs)
     total_updated = total_written = 0
     total_failed = total_objects = 0  # validate only
+    infile = open(_args.infile, encoding=_args.encoding)
     if is_update:
         outfile = open(_args.outfile, 'wb')
     else:
