@@ -64,7 +64,7 @@ def getparser():
         the proper character set (UTF-8) is used.
         ''')
     parser.add_argument('-e', '--exclude', help=sphinxify('''
-        Exclude this row if this text appears in the column specified by the
+        Exclude rows where this text appears in the column specified by the
         --exclude_column argument.
         ''', called_from_sphinx))
     parser.add_argument('--exclude_column', type=int, default=0,
