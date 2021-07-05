@@ -1,0 +1,7 @@
+cmd: column
+xpath: ./Identification/Title
+title: Title
+---
+cmd: column
+xpath: ./Identification/BriefDescription
+title: Brief Description
