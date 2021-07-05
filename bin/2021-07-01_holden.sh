@@ -1,0 +1,1 @@
+python src/csv2xml.py -i results/csv/acquisitions/holden.csv -o results/xml/2021-06-30_holden.xml -t etc/templates/normalized/2021-06-27_Original_Artwork.xml --acc_num LDHRM.2021.2 -c src/cfg/holden.yml -v 1

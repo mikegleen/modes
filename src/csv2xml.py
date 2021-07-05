@@ -36,7 +36,7 @@ def next_accnum(accnum: str):
         suffix += 1
 
 
-def main(config):
+def main():
     global nrows
     if not _args.noprolog:
         outfile.write(b'<?xml version="1.0"?><Interchange>\n')
@@ -52,27 +52,31 @@ def main(config):
             raise ValueError('Cannot find the Object element from root or'
                              'from ./template/Object')
     reader = csv.DictReader(incsvfile)
-    trace(1, 'Headings: {}', reader.fieldnames)
+    trace(1, 'CSV Column Headings: {}', reader.fieldnames)
     nrows = 0
-    accnum = next_accnum(_args.acc_num)  # not used if --acc_num is not set
+    accnumgen = next_accnum(_args.acc_num)  # not used if --acc_num is not set
     for row in reader:
+        emit = True
         template = copy.deepcopy(object_template)
-        nrows += 1
         elt = template.find('./ObjectIdentity/Number')
         if _args.acc_num:
-            # s = next(accnum)
-            # print(f'{s=}')
-            elt.text = next(accnum)
-            trace(2, 'Serial: {}', elt.text)
+            accnum = next(accnumgen)
+            trace(2, 'Serial generated: {}', accnum)
         else:
-            elt.text = row[_args.serial]
-        for doc in cfg.col_docs:
+            accnum = row[_args.serial]
+        elt.text = accnum
+        for doc in config.col_docs:
             # print(doc[Stmt.TITLE], doc[Stmt.XPATH])
             elt = template.find(doc[Stmt.XPATH])
             if doc[Stmt.CMD] == Cmd.CONSTANT:
                 elt.text = doc[Stmt.VALUE]
                 continue
-            elt.text = row[doc[Stmt.TITLE]]
+            text = row[doc[Stmt.TITLE]]
+            if Stmt.REQUIRED in doc and not text:
+                print(f'*** Required column “{doc[Stmt.TITLE]}” is missing from'
+                      f' {accnum}. Object excluded.')
+                emit = False
+            elt.text = text
             if Stmt.DATE in doc:
                 # Only britishdate supported now
                 try:
@@ -80,7 +84,9 @@ def main(config):
                     # print(type(elt.text))
                 except ValueError:
                     elt.text = 'unknown'
-        outfile.write(ET.tostring(template))
+        if emit:
+            nrows += 1
+            outfile.write(ET.tostring(template))
     if not _args.noprolog:
         outfile.write(b'</Interchange>')
 
@@ -148,6 +154,9 @@ def check_cfg(c):
         if doc[Stmt.CMD] not in (Cmd.COLUMN, Cmd.CONSTANT):
             print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting')
             errs += 1
+    for doc in c.ctrl_docs:
+        print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting.')
+        errs += 1
     return errs
 
 
@@ -164,10 +173,11 @@ if __name__ == '__main__':
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Input file: {}', _args.incsvfile)
     trace(1, 'Creating file: {}', _args.outfile)
-    cfg = Config(_args.cfgfile, title=True, dump=_args.verbose > 1)
-    if errors := check_cfg(cfg):
+    config: Config = Config(_args.cfgfile, title=True, dump=_args.verbose > 1,
+                            allow_required=True)
+    if errors := check_cfg(config):
         trace(1, '{} errors found. Aborting.', errors)
         sys.exit(1)
-    main(cfg)
-    trace(1, 'End csv2xml. {} object{} created.', nrows,
+    main()
+    trace(1, 'End csv2xml. {} object{} written.', nrows,
           '' if nrows == 1 else 's')

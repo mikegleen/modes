@@ -1,69 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-The configuration consists of a YAML file broken into multiple documents,
-separated by lines containing "---" in the left three columns. Each document
-contains some of the following statements. Statements are case sensitive; all
-must be lower case. Commands can be column-generating or control statements.
-
-Statements:
------------
-cmd            Required. See below for a description of the individual commands.
-xpath          Required. This describes the XSLT path to a relevant XML element.
-attribute      Required by the attrib and ifattrib commands.
-title          Optional. If omitted, a best-guess title will be created from the xpath
-               statement. If in a control document, this will be shown in diagnostics.
-value          Required for keyword or if... commands.
-normalize      Adjust this ID number so that it sorts in numeric order.
-casesensitive  By default, comparisons are case insensitive.
-width          truncate this column to this number of characters
-required       Issue an error message if this field is missing or empty.
-delimiter**    The character to use for the CSV file field separator. The
-               default is ",".
-multiple_delimiter  The character to use within a column to separate the
-               values when used with the multiple command. The statement may
-               appear under the global command or a specific multiple command,
-               which takes precedence. The default is "|".
-record_tag**   This is the tag (of which there are usually many) that will be
-               the root for extracting columns. The default is 'Object'.
-record_id_xpath**    This is where the ID is found based on the root tag. The
-               default is './ObjectIdentity/Number'. In addition to being
-               output as column 1 by default, the ID is used in error messages.
-skip_number**  Do not write the ID number as the first column. This can be useful when
-               sorting on another column.
-
-Commands:     These commands are the single parameter on the cmd statement.
----------
-attrib        Like column except displays the value of the attribute named in
-              the attribute statement.
-column        This is the basic command to display the text of an element. Only
-              the first element is returned if there are more than one.
-multiple      Like column except it produces a delimiter-separated list of
-              values.
-count         Displays the number of occurrences of an element under its parent.
-keyword       Find the element specified by the xpath statement whose text
-              equals the text in the value statement and then return the
-              first Keyword sub-element's text.
-global*       This document contains statements that affect the overall output,
-              not just a specific column.
-if*           Control command that selects an object to display if the element
-              text is populated.
-ifattrib*     Like if except tests for an attribute
-ifattribeq*   Like ifeq except compares the value against an attribute
-              Example:
-                cmd: ifattribeq
-                xpath: .
-                attribute: elementtype
-                value: fine art
-                ---
-ifattribnoteq*  Similar to iffattribeq
-ifcontains*   Select an object if the value in the value statement is contained
-              in the element text.
-ifeq*         Select an object if the element text equals the value statement text.
-
-*  These commands do not generate output columns.
-** These statements are only valid if the command is "global".
-
-"""
 import csv
 import re
 import yaml
@@ -81,9 +15,11 @@ class Cmd:
 
     IMPORTANT: Variables that are not literal commands must be prefaced with
     the "_" character to separate them from variables that are literal commands.
+    Details are to be found in the Sphinx documentation for this project.
     """
     ATTRIB = 'attrib'
     COLUMN = 'column'
+    CONSTANT = 'constant'
     MULTIPLE = 'multiple'
     COUNT = 'count'
     GLOBAL = 'global'
@@ -100,9 +36,10 @@ class Cmd:
     _CONTROL_CMDS = (IF, IFEQ, IFNOTEQ, IFATTRIB, IFSERIAL, GLOBAL, IFCONTAINS,
                      IFATTRIBEQ, IFATTRIBNOTEQ)
     _NEEDVALUE_CMDS = (KEYWORD, IFNOTEQ, IFATTRIBEQ, IFATTRIBNOTEQ, IFSERIAL,
-                       IFCONTAINS)
+                       IFCONTAINS, CONSTANT)
     _NEEDXPATH_CMDS = (ATTRIB, COLUMN, KEYWORD, IF, COUNT, IFEQ, IFNOTEQ,
-                       IFCONTAINS, IFATTRIB, IFATTRIBEQ, IFATTRIBNOTEQ)
+                       IFCONTAINS, IFATTRIB, IFATTRIBEQ, IFATTRIBNOTEQ,
+                       CONSTANT)
 
     @staticmethod
     def get_needxpath_cmds():
@@ -140,6 +77,7 @@ class Stmt:
     CMD = 'cmd'
     XPATH = 'xpath'
     ATTRIBUTE = 'attribute'
+    DATE = 'date'
     TITLE = 'title'
     VALUE = 'value'
     CASESENSITIVE = 'casesensitive'
@@ -191,13 +129,17 @@ class Config:
         """
         Config.__instance = None
 
-    def __init__(self, yamlcfgfile, title: bool = False, dump: bool = False):
+    def __init__(self, yamlcfgfile, title: bool = False, dump: bool = False,
+                 allow_required: bool = False):
         """
 
         :param yamlcfgfile:
         :param title: If no title statement exists, create one from the
                       XPATH statement.
         :param dump: If True, print the YAML documents
+        :param allow_required: If True, allow the REQUIRED statement under the
+                               COLUMN command. This only makes sense for
+                               csv2xml.py.
         :returns: the Config instance or None if the YAML file is not given
         """
         def set_globals():
@@ -227,7 +169,7 @@ class Config:
         self.delimiter = ','
         self.multiple_delimiter = '|'
         cfglist = _read_yaml_cfg(yamlcfgfile, title=title, dump=dump)
-        valid = validate_yaml_cfg(cfglist)
+        valid = validate_yaml_cfg(cfglist, allow_required)
         if not valid:
             raise ValueError('Config failed validation.')
         for document in cfglist:
@@ -334,7 +276,7 @@ def dump_document(document):
     print('     ---')
 
 
-def validate_yaml_cfg(cfglist):
+def validate_yaml_cfg(cfglist, allow_required=False):
     valid = True
     for document in cfglist:
         # Do not change this to valid_doc = Stmt.val.... to allow for more
@@ -361,10 +303,12 @@ def validate_yaml_cfg(cfglist):
                 print(f'ERROR: attribute is required for {command} command.')
                 valid_doc = False
         if command not in Cmd.get_control_cmds():
+            # for csv2xml.py allow required on a column command
             if Stmt.REQUIRED in document:
-                print(f'ERROR: "required" not allowed for {command} command.'
-                      f' Use an "if" command.')
-                valid_doc = False
+                if not (command == Cmd.COLUMN and allow_required):
+                    print(f'ERROR: "required" not allowed for {command} '
+                          f'command. Use an "if" command.')
+                    valid_doc = False
         if not valid_doc:
             valid = False
             dump_document(document)
@@ -389,6 +333,8 @@ def _read_yaml_cfg(cfgf, title: bool = False, dump: bool = False):
         return []
     cfg = [c for c in yaml.safe_load_all(cfgf) if c is not None]
     for document in cfg:
+        for key in document:
+            document[key] = str(document[key])
         if dump:
             dump_document(document)
         cmd = document[Stmt.CMD]
@@ -445,20 +391,18 @@ def expand_idnum(idstr: str) -> list[str]:
     """
     jlist = []
     if '-' in idstr:  # if ID is actually a range like JB021-23
-        if m := re.match(r'(.+)-(.+)$', idstr):
+        if m := re.match(r'(.+?)(\d+)-(\d+)$', idstr):
+            prefix = m[1]
+            firstidnum = int(m[2])
+            lastidnum = int(m[3])
             try:
-                lastidnum = int(m[2])  # raise ValueError if not integer
-                lastidlen = len(m[2])
-                # now get the trailing part of the first id that's the same
-                # length as the lastid part
-                firstidnum = int(m[1][-lastidlen:])
-                prefix = m[1][:-lastidlen]
+                firstidlen = len(m[2])
                 for suffix in range(firstidnum, lastidnum + 1):
-                    newidnum = f'{prefix}{suffix:0{lastidlen}}'
+                    newidnum = f'{prefix}{suffix:0{firstidlen}}'
                     jlist.append(newidnum)
             except ValueError:
                 print(f'Bad accession number, contains "-" but not well'
-                      f' formed: {m[2]}')
+                      f' formed: {m.groups()}')
         else:
             print('Bad accession number, failed pattern match:', idstr)
     else:

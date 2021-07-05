@@ -98,18 +98,19 @@ ENV/
 
 # mlg stuff
 .idea/
+.vscode
 tmp/
 src/.idea/
 *.ipynb
 .ssh/
 data/
+dev_backup/
+etc/
 out/
 prod_backup/
 prod_update/
+reports/
 results/
-stocktake/
-dev_backup/
-etc/
-temp/
 scans/
-.vscode
+stocktake/
+temp/

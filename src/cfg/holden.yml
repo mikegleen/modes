@@ -1,0 +1,32 @@
+cmd: column
+xpath: ./Identification/Title
+required:
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
+title: Published
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Date
+title: Date
+date: british # like "21 May 1909"
+---
+cmd: column
+xpath: ./Description/Material[Part="medium"]/Keyword
+title: Medium
+---
+cmd: column
+xpath: ./Description/Measurement[Part="Image"]/Reading
+title: Size
+---
+cmd: constant
+xpath: ./Acquisition/Person[Role="acquired from"]/PersonName
+value: Patrick Holden
+---
+cmd: constant
+xpath: ./Acquisition/Method
+value: gift
+---
+cmd: constant
+xpath: ./Acquisition/Date
+value: 2021

@@ -10,7 +10,7 @@ MODESTYPE = 'modestype'
 BRITISHTYPE = 'britishtype'
 
 
-def modesdate(indate: datetime.date, nfields: int = 3):
+def modesdate(indate: datetime.date, nfields: int = 3) -> str:
     """
     :param indate: An object like a datetime or date that has month, day and
     year attributes.
