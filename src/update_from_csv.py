@@ -49,6 +49,11 @@ def loadnewvals():
     newval_dict = {}
     with codecs.open(_args.mapfile, 'r', 'utf-8-sig') as mapfile:
         reader = csv.reader(mapfile)
+        skiprows = _args.skip_rows
+        for n in range(skiprows):  # default = 0
+            skipped = next(reader)  # skip header
+            if _args.verbose >= 1:
+                print(f'Skipping row in map file: {skipped}')
         if _args.heading:
             # Check that the first row in the CSV file contains the same
             # column headings as in the title statements of the YAML file.
@@ -59,15 +64,9 @@ def loadnewvals():
                 col = next(irow)
                 title = doc[Stmt.TITLE]
                 if col.lower() != title.lower():
-                    print(f'Mismatch on heading: "{title}" in config != {col}'
-                          ' in CSV file')
+                    print(f'Mismatch on heading: "{title}" in config !='
+                          f' "{col}" in CSV file')
                     sys.exit(1)
-        elif _args.skip_rows:
-            skiprows = _args.skip_rows
-            for n in range(skiprows):  # default = 1
-                skipped = next(skiprows)  # skip header
-                if _args.verbos >= 1:
-                    print(f'Skipping row in map file: {skipped}')
 
         for row in reader:
             newval_dict[row[0].strip().upper()] = [val.strip() for val in row[1:]]
@@ -122,6 +121,7 @@ def one_element(elem, idnum):
 
 
 def main():
+    global nwritten
     outfile.write(b'<?xml version="1.0" encoding="UTF-8"?><Interchange>\n')
     for event, elem in ET.iterparse(infile):
         if elem.tag != 'Object':
@@ -138,6 +138,7 @@ def main():
                 trace(2, 'Not in CSV file: "{}"', idnum)
         if updated or _args.all:
             outfile.write(ET.tostring(elem, encoding='utf-8'))
+            nwritten += 1
         if _args.short:
             break
     outfile.write(b'</Interchange>')
@@ -176,15 +177,14 @@ def getparser():
     parser.add_argument('--heading', action='store_true', help='''
         The first row of the map file contains a heading which must match the
         value of the title statement in the corresponding column document
-        (case insensitive). Do not use this and --skip_rows.
+        (case insensitive).
         ''')
     parser.add_argument('-m', '--mapfile', required=True, help='''
         The CSV file mapping the object number to the new element value(s).''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
-    parser.add_argument('--skip_rows', type=int, default=0, help=sphinxify('''
-        Skip rows at the beginning of the CSV file. Do not use this and
-        --heading. ''', called_from_sphinx))
+    parser.add_argument('--skip_rows', type=int, default=0, help='''
+        Skip rows at the beginning of the CSV file.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -216,7 +216,7 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     called_from_sphinx = False
     _args = getargs(sys.argv)
-    nupdated = nunchanged = 0
+    nupdated = nunchanged = nwritten =0
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Creating file: {}', _args.outfile)
@@ -228,7 +228,9 @@ if __name__ == '__main__':
     nnewvals = len(newvals)
     trace(1, 'Input file: {}', _args.infile)
     main()
-    trace(1, 'End update_from_csv. {}/{} object{} updated. {} existing'
-          ' element{} unchanged.', nupdated, nnewvals,
-          '' if nupdated == 1 else 's', nunchanged,
-          '' if nunchanged == 1 else 's')
+    trace(1, '{} element{} in {} object{} updated. {} '
+          'existing element{} unchanged.',
+          nupdated, '' if nupdated == 1 else 's',
+          nnewvals, '' if nnewvals == 1 else 's',
+          nunchanged, '' if nunchanged == 1 else 's')
+    trace(1, 'End update_from_csv. {} objects written.', nwritten)
