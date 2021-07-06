@@ -1,0 +1,1 @@
+python src/update_from_csv.py prod_update/2021-07-03_location.xml prod_update/2021-07-05_titles.xml -m results/csv/2021-06-18_titles_and_briefdescriptions.csv --skip_rows 1 -f -c src/cfg/title_and_briefdes.yml -a
