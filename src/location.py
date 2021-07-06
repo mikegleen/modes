@@ -48,6 +48,7 @@ def loadcsv():
     with codecs.open(_args.mapfile, 'r', 'utf-8-sig') as mapfile:
         reader = csv.reader(mapfile)
         for row in reader:
+            trace(3, 'row: {}', row)
             if need_heading:
                 # if --location is given just skip the first row
                 if not loc_arg and (row[_args.col_loc].strip().lower()
@@ -58,7 +59,7 @@ def loadcsv():
                     sys.exit(1)
                 need_heading = False
                 continue
-            objid = row[0].strip()
+            objid = row[_args.col_acc].strip().upper()
             if objid in location_dict:
                 print(f'Fatal error: Duplicate object ID: {objid}.')
                 sys.exit(1)
@@ -383,7 +384,7 @@ def main():
         if elem.tag != 'Object':
             continue
         idelem = elem.find('./ObjectIdentity/Number')
-        idnum = idelem.text if idelem is not None else None
+        idnum = idelem.text.upper() if idelem is not None else None
         trace(3, 'idnum: {}', idnum)
         _args.func(idnum, elem)  # handle_check() or handle_update() or handle_validate()
         if _args.short:
