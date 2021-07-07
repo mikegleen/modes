@@ -36,6 +36,18 @@ def next_accnum(accnum: str):
         suffix += 1
 
 
+def new_subelt(doc, template):
+    elt = None
+    if Stmt.PARENT_PATH in doc:
+        parent = template.find(doc[Stmt.PARENT_PATH])
+        if parent is None:
+            trace(1, 'Cannot find parent of {}, column {}',
+                  doc[Stmt.XPATH], doc[Stmt.TITLE])
+        else:
+            elt = ET.SubElement(parent, doc[Stmt.TITLE])
+    return elt
+
+
 def main():
     global nrows
     if not _args.noprolog:
@@ -68,6 +80,12 @@ def main():
         for doc in config.col_docs:
             # print(doc[Stmt.TITLE], doc[Stmt.XPATH])
             elt = template.find(doc[Stmt.XPATH])
+            if elt is None:
+                elt = new_subelt(doc, template)
+            if elt is None:
+                trace(0, 'Cannot create new {}.\nCheck parent_path statement.',
+                      doc[Stmt.XPATH])
+                sys.exit()
             if doc[Stmt.CMD] == Cmd.CONSTANT:
                 elt.text = doc[Stmt.VALUE]
                 continue
@@ -99,8 +117,9 @@ def getparser():
         XML file with data from the CSV file based on a template of the
         XML structure.
         
-        The first column's heading value must be 'Serial' or an alternative
-        set by --serial parameter. Subsequent columns
+        The CSV file must have a heading.
+        The heading of the column containing the serial number must be 'Serial'
+        or an alternative set by --serial parameter. Subsequent columns
         must match the corresponding title in the configuration file. The
         config file may contain only "column" or "constant" commands.
         ''', calledfromsphinx))
