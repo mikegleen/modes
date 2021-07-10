@@ -116,13 +116,7 @@ def getparser():
         XPATH statement in the config file. Create an
         XML file with data from the CSV file based on a template of the
         XML structure.
-        
-        The CSV file must have a heading.
-        The heading of the column containing the serial number must be 'Serial'
-        or an alternative set by --serial parameter. Subsequent columns
-        must match the corresponding title in the configuration file. The
-        config file may contain only "column" or "constant" commands.
-        ''', calledfromsphinx))
+                ''', calledfromsphinx))
     parser.add_argument('--acc_num', help='''
         This is the first accession number in a series to assign to rows
         in the input CSV file. If specified, the column in the CSV file
@@ -131,14 +125,20 @@ def getparser():
         "LDHRM.2021.2", "LDHRM.2021.3", etc. This value will be stored in the
         ObjectIdentity/Number element.''')
     parser.add_argument('-i', '--incsvfile', help='''
-        The CSV file containing data to be inserted into the XML template.''')
+        The CSV file containing data to be inserted into the XML template.
+        The CSV file must have a heading.
+        The heading of the column containing the serial number must be 'Serial'
+        or an alternative set by --serial parameter. Subsequent columns
+        must match the corresponding title in the configuration file. ''')
     parser.add_argument('-t', '--templatefile', help='''
         The XML Object template.''')
     parser.add_argument('-o', '--outfile', help='''
         The output XML file.''')
     parser.add_argument('-c', '--cfgfile', required=True,
                         type=argparse.FileType('r'), help='''
-        The YAML file describing the column path(s) to update''')
+        The YAML file describing the column path(s) to update
+        The config file may contain only "column" or "constant" commands.
+    ''')
     parser.add_argument('-p', '--noprolog', action='store_true', help='''
         Inhibit the insertion of an XML prolog at the front of the file and an
         <Interchange> element as the root. This results in an invalid XML file
@@ -146,7 +146,8 @@ def getparser():
     parser.add_argument('--serial', default='Serial',
                         help=sphinxify('''
         The column containing the serial number must have a heading with this
-        value. This is ignored if the --acc_num parameter is specified.''',
+        value. This is ignored if the --acc_num parameter is specified. The
+        default value is "Serial".''',
                                        calledfromsphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
