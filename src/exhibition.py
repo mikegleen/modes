@@ -31,6 +31,7 @@ import sys
 import xml.etree.ElementTree as ET
 from cfg.exhibition_list import EXSTR
 from utl.cfgutil import Stmt, expand_idnum
+from utl.excel_cols import col2num
 from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
 from utl.normalize import sphinxify
 
@@ -118,7 +119,7 @@ def one_object(objelt, idnum, exhibition: Exhibition, catalog_num=None):
             if status:  # 1 or 2
                 # Assume DateBegin exists
                 begindate, _ = datefrommodes(elt.find('./Date/DateBegin').text)
-                exhibs_to_insert.append((begindate, elt))
+                exhibs_to_insert.append((begindate, elt))  # will sort on date
                 if status == 2:
                     need_new = False
             else:
@@ -133,6 +134,8 @@ def one_object(objelt, idnum, exhibition: Exhibition, catalog_num=None):
             if elt.tag == "Acquisition":
                 firstexix = n + 1  # insert the new elt after <Acquisition>
                 break
+    # Remove all of the Exhibition elements and re-insert the ones we're
+    # keeping in date order.
     for _edate, exhib in exhibs_to_insert:
         # print(objelt, exhib)
         objelt.remove(exhib)
@@ -214,7 +217,11 @@ def get_csv_dict(csvfile):
                 col_ex = _args.col_ex
                 try:
                     exhibition = int(row[col_ex])
-                except IndexError as e:
+                except (IndexError, ValueError) as e:
+                    if _args.allow_missing:
+                        trace(2, 'Missing exhibition number, skipping {}',
+                              accnumber)
+                        continue
                     print(f'Missing column {col_ex}, accession #: {accnumber}')
                     raise e
             # The "accnumber" might actually be a range of accession numbers
@@ -275,17 +282,22 @@ def getparser():
         The output XML file.''')
     parser.add_argument('-a', '--all', action='store_true', help='''
         Write all objects. The default is to only write updated objects.''')
-    parser.add_argument('--col_acc', default=0, type=int, help='''
+    parser.add_argument('--allow_missing', action='store_true', help='''
+        Skip rows with missing exhibition numbers. Otherwise abort.''')
+    parser.add_argument('--col_acc', help='''
         The zero-based column containing the accession number of the
-        object to be updated. The default is column zero.''')
-    parser.add_argument('--col_cat', type=int, help='''
+        object to be updated. The default is column zero. The column can be a
+        number or a spreadsheet-style letter.''')
+    parser.add_argument('--col_cat', help='''
         The zero-based column containing the catalog number of the
         object in the corresponding exhibition. The default is to not create
-        a catalog number sub-element.''')
-    megroup.add_argument('--col_ex', type=int, help=sphinxify('''
+        a catalog number sub-element. The column can be a number or a
+        spreadsheet-style letter.''')
+    megroup.add_argument('--col_ex', help=sphinxify('''
         The zero-based column containing the exhibition number.
         Do not specify this if --exhibition is specified. It is mandatory
-        otherwise.''', called_from_sphinx))
+        otherwise. The column can be a number or a spreadsheet-style
+        letter.''', called_from_sphinx))
     megroup.add_argument('-e', '--exhibition', type=int, help=sphinxify('''
         The exhibition number, corresponding to the data in exhibition_list.py
         to apply to all objects in the CSV file. Do not specify this if
@@ -307,6 +319,15 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    if args.col_acc is None:
+        args.col_acc = 0
+    else:
+        args.col_acc = col2num(str(args.col_acc))
+    if args.col_cat is not None:
+        args.col_cat = col2num(str(args.col_cat))
+    if args.col_ex is not None:
+        args.col_ex = col2num(str(args.col_ex))
+
     return args
 
 
