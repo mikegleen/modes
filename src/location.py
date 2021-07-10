@@ -427,8 +427,10 @@ def add_arguments(parser, command):
         previous location. See the descrption of "n" and "p". ''')
     if is_update:
         parser.add_argument('-d', '--date', default=nd.modesdate(date.today()), help='''
-            Use this string as the date to store in the new ObjectLocation
-            date. The default is today's date in Modes format (d.m.yyyy).
+            When updating the current location, use this date as the DateEnd
+            value for the previous location we're making and the DateBegin
+            value for the new current location we're making. The default is
+            today's date in Modes format (d.m.yyyy).
             ''')
         parser.add_argument('--datebegin', help='''
         Use this string as the date to store in the new previous ObjectLocation
