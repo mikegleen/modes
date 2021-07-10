@@ -17,6 +17,7 @@ Modes Python Library
    update_from_csv
    websitecsv
    xml2csv
+   genindex
 
 
 Indices and tables
@@ -47,6 +48,10 @@ Each document contains some of the following statements. Statements are
 case sensitive; all must be lower case. Commands can be
 column-generating or control statements.
 
+By default, the first column in the CSV file is the serial number (accession
+number) of the object affected. On output, this can be suppressed using the
+``skip_number`` statement under the ``global`` command.
+
 Statements
 ~~~~~~~~~~
 
@@ -57,6 +62,9 @@ Single-command Statements
    commands.
 -  **xpath** Required. This describes the XSLT path to a relevant XML
    element.
+-  **parent_path** Include this statement if the **xpath** may not
+   exist, in which case a new one will be created as a child of this path.
+   Implemented in ``csv2xml.py`` only.
 -  **attribute** Required by the **attrib** and **ifattrib** commands.
 -  **title** Optional. If omitted, a best-guess title will be created
    from the xpath statement. If in a control document, this will be
@@ -110,7 +118,7 @@ Column-generating Commands
 
 -  **attrib** Like **column** except displays the value of the attribute
    named in the **attribute** statement.
--  **column** This is the basic command to display the text of an
+-  **column** This is the basic command to display or update the text of an
    element.
 -  **constant** For ``csv2xml.py``, create an element from the ``value``
    statement of this document without reference to the CSV file.

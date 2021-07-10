@@ -25,6 +25,9 @@ Import exhibition information into a Modes XML file.
             </Date>
         </Exhibition>
 
+.. index::
+    single: exhibition syntax
+
 .. argparse::
    :filename: ../src/exhibition.py
    :func: getparser

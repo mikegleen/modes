@@ -1,0 +1,3 @@
+python src/location.py update -i prod_update/2021-07-05_titles.xml -o prod_update/2021-07-07_haslemere.xml -m results/csv/exhibitions/2021-06-15_haslemere.csv --col_acc 1 -l Haslemere -c -a
+python src/location.py update -i  prod_update/2021-07-07_haslemere.xml -o prod_update/2021-07-07_jb206_loc.xml -l S22 -j JB206 -c -n -a
+ 

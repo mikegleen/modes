@@ -30,3 +30,17 @@ value: gift
 cmd: constant
 xpath: ./Acquisition/Date
 value: 2021
+---
+cmd: constant
+xpath: ./ObjectLocation[@elementtype="normal location"]/Location
+title: normal location
+value: R4
+---
+cmd: constant
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
+title: current location
+value: R4
+---
+cmd: constant
+xpath: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
+value: 9.7.2021
