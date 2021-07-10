@@ -10,9 +10,11 @@ import string
 import sys
 
 
-def col2num(col):
+def col2num(col: str):
     """ Map a spreadsheet column to a zero-based index. """
     num = 0
+    if col.isnumeric():
+        return int(col) - 1
     for c in col:
         if c in string.ascii_letters:
             num = num * 26 + (ord(c.upper()) - ord('A')) + 1
