@@ -70,7 +70,10 @@ def getparser() -> argparse.ArgumentParser:
     Read a CSV file, recode columns and write the CSV file. The Exhibition
     Name and Exhibition Place columns are merged into a "name(place)" format.
     The Date Produced column (in Modes format) is deleted and replaced by a
-    human-friendly column and an ISO date column.''')
+    human-friendly column and an ISO date column.
+    
+    The input columns are defined in ``cfg/website.yml`` and must match
+    names hard-coded here.''')
     parser.add_argument('incsvfile', help='''
         The CSV file containing data to be inserted into the XML template. The
         input is expected to have been produced by xml2csv.py using the
