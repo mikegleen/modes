@@ -1,0 +1,9 @@
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
+title: First Published
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Page
+parent_path: ./References/Reference[@elementtype="First Published In"]
+title: Page
+---
