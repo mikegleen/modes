@@ -70,8 +70,8 @@ def getargs():
     parser.add_argument('-c', '--cfgfile', required=False, help='''
         The config file describing the Object elements to include in the
         output''')
-    parser.add_argument('-e', '--encoding', default='us-ascii', help='''
-        Set the output encoding. The default is "us-ascii".
+    parser.add_argument('-e', '--encoding', default='utf-8', help='''
+        Set the output encoding. The default is "utf-8".
         ''')
     parser.add_argument('--include', required=False, help='''
         A CSV file specifying the accession numbers of records to process.
