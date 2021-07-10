@@ -76,6 +76,7 @@ class Stmt:
     """
     CMD = 'cmd'
     XPATH = 'xpath'
+    PARENT_PATH = 'parent_path'
     ATTRIBUTE = 'attribute'
     DATE = 'date'
     TITLE = 'title'
