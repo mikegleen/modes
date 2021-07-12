@@ -1,5 +1,7 @@
 import csv
 import re
+import sys
+
 import yaml
 
 # The difference between the 'attrib' command and the attribute statement:
@@ -338,6 +340,11 @@ def _read_yaml_cfg(cfgf, title: bool = False, dump: bool = False):
             document[key] = str(document[key])
         if dump:
             dump_document(document)
+        if Stmt.CMD not in document:
+            if not dump:
+                dump_document(document)
+            print('"cmd" statement missing from document.')
+            sys.exit()
         cmd = document[Stmt.CMD]
         if cmd in Cmd.get_control_cmds():
             continue
