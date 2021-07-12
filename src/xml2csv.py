@@ -72,7 +72,7 @@ def one_document(document, parent, config: Config):
     if Stmt.NORMALIZE in document:
         text = normalize_id(text, _args.mdacode)
     if Stmt.WIDTH in document:
-        text = text[:document[Stmt.WIDTH]]
+        text = text[:int(document[Stmt.WIDTH])]
     return text, command
 
 
