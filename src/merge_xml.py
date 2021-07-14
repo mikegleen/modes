@@ -16,7 +16,7 @@ def trace(level, template, *args):
 
 
 def onefile(infile):
-    global selcount
+    written = 0
     objectlevel = 0
     for event, oldobject in ET.iterparse(infile, events=('start', 'end')):
         if event == 'start':
@@ -30,7 +30,9 @@ def onefile(infile):
         if objectlevel:
             continue  # It's not a top level Object.
         outfile.write(ET.tostring(oldobject, encoding=_args.encoding))
+        written += 1
         oldobject.clear()
+    return written
 
 
 def main():
@@ -38,11 +40,14 @@ def main():
     outfile.write(bytes(declaration, encoding=_args.encoding))
     outfile.write(b'<Interchange>\n')
     infile = open(_args.infile)
-    onefile(infile)
+    count1 = onefile(infile)
     infile.close()
     infile = open(_args.mergefile)
-    onefile(infile)
+    count2 = onefile(infile)
     outfile.write(b'</Interchange>')
+    print(f'{count1} objects from file 1')
+    print(f'{count2} objects from file 2')
+    print(f'{count1 + count2} objects written')
 
 
 def getargs():
@@ -67,12 +72,10 @@ def getargs():
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
-    selcount = 0
     object_number = ''
     _args = getargs()
     outfile = open(_args.outfile, 'wb')
     main()
     basename = os.path.basename(sys.argv[0])
-    print(f'{selcount} object{"" if selcount == 1 else "s"} selected.')
     print(f'End {basename.split(".")[0]}')
 

@@ -1,0 +1,52 @@
+cmd: constant
+xpath: ./Identification/Title
+value: Peter Quip in Search of a Friend
+---
+cmd: constant
+xpath: ./ObjectLocation[@elementtype="normal location"]/Location
+title: normal location
+value: B4
+---
+cmd: constant
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
+title: current location
+value: B4
+---
+cmd: constant
+xpath: ./Production/Person/PersonName
+value: Robinson, William Heath
+---
+cmd: constant
+xpath: ./Production/Organisation/OrganisationName
+value: S. W. Partridge
+---
+cmd: constant
+xpath: ./Production/Date
+value: 1922
+---
+cmd: constant
+xpath: ./Description/Measurement[Dimension="height"]/Reading
+title: Height
+value: 274
+---
+cmd: constant
+xpath: ./Description/Measurement[Dimension="width"]/Reading
+title: Width
+value: 204
+---
+cmd: constant
+xpath: ./Description/Aspect/Keyword
+title: Pages
+value: 48
+---
+cmd: constant
+xpath: ./Acquisition/Method
+value: purchase
+---
+cmd: constant
+xpath: ./Acquisition/Organisation/OrganisationName
+value: eBay
+---
+cmd: constant
+xpath: ./Acquisition/Date
+value: 2020

@@ -40,11 +40,14 @@ def new_subelt(doc, template):
     elt = None
     if Stmt.PARENT_PATH in doc:
         parent = template.find(doc[Stmt.PARENT_PATH])
+        title = doc[Stmt.TITLE]
         if parent is None:
             trace(1, 'Cannot find parent of {}, column {}',
-                  doc[Stmt.XPATH], doc[Stmt.TITLE])
+                  doc[Stmt.XPATH], title)
+        elif ' ' in title:
+            trace(1, 'Cannot create title with embedded spaces: {}', title)
         else:
-            elt = ET.SubElement(parent, doc[Stmt.TITLE])
+            elt = ET.SubElement(parent, title)
     return elt
 
 
@@ -83,8 +86,8 @@ def main():
             if elt is None:
                 elt = new_subelt(doc, template)
             if elt is None:
-                trace(0, 'Cannot create new {}.\nCheck parent_path statement.',
-                      doc[Stmt.XPATH])
+                trace(0, '{}: Cannot create new {}.\nCheck parent_path statement.',
+                      accnum, doc[Stmt.XPATH])
                 sys.exit()
             if doc[Stmt.CMD] == Cmd.CONSTANT:
                 elt.text = doc[Stmt.VALUE]

@@ -25,7 +25,7 @@ def main():
         if num in objdict:
             print(f'seq {seq}, ID {num} is a duplicate, ignored.')
             continue
-        objdict[num] = ET.tostring(elem, encoding='us-ascii').strip()
+        objdict[num] = ET.tostring(elem, encoding='utf-8').strip()
     for num in sorted(objdict):
         outfile.write(objdict[num])
         outfile.write(b'\n')
@@ -41,7 +41,7 @@ def getargs():
     parser.add_argument('outfile', help='''
         The sorted XML file.''')
     parser.add_argument('--encoding', default='utf-8', help='''
-        Set the input encoding. Default is utf-8. Output is always ascii.
+        Set the input encoding. Default is utf-8. Output is always utf-8.
         ''')
     parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.

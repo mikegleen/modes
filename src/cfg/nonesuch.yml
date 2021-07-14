@@ -1,0 +1,61 @@
+cmd: column
+xpath: ./Identification/Title
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Date
+date: british # like "21 May 1909"
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Page
+parent_path: ./References/Reference[@elementtype="First Published In"]
+---
+cmd: column
+xpath: ./Description/Measurement[Part="Image"]/Reading
+title: Size
+---
+cmd: column
+xpath: ./RelatedObject[@elementtype="Mounted With"]/ObjectIdentity/Number
+title: Mounted With
+---
+cmd: column
+xpath: ./RelatedObject[@elementtype="Mounted With"]/Note
+title: Note
+---
+cmd: column
+xpath: ./Description/Inscription/SummaryText
+title: Inscription
+---
+cmd: constant
+xpath: ./Acquisition/Organisation[Role="acquired from"]/OrganisationName
+value: Nonesuch Gallery
+---
+cmd: constant
+xpath: ./Acquisition/Method
+value: purchase
+---
+cmd: constant
+xpath: ./Acquisition/Date
+value: 2020
+---
+cmd: constant
+xpath: ./ObjectLocation[@elementtype="normal location"]/Location
+title: normal location
+value: BB4
+---
+cmd: constant
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
+title: current location
+value: BB4
+---
+cmd: constant
+xpath: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
+value: 9.7.2021
+---
+cmd: constant
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
+value: Nash's Pall Mall
+---
+cmd: constant
+xpath: ./Description/Material[Part="medium"]/Keyword
+title: Medium
+value: pen and watercolour
