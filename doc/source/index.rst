@@ -64,7 +64,8 @@ Single-command Statements
    element.
 -  **parent_path** Include this statement if the **xpath** may not
    exist, in which case a new one will be created as a child of this path.
-   Implemented in ``csv2xml.py`` only.
+   Implemented in ``csv2xml.py`` only. The element name to be created
+   will be the title in the document.
 -  **attribute** Required by the **attrib** and **ifattrib** commands.
 -  **title** Optional. If omitted, a best-guess title will be created
    from the xpath statement. If in a control document, this will be

@@ -1,0 +1,18 @@
+
+
+python src/csv2xml.py -i results/csv/acquisitions/holden.csv -o prod_update/2021-07-09_holden.xml -c src/cfg/holden.yml -t /Users/mlg/pyprj/hrm/modes/etc/templates/normalized/2021-06-27_Original_Artwork.xml --serial SERIAL
+
+python src/exhibition.py prod_update/2021-07-09_holden.xml prod_update/2021-07-09_holden2.xml --col_ex h -m results/csv/acquisitions/holden.csv -v 2 -s 1 --allow_missing -a
+
+
+Merge holden to main
+
+python src/merge_xml.py prod_update/2021-07-07_jb206_loc.xml prod_update/2021-07-10_holden2.xml prod_update/2021-07-13_merged.xml
+
+
+# Nonesuch:
+python src/csv2xml.py -i results/csv/acquisitions/nonesuch2.csv -o prod_update/2021-07-13_nonesuch.xml -c src/cfg/nonesuch.yml -t etc/templates/normalized/2021-07-13_Original_Artwork_organisation.xml --serial SERIAL
+
+# Peter Quip
+ python src/csv2xml.py -i results/csv/acquisitions/peterquip.csv -t etc/templates/normalized/2021-07-14_books_organisation.xml -o prod_update/2021-07-14_peterquip.xml -c src/cfg/load_book.yml
+

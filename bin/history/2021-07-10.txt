@@ -1,0 +1,7 @@
+python src/csv2xml.py -i results/csv/acquisitions/holden.csv -o prod_update/2021-07-10_holden.xml -c src/cfg/holden.yml -t /Users/mlg/pyprj/hrm/modes/etc/templates/normalized/2021-06-27_Original_Artwork.xml --serial SERIAL
+
+bin/pretty /Users/mlg/pyprj/hrm/modes/prod_update/2021-07-10_holden.xml
+
+python src/exhibition.py prod_update/2021-07-10_holden.xml prod_update/2021-07-10_holden2.xml --col_ex h -m results/csv/acquisitions/holden.csv -v 2 -s 1 --allow_missing -a
+
+bin/pretty /Users/mlg/pyprj/hrm/modes/prod_update/2021-07-10_holden2.xml
