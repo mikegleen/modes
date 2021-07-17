@@ -1,5 +1,8 @@
 # EXSTR is processed by exhibition.py to create a dictionary for reference
 # when updating the Modes XML file.
+#
+# NOTE: The dates must be in ISO yyyy-mm-dd format.
+#
 EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 1,2016-10-15,2017-01-08,Heath Robinson at War
 2,2017-01-21,2017-03-26,The Brothers Robinson
@@ -21,7 +24,9 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 18,2003-11-03,2004-01-18,Dulwich,Dulwich Picture Gallery
 19,2019-04-01,2019-06-30,Heath Robinson Runs Again,NMOC
 20,2021-07-03,2021-08-28,"Heath Robinson Exhibition, Haslemere",Haslemere Museum
-21,7.11.2018,24.3.2019,Home Futures,Design Museum'''
+21,2018-11-07,2019-03-24,Home Futures,Design Museum
+22,2017-03-04,2017-05-21, Wonder and Whimsy: The Illustrations of W. Heath Robinson,Delaware Art Museum
+23,2016-03-08,2016-06-03,William Heath Robinson’s Life of Line,"Library Print Room, Royal Academy of Arts"'''
 
 if __name__ == '__main__':
     print('This module is not callable.')
