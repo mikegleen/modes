@@ -77,10 +77,11 @@ def datefrombritishdate(indate: str) -> tuple[datetime.date, int, str]:
         Parse a string in Modes format (see datefrommodes) or
         a British date which can be:
             "d mmm yyyy"
+            or "d month yyyy"
             or "mmm yyyy"
+            or "month yyyy"
             It can also be yyyy but this is treated as Modes format.
-        If day or month aren't given, the default values are returned. The day
-        and month should not have leading zeros.
+        If day or month aren't given, the default values are returned.
     :param indate:
     :return: A tuple containing datetime.date and a part count followed by a
              date type indicator if a valid date exists otherwise a
@@ -96,13 +97,26 @@ def datefrombritishdate(indate: str) -> tuple[datetime.date, int, str]:
         return d, nparts, MODESTYPE
     except ValueError:
         pass
-    try:
+    try:  # 3 Mar 1917
         d = datetime.datetime.strptime(indate, '%d %b %Y').date()
-        nparts = 3
+        return d, 3, BRITISHTYPE
     except ValueError:
+        pass
+    try:  # 3 March 1917
+        d = datetime.datetime.strptime(indate, '%d %B %Y').date()
+        return d, 3, BRITISHTYPE
+    except ValueError:
+        pass
+    try:
         d = datetime.datetime.strptime(indate, '%b %Y').date()
-        nparts = 2
-    return d, nparts, BRITISHTYPE
+        return d, 2, BRITISHTYPE
+    except ValueError as ve:
+        pass
+    try:
+        d = datetime.datetime.strptime(indate, '%B %Y').date()
+        return d, 2, BRITISHTYPE
+    except ValueError as ve:
+        raise ve
 
 
 def britishdatefrommodes(indate: str) -> str:
@@ -163,27 +177,56 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1):
 
     Return a string normalized for sorting.
 
+    If a field that is expected to be an integer is not, a ValueError is
+    raised.
+
     Input can be of the form JB001 or JB0001 or JB001a or SH1 or LDHRM/2018/1
-    or LDHRM.2018.1. Input can also be a simple integer.
+    or LDHRM.2018.1. or LDHRM.2018.1.2. Input can also be a simple integer.
+
+    For IDs with the MDA code, the one or two trailing numbers are expanded to
+    six digits with leading zeroes if necessary. If an id contains a larger
+    number an exception is raised. As a special case, JB numbers have a
+    minimum of three digits which are expanded to six.
+    For example:
+    LDHRM.2018.1 -> LDHRM.2018.000001
+    LDHRM.2018.1.2 -> LDHRM.2018.000001.000002
+    JB001 -> JB00000001
+
+    For IDs that are simple integers, these are expanded to eight digits.
     """
     if objid is None:
         return None
     objid = objid.upper()
     if objid.startswith(mdacode):
         idlist = re.split(r'[/.]', objid)  # split on either "/" or "."
-        assert len(idlist) == 3
-        assert len(idlist[2]) <= 4
-        idlist[2] = f'{int(idlist[2]):0>4d}'
+        assert len(idlist) in (3, 4)
+        assert len(idlist[2]) <= 6
+        idlist[2] = f'{int(idlist[2]):06d}'
+        if len(idlist) == 4:
+            assert len(idlist[3]) <= 6
+            idlist[3] = f'{int(idlist[3]):06d}'
         return '.'.join(idlist)
-    # Not an LDHRM/.. id
-    m = re.match(r'(\D+)(\d+)(.*)', objid)
+    # Not an LDHRM... id
+
+    m = re.match(r'(\D+)(\d+)([A-Za-z]?)(\.(\d+))?$', objid)
+    # On a successful match, this patten returns five groups. If there is
+    # no subgroup ID, groups 4 and 5 will be None. We are not interested in
+    # group 4 as it includes the '.' followed by the subgroup ID whereas group
+    # 5 includes just the subgroup ID. So:
+    # JB123 -> ('JB', '123', '', None, None)
+    # JB123.2 -> ('JB', '123', '', '.2', '2')
     if m:
-        newobjid = m.group(1) + f'{int(m.group(2)):08d}' + m.group(3)
+        assert len(m.group(2)) <= 6
+        newobjid = m.group(1) + f'{int(m.group(2)):06d}' + m.group(3)
+        # See if it has a sub-number, like JB124.23
+        if m.group(5):
+            assert len(m.group(5)) <= 6
+            newobjid += '.' + f'{int(m.group(5)):06d}'
         if verbose > 2:
             print(f'normalize: {objid} -> {newobjid}')
         return newobjid
-    elif objid.isnumeric() and len(objid) <= 8:
-        newobjid = f'{int(objid):08d}'
+    elif objid.isnumeric() and len(objid) <= 6:
+        newobjid = f'{int(objid):06d}'
         if verbose > 2:
             print(f'normalize: {objid} -> {newobjid}')
         return newobjid
@@ -191,19 +234,33 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1):
 
 
 def denormalize_id(objid, mdacode=DEFAULT_MDA_CODE):
+    """
+    :param objid: A normalized accession number
+    :param mdacode: Usually LDHRM
+    :return: An accession number with leading zeroes removed from numeric
+             fields.
+    """
     if objid.startswith(mdacode):
         idlist = re.split(r'[/.]', objid)  # split on either "/" or "."
-        assert len(idlist) == 3
-        assert len(idlist[2]) <= 4
+        assert len(idlist) in (3, 4)
+        assert len(idlist[2]) <= 6
         idlist[2] = f'{int(idlist[2])}'
+        if len(idlist) == 4:
+            assert len(idlist[3]) <= 6
+            idlist[3] = f'{int(idlist[3])}'
         return '.'.join(idlist)
     # Not an LDHRM/.. id
-    m = re.match(r'(\D+)(\d+)(.*)', objid)
+    m = re.match(r'(\D+)(\d+)([A-Za-z]?)(\.(\d+))?$', objid)
+    # m = re.match(r'(\D+)(\d+)(.*)', objid)
     if m:
         if objid.startswith('JB'):  # pad with leading zeroes to 3 columns
-            return m.group(1) + f'{int(m.group(2)):0>3d}' + m.group(3)
+            newobjid = m.group(1) + f'{int(m.group(2)):03d}' + m.group(3)
         else:
-            return m.group(1) + f'{int(m.group(2))}' + m.group(3)
+            newobjid = m.group(1) + f'{int(m.group(2))}' + m.group(3)
+        if m.group(5):
+            # denormalize sub-number
+            newobjid += '.' + f'{int(m.group(5))}'
+        return newobjid
     elif objid.isnumeric():
         return objid.lstrip('0')
     else:
