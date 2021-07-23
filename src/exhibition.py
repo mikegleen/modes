@@ -180,7 +180,7 @@ def get_csv_dict(csvfile):
     optionally the exhibition number in the column specified by  and --col_ex,
     and optionally the catalog number specified by --col_cat.
     :return: A dict with the key of the accession number and the value being
-             the exhibition number.
+             a tuple of (exhibition number, catalogue number).
     """
     def one_accession_number(accno):
         try:
@@ -235,7 +235,12 @@ def get_csv_dict(csvfile):
 
 def main():
     outfile.write(b'<?xml version="1.0"?><Interchange>\n')
-    exmap = get_csv_dict(_args.mapfile)  # acc # -> (exhibition #, catalog #)
+    if _args.object:
+        objlist = expand_idnum(_args.object)  # JB001-002 -> JB001, JB002
+        exmap = {normalize_id(obj):  # JB001 -> JB00000001
+                     (_args.exhibition, _args.catalogue) for obj in objlist}
+    else:
+        exmap = get_csv_dict(_args.mapfile)  # acc # -> (exhibition #, catalog #)
     exdict = get_exhibition_dict()  # exhibition # -> Exhibition tuple
     written = 0
     numupdated = 0
@@ -275,7 +280,8 @@ def getparser():
         optional exhibition number, and the optional catalog number
         (see the parameters below for details).
         ''')
-    megroup = parser.add_mutually_exclusive_group()
+    exgroup = parser.add_mutually_exclusive_group()
+    objgroup = parser.add_mutually_exclusive_group()
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
     parser.add_argument('outfile', help='''
@@ -288,24 +294,33 @@ def getparser():
         The zero-based column containing the accession number of the
         object to be updated. The default is column zero. The column can be a
         number or a spreadsheet-style letter.''')
+    parser.add_argument('-c', '--catalogue', help='''
+        The catalogue number. Only specify this if a single object is specified
+        with the -j option.
+        ''')
     parser.add_argument('--col_cat', help='''
         The zero-based column containing the catalog number of the
         object in the corresponding exhibition. The default is to not create
         a catalog number sub-element. The column can be a number or a
         spreadsheet-style letter.''')
-    megroup.add_argument('--col_ex', help=sphinxify('''
+    exgroup.add_argument('--col_ex', help=sphinxify('''
         The zero-based column containing the exhibition number.
         Do not specify this if --exhibition is specified. It is mandatory
         otherwise. The column can be a number or a spreadsheet-style
         letter.''', called_from_sphinx))
-    megroup.add_argument('-e', '--exhibition', type=int, help=sphinxify('''
+    exgroup.add_argument('-e', '--exhibition', type=int, help=sphinxify('''
         The exhibition number, corresponding to the data in exhibition_list.py
         to apply to all objects in the CSV file. Do not specify this if
         --col_ex is specified.''', called_from_sphinx))
-    parser.add_argument('-m', '--mapfile', required=True, help=sphinxify('''
+    objgroup.add_argument('-m', '--mapfile', help=sphinxify('''
         The CSV file mapping the object number to the catalog number and
         exhibition number. (but see --exhibition). There is no heading row
         (but see --skiprows).''', called_from_sphinx))
+    objgroup.add_argument('-j', '--object', help=sphinxify('''
+    Specify a single object to be processed. If specified, do not specify
+    the CSV file containing object numbers, exhibitions and catalogue numbers
+    (--mapfile). You must also specify --exhibition and optionally --catalogue.
+    ''', called_from_sphinx))
     parser.add_argument('-s', '--skiprows', type=int, default=0, help='''
         Number of lines to skip at the start of the CSV file''')
     parser.add_argument('--short', action='store_true', help='''
@@ -319,6 +334,11 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    if args.mapfile is None and args.object is None:
+        raise ValueError('You must specify one of --mapfile and --object')
+    if _args.object and not _args.exhibition:
+        raise(ValueError('You specified the object id. You must also '
+                         'specify the exhibition.'))
     if args.col_acc is None:
         args.col_acc = 0
     else:
