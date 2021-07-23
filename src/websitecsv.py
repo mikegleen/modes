@@ -4,6 +4,8 @@
 
     Merge the 'Exhibition Name' and 'Exhibition Place' columns producing a
     single column of Name (Place).
+
+    Input is the CSV file produced by csv2xml.py using website.yml
 """
 import argparse
 import codecs
@@ -35,6 +37,7 @@ def main():
     r.append('HumanDate')
     r.append('IsoDate')
     r.append('Decade')
+    r.append('Description')
     writer = csv.DictWriter(outfile, fieldnames=r)
     writer.writeheader()
     nrows = 0
@@ -43,6 +46,7 @@ def main():
         newrow['Serial'] = row['Serial']
         newrow['Title'] = row['Title']
         newrow['Medium'] = row['Medium']
+        newrow['Description'] = row['Description']
         # newrow['Date Produced'] = row['Date Produced']
         newrow['HumanDate'] = britishdatefrommodes(row['Date Produced'])
         try:
