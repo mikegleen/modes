@@ -16,3 +16,8 @@ title: Exhibition Place
 cmd: multiple
 xpath: ./Exhibition/ExhibitionName
 title: Exhibition Name
+---
+cmd: column
+xpath: ./Identification/BriefDescription
+title: description
+
