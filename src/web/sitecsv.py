@@ -6,6 +6,7 @@
     single column of Name (Place).
 
     Input is the CSV file produced by csv2xml.py using website.yml
+    Output is a reformatted CSV file.
 """
 import argparse
 import codecs
@@ -13,6 +14,7 @@ import csv
 import re
 import sys
 from utl.normalize import britishdatefrommodes, datefrommodes
+from utl.normalize import isoformatfrommodesdate
 
 
 def trace(level, template, *args):
@@ -32,7 +34,7 @@ def decade(datestr):
 def main():
     global nrows
     reader = csv.DictReader(incsvfile)
-    r = list(reader.fieldnames[:3])  # Serial, Title, Medium, Date Produced
+    r = list(reader.fieldnames[:3])  # Serial, Title, Medium
     r.append('Exhibition')
     r.append('HumanDate')
     r.append('IsoDate')
@@ -47,14 +49,16 @@ def main():
         newrow['Title'] = row['Title']
         newrow['Medium'] = row['Medium']
         newrow['Description'] = row['Description']
-        # newrow['Date Produced'] = row['Date Produced']
-        newrow['HumanDate'] = britishdatefrommodes(row['Date Produced'])
+
+        objectdate = row['Date Produced']
+        if not objectdate or objectdate == 'unknown':
+            objectdate = row['Date First Published']
+        newrow['HumanDate'] = britishdatefrommodes(objectdate)
         try:
-            dfm, _ = datefrommodes(row['Date Produced'])
-            newrow['IsoDate'] = dfm.isoformat()
+            newrow['IsoDate'] = isoformatfrommodesdate(objectdate)
         except ValueError:
             newrow['IsoDate'] = 'unknown'
-        newrow['Decade'] = decade(row['Date Produced'])
+        newrow['Decade'] = decade(objectdate)
         places = row['Exhibition Place'].split('|')
         names = row['Exhibition Name'].split('|')
         if len(places) != len(names):
@@ -63,7 +67,7 @@ def main():
         # print(row)
         exhibition = []
         for np in zip(names, places):
-            exhibition.append(f'{np[0]}({np[1]})')
+            exhibition.append(f'{np[0]} ({np[1]})')
         newrow['Exhibition'] = '|'.join(exhibition)
         writer.writerow(newrow)
         nrows += 1
