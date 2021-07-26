@@ -17,12 +17,11 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-def one_object(parent, document, tally, lastid, idnum):
+def one_object(parent, document, tally: dict[str, list], idnum):
     """
     :param parent: the Object from the old file
     :param document: The YAML document with config info
-    :param tally: the dict containing the accumulated count
-    :param lastid: dict containing the last object id that updated this entry
+    :param tally: the dict containing the list of IDs with this title
     :param idnum:
     :return: None.
     """
@@ -35,8 +34,7 @@ def one_object(parent, document, tally, lastid, idnum):
         text = element.text.strip()
         if _args.caseinsensitive:
             text = text.lower()
-        tally[text] += 1
-        lastid[text] = idnum
+        tally[text].append(idnum)
 
 
 def main():
@@ -44,8 +42,7 @@ def main():
     for doc in config.col_docs:
         nofinds = 0
         objectlevel = 0
-        tally = defaultdict(int)
-        lastid = {}
+        tally = defaultdict(list)
         infile = open(_args.infile)
         for event, oldobject in ET.iterparse(infile, events=('start', 'end')):
             if event == 'start':
@@ -61,15 +58,15 @@ def main():
             idelem = oldobject.find(config.record_id_xpath)
             idnum = idelem.text if idelem is not None else ''
             trace(3, 'idnum: {}', idnum)
-            one_object(oldobject, doc, tally, lastid, idnum)
+            one_object(oldobject, doc, tally, idnum)
             oldobject.clear()
         print(f"\n{doc[Stmt.XPATH]} ({len(tally)}"
               f" unique value{'s' if len(tally) > 1 else ''})")
         print(f'{"-" * len(doc[Stmt.XPATH])}')
-        for word, count in sorted(tally.items()):
-            # s = word.encode()
-            # print(f'{count:4},"{word}","{[hex(i) for i in s]}"')
-            print(f'{count:4},"{word}"{", " + lastid[word] if count == 1 else ""}')
+        for word, idlist in sorted(tally.items()):
+            count = len(idlist)
+            idstr = ', ' + ', '.join(idlist) if count <= 10 else ''
+            print(f'{count:4},"{word}"{idstr}')
         if nofinds:
             print(f'Nofinds: {nofinds}')
         infile.close()
@@ -77,12 +74,13 @@ def main():
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-    For each config entry, report the count of different text values.
-        ''')
+    For each config entry, report the count of different text values. If there
+    are ten or fewer occurrances of an entry, a list of accession numbers is
+    displayed.''')
     parser.add_argument('infile', help='''
-        The input XML file''')
+        The input Modes XML file''')
     parser.add_argument('-c', '--cfgfile', required=True, help='''
-        The config file describing the Object elements to include in the
+        The config YAML file describing the Object elements to include in the
         output''')
     parser.add_argument('-i', '--caseinsensitive', action='store_true', help='''
         Convert all keywords to lower case.''')
