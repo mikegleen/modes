@@ -45,6 +45,11 @@ def modesdatefromisoformat(instr):
     return f'{d}.{m}.{y}'
 
 
+def isoformatfrommodesdate(instr):
+    dfm, _ = datefrommodes(instr)
+    return dfm.isoformat()
+
+
 def datefrommodes(indate: str) -> tuple[datetime.date, int]:
     """
         Parse a string in Modes format which can be:
