@@ -19,5 +19,8 @@ title: Exhibition Name
 ---
 cmd: column
 xpath: ./Identification/BriefDescription
-title: description
-
+title: Description
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Date
+title: Date First Published
