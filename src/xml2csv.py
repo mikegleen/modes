@@ -110,7 +110,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
                 objectlevel += 1
             continue
         # It's an "end" event.
-        if elem.tag != config.record_tag:
+        if elem.tag != config.record_tag:  # default: Object
             continue
         objectlevel -= 1
         if objectlevel:
@@ -190,7 +190,7 @@ def getparser():  # called either by getargs or sphinx
         Use this option when the CSV file is to be imported into Excel so that
         the proper character set (UTF-8) is used.
         ''')
-    parser.add_argument('-c', '--cfgfile', required=True, help='''
+    parser.add_argument('-c', '--cfgfile', help='''
         The config file describing the column_paths to extract. If omitted,
         only the accession numbers will be output.''')
     parser.add_argument('--heading', action='store_true', help='''
@@ -200,15 +200,15 @@ def getparser():  # called either by getargs or sphinx
     parser.add_argument('--include', required=False, help='''
         A CSV file specifying the accession numbers of objects to be processed.
         If omitted, all records will be processed. In either case, objects will
-        be output based on configuration statements.''')
+        be output based on configuration statements. ''')
     parser.add_argument('--include_column', required=False, type=int,
                         default=0, help='''
         The column number containing the accession number in the file
         specified by the --include option. The default is 0, the first column.
         ''')
-    parser.add_argument('--include_skip', type=int, default=1, help='''
+    parser.add_argument('--include_skip', type=int, default=0, help='''
         The number of rows to skip at the front of the include file. The
-        default is 1, usually the heading.
+        default is 0.
         ''')
     parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.
