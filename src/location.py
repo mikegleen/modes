@@ -178,7 +178,7 @@ def validate_locations(idnum, elem, strict=True):
     prevbegin, prevend = locationdates[0]
     for nxtbegin, nxtend in locationdates[1:]:
         if nxtend < nxtbegin:
-            trace(1, 'E09 {}: begin date {} is younger than end date {}.', idnum,
+            trace(1, 'E09 {}: end date {} is younger than begin date {}.', idnum,
                   nxtbegin.isoformat(), nxtend.isoformat())
             return False
         if nxtend != prevbegin:
