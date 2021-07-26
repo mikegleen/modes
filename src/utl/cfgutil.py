@@ -329,7 +329,9 @@ def _read_yaml_cfg(cfgf, title: bool = False, dump: bool = False):
                     necessary if, e.g., we are creating an output CSV file
                     with a title row.
     :param dump: if True, dump YAML documents as processed.
-    :return: A list of dicts, each of which is a YAML document
+    :return: A list of dicts, each of which is a YAML document. If the config
+             file was not specified on the command line, then return an empty
+             list.
     """
     # Might be None for an empty document, like trailing "---"
     if cfgf is None:
