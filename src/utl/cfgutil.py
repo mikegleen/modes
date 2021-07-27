@@ -319,15 +319,12 @@ def validate_yaml_cfg(cfglist, allow_required=False):
     return valid
 
 
-def _read_yaml_cfg(cfgf, title: bool = False, dump: bool = False):
+def _read_yaml_cfg(cfgf, dump: bool = False):
     """
     Called by the Config constructor. Return the YAML documents with minor
     additions.
 
     :param cfgf: The YAML file specifying the configuration
-    :param title: if True, guarantee that all columns have a title. This is
-                    necessary if, e.g., we are creating an output CSV file
-                    with a title row.
     :param dump: if True, dump YAML documents as processed.
     :return: A list of dicts, each of which is a YAML document. If the config
              file was not specified on the command line, then return an empty
@@ -337,6 +334,7 @@ def _read_yaml_cfg(cfgf, title: bool = False, dump: bool = False):
     if cfgf is None:
         return []
     cfg = [c for c in yaml.safe_load_all(cfgf) if c is not None]
+    titles = set()
     for document in cfg:
         for key in document:
             document[key] = str(document[key])
@@ -354,7 +352,7 @@ def _read_yaml_cfg(cfgf, title: bool = False, dump: bool = False):
         # construct the title from the trailing element name from the xpath
         # statement. The validate_yaml_cfg function checks that the xpath
         # statement is there if needed.
-        if title and Stmt.TITLE not in document:
+        if Stmt.TITLE not in document:
             target = document.get(Stmt.XPATH)
             attribute = document.get(Stmt.ATTRIBUTE)
             h = target.split('/')[-1]  # trailing element name
@@ -364,6 +362,9 @@ def _read_yaml_cfg(cfgf, title: bool = False, dump: bool = False):
             elif cmd == Cmd.COUNT:
                 target = f'{target}(n)'
             document[Stmt.TITLE] = target
+        if document[Stmt.TITLE] in titles:
+            raise ValueError(f'Duplicate title {document[Stmt.TITLE]}')
+        titles.add(document[Stmt.TITLE])
     return cfg
 
 

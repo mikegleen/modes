@@ -220,7 +220,7 @@ if __name__ == '__main__':
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Creating file: {}', _args.outfile)
-    cfg = Config(_args.cfgfile, title=True, dump=_args.verbose > 1)
+    cfg = Config(_args.cfgfile, dump=_args.verbose > 1)
     if errors := check_cfg(cfg):
         trace(1, '{errors} errors found. Aborting.', errors)
         sys.exit(1)

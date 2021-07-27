@@ -106,7 +106,7 @@ if __name__ == '__main__':
     outfile = open(_args.outfile, 'wb')
     if _args.cfgfile:
         cfgfile = open(_args.cfgfile)
-        config = Config(cfgfile, title=True, dump=_args.verbose >= 2)
+        config = Config(cfgfile, dump=_args.verbose >= 2)
     else:
         config = None
     includes = read_include_list(_args.include, _args.include_column,

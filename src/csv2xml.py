@@ -196,7 +196,7 @@ if __name__ == '__main__':
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Input file: {}', _args.incsvfile)
     trace(1, 'Creating file: {}', _args.outfile)
-    config: Config = Config(_args.cfgfile, title=True, dump=_args.verbose > 1,
+    config: Config = Config(_args.cfgfile, dump=_args.verbose > 1,
                             allow_required=True)
     if errors := check_cfg(config):
         trace(1, '{} errors found. Aborting.', errors)

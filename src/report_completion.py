@@ -30,8 +30,7 @@ def main(inf, dslf):
     nobjects = 0
     nrows = 0
     tally = collections.defaultdict(int)
-    config = Config(dslf, title=True,
-                    dump=True if _args.verbose > 1 else False)
+    config = Config(dslf, dump=True if _args.verbose > 1 else False)
     col_docs = config.col_docs
     titles = [stmt[Stmt.TITLE] for stmt in col_docs]
     if not config.skip_number:
