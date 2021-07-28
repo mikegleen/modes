@@ -63,10 +63,6 @@ def getparser():
         Use this option when the CSV file is to be imported into Excel so that
         the proper character set (UTF-8) is used.
         ''')
-    parser.add_argument('-e', '--exclude', help=sphinxify('''
-        Exclude rows where this text appears in the column specified by the
-        --exclude_column argument.
-        ''', called_from_sphinx))
     parser.add_argument('--exclude_column', type=int, default=0,
                         help=sphinxify('''
         Specify the column to check for row exclusion. The default is
@@ -88,6 +84,10 @@ def getparser():
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
+    parser.add_argument('-x', '--exclude', help=sphinxify('''
+        Exclude rows where this text appears in the column specified by the
+        --exclude_column argument.
+        ''', called_from_sphinx))
     return parser
 
 

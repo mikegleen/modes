@@ -140,6 +140,8 @@ These commands do not generate output columns.
    overall output, not just a specific column.
 -  **if** Control command that selects an object to display if the
    element text is populated.
+-  **ifnot** Control command that selects an object to display if the
+   element text is not populated.
 -  **ifattrib** Like **if** except tests for an attribute
 -  **ifattribeq** Like **ifeq** except compares the value against an
    attribute. Example:
@@ -152,10 +154,14 @@ These commands do not generate output columns.
        value: fine art
        ---
 
+-  **ifattribnoteq** Like **ifattribeq** except compares the value against an
+   attribute.
 -  **ifcontains** Select an object if the value in the **value**
    statement is contained in the element text.
 -  **ifeq** Select an object if the element text equals the **value**
    statement text.
+-  **ifnoteq** Select an object if the element text does not equal the
+   **value** statement text.
 
 Utility Programs
 ----------------

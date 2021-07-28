@@ -27,7 +27,7 @@ def next_accnum(accnum: str):
              each call.
     """
     if not accnum:
-        raise ValueError('None is not a valid argument to next_accnum.')
+        return None
     mat = re.match(r'(.+?)(\d+$)', accnum)
     prefix = mat.group(1)
     suffix = int(mat.group(2))
@@ -69,7 +69,8 @@ def main():
     reader = csv.DictReader(incsvfile)
     trace(1, 'CSV Column Headings: {}', reader.fieldnames)
     nrows = 0
-    accnumgen = next_accnum(_args.acc_num)  # not used if --acc_num is not set
+    # PyCharm whines if we don't initialize accnumgen
+    accnumgen = next_accnum(_args.acc_num)
     for row in reader:
         emit = True
         template = copy.deepcopy(object_template)

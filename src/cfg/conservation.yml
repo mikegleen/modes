@@ -1,0 +1,9 @@
+cmd: column
+xpath: ./Conservation/Type
+---
+cmd: column
+xpath: ./Conservation/Person
+---
+cmd: column
+xpath: ./Conservation/Date
+---

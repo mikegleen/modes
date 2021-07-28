@@ -82,7 +82,7 @@ def main(inf, dslf):
         return
     for ix, title in enumerate(titles):
         percent = math.floor(float(tally[ix]) * 100. / float(nrows))
-        print(f'{str(title):25} {tally[ix]:3}/{nrows} ({percent}%)')
+        print(f'{str(title):25} {tally[ix]:4}/{nrows}  {percent}%')
         tallylist.append((title, tally[ix]))
     if _args.jsonfile:
         tree = {'nobjects': nobjects, 'nrows': nrows, 'tallylist': tallylist}
