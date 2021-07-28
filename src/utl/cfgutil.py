@@ -27,6 +27,7 @@ class Cmd:
     GLOBAL = 'global'
     KEYWORD = 'keyword'
     IF = 'if'  # if text is present
+    IFNOT = 'ifnot'  # if text is not present
     IFATTRIB = 'ifattrib'  # requires attribute statement
     IFATTRIBEQ = 'ifattribeq'  # requires attribute statement
     IFATTRIBNOTEQ = 'ifattribnoteq'  # requires attribute statement
@@ -35,13 +36,13 @@ class Cmd:
     IFNOTEQ = 'ifnoteq'  # if the elt text does not equal the value statement
     IFSERIAL = 'ifserial'
     # Commands that do not produce a column in the output CSV file
-    _CONTROL_CMDS = (IF, IFEQ, IFNOTEQ, IFATTRIB, IFSERIAL, GLOBAL, IFCONTAINS,
-                     IFATTRIBEQ, IFATTRIBNOTEQ)
-    _NEEDVALUE_CMDS = (KEYWORD, IFNOTEQ, IFATTRIBEQ, IFATTRIBNOTEQ, IFSERIAL,
-                       IFCONTAINS, CONSTANT)
-    _NEEDXPATH_CMDS = (ATTRIB, COLUMN, KEYWORD, IF, COUNT, IFEQ, IFNOTEQ,
-                       IFCONTAINS, IFATTRIB, IFATTRIBEQ, IFATTRIBNOTEQ,
-                       CONSTANT)
+    _CONTROL_CMDS = (IF, IFNOT, IFEQ, IFNOTEQ, IFATTRIB, IFSERIAL, GLOBAL,
+                     IFCONTAINS, IFATTRIBEQ, IFATTRIBNOTEQ)
+    _NEEDVALUE_CMDS = (KEYWORD, IFEQ, IFNOTEQ, IFATTRIBEQ, IFATTRIBNOTEQ,
+                       IFSERIAL, IFCONTAINS, CONSTANT)
+    _NEEDXPATH_CMDS = (ATTRIB, COLUMN, KEYWORD, IF, IFNOT, COUNT, IFEQ,
+                       IFNOTEQ, IFCONTAINS, IFATTRIB, IFATTRIBEQ,
+                       IFATTRIBNOTEQ, CONSTANT)
 
     @staticmethod
     def get_needxpath_cmds():
@@ -171,7 +172,7 @@ class Config:
         self.record_id_xpath = Stmt.get_default_record_id_xpath()
         self.delimiter = ','
         self.multiple_delimiter = '|'
-        cfglist = _read_yaml_cfg(yamlcfgfile, title=title, dump=dump)
+        cfglist = _read_yaml_cfg(yamlcfgfile, dump=dump)
         valid = validate_yaml_cfg(cfglist, allow_required)
         if not valid:
             raise ValueError('Config failed validation.')
@@ -242,7 +243,11 @@ def select(cfg: Config, elem, include_list=None, exclude=False):
         else:
             # noinspection PyUnresolvedReferences
             text = element.text.strip()
-        if not text:
+        if text:
+            if command == Cmd.IFNOT:
+                selected = False
+                break
+        else:
             if Stmt.REQUIRED in document:
                 print(f'*** Required text in {eltstr} is missing from'
                       f' {idnum}. Object excluded.')
@@ -363,7 +368,7 @@ def _read_yaml_cfg(cfgf, dump: bool = False):
                 target = f'{target}(n)'
             document[Stmt.TITLE] = target
         if document[Stmt.TITLE] in titles:
-            raise ValueError(f'Duplicate title {document[Stmt.TITLE]}')
+            raise ValueError(f'Duplicate title "{document[Stmt.TITLE]}"')
         titles.add(document[Stmt.TITLE])
     return cfg
 
