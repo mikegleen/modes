@@ -16,7 +16,7 @@ import time
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-from utl.cfgutil import Cmd, Stmt, yaml_fieldnames
+from utl.cfgutil import Cmd, Stmt, yaml_fieldnames, expand_idnum
 from utl.cfgutil import Config, read_include_list
 from utl.normalize import normalize_id, denormalize_id, DEFAULT_MDA_CODE
 from utl.zipmagic import openfile
@@ -100,8 +100,12 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     if _args.heading:
         outcsv.writerow(titles)
     objectlevel = 0
-    includes = read_include_list(_args.include, _args.include_column,
-                                 _args.include_skip, _args.verbose)
+
+    if _args.object:
+        includes = set(expand_idnum(_args.object))  # JB001-002 -> JB001, JB002
+    else:
+        includes = read_include_list(_args.include, _args.include_column,
+                                     _args.include_skip, _args.verbose)
     for event, elem in ET.iterparse(infile, events=('start', 'end')):
         # print(event)
         if event == 'start':
@@ -120,10 +124,10 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         idnum = idelem.text if idelem is not None else ''
         trace(3, 'idnum: {}', idnum)
 
-        writerow = config.select(elem, includes)
+        writerow = config.select(elem, includes, exclude=_args.exclude)
         if not writerow:
             continue
-        if includes:
+        if includes and not _args.exclude:
             includes.remove(idnum.upper())
         if not config.skip_number:
             # Insert the ID number as the first column.
@@ -210,6 +214,10 @@ def getparser():  # called either by getargs or sphinx
         The number of rows to skip at the front of the include file. The
         default is 0.
         ''')
+    parser.add_argument('-j', '--object', help='''
+    Specify a single object to be processed. Do not also specify the include
+    file. The argument can be an object range, like JB001-2.
+    ''')
     parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.
         The default is "{DEFAULT_MDA_CODE}". ''')
@@ -218,6 +226,8 @@ def getparser():  # called either by getargs or sphinx
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
+    parser.add_argument('-x', '--exclude', action='store_true', help='''
+        Treat the include list as an exclude list.''')
     # print(argv)
     # print(sys.argv)
     # sys.argv = argv
