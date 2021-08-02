@@ -83,7 +83,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     outfilename = _args.outfile
     cfgfilename = _args.cfgfile
     infile = openfile(infilename)
-    nlines = notfound = 0
+    nlines = notfound = nwritten = 0
     Config.reset_config()  # needed by test_xml2csv
     if cfgfilename:
         cfgfile = open(cfgfilename)
@@ -123,6 +123,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         idelem = elem.find(config.record_id_xpath)
         idnum = idelem.text if idelem is not None else ''
         trace(3, 'idnum: {}', idnum)
+        nlines += 1
 
         writerow = config.select(elem, includes, exclude=_args.exclude)
         if not writerow:
@@ -133,6 +134,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
             # Insert the ID number as the first column.
             data.append(normalize_id(idnum, _args.mdacode, verbose=_args.verbose))
 
+        writerow = False
         for document in config.col_docs:
             text, command = one_document(document, elem, config)
             if text is None:
@@ -140,10 +142,13 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
                 trace(2, '{}: cmd: {}, "{}" is not found in XML.', idnum, command,
                       document[Stmt.TITLE])
                 text = ''
+            if text:
+                writerow = True
             data.append(text)
 
-        nlines += 1
-        outlist.append(data)
+        if writerow:
+            nwritten += 1
+            outlist.append(data)
         elem.clear()
         if _args.short:
             break
@@ -168,7 +173,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         cfgfile.close()
     outfile.close()
     if includes and len(includes):
-        if _args.verbose == 1:
+        if _args.verbose >= 1:
             print(f'{len(includes)} items in include list not in XML.')
         if _args.verbose > 1:
             print('In include list but not xml:')
@@ -176,7 +181,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
                 print(accnum)
     if not _args.bom:
         trace(1, 'BOM not written.')
-    return nlines, notfound
+    return nlines, nwritten, notfound
 
 
 def getparser():  # called either by getargs or sphinx
@@ -197,6 +202,8 @@ def getparser():  # called either by getargs or sphinx
     parser.add_argument('-c', '--cfgfile', help='''
         The config file describing the column_paths to extract. If omitted,
         only the accession numbers will be output.''')
+    parser.add_argument('-f', '--force', help='''
+        Write output even if none of the columns is populated.''')
     parser.add_argument('--heading', action='store_true', help='''
         Write a row at the front of the CSV file containing the field names.
         These are defined by the "title" statements in the config or inferred
@@ -244,9 +251,9 @@ if __name__ == '__main__':
     global _args
     assert sys.version_info >= (3, 6)
     t1 = time.perf_counter()
-    n_lines, not_found = main(sys.argv)
+    n_lines, n_written, not_found = main(sys.argv)
     elapsed = time.perf_counter() - t1
-    trace(1, '{} lines written to {}. Elapsed: {:5.2f} seconds.', n_lines,
-          _args.outfile, elapsed)
+    trace(1, '{}/{} lines written to {}. Elapsed: {:5.2f} seconds.',
+          n_written, n_lines, _args.outfile, elapsed)
     if not_found:
         trace(1, 'Warning: {} elements not found in XML.', not_found)
