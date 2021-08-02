@@ -222,7 +222,7 @@ if __name__ == '__main__':
     trace(1, 'Creating file: {}', _args.outfile)
     cfg = Config(_args.cfgfile, dump=_args.verbose > 1)
     if errors := check_cfg(cfg):
-        trace(1, '{errors} errors found. Aborting.', errors)
+        trace(1, '{} errors found. Aborting.', errors)
         sys.exit(1)
     newvals = loadnewvals()
     nnewvals = len(newvals)
