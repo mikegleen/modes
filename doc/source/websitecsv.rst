@@ -2,7 +2,7 @@ websitecsv
 ==========
 
 .. argparse::
-   :filename: ../src/websitecsv.py
+   :filename: ../src/web/sitecsv.py
    :func: getparser
    :prog: websitecsv.py
 
