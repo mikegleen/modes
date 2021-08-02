@@ -18,6 +18,27 @@ def trace(level, template, *args):
 
 def one_object(oldobj):
     """
+    Remove leading numbering, like "23. text..."
+    :param oldobj: the Object from the old file
+    :return: None. The updated object is written to the output XML file.
+    """
+    global object_number
+    title = oldobj.find('./Identification/Title')
+    if title is not None:
+        text = title.text
+        # if (text.startswith('\N{LEFT SINGLE QUOTATION MARK}') and
+        #    text.endswith('\N{RIGHT SINGLE QUOTATION MARK}')
+        # if m := re.match(r"(\d+\.\s*)'([^']*)'$", text):
+        if m := re.match(r"(\d+\.\s*)(.*)$", text):
+            title.text = m.group(2)
+            # trace(1, '{}: {} «{}»', object_number, text, title.text)
+            trace(1, '{}: {}', object_number, text)
+            return True
+    return False
+
+
+def one_object_fullstops(oldobj):
+    """
 
     :param oldobj: the Object from the old file
     :return: None. The updated object is written to the output XML file.
@@ -26,10 +47,16 @@ def one_object(oldobj):
     title = oldobj.find('./Identification/Title')
     if title is not None:
         text = title.text
-        if (text.startswith('\N{LEFT SINGLE QUOTATION MARK}') and
-           text.endswith('\N{RIGHT SINGLE QUOTATION MARK}')
-           or re.match(r'\'[^\']*\'$', text)):
-            title.text = text[1:-1]
+        # if (text.startswith('\N{LEFT SINGLE QUOTATION MARK}') and
+        #    text.endswith('\N{RIGHT SINGLE QUOTATION MARK}')
+        # if m := re.match(r"(\d+\.)?\s*'([^']*)'$", text):
+        # if m := re.match(r"'(.*)'$", text):
+        #     title.text = m.group(1)
+        #     trace(1, '{}: {} «{}»', object_number, text, title.text)
+        #     return True
+        if m := re.match(r"(.*)([\w)\]”'’])\.$", text):
+            title.text = text[:-1]
+            # trace(1, '{}: {} «{}»', object_number, text, title.text)
             trace(1, '{}: {}', object_number, text)
             return True
     return False
@@ -73,9 +100,6 @@ def getargs():
         The input XML file''')
     parser.add_argument('outfile', help='''
         The output XML file.''')
-    parser.add_argument('-c', '--cfgfile', required=False, help='''
-        The config file describing the Object elements to include in the
-        output''')
     parser.add_argument('-e', '--encoding', default='utf-8', help='''
         Set the output encoding. The default is "utf-8".
         ''')
