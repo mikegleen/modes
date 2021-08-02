@@ -13,10 +13,10 @@ files = os.listdir(indir)
 nout = 0
 print('Serial', file=outfile)
 for fn in files:
-    m = re.match(r'(.+)\.jpg', fn)
+    m = re.match(r'(collection_)?(.+)\.jpg', fn)
     if not m:
         print(f'Skipping: {fn}')
         continue
-    print(m.group(1), file=outfile)
+    print(m.group(2), file=outfile)
     nout += 1
 print(f'{nout} rows written.')
