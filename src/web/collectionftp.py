@@ -13,8 +13,8 @@ import shutil
 HOST = 'heathrobinsonmuseum.org'
 USER = 'mike@heathrobinsonmuseum.org'
 PASSWORD = 'thegleenster-123?!'
-STAGING_DIR = '/Users/mlg/pyprj/hrm/collection_staging'
-SENT_DIR = '/Users/mlg/pyprj/hrm/collection_sent'
+STAGING_DIR = '/Users/mlg/pyprj/hrm/collection/staging'
+SENT_DIR = '/Users/mlg/pyprj/hrm/collection/sent'
 VERBOSE = 2
 
 
