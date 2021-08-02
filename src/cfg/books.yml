@@ -1,12 +1,15 @@
 cmd: ifattribeq
-xpath: ./Identification/ObjectName
+xpath: .
 attribute: elementtype
-value: simple name
+value: books
 ---
 cmd: attrib
 xpath: .
 attribute: elementtype
 title: elementtype
+---
+cmd: column
+xpath: ./Identification/Title
 ---
 cmd: column
 xpath: ./Identification/ObjectName[@elementtype="simple name"]/Keyword

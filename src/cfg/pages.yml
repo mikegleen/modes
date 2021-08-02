@@ -1,0 +1,19 @@
+#cmd: ifattribeq
+#xpath: .
+#attribute: elementtype
+#value: books
+#---
+cmd: column
+xpath: ./Description/Measurement[Dimension='height']/Reading
+title: Height
+---
+cmd: column
+xpath: ./Description/Measurement[Dimension='width']/Reading
+title: Width
+---
+cmd: column
+xpath: ./Description/Aspect/Reading
+title: Number of Pages
+---
+cmd: column
+xpath: ./Production/Organisation[Role="printer"]/OrganisationName
