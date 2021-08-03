@@ -7,9 +7,12 @@ if [[ "$CONDA_DEFAULT_ENV" != $CONDAENV ]]; then
 fi
 pushd ~/pyprj/hrm/modes
 INXML=`basename $1`
+echo INXML = $INXML
 INDIR=`dirname $1`
-mkdir -p $INDIR/pretty
+echo INDIR = $INDIR
+OUTDIR=`dirname $INDIR`/pretty
+echo OUTDIR = $OUTDIR
 BASENAME=`python3 -c "print('$INXML'.split('.')[0])"`
-PRETTYPATH="$INDIR/pretty/${BASENAME}_pretty.xml"
+PRETTYPATH="$OUTDIR/${BASENAME}_pretty.xml"
 echo Creating: $PRETTYPATH
 python src/normalize_xml.py -p $1 $PRETTYPATH

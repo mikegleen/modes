@@ -1,8 +1,8 @@
-#cmd: ifattribeq
-#xpath: .
-#attribute: elementtype
-#value: books
-#---
+cmd: ifattribeq
+xpath: .
+attribute: elementtype
+value: books
+---
 cmd: column
 xpath: ./Description/Measurement[Dimension='height']/Reading
 title: Height
