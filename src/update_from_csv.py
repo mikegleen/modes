@@ -201,10 +201,10 @@ def check_cfg(c):
     errs = 0
     for doc in c.col_docs:
         if doc[Stmt.CMD] != Cmd.COLUMN:
-            print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting')
+            print(f'Command "{doc[Stmt.CMD]}" not allowed, ignored')
             errs += 1
     for doc in c.ctrl_docs:
-        print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting.')
+        print(f'Command "{doc[Stmt.CMD]}" not allowed, ignored.')
         errs += 1
     return errs
 
@@ -219,14 +219,12 @@ if __name__ == '__main__':
     nupdated = nunchanged = nwritten =0
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
-    trace(1, 'Creating file: {}', _args.outfile)
+    trace(1, 'Input file: {}\nCreating file: {}', _args.infile, _args.outfile)
     cfg = Config(_args.cfgfile, dump=_args.verbose > 1)
     if errors := check_cfg(cfg):
-        trace(1, '{} errors found. Aborting.', errors)
-        sys.exit(1)
+        trace(1, '{} command{} ignored.', errors, 's' if errors > 1 else '')
     newvals = loadnewvals()
     nnewvals = len(newvals)
-    trace(1, 'Input file: {}', _args.infile)
     main()
     trace(1, '{} element{} in {} object{} updated. {} '
           'existing element{} unchanged.',
