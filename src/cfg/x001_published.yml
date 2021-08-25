@@ -1,0 +1,17 @@
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Date
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Page
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="Reproduced In"]/Title
+title: Reproduced In
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="Reproduced In"]/Page
+title: Reproduced In Page
+---
