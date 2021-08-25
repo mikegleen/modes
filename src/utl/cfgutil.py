@@ -437,11 +437,13 @@ def read_include_list(includes_file, include_column, include_skip, verbos=1):
         return None
     includeset = set()
     includereader = csv.reader(open(includes_file))
-    for n in range(include_skip):  # default = 1
+    for n in range(include_skip):  # default in xml2csv = 0
         skipped = next(includereader)  # skip header
         if verbos >= 1:
             print(f'Skipping row in "include" file: {skipped}')
     for row in includereader:
+        if not row:
+            continue
         idnum = row[include_column].upper()  # cfgutil.select needs uppercase
         idnumlist: list[str] = expand_idnum(idnum)
         if verbos >= 1:
