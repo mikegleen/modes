@@ -82,9 +82,9 @@ def getargs():
         The column number containing the accession number in the file
         specified by the --select option. The default is 0, the first column.'''
                         )
-    parser.add_argument('--include_skip', type=int, default=1, help='''
+    parser.add_argument('--include_skip', type=int, default=0, help='''
         The number of rows to skip at the front of the include file. The
-        default is 1, usually the heading.
+        default is 0.
         ''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object.''')
