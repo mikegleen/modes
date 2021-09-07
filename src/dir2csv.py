@@ -6,6 +6,10 @@
 import os.path
 import re
 import sys
+
+if len(sys.argv) != 3:
+    print('Parameters: input folder, output csv')
+    sys.exit()
 indir = sys.argv[1]
 outfile = open(sys.argv[2], 'w')
 

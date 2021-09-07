@@ -3,9 +3,7 @@
     Create a report showing the percent populated of specified fields.
 """
 import argparse
-import codecs
 import collections
-import csv
 import json
 import math
 import sys
@@ -58,10 +56,12 @@ def main(inf, dslf):
             elif cmd == 'count':
                 count = len(list(elem.findall(xpath)))
                 text = f'{count}'
-            elif e is None or e.text is None:
+            elif e is None:
                 text = ''
             else:
-                text = e.text.strip()
+                text = e.text
+            if text is None:
+                text = ''
             if _args.maxwidth:
                 text = text[:_args.maxwidth]
             data.append(text)

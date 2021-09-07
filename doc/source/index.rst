@@ -14,8 +14,8 @@ Modes Python Library
    docx2csv
    exhibition
    location
+   sitecsv
    update_from_csv
-   websitecsv
    xml2csv
    genindex
 
@@ -212,15 +212,15 @@ Do updating, listing and
 validating of object locations. If updating a current location, a
 previous location element is created.
 
+:doc:`sitecsv`
+~~~~~~~~~~~~~~~~~
+Utility for recoding fields for loading to the website collection
+at heathrobinsonmuseum.org.
+
 :doc:`update_from_csv`
 ~~~~~~~~~~~~~~~~~~~~~~
 Update an XML file driven by a YAML configuration file with
 input data from a CSV file.
-
-:doc:`websitecsv`
-~~~~~~~~~~~~~~~~~
-Utility for recoding fields for loading to the website collection
-at heathrobinsonmuseum.org.
 
 :doc:`xml2csv`
 ~~~~~~~~~~~~~~

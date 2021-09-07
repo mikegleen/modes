@@ -1,10 +1,12 @@
 """
     Transfer JPEG files to the website collection staging directory.
 
+    Before calling this program, manually copy files to the sending directory.
     The files in the sending directory are of the form: <accession #>.jpg
-    Add a prefix of "collection_" to each file.
-    Send the file to the host.
-    Move the file to the SENT directory.
+    This program will:
+        Add a prefix of "collection_" to each file, if needed.
+        Send the file to the host.
+        Move the file to the SENT directory.
 """
 from ftplib import FTP
 import os.path
@@ -13,7 +15,7 @@ import shutil
 HOST = 'heathrobinsonmuseum.org'
 USER = 'mike@heathrobinsonmuseum.org'
 PASSWORD = 'thegleenster-123?!'
-STAGING_DIR = '/Users/mlg/pyprj/hrm/collection/staging'
+SENDING_DIR = '/Users/mlg/pyprj/hrm/collection/sending'
 SENT_DIR = '/Users/mlg/pyprj/hrm/collection/sent'
 VERBOSE = 2
 
@@ -23,8 +25,8 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-files = os.listdir(STAGING_DIR)
-os.chdir(STAGING_DIR)
+files = os.listdir(SENDING_DIR)
+os.chdir(SENDING_DIR)
 session = FTP(HOST, USER, PASSWORD)
 
 nfiles = len(files)
@@ -47,6 +49,6 @@ for filename in files:
     nsent += 1
     if nsent % 10 == 0:
         trace(1, '{} of {} sent', nsent, nfiles)
-    srcfile = os.path.join(STAGING_DIR, filename)
+    srcfile = os.path.join(SENDING_DIR, filename)
     dstfile = os.path.join(SENT_DIR, filename)
     shutil.move(srcfile, dstfile)

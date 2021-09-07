@@ -94,6 +94,9 @@ def getargs():
     parser.add_argument('-x', '--exclude', action='store_true', help='''
         Treat the include list as an exclude list.''')
     args = parser.parse_args()
+    if args.cfgfile is None and args.include is None:
+        raise ValueError('At least one of --cfgfile and --include must be'
+                         ' specified.')
     return args
 
 
@@ -106,9 +109,9 @@ if __name__ == '__main__':
     outfile = open(_args.outfile, 'wb')
     if _args.cfgfile:
         cfgfile = open(_args.cfgfile)
-        config = Config(cfgfile, dump=_args.verbose >= 2)
     else:
-        config = None
+        cfgfile = None
+    config = Config(cfgfile, dump=_args.verbose >= 2)
     includes = read_include_list(_args.include, _args.include_column,
                                  _args.include_skip, _args.verbose)
     main()

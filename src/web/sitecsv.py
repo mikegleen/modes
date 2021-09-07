@@ -13,7 +13,7 @@ import codecs
 import csv
 import re
 import sys
-from utl.normalize import britishdatefrommodes, datefrommodes
+from utl.normalize import britishdatefrommodes
 from utl.normalize import isoformatfrommodesdate
 
 
@@ -43,31 +43,31 @@ def main():
     writer = csv.DictWriter(outfile, fieldnames=r)
     writer.writeheader()
     nrows = 0
-    for row in reader:
+    for oldrow in reader:
         newrow = dict()
-        newrow['Serial'] = row['Serial']
-        newrow['Title'] = row['Title']
-        newrow['Medium'] = row['Medium']
-        newrow['Description'] = row['Description']
+        newrow['Serial'] = oldrow['Serial']
+        newrow['Title'] = oldrow['Title']
+        newrow['Medium'] = oldrow['Medium']
+        newrow['Description'] = oldrow['Description']
 
-        objectdate = row['Date Produced']
+        objectdate = oldrow['Date Produced']
         if not objectdate or objectdate == 'unknown':
-            objectdate = row['Date First Published']
+            objectdate = oldrow['Date First Published']
         newrow['HumanDate'] = britishdatefrommodes(objectdate)
         try:
             newrow['IsoDate'] = isoformatfrommodesdate(objectdate)
         except ValueError:
             newrow['IsoDate'] = 'unknown'
         newrow['Decade'] = decade(objectdate)
-        places = row['Exhibition Place'].split('|')
-        names = row['Exhibition Name'].split('|')
+        places = oldrow['Exhibition Place'].split('|')
+        names = oldrow['Exhibition Name'].split('|')
         if len(places) != len(names):
-            print(f'Exhibition name/place mismatch count: {row["Serial"]}')
+            print(f'Exhibition name/place mismatch count: {oldrow["Serial"]}')
             continue
-        # print(row)
         exhibition = []
-        for np in zip(names, places):
-            exhibition.append(f'{np[0]} ({np[1]})')
+        for name, place in zip(names, places):
+            if name.strip():
+                exhibition.append(f'{name} at {place}')
         newrow['Exhibition'] = '|'.join(exhibition)
         writer.writerow(newrow)
         nrows += 1
@@ -85,7 +85,7 @@ def getparser() -> argparse.ArgumentParser:
     parser.add_argument('incsvfile', help='''
         The CSV file containing data to be inserted into the XML template. The
         input is expected to have been produced by xml2csv.py using the
-        website.yml config file.''')
+        website.yml config file. You must specify the ``--heading`` option''')
     parser.add_argument('outfile', help='''
         The output CSV file.''')
     parser.add_argument('-s', '--short', action='store_true', help='''
