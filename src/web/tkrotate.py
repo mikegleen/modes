@@ -4,9 +4,14 @@
 import argparse
 import os.path
 from tkinter import *
+
+import PIL
 from PIL import ImageTk, Image
 from tkinter import ttk
 import sys
+
+# The canvas must be square
+CANVAS_SIZE = 800
 
 
 class Rotate:
@@ -16,33 +21,46 @@ class Rotate:
         self.root.rowconfigure(0, weight=1)
         self.mainframe = ttk.Frame(self.root, padding='3 3 12 12')
         self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
-        self.canvas = Canvas(self.mainframe, width=800, height=800)
+        self.canvas = Canvas(self.mainframe, width=CANVAS_SIZE,
+                             height=CANVAS_SIZE)
         self.canvas.grid()
-        self.activefile = infilename
-        self.basename = os.path.basename(infilename)
-        self.outfilename = os.path.join(outdirname, self.basename)
-        self.img = Image.open(self.activefile)
-        self.photoimg = ImageTk.PhotoImage(image=self.img)
-        self.img_on_canvas = self.canvas.create_image(10, 10,
-                                                      image=self.photoimg,
-                                                      anchor='nw')
+        self.infiles = iter(sorted(os.listdir(indirname)))
+        self.activefile = None
+        self.inpath = self.outpath = None
+        self.img = self.display_img = self.photoimg = None
+        self.img_width = self.img_height = None
+        self.init_img()
         self.root.bind('<Down>', lambda e: self.rotate180())
         self.root.bind('<Left>', lambda e: self.rotate90())
         self.root.bind('<Right>', lambda e: self.rotate270())
         self.root.bind('<space>', lambda e: self.nextimg())
         self.root.mainloop()
 
-    def rotate_n(self, degrees):
-        self.canvas.delete('all')
-        self.img = self.img.rotate(degrees, expand=True)
-        self.photoimg = ImageTk.PhotoImage(image=self.img)
-        self.canvas.itemconfig(self.img_on_canvas, image=self.photoimg)
-        self.img_on_canvas = self.canvas.create_image(10, 10,
-                                                      image=self.photoimg,
-                                                      anchor='nw')
-        # print('rotate')
+    def init_img(self):
+        while True:
+            try:
+                self.activefile = next(self.infiles)
+            except StopIteration:
+                print('Exiting.')
+                sys.exit()
+            self.inpath = os.path.join(indirname, self.activefile)
+            self.outpath = os.path.join(outdirname, self.activefile)
+            try:
+                self.img = Image.open(self.inpath)
+            except PIL.UnidentifiedImageError:
+                print('Skipping:', self.inpath)
+                continue
+            self.rotate_n(0)
+            break
 
-        # sys.exit()
+    def rotate_n(self, degrees):
+        if degrees:  # degrees == 0 if called from __init__
+            self.img = self.img.rotate(degrees, expand=True)
+        self.display_img = self.img.copy()
+        self.img_width, self.img_height = self.img.size
+        self.display_img.thumbnail((CANVAS_SIZE, CANVAS_SIZE))
+        self.photoimg = ImageTk.PhotoImage(image=self.display_img)
+        self.canvas.create_image(10, 10, image=self.photoimg, anchor='nw')
 
     def rotate180(self):
         self.rotate_n(180)
@@ -54,21 +72,26 @@ class Rotate:
         self.rotate_n(270)
 
     def nextimg(self):
-        print('nextimg')
+        self.img.save(self.outpath, quality=100)  # , subsampling=0)
+        self.canvas.delete('all')
+        print(f'nextimg: {self.activefile}')
+        self.init_img()
 
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
     Display images and accept commands to rotate them.
         ''')
-    parser.add_argument('infile', help='''
-        The input image file''')
+    parser.add_argument('indir', help='''
+        The input directory''')
     parser.add_argument('outdir', help='''
         The output directory to contain the (possibly) rotated image.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
     _args = parser.parse_args()
+    if not os.path.isdir(_args.indir):
+        raise ValueError('First parameter must be the input directory.')
     if not os.path.isdir(_args.outdir):
         raise ValueError('Second parameter must be the output directory.')
     return _args
@@ -77,6 +100,6 @@ def getargs():
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     args = getargs()
-    infilename = args.infile
+    indirname = args.indir
     outdirname = args.outdir
     Rotate()
