@@ -29,7 +29,6 @@ class Rotate:
         self.activefile = None
         self.inpath = self.outpath = None
         self.img = self.display_img = self.photoimg = None
-        self.img_width = self.img_height = None
         self.init_img()
         self.root.bind('<Down>', lambda e: self.rotate180())
         self.root.bind('<Left>', lambda e: self.rotate90())
@@ -58,7 +57,6 @@ class Rotate:
         if degrees:  # degrees == 0 if called from __init__
             self.img = self.img.rotate(degrees, expand=True)
         self.display_img = self.img.copy()
-        self.img_width, self.img_height = self.img.size
         self.display_img.thumbnail((CANVAS_SIZE - 100, CANVAS_SIZE - 100))
         self.photoimg = ImageTk.PhotoImage(image=self.display_img)
         self.canvas.create_image(10, 10, image=self.photoimg, anchor='nw')
