@@ -133,11 +133,12 @@ class Config:
         """
         Config.__instance = None
 
-    def __init__(self, yamlcfgfile, title: bool = False, dump: bool = False,
+    def __init__(self, yamlcfgfile=None, title: bool = False, dump: bool = False,
                  allow_required: bool = False):
         """
 
-        :param yamlcfgfile:
+        :param yamlcfgfile: If None then only the default global values will
+                            be initialized.
         :param title: If no title statement exists, create one from the
                       XPATH statement.
         :param dump: If True, print the YAML documents
