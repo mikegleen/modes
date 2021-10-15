@@ -3,7 +3,7 @@
     the 'Date Produced' column.
 
     Merge the 'Exhibition Name' and 'Exhibition Place' columns producing a
-    single column of Name (Place).
+    single column of "<name> at <place>".
 
     Input is the CSV file produced by csv2xml.py using website.yml
     Output is a reformatted CSV file.
