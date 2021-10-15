@@ -44,6 +44,6 @@ def list_objects(infile):
 
 
 if __name__ == "__main__":
-    objects = list_objects(sys.argv[1])
+    objects = list_objects(sys.argv[1])  # (normalized, not normalized)
     for _, obj in objects:
         print(obj)
