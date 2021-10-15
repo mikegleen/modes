@@ -37,6 +37,11 @@ class Rotate:
         self.root.mainloop()
 
     def init_img(self):
+        """
+        Iterate over the files in the input directory until we find one we
+        can open.
+        :return: self.img contains the new image. If none is found, exit.
+        """
         while True:
             try:
                 self.activefile = next(self.infiles)
@@ -71,6 +76,10 @@ class Rotate:
         self.rotate_n(270)
 
     def nextimg(self):
+        """
+        Save the current image and load the next one.
+        :return: Image loaded and displayed or exit if no more images
+        """
         self.img.save(self.outpath, quality=100)  # , subsampling=0)
         self.canvas.delete('all')
         print(f'nextimg: {self.activefile}')
