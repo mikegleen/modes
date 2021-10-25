@@ -46,9 +46,11 @@ def main():
                                              encoding=_args.output_encoding)
             # toprettyxml inserts '<?xml....' at the front. Remove it.
             prettyxml = prettyxml.split(b'\n', 1)[1]
-            outfile.write(prettyxml)
-        else:
-            outfile.write(xmlstring)
+            # minidom converts '"' to '&quot' so let elementtree redo it
+            etparsed = ET.fromstring(prettyxml)
+            xmlstring = ET.tostring(etparsed, encoding=_args.output_encoding,
+                                    xml_declaration=False)
+        outfile.write(xmlstring)
         nlines += 1
         if _args.newline:
             outfile.write(b'\n')
