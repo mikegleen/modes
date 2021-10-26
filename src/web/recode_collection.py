@@ -107,9 +107,10 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 8)
     _args = getargs(sys.argv)
     incsvfile = codecs.open(_args.incsvfile, 'r', encoding='utf-8-sig')
-    outfile = open(_args.outfile, 'w')
-    trace(1, 'Input file: {}', _args.incsvfile)
-    trace(1, 'Creating file: {}', _args.outfile)
+    outfile = codecs.open(_args.outfile, 'w', encoding='utf-8-sig')
+    trace(1, 'Begin recode_collection.')
+    trace(1, '    Input file: {}', _args.incsvfile)
+    trace(1, '    Creating file: {}', _args.outfile)
     main()
-    trace(1, 'End recode. {} object{} created.', nrows,
+    trace(1, 'End recode_collection. {} row{} written.', nrows,
           '' if nrows == 1 else 's')
