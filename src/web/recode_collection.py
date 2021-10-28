@@ -1,6 +1,6 @@
 """
-    Add a column to a CSV file with the decade a work was created based on
-    the 'Date Produced' column.
+    Add a column to a CSV file with the decade an object was created based on
+    the 'DateBegin' column.
 
     Merge the 'Exhibition Name' and 'Exhibition Place' columns producing a
     single column of "<name> at <place>".
@@ -34,7 +34,7 @@ def decade(datestr):
 def main():
     global nrows
     reader = csv.DictReader(incsvfile)
-    r = list(reader.fieldnames[:3])  # Serial, Title, Medium
+    r = 'Serial Title Medium'.split()
     r.append('Exhibition')
     r.append('HumanDate')
     r.append('IsoDate')
@@ -50,14 +50,19 @@ def main():
         newrow['Medium'] = oldrow['Medium']
         newrow['Description'] = oldrow['Description']
 
-        objectdate = oldrow['Date Produced']
+        objectdate = oldrow['DateBegin']
+        accuracy = oldrow['Accuracy']
         if not objectdate or objectdate == 'unknown':
             objectdate = oldrow['Date First Published']
+
         newrow['HumanDate'] = britishdatefrommodes(objectdate)
+        if accuracy == 'circa':
+            newrow['HumanDate'] = 'ca. ' + newrow['HumanDate']
         try:
             newrow['IsoDate'] = isoformatfrommodesdate(objectdate)
         except ValueError:
-            newrow['IsoDate'] = 'unknown'
+            newrow['IsoDate'] = ''
+
         newrow['Decade'] = decade(objectdate)
         places = oldrow['Exhibition Place'].split('|')
         names = oldrow['Exhibition Name'].split('|')
@@ -77,7 +82,7 @@ def getparser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='''
     Read a CSV file, recode columns and write the CSV file. The Exhibition
     Name and Exhibition Place columns are merged into a "name(place)" format.
-    The Date Produced column (in Modes format) is deleted and replaced by a
+    The DateBegin column (in Modes format) is deleted and replaced by a
     human-friendly column and an ISO date column.
     
     The input columns are defined in ``cfg/website.yml`` and must match
