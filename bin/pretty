@@ -15,4 +15,4 @@ echo OUTDIR = $OUTDIR
 BASENAME=`python3 -c "print('$INXML'.split('.')[0])"`
 PRETTYPATH="$OUTDIR/${BASENAME}_pretty.xml"
 echo Creating: $PRETTYPATH
-python src/normalize_xml.py -p $1 $PRETTYPATH
+python src/normalize_xml.py -p -n $1 $PRETTYPATH
