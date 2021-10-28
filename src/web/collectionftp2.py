@@ -17,7 +17,7 @@ import sys
 
 HOST = 'heathrobinsonmuseum.org'
 USER = 'mike@heathrobinsonmuseum.org'
-PASSWORD = 'thegleenster-123?!'
+PASSWORDFILE = 'etc/passwd'
 VERBOSE = 2
 
 
@@ -29,7 +29,9 @@ def trace(level, template, *args):
 sending_dir = sys.argv[1]
 files = os.listdir(sending_dir)
 os.chdir(sending_dir)
-session = FTP(HOST, USER, PASSWORD)
+with open(PASSWORDFILE) as pwfile:
+    password = pwfile.read().strip()
+session = FTP(HOST, USER, password)
 
 nfiles = len(files)
 trace(1, '{} files to send.', nfiles)

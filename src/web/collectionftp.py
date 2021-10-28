@@ -14,7 +14,7 @@ import shutil
 
 HOST = 'heathrobinsonmuseum.org'
 USER = 'mike@heathrobinsonmuseum.org'
-PASSWORD = 'thegleenster-123?!'
+PASSWORDFILE = 'etc/passwd'
 SENDING_DIR = '/Users/mlg/pyprj/hrm/collection/sending'
 SENT_DIR = '/Users/mlg/pyprj/hrm/collection/sent'
 VERBOSE = 2
@@ -27,7 +27,9 @@ def trace(level, template, *args):
 
 files = os.listdir(SENDING_DIR)
 os.chdir(SENDING_DIR)
-session = FTP(HOST, USER, PASSWORD)
+with open(PASSWORDFILE) as pwfile:
+    password = pwfile.read().strip()
+session = FTP(HOST, USER, password)
 
 nfiles = len(files)
 trace(1, '{} files to send.', nfiles)
