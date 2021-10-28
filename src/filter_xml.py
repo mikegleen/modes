@@ -17,19 +17,6 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-def one_object(oldobj):
-    """
-    :param oldobj: the Object from the old file
-    :return: None. The updated object is written to the output XML file.
-    """
-    global object_number
-    global selcount
-    selected = config.select(oldobj, includes, _args.exclude)
-    if selected:
-        selcount += 1
-        outfile.write(ET.tostring(oldobj, encoding=_args.encoding))
-
-
 def main():
     global selcount
     declaration = f'<?xml version="1.0" encoding="{_args.encoding}"?>\n'
@@ -47,7 +34,6 @@ def main():
         objectlevel -= 1
         if objectlevel:
             continue  # It's not a top level Object.
-        one_object(oldobject)
         selected = config.select(oldobject, includes, _args.exclude)
         if selected:
             selcount += 1
@@ -60,9 +46,10 @@ def main():
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-        For objects where the type of object is "drawing", remove the extraneous text
-        "Drawing - " from the beginning of the BriefDescription element text.        
-        ''')
+        Copy a selected set of objects to a new XML file based on the config
+        and a CSV file giving explicit accessions numbers to include or
+        exclude. If neither parameter is given, the entire file is copied,
+        possibly reformatting the text and converting ASCII to UTF-8.''')
     parser.add_argument('infile', help='''
         The input XML file''')
     parser.add_argument('outfile', help='''
@@ -86,6 +73,8 @@ def getargs():
         The number of rows to skip at the front of the include file. The
         default is 0.
         ''')
+    parser.add_argument('-j', '--object', required=False, help='''
+        Specify a single object to copy. ''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -94,9 +83,6 @@ def getargs():
     parser.add_argument('-x', '--exclude', action='store_true', help='''
         Treat the include list as an exclude list.''')
     args = parser.parse_args()
-    if args.cfgfile is None and args.include is None:
-        raise ValueError('At least one of --cfgfile and --include must be'
-                         ' specified.')
     return args
 
 
@@ -114,8 +100,9 @@ if __name__ == '__main__':
     config = Config(cfgfile, dump=_args.verbose >= 2)
     includes = read_include_list(_args.include, _args.include_column,
                                  _args.include_skip, _args.verbose)
+    if _args.object:
+        includes.add(_args.object)
     main()
     basename = os.path.basename(sys.argv[0])
     print(f'{selcount} object{"" if selcount == 1 else "s"} selected.')
     print(f'End {basename.split(".")[0]}')
-
