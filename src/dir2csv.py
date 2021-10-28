@@ -23,4 +23,4 @@ for fn in files:
         continue
     print(m.group(2), file=outfile)
     nout += 1
-print(f'{nout} rows written.')
+print(f'End dir2csv. {nout} rows written.')
