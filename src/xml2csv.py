@@ -24,7 +24,7 @@ from utl.zipmagic import openfile
 
 def trace(level, template, *args):
     if _args.verbose >= level:
-        print(template.format(*args))
+        print(template.format(*args), file=_logfile)
 
 
 def opencsvwriter(filename, delimiter):
@@ -77,11 +77,15 @@ def one_document(document, parent, config: Config):
 
 
 def main(argv):  # can be called either by __main__ or test_xml2csv
-    global _args
+    global _args, _logfile
     _args = getargs(argv)
     infilename = _args.infile
     outfilename = _args.outfile
     cfgfilename = _args.cfgfile
+    if _args.logfile:
+        _logfile = open(_args.logfile, 'w')
+    else:
+        _logfile = sys.stdout
     infile = openfile(infilename)
     nlines = notfound = nwritten = 0
     Config.reset_config()  # needed by test_xml2csv
@@ -90,7 +94,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     else:
         cfgfile = None
         trace(1, 'Warning: Config file omitted. Only accession numbers will be output.')
-    config = Config(cfgfile, dump=_args.verbose >= 2)
+    config = Config(cfgfile, dump=_args.verbose >= 2, logfile=_logfile)
     outcsv, outfile = opencsvwriter(outfilename, config.delimiter)
     outlist = []
     titles = yaml_fieldnames(config)
@@ -105,7 +109,8 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         includes = set(expand_idnum(_args.object))  # JB001-002 -> JB001, JB002
     else:
         includes = read_include_list(_args.include, _args.include_column,
-                                     _args.include_skip, _args.verbose)
+                                     _args.include_skip, _args.verbose,
+                                     logfile=_logfile)
     for event, elem in ET.iterparse(infile, events=('start', 'end')):
         # print(event)
         if event == 'start':
@@ -173,12 +178,11 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         cfgfile.close()
     outfile.close()
     if includes and len(includes):
-        if _args.verbose >= 1:
-            print(f'{len(includes)} items in include list not in XML.')
+        trace(1, '{} items in include list not in XML.', len(includes))
         if _args.verbose > 1:
-            print('In include list but not xml:')
+            print('In include list but not xml:', file=_logfile)
             for accnum in includes:
-                print(accnum)
+                print(accnum, file=_logfile)
     if not _args.bom:
         trace(1, 'BOM not written.')
     return nlines, nwritten, notfound
@@ -225,6 +229,8 @@ def getparser():  # called either by getargs or sphinx
     Specify a single object to be processed. Do not also specify the include
     file. The argument can be an object range, like JB001-2.
     ''')
+    parser.add_argument('-l', '--logfile', help='''
+    Specify a file to write messages to. Default is sys.stdout ''')
     parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.
         The default is "{DEFAULT_MDA_CODE}". ''')
@@ -248,12 +254,17 @@ def getargs(argv):
 
 
 if __name__ == '__main__':
-    global _args
+    global _args, _logfile
     assert sys.version_info >= (3, 6)
     t1 = time.perf_counter()
     n_lines, n_written, not_found = main(sys.argv)
     elapsed = time.perf_counter() - t1
-    trace(1, '{}/{} lines written to {}. Elapsed: {:5.2f} seconds.',
-          n_written, n_lines, _args.outfile, elapsed)
     if not_found:
         trace(1, 'Warning: {} elements not found in XML.', not_found)
+    print('End xml2csv. {}/{} lines written to {}. Elapsed: {:5.2f} seconds.'
+          .format(n_written, n_lines, _args.outfile, elapsed), file=_logfile)
+    if _args.logfile:
+        print('End xml2csv. '
+              '{}/{} lines written to {}. Elapsed: {:5.2f} seconds.'
+              .format(n_written, n_lines, _args.outfile, elapsed),
+              file=sys.stderr)

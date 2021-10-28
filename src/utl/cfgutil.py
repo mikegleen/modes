@@ -134,7 +134,7 @@ class Config:
         Config.__instance = None
 
     def __init__(self, yamlcfgfile=None, title: bool = False, dump: bool = False,
-                 allow_required: bool = False):
+                 allow_required: bool = False, logfile=sys.stdout):
         """
 
         :param yamlcfgfile: If None then only the default global values will
@@ -166,6 +166,7 @@ class Config:
         if Config.__instance is not None:
             raise ValueError("This class is a singleton!")
         Config.__instance = self
+        self.logfile = logfile
         self.col_docs = []  # documents that generate columns
         self.ctrl_docs = []  # control documents
         self.skip_number = False
@@ -173,7 +174,7 @@ class Config:
         self.record_id_xpath = Stmt.get_default_record_id_xpath()
         self.delimiter = ','
         self.multiple_delimiter = '|'
-        cfglist = _read_yaml_cfg(yamlcfgfile, dump=dump)
+        cfglist = _read_yaml_cfg(yamlcfgfile, dump=dump, logfile=logfile)
         valid = validate_yaml_cfg(cfglist, allow_required)
         if not valid:
             raise ValueError('Config failed validation.')
@@ -232,7 +233,7 @@ def select(cfg: Config, elem, include_list=None, exclude=False):
         if element is None:
             if Stmt.REQUIRED in document:
                 print(f'*** Required element {eltstr} is missing from'
-                      f' {idnum}. Object excluded.')
+                      f' {idnum}. Object excluded.', file=cfg.logfile)
             selected = False
             break
         if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ,
@@ -251,7 +252,7 @@ def select(cfg: Config, elem, include_list=None, exclude=False):
         else:
             if Stmt.REQUIRED in document:
                 print(f'*** Required text in {eltstr} is missing from'
-                      f' {idnum}. Object excluded.')
+                      f' {idnum}. Object excluded.', file=cfg.logfile)
             if command in (Cmd.IF, Cmd.IFATTRIB, Cmd.IFCONTAINS,
                            Cmd.IFEQ, Cmd.IFATTRIBEQ):
                 selected = False
@@ -278,14 +279,14 @@ def select(cfg: Config, elem, include_list=None, exclude=False):
     return selected
 
 
-def dump_document(document):
-    print('Document:')
+def dump_document(document, logfile=sys.stdout):
+    print('Document:', file=logfile)
     for stmt in document:
-        print(f'     {stmt}: {document[stmt]}')
-    print('     ---')
+        print(f'     {stmt}: {document[stmt]}', file=logfile)
+    print('     ---', file=logfile)
 
 
-def validate_yaml_cfg(cfglist, allow_required=False):
+def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
     valid = True
     for document in cfglist:
         # Do not change this to valid_doc = Stmt.val.... to allow for more
@@ -294,38 +295,38 @@ def validate_yaml_cfg(cfglist, allow_required=False):
         if not Stmt.validate_yaml_stmts(document):
             valid_doc = False
         if Stmt.CMD not in document:
-            print('ERROR: cmd statement is missing.')
+            print('ERROR: cmd statement is missing.', file=logfile)
             valid = False
-            dump_document(document)
+            dump_document(document, logfile=logfile)
             break
         command = document[Stmt.CMD]
         if not Cmd.validate_yaml_cmd(command):
             valid_doc = False
         if command in Cmd.get_needxpath_cmds() and Stmt.XPATH not in document:
-            print(f'ERROR: XPATH statement missing, cmd: {command}')
+            print(f'ERROR: XPATH statement missing, cmd: {command}', file=logfile)
             valid_doc = False
         if command in Cmd.get_needvalue_cmds() and Stmt.VALUE not in document:
-            print(f'ERROR: value is required for {command} command.')
+            print(f'ERROR: value is required for {command} command.', file=logfile)
             valid_doc = False
         if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ):
             if Stmt.ATTRIBUTE not in document:
-                print(f'ERROR: attribute is required for {command} command.')
+                print(f'ERROR: attribute is required for {command} command.', file=logfile)
                 valid_doc = False
         if command not in Cmd.get_control_cmds():
             # for csv2xml.py allow required on a column command
             if Stmt.REQUIRED in document:
                 if not (command == Cmd.COLUMN and allow_required):
                     print(f'ERROR: "required" not allowed for {command} '
-                          f'command. Use an "if" command.')
+                          f'command. Use an "if" command.', file=logfile)
                     valid_doc = False
         if not valid_doc:
             valid = False
-            dump_document(document)
+            dump_document(document, logfile=logfile)
 
     return valid
 
 
-def _read_yaml_cfg(cfgf, dump: bool = False):
+def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
     """
     Called by the Config constructor. Return the YAML documents with minor
     additions.
@@ -345,10 +346,10 @@ def _read_yaml_cfg(cfgf, dump: bool = False):
         for key in document:
             document[key] = str(document[key])
         if dump:
-            dump_document(document)
+            dump_document(document, logfile=logfile)
         if Stmt.CMD not in document:
             if not dump:
-                dump_document(document)
+                dump_document(document, logfile=logfile)
             print('"cmd" statement missing from document.')
             sys.exit()
         cmd = document[Stmt.CMD]
@@ -427,7 +428,8 @@ def expand_idnum(idstr: str) -> list[str]:
     return jlist
 
 
-def read_include_list(includes_file, include_column, include_skip, verbos=1):
+def read_include_list(includes_file, include_column, include_skip, verbos=1,
+                      logfile=sys.stdout):
     """
     Read the optional CSV file from the --include argument. Build a list
     of accession IDs in upper case for use by cfgutil.select.
@@ -441,7 +443,7 @@ def read_include_list(includes_file, include_column, include_skip, verbos=1):
     for n in range(include_skip):  # default in xml2csv = 0
         skipped = next(includereader)  # skip header
         if verbos >= 1:
-            print(f'Skipping row in "include" file: {skipped}')
+            print(f'Skipping row in "include" file: {skipped}', file=logfile)
     for row in includereader:
         if not row:
             continue
@@ -451,6 +453,6 @@ def read_include_list(includes_file, include_column, include_skip, verbos=1):
             for num in idnumlist:
                 if num in includeset:
                     print(f'Warning: Duplicate id number in include '
-                          f'file, {num}, ignored.')
+                          f'file, {num}, ignored.', file=logfile)
         includeset.update(idnumlist)  # one_idnum() returns a list
     return includeset
