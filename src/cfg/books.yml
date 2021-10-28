@@ -12,6 +12,14 @@ cmd: column
 xpath: ./Identification/Title
 ---
 cmd: column
+xpath: './ObjectLocation[@elementtype="normal location"]/Location'
+title: Normal
+---
+cmd: column
+xpath: './ObjectLocation[@elementtype="current location"]/Location'
+title: Current
+---
+cmd: column
 xpath: ./Identification/ObjectName[@elementtype="simple name"]/Keyword
 title: 'simple name'
 ---

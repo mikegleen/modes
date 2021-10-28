@@ -7,7 +7,9 @@ title: Medium
 ---
 cmd: column
 xpath: ./Production/Date/DateBegin
-title: Date Produced
+---
+cmd: column
+xpath: ./Production/Date/Accuracy
 ---
 cmd: multiple
 xpath: ./Exhibition/Place
