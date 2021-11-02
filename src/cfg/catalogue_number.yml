@@ -1,0 +1,16 @@
+cmd: global
+skip_number:
+sort_numeric:
+---
+cmd: ifelt
+xpath: ./Exhibition[ExhibitionName='Dulwich']
+---
+cmd: column
+xpath: ./Exhibition[ExhibitionName='Dulwich']/CatalogueNumber
+---
+cmd: column
+xpath: ./ObjectIdentity/Number
+---
+cmd: column
+xpath: ./Identification/Title
+width: 60

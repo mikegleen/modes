@@ -1,0 +1,14 @@
+cmd: ifattrib
+xpath: ./Acquisition/Funding/SummaryText[@elementtype="Conservation text"]
+
+---
+cmd: column
+xpath: ./Acquisition/Funding
+---
+cmd: column
+xpath: ./Acquisition/Funding/SummaryText[@elementtype="Conservation text"]
+title: conservation
+---
+cmd: attrib
+xpath: ./Acquisition/Funding
+attribute: elementtype
