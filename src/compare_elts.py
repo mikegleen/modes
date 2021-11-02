@@ -3,6 +3,10 @@
     This script expects two entries in the config. It will display the count
     of times the two entries were identical and when they were "alike",
     meaning that the contents of one was in the other.
+
+    The original purpose of this program was to compare the Title and
+    BriefDescription elements which were largely redundant. See
+    title_and_briefdes.yml.
 """
 import argparse
 import os.path
