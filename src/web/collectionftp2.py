@@ -18,6 +18,7 @@ import sys
 HOST = 'heathrobinsonmuseum.org'
 USER = 'mike@heathrobinsonmuseum.org'
 PASSWORDFILE = 'etc/passwd'
+FILENAME_PREFIX = 'collection_'
 VERBOSE = 2
 
 
@@ -39,8 +40,8 @@ nsent = 0
 for filename in files:
     if filename.startswith('.'):
         continue
-    if not filename.startswith('collection_'):
-        newfilename = 'collection_' + filename
+    if not filename.startswith(FILENAME_PREFIX):
+        newfilename = FILENAME_PREFIX + filename
         os.rename(filename, newfilename)
         filename = newfilename
     file = open(filename, 'rb')
