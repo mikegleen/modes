@@ -71,7 +71,9 @@ Single-command Statements
    from the xpath statement. If in a control document, this will be
    shown in diagnostics.
 -  **value** Required for **ifeq** or **ifattribeq** or **ifcontains**
-   or **constant** command.
+   or **constant** command. For the **csv_column** command, this specifies the
+   column or comma-separated columns to be written to the output CSV file from
+   the file specified by the ``--include`` argument.
 -  **normalize** Adjust this ID number so that it sorts in numeric
    order.
 -  **casesensitive** By default, comparisons are case insensitive.
@@ -96,14 +98,17 @@ Global-command Statements
    which takes precedence. The default is "|".
 -  **record_tag** This is the tag (of which there are usually many)
    that will be the root for extracting columns. The default is
-   ‘Object’.
+   ``Object``.
 -  **record_id_xpath** This is where the ID is found based on the
-   root tag. The default is ‘./ObjectIdentity/Number’. In addition to
+   root tag. The default is ``./ObjectIdentity/Number``. In addition to
    being output as column 1 by default, the ID is used in error
    messages.
 -  **skip_number** Do not automatically write the serial number as the
    first column. This can be useful when sorting on another column. The
    ID number can be manually inserted as another column.
+-  **sort_numeric** The default is to sort the output alphabetically.
+   This statement directs the sort to be numeric based on the first
+   column of the output row.
 
 
 Commands
@@ -130,6 +135,10 @@ Column-generating Commands
    values.
 -  **count** Displays the number of occurrences of an element under its
    parent.
+-  **csv_column** Specify a column to be copied to the output CSV file from the file
+   specified by the ``--include`` parameter. The column is specified by the ``value:``
+   statement and may include a zero-based index or a spreadsheet-style letter. Use
+   only for ``xml2csv.py``.
 
 Control Commands
 ++++++++++++++++
