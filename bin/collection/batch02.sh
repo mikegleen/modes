@@ -2,7 +2,7 @@
 # For the files in a batch, create the CSV file to be uploaded to WordPress for the collection images.
 #
 BATCH=batch2
-MODESFILE=prod_update/pretty/2021-10-25_unknown_date_pretty.xml
+MODESFILE=prod_update/normal/2021-10-30_funding.xml
 #
 # Create a CSV file with the accession numbers from the filenames in the batch
 #
