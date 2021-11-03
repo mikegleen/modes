@@ -9,7 +9,7 @@ import re
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from utl.cfgutil import Config, read_include_list
+from utl.cfgutil import Config, read_include_dict
 
 
 def trace(level, template, *args):
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     else:
         cfgfile = None
     config = Config(cfgfile, dump=_args.verbose >= 2)
-    includes = read_include_list(_args.include, _args.include_column,
+    includes = read_include_dict(_args.include, _args.include_column,
                                  _args.include_skip, _args.verbose)
     if _args.object:
         includes.add(_args.object)

@@ -4,6 +4,8 @@ import sys
 
 import yaml
 
+from .excel_cols import col2num
+
 # The difference between the 'attrib' command and the attribute statement:
 # The 'attrib' command is just like the column command except that the attribute
 # value as given in the attribute statement is extracted.
@@ -21,12 +23,14 @@ class Cmd:
     """
     ATTRIB = 'attrib'
     COLUMN = 'column'
+    CSV_COLUMN = 'csv_column'
     CONSTANT = 'constant'
     MULTIPLE = 'multiple'
     COUNT = 'count'
     GLOBAL = 'global'
     KEYWORD = 'keyword'
     IF = 'if'  # if text is present
+    IFELT = 'ifelt' # if the element is present
     IFNOT = 'ifnot'  # if text is not present
     IFATTRIB = 'ifattrib'  # requires attribute statement
     IFATTRIBEQ = 'ifattribeq'  # requires attribute statement
@@ -37,10 +41,10 @@ class Cmd:
     IFSERIAL = 'ifserial'
     # Commands that do not produce a column in the output CSV file
     _CONTROL_CMDS = (IF, IFNOT, IFEQ, IFNOTEQ, IFATTRIB, IFSERIAL, GLOBAL,
-                     IFCONTAINS, IFATTRIBEQ, IFATTRIBNOTEQ)
+                     IFCONTAINS, IFATTRIBEQ, IFATTRIBNOTEQ, IFELT)
     _NEEDVALUE_CMDS = (KEYWORD, IFEQ, IFNOTEQ, IFATTRIBEQ, IFATTRIBNOTEQ,
                        IFSERIAL, IFCONTAINS, CONSTANT)
-    _NEEDXPATH_CMDS = (ATTRIB, COLUMN, KEYWORD, IF, IFNOT, COUNT, IFEQ,
+    _NEEDXPATH_CMDS = (ATTRIB, COLUMN, KEYWORD, IF, IFNOT, COUNT, IFELT, IFEQ,
                        IFNOTEQ, IFCONTAINS, IFATTRIB, IFATTRIBEQ,
                        IFATTRIBNOTEQ, CONSTANT)
 
@@ -92,6 +96,7 @@ class Stmt:
     SKIP_NUMBER = 'skip_number'
     RECORD_TAG = 'record_tag'
     RECORD_ID_XPATH = 'record_id_xpath'
+    SORT_NUMERIC = 'sort_numeric'
     DELIMITER = 'delimiter'
     _DEFAULT_RECORD_TAG = 'Object'
     _DEFAULT_RECORD_ID_XPATH = './ObjectIdentity/Number'
@@ -133,14 +138,12 @@ class Config:
         """
         Config.__instance = None
 
-    def __init__(self, yamlcfgfile=None, title: bool = False, dump: bool = False,
+    def __init__(self, yamlcfgfile=None, dump: bool = False,
                  allow_required: bool = False, logfile=sys.stdout):
         """
 
         :param yamlcfgfile: If None then only the default global values will
                             be initialized.
-        :param title: If no title statement exists, create one from the
-                      XPATH statement.
         :param dump: If True, print the YAML documents
         :param allow_required: If True, allow the REQUIRED statement under the
                                COLUMN command. This only makes sense for
@@ -153,6 +156,8 @@ class Config:
                     continue
                 elif stmt == Stmt.SKIP_NUMBER:
                     self.skip_number = True
+                elif stmt == Stmt.SORT_NUMERIC:
+                    self.sort_numeric = True
                 elif stmt == Stmt.RECORD_ID_XPATH:
                     self.record_id_xpath = document[stmt]
                 elif stmt == Stmt.RECORD_TAG:
@@ -170,6 +175,7 @@ class Config:
         self.col_docs = []  # documents that generate columns
         self.ctrl_docs = []  # control documents
         self.skip_number = False
+        self.sort_numeric = False
         self.record_tag = Stmt.get_default_record_tag()
         self.record_id_xpath = Stmt.get_default_record_id_xpath()
         self.delimiter = ','
@@ -199,13 +205,12 @@ class Config:
         return select(self, elem, include_list, exclude)
 
 
-def select(cfg: Config, elem, include_list=None, exclude=False):
+def select(cfg: Config, elem, includes=None, exclude=False):
     """
     :param cfg: the Config instance
     :param elem: the Object element
-    :param include_list: A list of id numbers of objects to be included
-                         in the output CSV file. The list must be all
-                         uppercase.
+    :param includes: A set or dict of id numbers of objects to be included
+                     in the output CSV file. The list must be all uppercase.
     :param exclude: Treat the include list as an exclude list.
     :return: selected is true if the Object element should be written out
     """
@@ -214,11 +219,11 @@ def select(cfg: Config, elem, include_list=None, exclude=False):
     idelem = elem.find(cfg.record_id_xpath)
     idnum = idelem.text if idelem is not None else None
     # print(f'{idnum=}')
-    if idnum and exclude and include_list:
-        if idnum.upper() in include_list:
+    if idnum and exclude and includes:
+        if idnum.upper() in includes:
             return False
-    elif include_list is not None:
-        if not idnum or idnum.upper() not in include_list:
+    elif includes is not None:
+        if not idnum or idnum.upper() not in includes:
             # print('select return false')
             return False
     for document in cfg.ctrl_docs:
@@ -236,6 +241,8 @@ def select(cfg: Config, elem, include_list=None, exclude=False):
                       f' {idnum}. Object excluded.', file=cfg.logfile)
             selected = False
             break
+        elif command == Cmd.IFELT:
+            break  # return True if the element exists
         if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ,
                        Cmd.IFATTRIBNOTEQ):
             attribute = document[Stmt.ATTRIBUTE]
@@ -428,17 +435,18 @@ def expand_idnum(idstr: str) -> list[str]:
     return jlist
 
 
-def read_include_list(includes_file, include_column, include_skip, verbos=1,
+def read_include_dict(includes_file, include_column, include_skip, verbos=1,
                       logfile=sys.stdout):
     """
-    Read the optional CSV file from the --include argument. Build a list
-    of accession IDs in upper case for use by cfgutil.select.
-    :return: a set
+    Read the optional CSV file from the --include argument. Build a dict
+    of accession IDs in upper case for use by cfgutil.select. The value
+    of the dict is the row from the CSV file.
+    :return: a dict or None if --include was not specified
     """
 
     if not includes_file:
         return None
-    includeset = set()
+    includedict: dict = dict()
     includereader = csv.reader(open(includes_file))
     for n in range(include_skip):  # default in xml2csv = 0
         skipped = next(includereader)  # skip header
@@ -451,8 +459,9 @@ def read_include_list(includes_file, include_column, include_skip, verbos=1,
         idnumlist: list[str] = expand_idnum(idnum)
         if verbos >= 1:
             for num in idnumlist:
-                if num in includeset:
+                if num in includedict:
                     print(f'Warning: Duplicate id number in include '
                           f'file, {num}, ignored.', file=logfile)
-        includeset.update(idnumlist)  # one_idnum() returns a list
-    return includeset
+        for idnum in idnumlist:
+            includedict[idnum] = row
+    return includedict

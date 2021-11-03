@@ -1,23 +1,9 @@
-#cmd: ifcontains
-#xpath: ./Identification/BriefDescription
-#value: ", nk"
-#---
-#cmd: if
-#xpath: ./Production/Date/DateEnd
-##value: unknown
-cmd: ifattrib
-xpath: ./Production/Date
-attribute: elementtype
+cmd: column
+xpath: ./Production/Date/DateBegin
 ---
-#cmd: column
-#xpath: ./Identification/Title
-#title: Title
-#---
-cmd: attrib
-xpath: ./Production/Date
-attribute: elementtype
-title: date_elementtype
-#---
-#cmd: column
-#xpath: ./Identification/BriefDescription
-#title: Brief Description
+cmd: column
+xpath: ./Production/Date/DateEnd
+---
+cmd: column
+xpath: ./Production/Date/Accuracy
+---

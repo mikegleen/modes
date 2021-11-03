@@ -17,7 +17,7 @@ import time
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Cmd, Stmt, yaml_fieldnames, expand_idnum
-from utl.cfgutil import Config, read_include_list
+from utl.cfgutil import Config, read_include_dict
 from utl.normalize import normalize_id, denormalize_id, DEFAULT_MDA_CODE
 from utl.zipmagic import openfile
 
@@ -35,7 +35,7 @@ def opencsvwriter(filename, delimiter):
     return outcsv, csvfile
 
 
-def one_document(document, parent, config: Config):
+def one_document(document, parent, config: Config, includes):
     command = document[Stmt.CMD]
     eltstr = document.get(Stmt.XPATH)
     text = None
@@ -65,6 +65,8 @@ def one_document(document, parent, config: Config):
         # for e in elements:
         #     print(f'{e.text=}')
         text = delimiter.join([e.text for e in elements if e.text is not None])
+    elif command == Cmd.CSV_COLUMN:
+        pass
     elif element.text is None:
         text = ''
     else:
@@ -104,11 +106,15 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     if _args.heading:
         outcsv.writerow(titles)
     objectlevel = 0
-
+    if Cmd.CSV_COLUMN in config.col_docs:
+        if not _args.include:
+            print('Command csv_column requires argument --include.')
+            sys.exit(1)
     if _args.object:
-        includes = set(expand_idnum(_args.object))  # JB001-002 -> JB001, JB002
+        includeset = set(expand_idnum(_args.object))  # JB001-002 -> JB001, JB002
+        includes = dict.fromkeys(includeset)
     else:
-        includes = read_include_list(_args.include, _args.include_column,
+        includes = read_include_dict(_args.include, _args.include_column,
                                      _args.include_skip, _args.verbose,
                                      logfile=_logfile)
     for event, elem in ET.iterparse(infile, events=('start', 'end')):
@@ -133,15 +139,13 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         writerow = config.select(elem, includes, exclude=_args.exclude)
         if not writerow:
             continue
-        if includes and not _args.exclude:
-            includes.remove(idnum.upper())
         if not config.skip_number:
             # Insert the ID number as the first column.
             data.append(normalize_id(idnum, _args.mdacode, verbose=_args.verbose))
 
         writerow = False
         for document in config.col_docs:
-            text, command = one_document(document, elem, config)
+            text, command = one_document(document, elem, config, includes)
             if text is None:
                 notfound += 1
                 trace(2, '{}: cmd: {}, "{}" is not found in XML.', idnum, command,
@@ -154,10 +158,16 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         if writerow:
             nwritten += 1
             outlist.append(data)
+            trace(3, '{} written.', idnum)
         elem.clear()
+        if includes and not _args.exclude:
+            includes.pop(idnum.upper())
         if _args.short:
             break
-    outlist.sort()
+    if config.sort_numeric:
+        outlist.sort(key=lambda x: int(x[0]))
+    else:
+        outlist.sort()
     # Create a list of flags indicating whether the value needs to be
     # de-normalized.
     norm = []
