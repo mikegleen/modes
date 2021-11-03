@@ -111,6 +111,7 @@ def build_candidate_set(valid_idnums):
 
 def main():
     img_ids = build_img_set()
+    # x.normalized extracts the first entry in the namedtuple Obj_id.
     valid_idnums = set([x.normalized for x in list_objects(_args.modesfile)])
     if _args.csvfile:
         candidate_set = build_candidate_set(valid_idnums)
