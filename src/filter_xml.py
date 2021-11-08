@@ -18,7 +18,7 @@ def trace(level, template, *args):
 
 
 def main():
-    global selcount
+    global objcount, selcount
     declaration = f'<?xml version="1.0" encoding="{_args.encoding}"?>\n'
     outfile.write(bytes(declaration, encoding=_args.encoding))
     outfile.write(b'<Interchange>\n')
@@ -35,6 +35,7 @@ def main():
         if objectlevel:
             continue  # It's not a top level Object.
         selected = config.select(oldobject, includes, _args.exclude)
+        objcount += 1
         if selected:
             selcount += 1
             outfile.write(ET.tostring(oldobject, encoding=_args.encoding))
@@ -88,7 +89,7 @@ def getargs():
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
-    selcount = 0
+    objcount = selcount = 0
     object_number = ''
     _args = getargs()
     infile = open(_args.infile)
@@ -104,5 +105,5 @@ if __name__ == '__main__':
         includes.add(_args.object)
     main()
     basename = os.path.basename(sys.argv[0])
-    print(f'{selcount} object{"" if selcount == 1 else "s"} selected.')
+    print(f'{selcount}/{objcount} object{"" if selcount == 1 else "s"} selected.')
     print(f'End {basename.split(".")[0]}')
