@@ -5,6 +5,7 @@ import sys
 import yaml
 
 from .excel_cols import col2num
+from utl.normalize import normalize_id, denormalize_id, DEFAULT_MDA_CODE
 
 # The difference between the 'attrib' command and the attribute statement:
 # The 'attrib' command is just like the column command except that the attribute
@@ -23,7 +24,6 @@ class Cmd:
     """
     ATTRIB = 'attrib'
     COLUMN = 'column'
-    CSV_COLUMN = 'csv_column'
     CONSTANT = 'constant'
     MULTIPLE = 'multiple'
     COUNT = 'count'
@@ -214,10 +214,10 @@ def select(cfg: Config, elem, includes=None, exclude=False):
     :param exclude: Treat the include list as an exclude list.
     :return: selected is true if the Object element should be written out
     """
-
+    # print('select')
     selected = True
     idelem = elem.find(cfg.record_id_xpath)
-    idnum = idelem.text if idelem is not None else None
+    idnum = normalize_id(idelem.text) if idelem is not None else None
     # print(f'{idnum=}')
     if idnum and exclude and includes:
         if idnum.upper() in includes:
@@ -235,6 +235,7 @@ def select(cfg: Config, elem, includes=None, exclude=False):
             element = elem.find(eltstr)
         else:
             element = None
+        # print(f'{element=}')
         if element is None:
             if Stmt.REQUIRED in document:
                 print(f'*** Required element {eltstr} is missing from'
@@ -243,8 +244,7 @@ def select(cfg: Config, elem, includes=None, exclude=False):
             break
         elif command == Cmd.IFELT:
             break  # return True if the element exists
-        if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ,
-                       Cmd.IFATTRIBNOTEQ):
+        if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ, Cmd.IFATTRIBNOTEQ):
             attribute = document[Stmt.ATTRIBUTE]
             text = element.get(attribute)
         elif element.text is None:
@@ -252,6 +252,7 @@ def select(cfg: Config, elem, includes=None, exclude=False):
         else:
             # noinspection PyUnresolvedReferences
             text = element.text.strip()
+        # print(f'{text=}')
         if text:
             if command == Cmd.IFNOT:
                 selected = False
@@ -283,6 +284,7 @@ def select(cfg: Config, elem, includes=None, exclude=False):
                 selected = False
                 break
             continue
+    # print(f'{selected=}')
     return selected
 
 
@@ -366,8 +368,10 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
         # construct the title from the trailing element name from the xpath
         # statement. The validate_yaml_cfg function checks that the xpath
         # statement is there if needed.
+        # print('readyaml')
         if Stmt.TITLE not in document:
             target = document.get(Stmt.XPATH)
+            # print('target', target)
             attribute = document.get(Stmt.ATTRIBUTE)
             h = target.split('/')[-1]  # trailing element name
             target = h.split('[')[0]  # strip trailing [@xyz='def']
@@ -456,7 +460,8 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
         if not row:
             continue
         idnum = row[include_column].upper()  # cfgutil.select needs uppercase
-        idnumlist: list[str] = expand_idnum(idnum)
+        # idnumlist: list[str] = expand_idnum(idnum)
+        idnumlist: list[str] = [normalize_id(i) for i in expand_idnum(idnum)]
         if verbos >= 1:
             for num in idnumlist:
                 if num in includedict:
