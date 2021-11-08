@@ -35,7 +35,7 @@ def opencsvwriter(filename, delimiter):
     return outcsv, csvfile
 
 
-def one_document(document, parent, config: Config, includes):
+def one_document(document, parent, config: Config):
     command = document[Stmt.CMD]
     eltstr = document.get(Stmt.XPATH)
     text = None
@@ -65,8 +65,6 @@ def one_document(document, parent, config: Config, includes):
         # for e in elements:
         #     print(f'{e.text=}')
         text = delimiter.join([e.text for e in elements if e.text is not None])
-    elif command == Cmd.CSV_COLUMN:
-        pass
     elif element.text is None:
         text = ''
     else:
@@ -106,10 +104,6 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     if _args.heading:
         outcsv.writerow(titles)
     objectlevel = 0
-    if Cmd.CSV_COLUMN in config.col_docs:
-        if not _args.include:
-            print('Command csv_column requires argument --include.')
-            sys.exit(1)
     if _args.object:
         includeset = set(expand_idnum(_args.object))  # JB001-002 -> JB001, JB002
         includes = dict.fromkeys(includeset)
@@ -137,15 +131,22 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         nlines += 1
 
         writerow = config.select(elem, includes, exclude=_args.exclude)
+        # print(f'{writerow=}')
         if not writerow:
             continue
-        if not config.skip_number:
+        norm_idnum = normalize_id(idnum, _args.mdacode, verbose=_args.verbose)
+        # We have selected the id but only write the row if there is something
+        # to display. There will always be at least the ID number in the first
+        # column unless skip_number was specified in the config.
+        if config.skip_number:
+            writerow = False
+        else:
             # Insert the ID number as the first column.
-            data.append(normalize_id(idnum, _args.mdacode, verbose=_args.verbose))
+            data.append(norm_idnum)
 
-        writerow = False
         for document in config.col_docs:
-            text, command = one_document(document, elem, config, includes)
+            text, command = one_document(document, elem, config)
+            # print(f'{command=}')
             if text is None:
                 notfound += 1
                 trace(2, '{}: cmd: {}, "{}" is not found in XML.', idnum, command,
@@ -161,7 +162,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
             trace(3, '{} written.', idnum)
         elem.clear()
         if includes and not _args.exclude:
-            includes.pop(idnum.upper())
+            includes.pop(norm_idnum)
         if _args.short:
             break
     if config.sort_numeric:
