@@ -11,12 +11,17 @@ import os
 
 HOST = 'heathrobinsonmuseum.org'
 USER = 'mike@heathrobinsonmuseum.org'
-PASSWORD = 'thegleenster-123?!'
-session = FTP(HOST, USER, PASSWORD)
+PASSWORDFILE = 'etc/passwd'
+with open(PASSWORDFILE) as pwfile:
+    password = pwfile.read().strip()
+session = FTP(HOST, USER, password)
 
 hostdir = session.mlsd()
 
+ndeletes = 0
 for fname, _ in hostdir:
     if fname.startswith('collection_'):
         print(f'Deleting {fname}')
         session.delete(fname)
+        ndeletes += 1
+print(ndeletes, ' files deleted.')
