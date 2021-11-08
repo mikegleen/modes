@@ -1,3 +1,8 @@
+cmd: ifcontains
+xpath: ./Identification/Title
+value: "'"
+title: iftitle
+---
 cmd: column
 xpath: ./Identification/Title
 title: Title

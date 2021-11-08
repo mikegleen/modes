@@ -1,0 +1,16 @@
+cmd: if
+xpath: ./Production/Date
+title: ifdate
+---
+cmd: column
+xpath: ./Production/Date
+---
+cmd: column
+xpath: ./Production/DateBegin
+---
+cmd: column
+xpath: ./Production/DateEnd
+---
+cmd: attrib
+xpath: .
+attribute: elementtype
