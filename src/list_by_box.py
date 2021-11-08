@@ -5,12 +5,14 @@
         1. Input XML file
         2. Optional output CSV file. If omitted, output is to STDOUT.
 """
-
+from collections import defaultdict
 import csv
 import re
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
+
+from utl.normalize import normalize_id, denormalize_id
 
 
 def pad_loc(loc):
@@ -34,12 +36,14 @@ def one_object(elt):
     num = elt.find('./ObjectIdentity/Number').text
     loc = elt.find('./ObjectLocation[@elementtype="current location"]/Location')
     if loc is not None and loc.text:
-        location = loc.text
+        location = pad_loc(loc.text)
     else:
         location = 'unknown'
     title = elt.find('./Identification/Title').text
-    row = [pad_loc(location), num, location, title[:60]]
-    writer.writerow(row)
+
+    row = [location, num]  # , title[:60]]
+    # writer.writerow(row)
+    boxdict[location].append(normalize_id(num))
 
 
 def main():
@@ -47,6 +51,10 @@ def main():
         if obj.tag == 'Object':
             one_object(obj)
             obj.clear()
+    for box in sorted(boxdict.keys()):
+        print(f'\nBox {box}\n--------------', file=outfile)
+        for num in boxdict[box]:
+            print(denormalize_id(num), file=outfile)
 
 
 if __name__ == '__main__':
@@ -57,5 +65,6 @@ if __name__ == '__main__':
         outfile = sys.stdout
     else:
         outfile = open(sys.argv[2], 'w', newline='')
-    writer = csv.writer(outfile)
+    # writer = csv.writer(outfile)
+    boxdict = defaultdict(list)
     main()
