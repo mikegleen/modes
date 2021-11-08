@@ -1,0 +1,19 @@
+#
+# After running x033_untitle.py, run update_from_csv.py with this configuration.
+#
+cmd: column
+xpath: filler
+title: Title
+---
+cmd: column
+xpath: ./Identification/Title
+title: Revised Title
+---
+cmd: column
+xpath: filler
+title: BriefDescription
+---
+cmd: column
+xpath: ./Identification/BriefDescription
+title: Revised BriefDescription
+---
