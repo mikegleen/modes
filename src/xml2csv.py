@@ -105,7 +105,8 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         outcsv.writerow(titles)
     objectlevel = 0
     if _args.object:
-        includeset = set(expand_idnum(_args.object))  # JB001-002 -> JB001, JB002
+        expanded = [normalize_id(obj) for obj in expand_idnum(_args.object)]
+        includeset = set(expanded)  # JB001-002 -> JB001, JB002
         includes = dict.fromkeys(includeset)
     else:
         includes = read_include_dict(_args.include, _args.include_column,
