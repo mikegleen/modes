@@ -46,6 +46,7 @@ def main():
     maxpixels = _args.maxpixels
     dryrun = _args.dryrun
     files = os.listdir(indir)
+    ncopied = 0
     for filename in files:
         prefix, suffix = os.path.splitext(filename)
         filepath = os.path.join(indir, filename)
@@ -54,6 +55,7 @@ def main():
             continue
         with Image.open(filepath) as im:
             width, height = im.size
+        ncopied += 1
         if max(width, height) > maxpixels:
             sipscmd = SIPSCMD.format(maxpixels, filepath, outdir)
             trace(2, sipscmd)
@@ -65,6 +67,7 @@ def main():
             if dryrun:
                 continue
             copy2(filepath, outdir)
+    trace(1,'{} files copied.', ncopied)
 
 
 if __name__ == '__main__':
