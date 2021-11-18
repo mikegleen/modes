@@ -13,7 +13,12 @@ def main():
     targetdir = sys.argv[1]
 
     try:
-        for target in os.listdir(targetdir):
+        targetlist = os.listdir(targetdir)
+        numtargets = len(targetlist)
+        ntarg = 0
+        for target in targetlist:
+            ntarg += 1
+            print(f'file {ntarg} of {numtargets}')
             filename, extension = os.path.splitext(target)
             if extension.lower() in ('.jpg', '.png'):
                 subprocess.run(['open', '-W', os.path.join(targetdir, target)])
