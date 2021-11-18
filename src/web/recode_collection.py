@@ -50,22 +50,23 @@ def main():
         newrow['Medium'] = oldrow['Medium']
         newrow['Description'] = oldrow['Description']
 
-        objectdate = oldrow['DateBegin']
+        datebegin = oldrow['DateBegin']
+        dateend = oldrow['DateEnd']
         accuracy = oldrow['Accuracy']
-        if not objectdate or objectdate == 'unknown':
-            objectdate = oldrow['Date First Published']
+        if not datebegin or datebegin == 'unknown':
+            datebegin = oldrow['DateFirstPublished']
 
-        newrow['HumanDate'] = britishdatefrommodes(objectdate)
+        newrow['HumanDate'] = britishdatefrommodes(datebegin)
         if accuracy == 'circa':
-            newrow['HumanDate'] = 'ca. ' + newrow['HumanDate']
+            newrow['HumanDate'] = 'circa ' + newrow['HumanDate']
         try:
-            newrow['IsoDate'] = isoformatfrommodesdate(objectdate)
+            newrow['IsoDate'] = isoformatfrommodesdate(datebegin)
         except ValueError:
             newrow['IsoDate'] = ''
 
-        newrow['Decade'] = decade(objectdate)
-        places = oldrow['Exhibition Place'].split('|')
-        names = oldrow['Exhibition Name'].split('|')
+        newrow['Decade'] = decade(datebegin)
+        places = oldrow['ExhibitionPlace'].split('|')
+        names = oldrow['ExhibitionName'].split('|')
         if len(places) != len(names):
             print(f'Exhibition name/place mismatch count: {oldrow["Serial"]}')
             continue
