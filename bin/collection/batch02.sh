@@ -3,7 +3,7 @@
 #
 set -e
 BATCH=batch2
-MODESFILE=prod_update/normal/2021-10-30_funding.xml
+MODESFILE=prod_update/pretty/2021-11-21a_type.xml
 #
 # Create a CSV file with the accession numbers from the filenames in the batch
 #
