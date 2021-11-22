@@ -100,6 +100,11 @@ class Stmt:
     DELIMITER = 'delimiter'
     _DEFAULT_RECORD_TAG = 'Object'
     _DEFAULT_RECORD_ID_XPATH = './ObjectIdentity/Number'
+    #
+    # FILLER is used instead of the xpath value. If specified,
+    # update_from_csv will skip this column in the input CSV file. For example:
+    #       xpath: filler
+    FILLER = 'filler'
 
     @staticmethod
     def get_default_record_id_xpath():
@@ -113,6 +118,7 @@ class Stmt:
     def validate_yaml_stmts(document):
         validlist = [getattr(Stmt, stmt) for stmt in dir(Stmt)
                      if not stmt.startswith('_')]
+        validlist.remove(Stmt.FILLER)  # reserved word, not a statement
         valid = True
         for stmt in document:
             if stmt not in validlist:
@@ -183,6 +189,7 @@ class Config:
         cfglist = _read_yaml_cfg(yamlcfgfile, dump=dump, logfile=logfile)
         valid = validate_yaml_cfg(cfglist, allow_required)
         if not valid:
+            sys.tracebacklimit = 0
             raise ValueError('Config failed validation.')
         for document in cfglist:
             cmd = document[Stmt.CMD]

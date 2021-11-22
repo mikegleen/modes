@@ -43,9 +43,12 @@ if __name__ == '__main__':
     candidatedir = _args.candidate
     stagingdir = _args.staging
     donefiles = set()
-    for donef in os.listdir(donedir):
-        donefile = donef.removeprefix('collection_')
-        donefiles.add(donefile)
+    # for donef in os.listdir(donedir):
+    for dirpath, dirnames, filenames in os.walk(donedir):
+        trace(2, f'{dirpath=}')
+        for donef in filenames:
+            donefile = donef.removeprefix('collection_')
+            donefiles.add(donefile)
     ncandidates = ncopied = 0
     for candidate in os.listdir(candidatedir):
         ncandidates += 1

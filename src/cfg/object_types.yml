@@ -1,6 +1,18 @@
-cmd: global
-inhibit_number:
----
+#cmd: global
+#inhibit_number:
+#---
 cmd: attrib
 xpath: .
 attribute: elementtype
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
+title: 'Current Location'
+---
+cmd: column
+xpath: ./Identification/Title
+title: Title
+---
+cmd: column
+xpath: ./Identification/BriefDescription
+title: Brief Description

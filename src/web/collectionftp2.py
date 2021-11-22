@@ -29,9 +29,9 @@ def trace(level, template, *args):
 
 sending_dir = sys.argv[1]
 files = os.listdir(sending_dir)
-os.chdir(sending_dir)
 with open(PASSWORDFILE) as pwfile:
     password = pwfile.read().strip()
+os.chdir(sending_dir)
 session = FTP(HOST, USER, password)
 
 nfiles = len(files)

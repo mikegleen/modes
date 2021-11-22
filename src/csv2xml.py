@@ -83,7 +83,10 @@ def main():
         elt.text = accnum
         for doc in config.col_docs:
             # print(doc[Stmt.TITLE], doc[Stmt.XPATH])
-            elt = template.find(doc[Stmt.XPATH])
+            xpath = doc[Stmt.XPATH]
+            if xpath.lower() == Stmt.FILLER:
+                continue
+            elt = template.find(xpath)
             if elt is None:
                 elt = new_subelt(doc, template)
             if elt is None:

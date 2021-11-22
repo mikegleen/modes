@@ -31,13 +31,15 @@ def getargs():
         The zero-based column containing the accession number (ID) of the
         object we are searching for. The default is column zero. The column can
         be a number or a spreadsheet-style letter.''')
+    parser.add_argument('-i', '--invert', action='store_true', help='''
+        Report if the image **IS** in the folder.''')
     parser.add_argument('-m', '--modesfile', help='''
         File to search for valid accession numbers.''')
     parser.add_argument('-r', '--reportfile', help='''
         File containing a list of the images that we have.''')
     parser.add_argument('--outfile', help='''
         Output file. Default is sys.stdout''')
-    parser.add_argument('--skip_rows', type=int, default=0, help='''
+    parser.add_argument('-s', '--skip_rows', type=int, default=0, help='''
         Skip rows at the beginning of the CSV file.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
@@ -112,20 +114,27 @@ def build_candidate_set(valid_idnums):
 def main():
     img_ids = build_img_set()
     # x.normalized extracts the first entry in the namedtuple Obj_id.
+    # valid_idnums is a set of all the IDs in the XML file
     valid_idnums = set([x.normalized for x in list_objects(_args.modesfile)])
     if _args.csvfile:
         candidate_set = build_candidate_set(valid_idnums)
     else:
         candidate_set = valid_idnums
     for nid in candidate_set:
-        if nid in img_ids:
-            trace(2, 'In image folder: {}', nid)
-            continue
+        if _args.invert:
+            if nid not in img_ids:
+                trace(2, 'Not in image folder: {}', nid)
+                continue
+        else:
+            if nid in img_ids:
+                trace(2, 'In image folder: {}', nid)
+                continue
         print(denormalize_id(nid), file=outfile)
 
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
+    sys.tracebacklimit = 0
     _args = getargs()
     if _args.outfile:
         outfile = open(_args.outfile, 'w')

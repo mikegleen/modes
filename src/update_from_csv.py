@@ -84,7 +84,7 @@ def one_element(elem, idnum):
     :param idnum: the ObjectIdentity/Number text
     :return: True if updated, False otherwise
     """
-    global nupdated, nunchanged
+    global nupdated, nunchanged, nequal
     updated = False
     inewtexts = iter(newvals[idnum.upper()])  # we've already checked that it's there
     for doc in cfg.col_docs:
@@ -99,6 +99,8 @@ def one_element(elem, idnum):
             if not _args.force:
                 trace(2, '{}: short line stopped updating. -force not specified',
                       idnum)
+        if xpath.lower() == Stmt.FILLER:
+            continue
         if not newtext and not _args.force:
             trace(2, '{}: empty field in CSV ignored. -force not specified',
                   idnum)
@@ -110,6 +112,8 @@ def one_element(elem, idnum):
         text = target.text
         if not text or _args.force:
             trace(2, '{}: Updated: "{}" -> "{}"', idnum, text, newtext)
+            if target.text == newtext:
+                nequal += 1
             target.text = newtext
             updated = True
             nupdated += 1
@@ -209,6 +213,10 @@ def check_cfg(c):
     return errs
 
 
+def sq(val):
+    return '' if val == 1 else 's'
+
+
 called_from_sphinx = True
 
 
@@ -216,7 +224,7 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     called_from_sphinx = False
     _args = getargs(sys.argv)
-    nupdated = nunchanged = nwritten =0
+    nupdated = nunchanged = nwritten = nequal = 0
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Input file: {}\nCreating file: {}', _args.infile, _args.outfile)
@@ -226,9 +234,11 @@ if __name__ == '__main__':
     newvals = loadnewvals()
     nnewvals = len(newvals)
     main()
-    trace(1, '{} element{} in {} object{} updated. {} '
-          'existing element{} unchanged.',
-          nupdated, '' if nupdated == 1 else 's',
-          nnewvals, '' if nnewvals == 1 else 's',
-          nunchanged, '' if nunchanged == 1 else 's')
+    trace(1, '{} element{} in {} object{} updated.\n'
+          '{} existing element{} unchanged.\n'
+          '{} element{} where new == old.',
+          nupdated, sq(nupdated),
+          nnewvals, sq(nnewvals),
+          nunchanged, sq(nunchanged),
+          nequal, sq(nequal))
     trace(1, 'End update_from_csv. {} objects written.', nwritten)

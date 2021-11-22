@@ -43,7 +43,7 @@ selected for processing.
 
 The configuration consists of a YAML file broken into multiple
 documents, separated by lines containing ``---`` in the left three columns.
-Each document roughly corresponds to a column to write to the CSV file.
+Each document roughly corresponds to a column in the associated CSV file.
 Each document contains some of the following statements. Statements are
 case sensitive; all must be lower case. Commands can be
 column-generating or control statements.
@@ -61,23 +61,27 @@ Single-command Statements
 -  **cmd** Required. See below for a description of the individual
    commands.
 -  **xpath** Required. This describes the XSLT path to a relevant XML
-   element.
+   element. If the path is **filler**, this column will not be copied
+   to the XML file by ``update_from_csv.py``. This is useful if the CSV file
+   has columns that you need to skip.
 -  **parent_path** Include this statement if the **xpath** may not
    exist, in which case a new one will be created as a child of this path.
    Implemented in ``csv2xml.py`` only. The element name to be created
-   will be the title in the document.
+   will be taken from the title in the document. See the **title** sttement
+   below.
 -  **attribute** Required by the **attrib** and **ifattrib** commands.
 -  **title** Optional. If omitted, a best-guess title will be created
    from the xpath statement. If in a control document, this will be
-   shown in diagnostics.
+   shown in diagnostics. The titles of documents must be unique.
 -  **value** Required for **ifeq** or **ifattribeq** or **ifcontains**
-   or **constant** command. For the **csv_column** command, this specifies the
-   column or comma-separated columns to be written to the output CSV file from
-   the file specified by the ``--include`` argument.
--  **normalize** Adjust this ID number so that it sorts in numeric
-   order.
+   or **constant** command.
+-  **normalize** Adjust this accession number so that it sorts in numeric
+   order. The number will be de-normalized before output. The default serial
+   number in the first column and the accession number extracted from the XML
+   file will be normalized before use.
 -  **casesensitive** By default, comparisons are case insensitive.
--  **width** truncate this column to this number of characters
+-  **width** truncate this column to this number of characters when writing to
+   a CSV file. Ignored when writing to an XML file.
 -  **required** Issue an error message if this field is missing or
    empty. Valid only with a control command (**if** ...) or with a
    **column** command in ``csv2xml.py``. In this case it is useful for
@@ -135,10 +139,6 @@ Column-generating Commands
    values.
 -  **count** Displays the number of occurrences of an element under its
    parent.
--  **csv_column** Specify a column to be copied to the output CSV file from the file
-   specified by the ``--include`` parameter. The column is specified by the ``value:``
-   statement and may include a zero-based index or a spreadsheet-style letter. Use
-   only for ``xml2csv.py``.
 
 Control Commands
 ++++++++++++++++
@@ -172,6 +172,27 @@ These commands do not generate output columns.
 -  **ifnoteq** Select an object if the element text does not equal the
    **value** statement text.
 
+
+Accession Number Handling
+-------------------------
+There are three accession number formats in use at the Heath Robinson Museum.
+
+-  The first
+   is for objects that are part of the Joan Brinsmead family gift. This is the bulk of the
+   collection. Numbers start with "JB" and are followed by a decimal number. Numbers less
+   than 100 are zero padded. For example, "JB001"
+-  The second is for items from the Simon Heneage estate. These numbers start with "SH"
+   followed by decimal numbers without any zero padding. For example, "SH1"
+-  The third format follows the Collections Trust standard. This is the MDA code,
+   "LDHRM", followed by a full stop, followed by the year, followed by a full stop,
+   followed by a serial number, optionally followed by another full stop and sub-serial
+   number. For example, "LDHRM.2020.1". Utility programs provide an option for
+   overriding the default MDA code.
+
+When read from a CSV file, the XML file, or the command line, accession numbers are
+normalized so that numeric fields sort correctly. That is, internally, all numbers
+are padded with zeroes. In this way, JB1 and JB001 are treated as the same object.
+
 Utility Programs
 ----------------
 All programs are executed by calling:
@@ -201,18 +222,14 @@ Import exhibition information into a Modes XML file.
 
 list_by_box
 ~~~~~~~~~~~
-Create a CSV file with the object location as the first field.
+Create a report with the object location as the first field.
 Parameters:
 
 1. Input XML file
 2. Optional output CSV file. If omitted, output is to STDOUT.
 
-Output must be sorted. The expected use is:
-
-::
-
-   python src/list_by_box.py infile.xml | sort >output.csv
-
+Output is sorted by box and accession number within each box and displayed with
+title lines for each box.
 There is no separate documentation page for this program.
 
 :doc:`location`

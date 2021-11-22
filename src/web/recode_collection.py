@@ -16,18 +16,26 @@ import sys
 from utl.normalize import britishdatefrommodes
 from utl.normalize import isoformatfrommodesdate
 
+DEFAULT_EXHIBITION_PLACE = 'HRM'
 
 def trace(level, template, *args):
     if _args.verbose >= level:
         print(template.format(*args))
 
 
-def decade(datestr):
-    mat = re.match(r'.*(\d{4})$', datestr)
+def decade(datebegin, dateend):
+    matbegin = re.match(r'.*(\d{4})$', datebegin)
+    matend = re.match(r'.*(\d{4})$', dateend)
     dec = ''
-    if mat:
-        year = int(mat.group(1))
-        dec = f'{(year // 10) * 10}s'
+    if matbegin:
+        year = int(matbegin.group(1))
+        decbegin = (year // 10) * 10
+        if matend:
+            year = int(matend.group(1))
+            decend = (year // 10) * 10
+        else:
+            decend = decbegin
+        dec = '|'.join([str(d) + 's' for d in range(decbegin, decend + 10, 10)])
     return dec
 
 
@@ -59,12 +67,14 @@ def main():
         newrow['HumanDate'] = britishdatefrommodes(datebegin)
         if accuracy == 'circa':
             newrow['HumanDate'] = 'circa ' + newrow['HumanDate']
+            if dateend:
+                newrow['HumanDate'] += ' - ' + britishdatefrommodes(dateend)
         try:
             newrow['IsoDate'] = isoformatfrommodesdate(datebegin)
         except ValueError:
             newrow['IsoDate'] = ''
 
-        newrow['Decade'] = decade(datebegin)
+        newrow['Decade'] = decade(datebegin, dateend)
         places = oldrow['ExhibitionPlace'].split('|')
         names = oldrow['ExhibitionName'].split('|')
         if len(places) != len(names):
@@ -73,7 +83,12 @@ def main():
         exhibition = []
         for name, place in zip(names, places):
             if name.strip():
-                exhibition.append(f'{name} at {place}')
+                # Note: exhibition.py will insert HRM as the exhibition place
+                # if no place is explicitly given in cfg/exhibition_list.py
+                if place == DEFAULT_EXHIBITION_PLACE:
+                    exhibition.append(name)
+                else:
+                    exhibition.append(f'{name} at {place}')
         newrow['Exhibition'] = '|'.join(exhibition)
         writer.writerow(newrow)
         nrows += 1

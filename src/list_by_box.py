@@ -53,7 +53,7 @@ def main():
             obj.clear()
     for box in sorted(boxdict.keys()):
         print(f'\nBox {box}\n--------------', file=outfile)
-        for num in boxdict[box]:
+        for num in sorted(boxdict[box]):
             print(denormalize_id(num), file=outfile)
 
 

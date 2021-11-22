@@ -9,15 +9,18 @@ cmd: column
 xpath: ./Production/Date/DateBegin
 ---
 cmd: column
+xpath: ./Production/Date/DateEnd
+---
+cmd: column
 xpath: ./Production/Date/Accuracy
 ---
 cmd: multiple
 xpath: ./Exhibition/Place
-title: Exhibition Place
+title: ExhibitionPlace
 ---
 cmd: multiple
 xpath: ./Exhibition/ExhibitionName
-title: Exhibition Name
+title: ExhibitionName
 ---
 cmd: column
 xpath: ./Identification/BriefDescription
@@ -25,4 +28,4 @@ title: Description
 ---
 cmd: column
 xpath: ./References/Reference[@elementtype="First Published In"]/Date
-title: Date First Published
+title: DateFirstPublished

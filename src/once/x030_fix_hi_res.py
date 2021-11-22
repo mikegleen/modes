@@ -8,7 +8,8 @@ import sys
 indir = sys.argv[1]
 files = os.listdir(indir)
 
-PATTERN = r'(SH\d+)\w*(.*)\d{3}?\.tif'
+PATTERN = r'(SH\d+)\w*(.*)\.((tif)|(bmp))'
+PATTERN = r'(((SH)|(JB))\d+)\s*(.*?)(\d{3})?\.((tif)|(bmp)|(jpg))'
 
 for fn in files:
     m = re.match(PATTERN, fn)
@@ -20,4 +21,5 @@ for fn in files:
     # dst = os.path.join(indir, newfn)
     # print(f'{src}, {dst}')
     # os.rename(src, dst)
-    print(f'{m.group(1)},{m.group(2).strip()}')
+    # print(f'{m.group(1)},{m.group(5).strip()}')
+    print(m.group(1))
