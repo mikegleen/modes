@@ -1,12 +1,4 @@
 #
-# For the files in a batch, create the CSV file to be uploaded to WordPress for the collection images.
-#
-pushd ~/pyprj/hrm/modes
-BATCH=batch2
-REVISION=
-BR=${BATCH}${REVISION}
-MODESFILE=prod_update/normal/2021-11-22_edit.xml
-#
 # Create a CSV file with the accession numbers from the filenames in the batch
 #
 python src/dir2csv.py ../collection/webimgs/${BATCH} tmp/${BR}_list.csv --heading
