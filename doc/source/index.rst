@@ -14,7 +14,7 @@ Modes Python Library
    docx2csv
    exhibition
    location
-   sitecsv
+   recode_collection
    update_from_csv
    xml2csv
    genindex
@@ -85,7 +85,7 @@ Single-command Statements
 -  **required** Issue an error message if this field is missing or
    empty. Valid only with a control command (**if** ...) or with a
    **column** command in ``csv2xml.py``. In this case it is useful for
-   discarding rubbish rows in the CSV file.
+   discarding rubbish rows in the CSV file. In ``xml2csv.py`` if a
 -  **multiple_delimiter**  The character to use within a column to separate the
    values when used with the **multiple** command. The statement may
    appear under the **global** command or a specific **multiple** command,
@@ -118,10 +118,10 @@ Global-command Statements
 Commands
 ~~~~~~~~
 
-Each document has one **cmd** statement, which is usually the first
+Each document has one **cmd** statement, which is customarily the first
 statement in the document. Column-generating commands are those that map
-the document to a corresponding column in the associated CSV file (but see
-the **constant** command for an exception).
+the elements in the XML document to a corresponding column in the associated CSV file
+(but see the **constant** command for an exception).
 
 Column-generating Commands
 ++++++++++++++++++++++++++
@@ -143,7 +143,11 @@ Column-generating Commands
 Control Commands
 ++++++++++++++++
 
-These commands do not generate output columns.
+These commands do not generate output columns. The **if...** commands are used
+by ``xml2csv.py`` and others that read from the XML file to select which
+records to output. Multiple **if...** commands may be used; these are
+processed in succession and have an **and** relationship, meaning that all of
+the tests must succeed for a record to be selected.
 
 -  **global** This document contains statements that affect the
    overall output, not just a specific column.
@@ -167,6 +171,9 @@ These commands do not generate output columns.
    attribute.
 -  **ifcontains** Select an object if the value in the **value**
    statement is contained in the element text.
+-  **ifelt** Select an object if the element exists, even if the text is empty.
+   If the **required* statement is included, this can be used to detect badly
+   formed elements.
 -  **ifeq** Select an object if the element text equals the **value**
    statement text.
 -  **ifnoteq** Select an object if the element text does not equal the
@@ -186,8 +193,8 @@ There are three accession number formats in use at the Heath Robinson Museum.
 -  The third format follows the Collections Trust standard. This is the MDA code,
    "LDHRM", followed by a full stop, followed by the year, followed by a full stop,
    followed by a serial number, optionally followed by another full stop and sub-serial
-   number. For example, "LDHRM.2020.1". Utility programs provide an option for
-   overriding the default MDA code.
+   number, all without leading zeros. For example, "LDHRM.2020.1". Utility
+   programs provide an option for  overriding the default MDA code.
 
 When read from a CSV file, the XML file, or the command line, accession numbers are
 normalized so that numeric fields sort correctly. That is, internally, all numbers
@@ -238,8 +245,8 @@ Do updating, listing and
 validating of object locations. If updating a current location, a
 previous location element is created.
 
-:doc:`sitecsv`
-~~~~~~~~~~~~~~~~~
+:doc:`recode_collection`
+~~~~~~~~~~~~~~~~~~~~~~~~
 Utility for recoding fields for loading to the website collection
 at heathrobinsonmuseum.org.
 
