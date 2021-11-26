@@ -250,11 +250,11 @@ def select(cfg: Config, elem, includes=None, exclude=False):
             selected = False
             break
         elif command == Cmd.IFELT:
-            break  # return True if the element exists
+            continue  # if the element exists
         if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ, Cmd.IFATTRIBNOTEQ):
             attribute = document[Stmt.ATTRIBUTE]
             text = element.get(attribute)
-        elif element.text is None:
+        elif element is None or element.text is None:
             text = ''
         else:
             # noinspection PyUnresolvedReferences
