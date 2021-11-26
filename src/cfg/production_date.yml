@@ -8,17 +8,21 @@
 #cmd: column
 #xpath: ./Production/Date/Accuracy
 #---
-cmd: column
-xpath: ./Production/SummaryText
+#cmd: column
+#xpath: ./Production/SummaryText
+#---
+#cmd: column
+#xpath: ./Identification/Title
+#title: Title
+#---
+#cmd: column
+#xpath: ./Identification/BriefDescription
+#title: Brief Description
 ---
-cmd: column
-xpath: ./Identification/Title
-title: Title
----
-cmd: column
-xpath: ./Identification/BriefDescription
-title: Brief Description
----
-cmd: if
-xpath: ./Production/Date/DateBegin
+#cmd: if
+#xpath: ./Production/Date
+#---
+cmd: ifelt
+xpath: ./Production/Date/DateEnd
 title: ifdate
+---

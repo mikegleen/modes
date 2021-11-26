@@ -15,8 +15,10 @@ import re
 import sys
 from utl.normalize import britishdatefrommodes
 from utl.normalize import isoformatfrommodesdate
+from utl.normalize import sphinxify
 
 DEFAULT_EXHIBITION_PLACE = 'HRM'
+
 
 def trace(level, template, *args):
     if _args.verbose >= level:
@@ -97,16 +99,17 @@ def main():
 def getparser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description='''
     Read a CSV file, recode columns and write the CSV file. The Exhibition
-    Name and Exhibition Place columns are merged into a "name(place)" format.
+    Name and Exhibition Place columns are merged into a "name at place" format
+    unless the place is "HRM" in which case it's omitted.
     The DateBegin column (in Modes format) is deleted and replaced by a
     human-friendly column and an ISO date column.
     
     The input columns are defined in ``cfg/website.yml`` and must match
     names hard-coded here.''')
-    parser.add_argument('incsvfile', help='''
-        The CSV file containing data to be inserted into the XML template. The
-        input is expected to have been produced by xml2csv.py using the
-        website.yml config file. You must specify the ``--heading`` option''')
+    parser.add_argument('incsvfile', help=sphinxify('''
+        The input is expected to have been produced by xml2csv.py using the
+        website.yml config file. You must specify the --heading option
+        ''', called_from_sphinx))
     parser.add_argument('outfile', help='''
         The output CSV file.''')
     parser.add_argument('-s', '--short', action='store_true', help='''
@@ -123,9 +126,13 @@ def getargs(argv):
     return args
 
 
+called_from_sphinx = True
+
+
 if __name__ == '__main__':
     global nrows
     assert sys.version_info >= (3, 8)
+    called_from_sphinx = False
     _args = getargs(sys.argv)
     incsvfile = codecs.open(_args.incsvfile, 'r', encoding='utf-8-sig')
     outfile = codecs.open(_args.outfile, 'w', encoding='utf-8-sig')

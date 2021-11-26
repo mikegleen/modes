@@ -201,11 +201,12 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1):
     """
     if objid is None:
         return None
-    objid = objid.upper()
-    if objid.startswith(mdacode):
-        idlist = re.split(r'[/.]', objid)  # split on either "/" or "."
-        assert len(idlist) in (3, 4)
-        assert len(idlist[2]) <= 6
+    objidu = objid.upper()
+    if objidu.startswith(mdacode):
+        idlist = re.split(r'[/.]', objidu)  # split on either "/" or "."
+        assert len(idlist) in (3, 4), f'Bad accession ID: {objid}'
+        assert len(idlist[2]) <= 6, (
+            f'Third field, {idlist[2]}, of {objid} is too long')
         idlist[2] = f'{int(idlist[2]):06d}'
         if len(idlist) == 4:
             assert len(idlist[3]) <= 6

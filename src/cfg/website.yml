@@ -1,3 +1,8 @@
+#
+# This configuration is used by recode_collection.py to create the CSV file for loading
+# the collection to the website. Do not change this file without reference to that
+# program.
+#
 cmd: column
 xpath: ./Identification/Title
 ---

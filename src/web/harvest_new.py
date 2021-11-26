@@ -22,7 +22,8 @@ def getargs():
     parser.add_argument('-c', '--candidate', required=True, help='''
         Directory containing new files that may need to be transferred''')
     parser.add_argument('-d', '--done', required=True, help='''
-        Directory containing files already transferred''')
+        Directory containing files already transferred,
+        including sub-directories''')
     parser.add_argument('-s', '--staging', required=True, help='''
         Directory to contain files to be transferred
         ''')
@@ -48,6 +49,10 @@ if __name__ == '__main__':
         trace(2, f'{dirpath=}')
         for donef in filenames:
             donefile = donef.removeprefix('collection_')
+            if not donefile.endswith('jpg'):
+                trace(2, f'----skipping {donefile}')
+                continue
+            trace(2, f'   {donefile}')
             donefiles.add(donefile)
     ncandidates = ncopied = 0
     for candidate in os.listdir(candidatedir):
