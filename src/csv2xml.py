@@ -36,10 +36,10 @@ def next_accnum(accnum: str):
         suffix += 1
 
 
-def new_subelt(doc, template):
+def new_subelt(doc, root):
     elt = None
     if Stmt.PARENT_PATH in doc:
-        parent = template.find(doc[Stmt.PARENT_PATH])
+        parent = root.find(doc[Stmt.PARENT_PATH])
         title = doc[Stmt.TITLE]
         if parent is None:
             trace(1, 'Cannot find parent of {}, column {}',
