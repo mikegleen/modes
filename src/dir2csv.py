@@ -18,7 +18,7 @@ def dir2csv(jpegdir):
             print(f'dir2csv skipping: {jpgfile}')
             continue
         jpglist.append(m.group(2))
-    return jpglist
+    return sorted(jpglist)
 
 
 def getargs():
@@ -52,4 +52,4 @@ if __name__ == '__main__':
     for fn in outlist:
         print(fn, file=outfile)
         nout += 1
-    print(f'End dir2csv. {nout} rows written.')
+    print(f'End dir2csv. {nout} rows written to {_args.csvfile}.')
