@@ -253,7 +253,7 @@ def select(cfg: Config, elem, includes=None, exclude=False):
             continue  # if the element exists
         if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ, Cmd.IFATTRIBNOTEQ):
             attribute = document[Stmt.ATTRIBUTE]
-            text = element.get(attribute)
+            text = element.get(attribute).strip()
         elif element is None or element.text is None:
             text = ''
         else:
