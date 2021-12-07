@@ -336,7 +336,7 @@ def getargs(argv):
     args = parser.parse_args(args=argv[1:])
     if args.mapfile is None and args.object is None:
         raise ValueError('You must specify one of --mapfile and --object')
-    if _args.object and not _args.exhibition:
+    if args.object and not args.exhibition:
         raise(ValueError('You specified the object id. You must also '
                          'specify the exhibition.'))
     if args.col_acc is None:
