@@ -66,9 +66,9 @@ Single-command Statements
    has columns that you need to skip.
 -  **parent_path** Include this statement if the **xpath** may not
    exist, in which case a new one will be created as a child of this path.
-   Implemented in ``csv2xml.py`` only. The element name to be created
-   will be taken from the title in the document. See the **title** sttement
-   below.
+   Implemented in ``csv2xml.py`` and ``update_from_csv.py`` only. The element
+   name to be created will be taken from the title in the document. See the
+   **title** statement below. This element named by this path must already exist.
 -  **attribute** Required by the **attrib** and **ifattrib** commands.
 -  **title** Optional. If omitted, a best-guess title will be created
    from the xpath statement. If in a control document, this will be
@@ -130,13 +130,13 @@ Column-generating Commands
    named in the **attribute** statement.
 -  **column** This is the basic command to display or update the text of an
    element.
--  **constant** For ``csv2xml.py``, create an element from the ``value``
-   statement of this document without reference to the CSV file.
+-  **constant** For ``csv2xml.py`` and ``update_from_csv.py``, create an element
+-  from the ``value`` statement of this document without reference to the CSV file.
 -  **keyword** Find the element specified by the xpath statement whose text
-   equals the text in the value statement and then return the
+   equals the text in the **value** statement and then return the
    first Keyword sub-element's text.
 -  **multiple** Like column except it produces a delimiter-separated list of
-   values.
+   values. See the optional **multiple_delimiter** statement.
 -  **count** Displays the number of occurrences of an element under its
    parent.
 
@@ -157,9 +157,7 @@ the tests must succeed for a record to be selected.
    element text is not populated.
 -  **ifattrib** Like **if** except tests for an attribute
 -  **ifattribeq** Like **ifeq** except compares the value against an
-   attribute. Example:
-
-::
+   attribute. Example::
 
        cmd: ifattribeq
        xpath: .
@@ -172,7 +170,7 @@ the tests must succeed for a record to be selected.
 -  **ifcontains** Select an object if the value in the **value**
    statement is contained in the element text.
 -  **ifelt** Select an object if the element exists, even if the text is empty.
-   If the **required* statement is included, this can be used to detect badly
+   If the **required** statement is included, this can be used to detect badly
    formed elements.
 -  **ifeq** Select an object if the element text equals the **value**
    statement text.
