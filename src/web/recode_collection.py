@@ -56,9 +56,9 @@ def main():
     for oldrow in reader:
         newrow = dict()
         newrow['Serial'] = oldrow['Serial']
-        newrow['Title'] = oldrow['Title']
+        newrow['Title'] = oldrow['Title'].replace(':', '.')
         newrow['Medium'] = oldrow['Medium']
-        newrow['Description'] = oldrow['Description']
+        newrow['Description'] = oldrow['Description'].replace(':', '.')
 
         datebegin = oldrow['DateBegin']
         dateend = oldrow['DateEnd']
@@ -68,7 +68,7 @@ def main():
 
         newrow['HumanDate'] = britishdatefrommodes(datebegin)
         if accuracy == 'circa':
-            newrow['HumanDate'] = 'circa ' + newrow['HumanDate']
+            newrow['HumanDate'] = 'c. ' + newrow['HumanDate']
             if dateend:
                 newrow['HumanDate'] += ' - ' + britishdatefrommodes(dateend)
         try:
@@ -88,9 +88,10 @@ def main():
                 # Note: exhibition.py will insert HRM as the exhibition place
                 # if no place is explicitly given in cfg/exhibition_list.py
                 if place == DEFAULT_EXHIBITION_PLACE:
-                    exhibition.append(name)
+                    exhibition.append(name.replace(':', '.'))
                 else:
-                    exhibition.append(f'{name} at {place}')
+                    exhibition.append(f"{name.replace(':', '.')} "
+                                      f"at {place.replace(':', '.')}")
         newrow['Exhibition'] = '|'.join(exhibition)
         writer.writerow(newrow)
         nrows += 1

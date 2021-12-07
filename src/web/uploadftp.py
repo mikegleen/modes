@@ -1,22 +1,25 @@
 """
     Transfer JPEG files to the website collection staging directory.
 
-    Before calling this program, manually copy files to the sending directory.
     The files in the sending directory are of the form: <accession #>.jpg
     This program will:
         Add a prefix of "collection_" to each file, if needed.
         Send the file to the host.
-        Move the file to the SENT directory.
+
+    This script is like collectionftp.py except that instead of a hard-coded
+    SENDING folder, a folder is named as a parameter. The sent files remain in
+    the named folder.
 """
 from ftplib import FTP
 import os.path
 import shutil
+import sys
+import time
 
 HOST = 'heathrobinsonmuseum.org'
 USER = 'mike@heathrobinsonmuseum.org'
 PASSWORDFILE = 'etc/passwd'
-SENDING_DIR = '/Users/mlg/pyprj/hrm/collection/sending'
-SENT_DIR = '/Users/mlg/pyprj/hrm/collection/sent'
+FILENAME_PREFIX = 'collection_'
 VERBOSE = 2
 
 
@@ -25,20 +28,25 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-files = os.listdir(SENDING_DIR)
-os.chdir(SENDING_DIR)
+sending_dir = sys.argv[1]
+files = os.listdir(sending_dir)
 with open(PASSWORDFILE) as pwfile:
     password = pwfile.read().strip()
+os.chdir(sending_dir)
 session = FTP(HOST, USER, password)
 
 nfiles = len(files)
 trace(1, '{} files to send.', nfiles)
 nsent = 0
+t1 = time.perf_counter()
 for filename in files:
     if filename.startswith('.'):
         continue
-    if not filename.startswith('collection_'):
-        newfilename = 'collection_' + filename
+    if not filename.endswith('.jpg'):
+        trace(1, 'Skipping non-jpg {}', filename)
+        continue
+    if not filename.startswith(FILENAME_PREFIX):
+        newfilename = FILENAME_PREFIX + filename
         os.rename(filename, newfilename)
         filename = newfilename
     file = open(filename, 'rb')
@@ -51,6 +59,5 @@ for filename in files:
     nsent += 1
     if nsent % 10 == 0:
         trace(1, '{} of {} sent', nsent, nfiles)
-    srcfile = os.path.join(SENDING_DIR, filename)
-    dstfile = os.path.join(SENT_DIR, filename)
-    shutil.move(srcfile, dstfile)
+elapsed = time.perf_counter() - t1
+print(f'{elapsed:.3f} seconds to send {nsent} file{"s" if nsent == 1 else ""}')

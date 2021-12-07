@@ -25,8 +25,9 @@ def getargs():
     folder.''')
     parser.add_argument('imgdir', help='''
         Folder containing folders containing images we already have''')
-    parser.add_argument('-c', '--csvfile', help='''
-        CSV file containing the list of new objects''')
+    parser.add_argument('-c', '--candidatefile', help='''
+        CSV file containing the list of new objects or a directory containing
+        jpg files with names consisting of the accession numbers.''')
     parser.add_argument('--col_acc', help='''
         The zero-based column containing the accession number (ID) of the
         object we are searching for. The default is column zero. The column can
@@ -49,7 +50,7 @@ def getargs():
         args.col_acc = 0
     else:
         args.col_acc = col2num(str(args.col_acc))
-        print(f'args.col_acc=')
+        print(f'{args.col_acc=}')
     return args
 
 
@@ -89,25 +90,40 @@ def build_img_set():
 
 
 def build_candidate_set(valid_idnums):
+
+    def add_one_id(candidate):
+        nonlocal notinmodes
+        try:
+            normid = normalize_id(candidate)
+        except ValueError as ve:
+            trace(1, ve)
+            return
+        if normid in valid_idnums:
+            candidate_set.add(normid)
+        else:
+            notinmodes += 1
+
     notinmodes = 0
     candidate_set = set()
-    trace(1, "Building candidate set.")
-    skiprows = _args.skip_rows
-    reader = csv.reader(open(_args.csvfile))
-    for n in range(skiprows):  # default = 0
-        skipped = next(reader)  # skip header
-        trace(1, 'Skipping row in CSV file: {}', skipped)
-    col_acc = _args.col_acc
-    for row in reader:
-        idnum = row[col_acc]
-        nid = normalize_id(idnum)
-        if nid not in valid_idnums:
-            trace(1, 'Skipping, not in Modes: {}', nid)
-            notinmodes += 1
-            continue
-        candidate_set.add(nid)
+    trace(2, "Building candidate set.")
+    if os.path.isdir(_args.candidatefile):
+        candidates = [os.path.splitext(f)[0] for f in os.listdir()]
+        for c in candidates:
+            add_one_id(c)
+    else:
+        reader = csv.reader(open(_args.candidatefile))
+        for n in range(_args.skip_rows):  # default = 0
+            skipped = next(reader)  # skip header
+            trace(1, 'Skipping row in CSV file: {}', skipped)
+        col_acc = _args.col_acc
+        for row in reader:
+            idnum = row[col_acc]
+            if not idnum:
+                continue
+            add_one_id(idnum)
+
     if notinmodes:
-        trace(1, '{} rows in CSV file skipped, not in Modes.', notinmodes)
+        trace(1, '{} accession numbers skipped, not in Modes.', notinmodes)
     return candidate_set
 
 
@@ -116,7 +132,7 @@ def main():
     # x.normalized extracts the first entry in the namedtuple Obj_id.
     # valid_idnums is a set of all the IDs in the XML file
     valid_idnums = set([x.normalized for x in list_objects(_args.modesfile)])
-    if _args.csvfile:
+    if _args.candidatefile:
         candidate_set = build_candidate_set(valid_idnums)
     else:
         candidate_set = valid_idnums
@@ -134,8 +150,9 @@ def main():
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
-    sys.tracebacklimit = 0
     _args = getargs()
+    if _args.verbose < 2:
+        sys.tracebacklimit = 0
     if _args.outfile:
         outfile = open(_args.outfile, 'w')
     else:
