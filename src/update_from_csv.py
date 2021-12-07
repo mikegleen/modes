@@ -32,12 +32,27 @@ import sys
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Config, Stmt, Cmd
-from utl.normalize import sphinxify
+from utl.normalize import normalize_id, sphinxify
 
 
 def trace(level, template, *args):
     if _args.verbose >= level:
         print(template.format(*args))
+
+
+def new_subelt(doc, root):
+    elt = None
+    if Stmt.PARENT_PATH in doc:
+        parent = root.find(doc[Stmt.PARENT_PATH])
+        title = doc[Stmt.TITLE]
+        if parent is None:
+            trace(1, 'Cannot find parent of {}, column {}',
+                  doc[Stmt.XPATH], title)
+        elif ' ' in title:
+            trace(1, 'Cannot create title with embedded spaces: {}', title)
+        else:
+            elt = ET.SubElement(parent, title)
+    return elt
 
 
 def loadnewvals():
@@ -69,7 +84,7 @@ def loadnewvals():
                     sys.exit(1)
 
         for row in reader:
-            newval_dict[row[0].strip().upper()] = [val.strip() for val in row[1:]]
+            newval_dict[normalize_id(row[0].strip())] = [val.strip() for val in row[1:]]
     return newval_dict
 
 
@@ -86,29 +101,30 @@ def one_element(elem, idnum):
     """
     global nupdated, nunchanged, nequal
     updated = False
-    inewtexts = iter(newvals[idnum.upper()])  # we've already checked that it's there
+    inewtexts = iter(newvals[idnum])  # we've already checked that it's there
     for doc in cfg.col_docs:
         command = doc[Stmt.CMD]
-        if command != Cmd.COLUMN:
-            continue  # Don't generate a column
         xpath = doc[Stmt.XPATH]
-        try:
-            newtext = next(inewtexts)
-        except StopIteration:
-            newtext = ""
-            if not _args.force:
-                trace(2, '{}: short line stopped updating. -force not specified',
-                      idnum)
-        if xpath.lower() == Stmt.FILLER:
-            continue
+        if command == Cmd.CONSTANT:
+            newtext = doc[Stmt.VALUE]
+        else:  # command is COLUMN
+            try:
+                newtext = next(inewtexts)
+            except StopIteration:
+                newtext = ""
+                trace(2, '{}: short line in CSV file', idnum)
+            if xpath.lower() == Stmt.FILLER:
+                continue
         if not newtext and not _args.force:
-            trace(2, '{}: empty field in CSV ignored. -force not specified',
+            trace(2, '{}: empty field in CSV ignored. --force not specified',
                   idnum)
             continue
         target = elem.find(xpath)
         if target is None:
-            trace(1, '{}: Cannot find target "{}"', idnum, xpath)
-            return updated
+            target = new_subelt(doc, target)
+            if target is None:
+                trace(1, '{}: Cannot find target "{}"', idnum, xpath)
+                continue
         text = target.text
         if not text or _args.force:
             trace(2, '{}: Updated: "{}" -> "{}"', idnum, text, newtext)
@@ -131,7 +147,7 @@ def main():
         if elem.tag != 'Object':
             continue
         idelem = elem.find(cfg.record_id_xpath)
-        idnum = idelem.text.upper() if idelem is not None else None
+        idnum = normalize_id(idelem.text) if idelem is not None else None
         trace(3, 'idnum: {}', idnum)
         if idnum and idnum in newvals:
             updated = one_element(elem, idnum)
@@ -156,7 +172,9 @@ def getparser():
         is the index and the following columns are the field(s) defined by the
         XPATH statement in the YAML configuration file. Update the
         XML file with data from the CSV file.
-        ''')
+        If a row in the CSV file has fewer columns than the number of
+        columns specified in the YAML file, replace the text with an empty
+        string.        ''')
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
     parser.add_argument('outfile', help='''
@@ -168,11 +186,7 @@ def getparser():
         The YAML file describing the column path(s) to update''')
     parser.add_argument('-f', '--force', action='store_true', help='''
         Replace existing values. If not specified only empty elements will be
-        inserted.
-        If a row in the CSV file has fewer columns than the number of
-        columns specified in the YAML file, replace the text with an empty
-        string. The default is to stop processing that row at that point and
-        only update the columns containing data.
+        updated.
         Allow replacing text fields with empty values from the CSV file.
         ''')
     parser.add_argument('--missing', action='store_true', help='''
@@ -204,7 +218,7 @@ def getargs(argv):
 def check_cfg(c):
     errs = 0
     for doc in c.col_docs:
-        if doc[Stmt.CMD] != Cmd.COLUMN:
+        if doc[Stmt.CMD] not in (Cmd.COLUMN, Cmd.CONSTANT):
             print(f'Command "{doc[Stmt.CMD]}" not allowed, ignored')
             errs += 1
     for doc in c.ctrl_docs:
@@ -231,6 +245,8 @@ if __name__ == '__main__':
     cfg = Config(_args.cfgfile, dump=_args.verbose > 1)
     if errors := check_cfg(cfg):
         trace(1, '{} command{} ignored.', errors, 's' if errors > 1 else '')
+        print('update_from_csv aborting due to config error(s).')
+        sys.exit(1)
     newvals = loadnewvals()
     nnewvals = len(newvals)
     main()
