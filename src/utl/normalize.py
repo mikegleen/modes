@@ -5,7 +5,7 @@
 import datetime
 import re
 
-DEFAULT_MDA_CODE = 'LDHRM'
+DEFAULT_MDA_CODE = 'LDHRM'  # must be upper case
 MODESTYPE = 'modestype'
 BRITISHTYPE = 'britishtype'
 
@@ -178,15 +178,16 @@ def vdate(indate: str):
 def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1):
     """
     The parameter is a string in the format of one of the types of object
-    identifiers in our Modes file.
+    identifiers (i.e. accession numbers) in our Modes file.
 
     Return a string normalized for sorting.
 
     If a field that is expected to be an integer is not, a ValueError is
     raised.
 
-    Input can be of the form JB001 or JB0001 or JB001a or SH1 or LDHRM/2018/1
-    or LDHRM.2018.1. or LDHRM.2018.1.2. Input can also be a simple integer.
+    Input can be of the form JB001 or JB0001 or JB001a or SH1 or with a leading
+    MDA code: LDHRM/2018/1 or LDHRM.2018.1. or LDHRM.2018.1.2. Input can also
+    be a simple integer.
 
     For IDs with the MDA code, the one or two trailing numbers are expanded to
     six digits with leading zeroes if necessary. If an id contains a larger
@@ -195,7 +196,8 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1):
     For example:
     LDHRM.2018.1 -> LDHRM.2018.000001
     LDHRM.2018.1.2 -> LDHRM.2018.000001.000002
-    JB001 -> JB00000001
+    JB001 -> JB000001
+    JB001a -> JB000001A
 
     For IDs that are simple integers, these are expanded to eight digits.
     """
@@ -209,12 +211,17 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1):
             f'Third field, {idlist[2]}, of {objid} is too long')
         idlist[2] = f'{int(idlist[2]):06d}'
         if len(idlist) == 4:
-            assert len(idlist[3]) <= 6
+            assert len(idlist[3]) <= 6, (
+                f'Fourth field, {idlist[3]}, of {objid} is too long')
             idlist[3] = f'{int(idlist[3]):06d}'
-        return '.'.join(idlist)
+        newobjid = '.'.join(idlist)
+        if verbose > 2:
+            print(f'normalize: {objid} -> {newobjid}')
+        return newobjid
+
     # Not an LDHRM... id
 
-    m = re.match(r'(\D+)(\d+)([A-Za-z]?)(\.(\d+))?$', objid)
+    m = re.match(r'(\D+)(\d+)([A-Za-z]?)(\.(\d+))?$', objidu)
     # On a successful match, this patten returns five groups. If there is
     # no subgroup ID, groups 4 and 5 will be None. We are not interested in
     # group 4 as it includes the '.' followed by the subgroup ID whereas group
