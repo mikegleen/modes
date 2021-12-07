@@ -7,7 +7,7 @@ python src/dir2csv.py ../collection/webimgs/${BATCH} tmp/${BR}_list.csv --headin
 #
 # Pull the relevant fields from the Modes XML file for the objects in the batch.
 #
-python src/xml2csv.py $MODESFILE tmp/${BR}_step1.csv -c src/cfg/website.yml --include tmp/${BR}_list.csv --include_skip 1 --heading -v 3 -b -l results/reports/${BR}_website.txt
+python src/xml2csv.py $MODESFILE tmp/${BR}_step1.csv -c src/cfg/website.yml --include tmp/${BR}_list.csv --include_skip 1 --heading -v 1 -b -l results/reports/${BR}_website.log
 #
 # Modify the CSV file to included new and adjusted columns.
 #

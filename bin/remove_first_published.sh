@@ -1,0 +1,1 @@
+python src/update_from_csv.py prod_update/pretty/2021-11-22_edit_pretty.xml prod_update/pretty/2012-11-29_first_pub.xml -c src/cfg/reference.yml -m ../collection/etc/batch003/batch003_bad_date.csv --skip_rows 1 -f -a
