@@ -1,5 +1,8 @@
-cmd: if
-xpath: ./References/Reference/Date
+cmd: constant
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
+value: unpublished
 ---
-cmd: column
-xpath: ./References/Reference/Date
+cmd: constant
+xpath: ./References/Reference[@elementtype="First Published In"]/Date
+value: ""
+---
