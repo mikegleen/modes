@@ -417,10 +417,14 @@ def add_arguments(parser, command):
     if is_update:
         parser.add_argument('--col_acc', type=int, default=0, help='''
         The zero-based column containing the accession number of the
-        object to be updated. The default is column zero.''')
-        parser.add_argument('--col_loc', type=int, default=1, help='''
+        object to be updated. The default is column zero.
+        ''')
+        parser.add_argument('--col_loc', type=int, default=1,
+                            help=nd.sphinxify('''
         The zero-based column containing the new location of the
-        object to be updated. The default is column 1.''')
+        object to be updated. The default is column 1. See the --location
+        option which sets the location for all objects in which case this
+        option is ignored.''', called_from_sphinx))
     if is_update or is_check:
         parser.add_argument('-c', '--current', action='store_true', help='''
         Update the current location and change the old current location to a
@@ -449,10 +453,12 @@ def add_arguments(parser, command):
         Write the object to the output file even if it hasn't been updated. This only
         applies to objects whose ID appears in the CSV file. -a implies -f.
         ''')
-    parser.add_argument('--heading', help='''
-        The first row of the map file contains a heading which must match the
-        parameter (case insensitive).
-        ''')
+    parser.add_argument('--heading', help=nd.sphinxify('''
+        The first row of the map file contains a column title which must match the
+        parameter (case insensitive) in the column designated for the location.
+        If a --location argument is specified, the first row is skipped and the
+        value, which nevertheless must be specified, is ignored. 
+        ''', called_from_sphinx))
     if is_update or is_check:
         parser.add_argument('-l', '--location', help='''
         Set the location for all of the objects in the CSV file. In this 
