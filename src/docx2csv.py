@@ -25,6 +25,9 @@ def main():
     document = Document(infile)  # Read in file
     tables = document.tables  # Get the table set in the file
     data = []
+    index_column = _args.index_column
+    index_row = _args.index_row
+    index = _args.index_start
     for table in tables:
         trace(2, 'Processing table {}', tablenumber)
         tablenumber += 1
@@ -32,9 +35,13 @@ def main():
             trace(1, 'Skipping table {}', tablenumber)
             continue
         for i, docrow in enumerate(table.rows):  # read each row
-            row = []
-            for cell in docrow.cells:  # read all cells in a row
+            row: list = []
+            ncell = 0
+            for j, cell in enumerate(docrow.cells):  # read all cells in a row
                 c = cell.text
+                if j == index_column and i >= index_row:
+                    c = str(index)
+                    index += 1
                 row.append(c.strip())
             excol = _args.exclude_column
             if _args.exclude:
@@ -67,6 +74,22 @@ def getparser():
                         help=sphinxify('''
         Specify the column to check for row exclusion. The default is
         column 0. This argument is ignored if --exclude is not specified.
+        ''', called_from_sphinx))
+    parser.add_argument('-i', '--index_column', type=int, help=sphinxify('''
+        Specify a column to generate an index in. This will overwrite whatever
+        is in that column
+        ''', called_from_sphinx))
+    parser.add_argument('-r', '--index_row', type=int, default=0,
+                        help=sphinxify('''
+        The zero-based row in which to begin generating the index. This is
+        ignored unless --index_column is specified. The default is zero, that
+        is, to start numbering from the first row.
+        ''', called_from_sphinx))
+    parser.add_argument('-s', '--index_start', type=int, default=1,
+                        help=sphinxify('''
+        The first number to insert into the index column. This is
+        ignored unless --index_column is specified. The default is one which
+        is incremented for each row.
         ''', called_from_sphinx))
     parser.add_argument('-t', '--table', type=int, default=0, help='''
         Select a single table to process. The default is to process all tables.
