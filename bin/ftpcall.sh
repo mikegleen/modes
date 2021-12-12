@@ -1,2 +1,1 @@
-ftp heathrobinsonmuseum.org 
-
+ftp -p heathrobinsonmuseum.org 
