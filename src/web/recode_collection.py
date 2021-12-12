@@ -19,6 +19,10 @@ from utl.normalize import sphinxify
 
 DEFAULT_EXHIBITION_PLACE = 'HRM'
 
+NEEDS_CLEANING = False
+REPLACE_FROM = ''
+REPLACE_TO = ''
+
 
 def trace(level, template, *args):
     if _args.verbose >= level:
@@ -41,6 +45,12 @@ def decade(datebegin, dateend):
     return dec
 
 
+def clean(s):
+    if NEEDS_CLEANING:
+        s = s.replace(REPLACE_FROM, REPLACE_TO)
+    return s
+
+
 def main():
     global nrows
     reader = csv.DictReader(incsvfile)
@@ -56,9 +66,9 @@ def main():
     for oldrow in reader:
         newrow = dict()
         newrow['Serial'] = oldrow['Serial']
-        newrow['Title'] = oldrow['Title'].replace(':', '.')
+        newrow['Title'] = clean(oldrow['Title'])
         newrow['Medium'] = oldrow['Medium']
-        newrow['Description'] = oldrow['Description'].replace(':', '.')
+        newrow['Description'] = clean(oldrow['Description'])
 
         datebegin = oldrow['DateBegin']
         dateend = oldrow['DateEnd']
@@ -88,10 +98,9 @@ def main():
                 # Note: exhibition.py will insert HRM as the exhibition place
                 # if no place is explicitly given in cfg/exhibition_list.py
                 if place == DEFAULT_EXHIBITION_PLACE:
-                    exhibition.append(name.replace(':', '.'))
+                    exhibition.append(clean(name))
                 else:
-                    exhibition.append(f"{name.replace(':', '.')} "
-                                      f"at {place.replace(':', '.')}")
+                    exhibition.append(f"{clean(name)} at {clean(place)}")
         newrow['Exhibition'] = '|'.join(exhibition)
         writer.writerow(newrow)
         nrows += 1
