@@ -29,7 +29,7 @@ def getargs():
         Folder containing images to list''')
     parser.add_argument('csvfile', help='''
         CSV file containing the accession numbers extracted from the filenames
-        in imgdir''')
+        in indir''')
     parser.add_argument('--heading', action='store_true', help='''
         Write a row at the front of the CSV file containing 'Serial'.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
