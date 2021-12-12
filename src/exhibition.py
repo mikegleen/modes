@@ -183,6 +183,7 @@ def get_csv_dict(csvfile):
              a tuple of (exhibition number, catalogue number).
     """
     def one_accession_number(accno):
+        # print(f'{row=}')
         try:
             accnum = normalize_id(accno)
         except ValueError:
