@@ -1,6 +1,7 @@
 """
 
 """
+import sys
 import unittest
 from utl.cfgutil import expand_idnum
 
@@ -54,6 +55,17 @@ class TestExpandIDnum(unittest.TestCase):
         target = ['LDHRM.2021.' + str(n) for n in range(2, 18)]
         self.assertEqual(idnums, target)
 
+    def test_12(self):
+        idnums = expand_idnum('LDHRM.2021.2&17')
+        target = ['LDHRM.2021.2', 'LDHRM.2021.17']
+        self.assertEqual(idnums, target)
+
+    def test_13(self):
+        idnums = expand_idnum('LDHRM.2021.2 & 17')
+        target = ['LDHRM.2021.2', 'LDHRM.2021.17']
+        self.assertEqual(idnums, target)
+
 
 if __name__ == '__main__':
+    assert sys.version_info >= (3, 9)
     unittest.main()
