@@ -54,7 +54,7 @@ def getargs():
     return args
 
 
-def build_img_set():
+def build_img_set(candidates: set):
     """
     Build a set of normalized accession numbers from the folders containing
     images.
@@ -84,7 +84,7 @@ def build_img_set():
                 print(f'Duplicate: {prefix} in {dirpath}')
             else:
                 img_ids.add(nid)
-                if reportfile:
+                if reportfile and nid in candidates:
                     print(prefix, file=reportfile)
     return img_ids
 
@@ -128,7 +128,6 @@ def build_candidate_set(valid_idnums):
 
 
 def main():
-    img_ids = build_img_set()
     # x.normalized extracts the first entry in the namedtuple Obj_id.
     # valid_idnums is a set of all the IDs in the XML file
     valid_idnums = set([x.normalized for x in list_objects(_args.modesfile)])
@@ -136,6 +135,7 @@ def main():
         candidate_set = build_candidate_set(valid_idnums)
     else:
         candidate_set = valid_idnums
+    img_ids = build_img_set(candidate_set)
     for nid in candidate_set:
         if _args.invert:
             if nid not in img_ids:
