@@ -1,0 +1,3 @@
+cmd: ifcontains
+xpath: ./Exhibition/ExhibitionName
+value: "Children"

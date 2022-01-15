@@ -29,7 +29,8 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 21,2018-11-07,2019-03-24,Home Futures,Design Museum
 22,2017-03-04,2017-05-21,Wonder and Whimsy: The Illustrations of W. Heath Robinson,Delaware Art Museum
 23,2016-03-08,2016-06-03,William Heath Robinson’s Life of Line,"Library Print Room, Royal Academy of Arts"
-24,2022-09-15,2022-05-08,Heath Robinson’s Children's Stories
-25,2021-10-27,2022-01-30,The Art of W. Heath Robinson,The Willis Museum'''
+24,2022-01-15,2022-05-15,Heath Robinson’s Children’s Stories
+25,2021-10-27,2022-01-30,The Art of W. Heath Robinson,The Willis Museum
+26,2022-05-21,2022-09-04,The Humour of William Heath Robinson'''
 if __name__ == '__main__':
-    print('This module is not callable.')
+    print('This module is not executable.')
