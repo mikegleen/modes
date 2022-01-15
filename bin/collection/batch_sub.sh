@@ -1,6 +1,6 @@
 #
 # Create a CSV file with the accession numbers from the filenames in the batch.
-# Insert a heading in the CSV file even though it will be skipped by xml2csv for debugging.
+# Insert a heading in the CSV file even though it will be skipped by xml2csv (useful for debugging).
 #
 set -e
 python src/dir2csv.py ../collection/webimgs/${BATCH} tmp/${BR}_list.csv --heading
