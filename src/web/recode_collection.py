@@ -73,10 +73,14 @@ def main():
         datebegin = oldrow['DateBegin']
         dateend = oldrow['DateEnd']
         accuracy = oldrow['Accuracy']
+        use_published_date = False
         if not datebegin or datebegin == 'unknown':
             datebegin = oldrow['DateFirstPublished']
-
+            if datebegin:
+                use_published_date = True
         newrow['HumanDate'] = britishdatefrommodes(datebegin)
+        if use_published_date:
+            newrow['HumanDate'] += ' (Date Published)'
         if accuracy == 'circa':
             newrow['HumanDate'] = 'c. ' + newrow['HumanDate']
             if dateend:
