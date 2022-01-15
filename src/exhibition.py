@@ -134,7 +134,7 @@ def one_object(objelt, idnum, exhibition: Exhibition, catalog_num=None):
             if elt.tag == "Acquisition":
                 firstexix = n + 1  # insert the new elt after <Acquisition>
                 break
-    # Remove all of the Exhibition elements and re-insert the ones we're
+    # Remove all the Exhibition elements and re-insert the ones we're
     # keeping in date order.
     for _edate, exhib in exhibs_to_insert:
         # print(objelt, exhib)
@@ -278,8 +278,10 @@ def getparser():
         Import exhibition information into a Modes XML file.
         Read a CSV file containing one, two, or three columns containing 
         the accession number whose record should be updated, the
-        optional exhibition number, and the optional catalog number
-        (see the parameters below for details).
+        optional exhibition number, and the optional catalog number. The
+        exhibition number corresponds to the data in exhibition_list.py and
+        is used for this process. It is not recorded in the XML file.
+        See the parameters below for more details.
         ''')
     exgroup = parser.add_mutually_exclusive_group()
     objgroup = parser.add_mutually_exclusive_group()
@@ -310,11 +312,11 @@ def getparser():
         otherwise. The column can be a number or a spreadsheet-style
         letter.''', called_from_sphinx))
     exgroup.add_argument('-e', '--exhibition', type=int, help=sphinxify('''
-        The exhibition number, corresponding to the data in exhibition_list.py
+        The exhibition number
         to apply to all objects in the CSV file. Do not specify this if
         --col_ex is specified.''', called_from_sphinx))
     objgroup.add_argument('-m', '--mapfile', help=sphinxify('''
-        The CSV file mapping the object number to the catalog number and
+        The CSV file mapping the accession number to the catalog number and
         exhibition number. (but see --exhibition). There is no heading row
         (but see --skiprows).''', called_from_sphinx))
     objgroup.add_argument('-j', '--object', help=sphinxify('''
