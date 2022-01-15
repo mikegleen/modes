@@ -471,7 +471,7 @@ def add_arguments(parser, command):
             default, the accession number is in the first column (column 0) but 
             this can be changed by the --col_acc option. The new location is by
             default in the second column (column 1) but can be changed by the
-            --col_loc option. This is ignored if --object is specified.
+            --col_loc option. This  argument is ignored if --object is specified.
             ''', called_from_sphinx))
     if is_update or is_check:
         parser.add_argument('-n', '--normal', action='store_true', help='''
