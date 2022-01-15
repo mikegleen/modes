@@ -410,22 +410,29 @@ def yaml_fieldnames(config):
 def expand_idnum(idstr: str) -> list[str]:
     """
     :param idstr: An accession number or a range of numbers. If it is a range,
-    indicated by a hyphen anywhere in the string, the format of the number is:
-        idstr ::= <prefix>-<suffix>
+    indicated by a hyphen or ampersand anywhere in the string, the format of
+    the number is:
+        idstr ::= <prefix>-<suffix> | <prefix>&<suffix>
         prefix ::= <any text><n digits>
         suffix ::= <n digits>
         The prefix consists of any text followed by a string of digits of the
         same length as the suffix.
         The suffix is a string of digits.
+        Note: white space is removed from the idnum before parsing.
     :return: A list containing zero or more idnums. If idnum is just a single
     number, then it will be returned inside a list. If there is an error,
     an empty list will be returned. If a range is specified, then multiple
-    idnums will be returned in the list.
+    idnums will be returned in the list. If a second suffix is given,
+    specified by an "&", then two accession numbers are returned.
 
-        For example: JB021-024 or JB021-24. These produce identical results:
-        ['JB021', 'JB022', 'JB023', 'JB024']
+    Examples:
+        JB021-024 or JB021-24. These produce identical results:
+            ['JB021', 'JB022', 'JB023', 'JB024']
+        JB021&026 returns:
+            ['JB021', 'JB026']
     """
     jlist = []
+    idstr = ''.join(idstr.split())  # remove all whitespace
     if '-' in idstr:  # if ID is actually a range like JB021-23
         if m := re.match(r'(.+?)(\d+)-(\d+)$', idstr):
             prefix = m[1]
@@ -441,6 +448,22 @@ def expand_idnum(idstr: str) -> list[str]:
                       f' formed: {m.groups()}')
         else:
             print('Bad accession number, failed pattern match:', idstr)
+    elif '&' in idstr:
+        if m := re.match(r'(.+?)(\d+)&(\d+)$', idstr):
+            prefix = m[1]
+            firstidnum = int(m[2])
+            secondidnum = int(m[3])
+            try:
+                firstidlen = len(m[2])
+                for suffix in (firstidnum, secondidnum):
+                    newidnum = f'{prefix}{suffix:0{firstidlen}}'
+                    jlist.append(newidnum)
+            except ValueError:
+                print(f'Bad accession number, contains "&" but not well'
+                      f' formed: {m.groups()}')
+        else:
+            print('Bad accession number, failed pattern match:', idstr)
+
     else:
         jlist.append(idstr)
     return jlist
