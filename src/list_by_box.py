@@ -27,7 +27,17 @@ def pad_loc(loc):
     if m:
         g1 = m.group(1).upper()
         g2 = int(m.group(2))
-        return f'{g1}{g2:02}'
+        return f'{g1}{g2:03}'
+    else:
+        return loc
+
+
+def unpad_loc(loc):
+    m = re.match(r'(\D+)(\d+)', loc)
+    if m:
+        g1 = m.group(1).upper()
+        g2 = int(m.group(2))
+        return f'{g1}{g2}'
     else:
         return loc
 
@@ -41,9 +51,9 @@ def one_object(elt):
         location = 'unknown'
     title = elt.find('./Identification/Title').text
 
-    row = [location, num]  # , title[:60]]
-    # writer.writerow(row)
-    boxdict[location].append(normalize_id(num))
+    nnum = normalize_id(num)
+    boxdict[location].append(nnum)
+    titledict[nnum] = title
 
 
 def main():
@@ -52,9 +62,12 @@ def main():
             one_object(obj)
             obj.clear()
     for box in sorted(boxdict.keys()):
-        print(f'\nBox {box}\n--------------', file=outfile)
-        for num in sorted(boxdict[box]):
-            print(denormalize_id(num), file=outfile)
+        writer.writerow([''])
+        writer.writerow([''])
+        writer.writerow([f'Box {unpad_loc(box)}'])
+        writer.writerow(['--------------'])
+        for nnum in sorted(boxdict[box]):
+            writer.writerow([denormalize_id(nnum), titledict[nnum]])
 
 
 if __name__ == '__main__':
@@ -65,6 +78,7 @@ if __name__ == '__main__':
         outfile = sys.stdout
     else:
         outfile = open(sys.argv[2], 'w', newline='')
-    # writer = csv.writer(outfile)
+    writer = csv.writer(outfile)
     boxdict = defaultdict(list)
+    titledict = dict()
     main()
