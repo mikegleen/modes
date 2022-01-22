@@ -1,7 +1,7 @@
 cmd: ifattribeq
 xpath: .
 attribute: elementtype
-value: fine art
+value: Original Artwork
 ---
 cmd: column
 xpath: ./Identification/Title
