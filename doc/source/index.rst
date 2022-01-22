@@ -165,6 +165,7 @@ the tests must succeed for a record to be selected.
        value: fine art
        ---
 
+   This examines the ``elementtype`` attribute on the ``Object`` element.
 -  **ifattribnoteq** Like **ifattribeq** except compares the value against an
    attribute.
 -  **ifcontains** Select an object if the value in the **value**
