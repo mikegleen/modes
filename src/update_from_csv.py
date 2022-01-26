@@ -43,6 +43,7 @@ def trace(level, template, *args):
 def new_subelt(doc, root):
     elt = None
     if Stmt.PARENT_PATH in doc:
+        # print(f'{doc[Stmt.PARENT_PATH]}')
         parent = root.find(doc[Stmt.PARENT_PATH])
         title = doc[Stmt.TITLE]
         if parent is None:
@@ -121,7 +122,7 @@ def one_element(elem, idnum):
             continue
         target = elem.find(xpath)
         if target is None:
-            target = new_subelt(doc, target)
+            target = new_subelt(doc, elem)
             if target is None:
                 trace(1, '{}: Cannot find target "{}"', idnum, xpath)
                 continue
