@@ -1,0 +1,1 @@
+python src/exhibition.py prod_update/pretty/2022-01-26_batch1_pretty.xml prod_update/pretty/2022-01-26_dulwich_pretty.xml -a -e 18 -p Dulwich -m results/csv/exhibitions/dulwich_update_name.csv --col_cat 1 -s 1
