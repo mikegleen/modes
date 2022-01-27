@@ -5,6 +5,9 @@
 #
 # NOTE: The dates must be in ISO yyyy-mm-dd format.
 #
+# Old name:
+# 18,2003-11-03,2004-01-18,Dulwich,Dulwich Picture Gallery
+
 EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 1,2016-10-15,2017-01-08,Heath Robinson at War
 2,2017-01-21,2017-03-26,The Brothers Robinson
@@ -23,7 +26,7 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 15,2019-11-30,2020-02-23,Fairies in Illustration
 16,2020-02-29,2021-03-20,Charles Keeping Illustrations
 17,2018-01-20,2018-04-15,Heath Robinson: Dreams and Machines,Mottisfont Abbey
-18,2003-11-03,2004-01-18,Dulwich,Dulwich Picture Gallery
+18,2003-11-03,2004-01-18,The Art of William Heath Robinson,Dulwich Picture Gallery
 19,2019-04-01,2019-06-30,Heath Robinson Runs Again,NMOC
 20,2021-07-03,2021-08-28,"Heath Robinson Exhibition, Haslemere",Haslemere Museum
 21,2018-11-07,2019-03-24,Home Futures,Design Museum

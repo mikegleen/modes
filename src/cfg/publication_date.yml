@@ -1,0 +1,4 @@
+cmd: column
+xpath: ./Production/Date[@elementtype="publication date"]
+title: pubdate
+---

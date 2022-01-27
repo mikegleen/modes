@@ -1,0 +1,34 @@
+cmd: column
+xpath: ./Identification/Title
+---
+#cmd: column
+#xpath: ./Description/Material[Part="medium"]/Keyword
+#title: Medium
+#---
+cmd: column
+xpath: ./Production/Date/DateBegin
+parent_path: ./Production/Date
+---
+cmd: column
+xpath: ./Production/Date/DateEnd
+parent_path: ./Production/Date
+---
+cmd: column
+xpath: ./Production/Date/Accuracy
+parent_path: ./Production/Date
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Date
+title: DateFirstPublished
+---
+#cmd: multiple
+#xpath: ./Exhibition/Place
+#title: ExhibitionPlace
+#---
+#cmd: multiple
+#xpath: ./Exhibition/ExhibitionName
+#title: ExhibitionName
+#---
+cmd: column
+xpath: ./Identification/BriefDescription
+title: Description

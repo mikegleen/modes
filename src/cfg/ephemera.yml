@@ -1,0 +1,26 @@
+#cmd: ifcontains
+#xpath: ./ObjectIdentity/Number
+#value: 2018
+#---
+cmd: ifattribeq
+xpath: .
+attribute: elementtype
+value: ephemera
+---
+cmd: column
+xpath: ./Identification/Title
+---
+cmd: column
+xpath: ./Identification/ObjectName[@elementtype="simple name"]/Keyword
+title: 'simple name'
+---
+cmd: column
+xpath: ./Identification/ObjectName[@elementtype="other name"]/Keyword
+title: " other name"
+---
+cmd: column
+xpath: './ObjectLocation[@elementtype="current location"]/Location'
+title: Current
+---
+cmd: column
+xpath: ./Identification/BriefDescription

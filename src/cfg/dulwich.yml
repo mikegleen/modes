@@ -1,16 +1,18 @@
-cmd: if
-xpath: Exhibition[ExhibitionName="Dulwich"]/CatalogueNumber
+cmd: ifelt
+# xpath: ./Exhibition[ExhibitionName="Dulwich"]
+xpath: ./Exhibition[ExhibitionName="Dulwich"]
+# value: Dulwich
 ---
 cmd: column
-xpath: Exhibition[ExhibitionName="Dulwich"]/CatalogueNumber
+xpath: ./Exhibition[ExhibitionName="Dulwich"]/CatalogueNumber
 ---
-cmd: column
-xpath: ./ObjectIdentity/Number
-title: Serial
+#cmd: column
+#xpath: ./ObjectIdentity/Number
+#title: Serial
+#---
+#cmd: column
+#xpath: ./Identification/Title
+#width: 75
 ---
-cmd: column
-xpath: ./Identification/Title
-width: 75
----
-cmd: global
-skip_number:
+#cmd: global
+#skip_number:

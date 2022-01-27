@@ -218,7 +218,7 @@ def getparser():  # called either by getargs or sphinx
     parser.add_argument('-c', '--cfgfile', help='''
         The config file describing the column_paths to extract. If omitted,
         only the accession numbers will be output.''')
-    parser.add_argument('-f', '--force', help='''
+    parser.add_argument('-f', '--force', action='store_true', help='''
         Write output even if none of the columns is populated.''')
     parser.add_argument('--heading', action='store_true', help='''
         Write a row at the front of the CSV file containing the field names.

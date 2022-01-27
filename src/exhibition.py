@@ -81,7 +81,9 @@ def one_object(objelt, idnum, exhibition: Exhibition, catalog_num=None):
         exhname = exhib_elt.find('ExhibitionName')
         if exhname is None:
             return 0  # This is an empty Exhibition template
-        if exhname.text != exhibition.ExhibitionName:
+        # Updating the exhibition name is a special case since it's used as
+        # a key.  The patch name is the old name to be replaced.
+        if exhname.text not in (_args.patch_name, exhibition.ExhibitionName):
             return 1  # not a match so just keep this element as is
         # The names match so update the values
         subelts = list(exhib_elt)
@@ -89,6 +91,8 @@ def one_object(objelt, idnum, exhibition: Exhibition, catalog_num=None):
             tag = subelt.tag
             if tag == "ExhibitionName":
                 subelt.text = exhibition.ExhibitionName
+            elif tag == "CatalogueNumber":
+                pass  # cannot update the catalog number for now
             elif tag == "Place":
                 subelt.text = exhibition.Place
             elif tag == "Date":
@@ -100,7 +104,7 @@ def one_object(objelt, idnum, exhibition: Exhibition, catalog_num=None):
                         dateelt.text = modesdate(exhibition.DateEnd)
             else:
                 trace(1, 'ID {}: Unknown subelt in {} Exhibition element: {},' 
-                      ' element not updated.', display_id, tag)
+                      ' element not updated.', subelt.text, display_id, tag)
         return 2
     # end one_exhibition
 
@@ -158,7 +162,8 @@ def get_exhibition_dict():
     :return: A dictionary mapping the exhibition number to the Exhibition
              namedtuple.
     """
-    reader = csv.reader(EXSTR.split('\n'), delimiter=',')
+    exhibition_list = EXSTR.split('\n')
+    reader = csv.reader(exhibition_list, delimiter=',')
     next(reader)  # skip heading
     exdic = {int(row[0]):
              Exhibition(ExNum=row[0],
@@ -324,6 +329,10 @@ def getparser():
     the CSV file containing object numbers, exhibitions and catalogue numbers
     (--mapfile). You must also specify --exhibition and optionally --catalogue.
     ''', called_from_sphinx))
+    parser.add_argument('-p', '--patch_name', help=sphinxify('''
+    Specify the old name of the exhibition to be replaced by the name now in
+    ``exhibition_list.py``. You must specify the --exhibition parameter.
+        ''', called_from_sphinx))
     parser.add_argument('-s', '--skiprows', type=int, default=0, help='''
         Number of lines to skip at the start of the CSV file''')
     parser.add_argument('--short', action='store_true', help='''
@@ -339,9 +348,9 @@ def getargs(argv):
     args = parser.parse_args(args=argv[1:])
     if args.mapfile is None and args.object is None:
         raise ValueError('You must specify one of --mapfile and --object')
-    if args.object and not args.exhibition:
-        raise(ValueError('You specified the object id. You must also '
-                         'specify the exhibition.'))
+    if (args.object or args.patch_name) and not args.exhibition:
+        raise(ValueError('You specified the object id or patch name. You must'
+                         ' also specify the exhibition.'))
     if args.col_acc is None:
         args.col_acc = 0
     else:

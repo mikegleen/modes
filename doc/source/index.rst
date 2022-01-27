@@ -45,8 +45,9 @@ The configuration consists of a YAML file broken into multiple
 documents, separated by lines containing ``---`` in the left three columns.
 Each document roughly corresponds to a column in the associated CSV file.
 Each document contains some of the following statements. Statements are
-case sensitive; all must be lower case. Commands can be
-column-generating or control statements.
+case sensitive; all must be lower case. The lead statement in a document
+is the **cmd** statement, which controls the function of the document.
+Commands can be column-generating or control statements.
 
 By default, the first column in the CSV file is the serial number (accession
 number) of the object affected. On output, this can be suppressed using the
@@ -67,7 +68,7 @@ Single-command Statements
 -  **parent_path** Include this statement if the **xpath** may not
    exist, in which case a new one will be created as a child of this path.
    Implemented in ``csv2xml.py`` and ``update_from_csv.py`` only. The element
-   name to be created will be taken from the title in the document. See the
+   name to be created will be taken from the **title** statement in the document. See the
    **title** statement below. This element named by this path must already exist.
 -  **attribute** Required by the **attrib** and **ifattrib** commands.
 -  **title** Optional. If omitted, a best-guess title will be created
@@ -82,10 +83,11 @@ Single-command Statements
 -  **casesensitive** By default, comparisons are case insensitive.
 -  **width** truncate this column to this number of characters when writing to
    a CSV file. Ignored when writing to an XML file.
--  **required** Issue an error message if this field is missing or
-   empty. Valid only with a control command (**if** ...) or with a
+-  **required** If this field is missing or
+   empty issue an error message and discard the row. Valid only with a control
+   command (**if** ...) or with a
    **column** command in ``csv2xml.py``. In this case it is useful for
-   discarding rubbish rows in the CSV file. In ``xml2csv.py`` if a
+   discarding rubbish rows in the CSV file.
 -  **multiple_delimiter**  The character to use within a column to separate the
    values when used with the **multiple** command. The statement may
    appear under the **global** command or a specific **multiple** command,
