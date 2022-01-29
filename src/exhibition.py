@@ -35,8 +35,8 @@ from utl.excel_cols import col2num
 from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
 from utl.normalize import sphinxify
 
-Exhibition = namedtuple('Exhibition',
-                        'ExNum DateBegin DateEnd ExhibitionName Place')
+ExhibitionTuple = namedtuple('ExhibitionTuple',
+                             'ExNum DateBegin DateEnd ExhibitionName Place')
 
 
 def trace(level, template, *args):
@@ -44,7 +44,7 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-def one_object(objelt, idnum, exhibition: Exhibition, catalog_num=None):
+def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
     """
 
     :param objelt: the Object
@@ -77,22 +77,51 @@ def one_object(objelt, idnum, exhibition: Exhibition, catalog_num=None):
                  1 if the input element's ExhibitionName is different from
                     the one we are inserting
                  2 (also update the values) if the ExhibitionName values match
+
+        It is possible to have duplicate exhibition names but exhibitions are
+        guaranteed to have unique name+place+begindate. So if we are replacing
+        the name, make sure that we are updating the correct exhibition by
+        checking the complete keys.
         """
-        exhname = exhib_elt.find('ExhibitionName')
-        if exhname is None:
+
+        exhibname = exhib_elt.find('ExhibitionName')
+        if exhibname is None:
             return 0  # This is an empty Exhibition template
         # Updating the exhibition name is a special case since it's used as
-        # a key.  The patch name is the old name to be replaced.
-        if exhname.text not in (_args.patch_name, exhibition.ExhibitionName):
+        # a key.  The old name is in the XML file and is to be replaced. We
+        # could skip this step as the full key compare will work anyhow, but
+        # this gets us out of here quickly in most cases.
+        if exhibname.text not in (_oldname, exhibition.ExhibitionName):
             return 1  # not a match so just keep this element as is
-        # The names match so update the values
+        # The exhibition names match but if they are duplicated elsewhere in
+        # the list, we must look deeper.
+        exhibkey = _oldname if _oldname else exhibition.ExhibitionName
+        exhibkey += _oldplace if _oldplace else exhibition.Place
+        exhibkey += _olddate if _olddate else exhibition.DateBegin
+        xmlkey = exhibname.text
+        xmlplace = ''
+        xmldate = ''
         subelts = list(exhib_elt)
+        for subelt in subelts:
+            tag = subelt.tag
+            if tag == "Place":
+                xmlplace = subelt.text
+            elif tag == "Date":
+                dates = list(subelt)
+                for dateelt in dates:
+                    if dateelt.tag == 'DateBegin':
+                        xmldate = dateelt.text
+        xmlkey += xmlplace + xmldate
+        # And finally, confirm that it's really the one we want to update.
+        if exhibkey != xmlkey:
+            return 1
+        # The names match so update the values
         for subelt in subelts:
             tag = subelt.tag
             if tag == "ExhibitionName":
                 subelt.text = exhibition.ExhibitionName
             elif tag == "CatalogueNumber":
-                pass  # cannot update the catalog number for now
+                subelt.text = str(catalog_num)
             elif tag == "Place":
                 subelt.text = exhibition.Place
             elif tag == "Date":
@@ -166,12 +195,12 @@ def get_exhibition_dict():
     reader = csv.reader(exhibition_list, delimiter=',')
     next(reader)  # skip heading
     exdic = {int(row[0]):
-             Exhibition(ExNum=row[0],
-                        DateBegin=date.fromisoformat(row[1]),
-                        DateEnd=date.fromisoformat(row[2]),
-                        ExhibitionName=row[3],
-                        Place=row[4] if len(row) >= 5 else 'HRM'
-                        ) for row in reader}
+             ExhibitionTuple(ExNum=row[0],
+                             DateBegin=date.fromisoformat(row[1]),
+                             DateEnd=date.fromisoformat(row[2]),
+                             ExhibitionName=row[3],
+                             Place=row[4] if len(row) >= 5 else 'HRM'
+                             ) for row in reader}
     if _args.exhibition:
         exnum = _args.exhibition
         trace(1, 'Processing exhibition {}: "{}"', exnum,
@@ -329,9 +358,19 @@ def getparser():
     the CSV file containing object numbers, exhibitions and catalogue numbers
     (--mapfile). You must also specify --exhibition and optionally --catalogue.
     ''', called_from_sphinx))
-    parser.add_argument('-p', '--patch_name', help=sphinxify('''
+    parser.add_argument('--old_name', help=sphinxify('''
     Specify the old name of the exhibition to be replaced by the name now in
     ``exhibition_list.py``. You must specify the --exhibition parameter.
+        ''', called_from_sphinx))
+    parser.add_argument('--old_place', help=sphinxify('''
+    Specify the old ``Place`` of the exhibition to be replaced by the ``Place``
+    now in ``exhibition_list.py``. You must specify the --old_name parameter.
+    This is optional and only needed if the exhibition name is not unique.
+        ''', called_from_sphinx))
+    parser.add_argument('--old_date', help=sphinxify('''
+    Specify the old BeginDate of the exhibition to be replaced by the BeginDate
+    now in ``exhibition_list.py``. This is optional and only needed if the
+    exhibition name is not unique. You must specify the --old_place parameter.
         ''', called_from_sphinx))
     parser.add_argument('-s', '--skiprows', type=int, default=0, help='''
         Number of lines to skip at the start of the CSV file''')
@@ -370,6 +409,9 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     called_from_sphinx = False
     _args = getargs(sys.argv)
+    _oldname = _args.old_name
+    _oldplace = _args.old_place
+    _olddate = _args.old_date
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Input file: {}', _args.infile)
