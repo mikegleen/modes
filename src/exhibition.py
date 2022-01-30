@@ -33,7 +33,7 @@ from cfg.exhibition_list import EXSTR
 from utl.cfgutil import Stmt, expand_idnum
 from utl.excel_cols import col2num
 from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
-from utl.normalize import sphinxify
+from utl.normalize import sphinxify, vdate
 
 ExhibitionTuple = namedtuple('ExhibitionTuple',
                              'ExNum DateBegin DateEnd ExhibitionName Place')
@@ -53,6 +53,7 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
     :param catalog_num: for the CatalogueNumber element
     :return: a tuple containing the BeginDate, the new Exhibition element
     """
+
     def new_exhib():
         newelt = ET.Element('Exhibition')
         subelt = ET.SubElement(newelt, 'ExhibitionName')
@@ -70,6 +71,7 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
         return exhibition.DateBegin, newelt
 
     def one_exhibition(exhib_elt):
+        global found_old_key
         """
         Handle an existing exhibition
         :param exhib_elt: an Exhibition element (under Object)
@@ -95,9 +97,9 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
             return 1  # not a match so just keep this element as is
         # The exhibition names match but if they are duplicated elsewhere in
         # the list, we must look deeper.
-        exhibkey = _oldname if _oldname else exhibition.ExhibitionName
-        exhibkey += _oldplace if _oldplace else exhibition.Place
-        exhibkey += _olddate if _olddate else exhibition.DateBegin
+        exhibkey = _oldname if _oldname else exhibition.ExhibitionName + ':'
+        exhibkey += _oldplace if _oldplace else exhibition.Place + ':'
+        exhibkey += _olddate if _olddate else (exhibition.DateBegin.isoformat()[:10])
         xmlkey = exhibname.text
         xmlplace = ''
         xmldate = ''
@@ -111,9 +113,13 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
                 for dateelt in dates:
                     if dateelt.tag == 'DateBegin':
                         xmldate = dateelt.text
-        xmlkey += xmlplace + xmldate
+        xmlkey += ':' + xmlplace + ':' + xmldate
         # And finally, confirm that it's really the one we want to update.
-        if exhibkey != xmlkey:
+        trace(2, 'exhibkey={}\nxmlkey={}', exhibkey, xmlkey)
+        if exhibkey == xmlkey:
+            # Sanity check the --old_xxxx parameter
+            found_old_key = True
+        else:
             return 1
         # The names match so update the values
         for subelt in subelts:
@@ -194,13 +200,27 @@ def get_exhibition_dict():
     exhibition_list = EXSTR.split('\n')
     reader = csv.reader(exhibition_list, delimiter=',')
     next(reader)  # skip heading
-    exdic = {int(row[0]):
-             ExhibitionTuple(ExNum=row[0],
-                             DateBegin=date.fromisoformat(row[1]),
-                             DateEnd=date.fromisoformat(row[2]),
-                             ExhibitionName=row[3],
-                             Place=row[4] if len(row) >= 5 else 'HRM'
-                             ) for row in reader}
+
+    exdic = {}
+    for row in reader:
+        if not row:
+            continue
+        exdic[int(row[0])] = ExhibitionTuple(ExNum=row[0],
+                                             DateBegin=date.fromisoformat(row[1]),
+                                             DateEnd=date.fromisoformat(row[2]),
+                                             ExhibitionName=row[3],
+                                             Place=row[4] if len(row) >= 5 else 'HRM'
+                                             )
+        if exdic[int(row[0])].DateBegin > exdic[int(row[0])].DateEnd:
+            raise ValueError(f"In exhibition_list.py, Begin Date > End Date: {row}")
+    # Previous version: let it age a bit before deleting.
+    # exdic = {int(row[0]):
+    #          ExhibitionTuple(ExNum=row[0],
+    #                          DateBegin=date.fromisoformat(row[1]),
+    #                          DateEnd=date.fromisoformat(row[2]),
+    #                          ExhibitionName=row[3],
+    #                          Place=row[4] if len(row) >= 5 else 'HRM'
+    #                          ) for row in reader}
     if _args.exhibition:
         exnum = _args.exhibition
         trace(1, 'Processing exhibition {}: "{}"', exnum,
@@ -371,6 +391,7 @@ def getparser():
     Specify the old BeginDate of the exhibition to be replaced by the BeginDate
     now in ``exhibition_list.py``. This is optional and only needed if the
     exhibition name is not unique. You must specify the --old_place parameter.
+    The date must be in Modes format (d.m.yyyy).
         ''', called_from_sphinx))
     parser.add_argument('-s', '--skiprows', type=int, default=0, help='''
         Number of lines to skip at the start of the CSV file''')
@@ -387,8 +408,8 @@ def getargs(argv):
     args = parser.parse_args(args=argv[1:])
     if args.mapfile is None and args.object is None:
         raise ValueError('You must specify one of --mapfile and --object')
-    if (args.object or args.patch_name) and not args.exhibition:
-        raise(ValueError('You specified the object id or patch name. You must'
+    if (args.object or args.old_name) and not args.exhibition:
+        raise(ValueError('You specified the object id or old name. You must'
                          ' also specify the exhibition.'))
     if args.col_acc is None:
         args.col_acc = 0
@@ -399,6 +420,10 @@ def getargs(argv):
     if args.col_ex is not None:
         args.col_ex = col2num(str(args.col_ex))
 
+    if args.old_date:
+        if not vdate(args.old_date):  # Modes format?
+            raise ValueError('Parameter --old_date must be Modes format, d.m.yyyy')
+
     return args
 
 
@@ -408,6 +433,7 @@ called_from_sphinx = True
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     called_from_sphinx = False
+    found_old_key = False
     _args = getargs(sys.argv)
     _oldname = _args.old_name
     _oldplace = _args.old_place
@@ -417,3 +443,5 @@ if __name__ == '__main__':
     trace(1, 'Input file: {}', _args.infile)
     trace(1, 'Creating file: {}', _args.outfile)
     main()
+    if (_oldname or _oldplace or _olddate) and not found_old_key:
+        print("**** Warning: Old name/place/date specified but no old key found.")

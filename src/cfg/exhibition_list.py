@@ -34,6 +34,13 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 23,2016-03-08,2016-06-03,William Heath Robinson’s Life of Line,"Library Print Room, Royal Academy of Arts"
 24,2022-01-15,2022-05-15,Heath Robinson’s Children’s Stories
 25,2021-10-27,2022-01-30,The Art of W. Heath Robinson,The Willis Museum
-26,2022-05-21,2022-09-04,The Humour of William Heath Robinson'''
+26,2022-05-21,2022-09-04,The Humour of William Heath Robinson
+'''
+# data for testing
+'''
+999,2022-10-15,2017-01-08,Heath Robinson at War
+999,2021-10-15,2022-01-08,Heath Robinson at War
+'''
+#
 if __name__ == '__main__':
     print('This module is not executable.')
