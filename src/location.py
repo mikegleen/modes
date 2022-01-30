@@ -40,6 +40,7 @@ def loadcsv():
     by the --mapfile argument.
     :return: the dictionary containing the mappings
     """
+    rownum = 0
     location_dict = {}
     if _args.subp == 'validate':
         return location_dict
@@ -48,6 +49,7 @@ def loadcsv():
     with codecs.open(_args.mapfile, 'r', 'utf-8-sig') as mapfile:
         reader = csv.reader(mapfile)
         for row in reader:
+            rownum += 1
             trace(3, 'row: {}', row)
             if need_heading:
                 # if --location is given just skip the first row
@@ -60,8 +62,11 @@ def loadcsv():
                 need_heading = False
                 continue
             objid = row[_args.col_acc].strip().upper()
+            if not objid:
+                print(f'Warning: Blank object ID row {rownum}: {row}')
+                continue  # blank number
             if objid in location_dict:
-                print(f'Fatal error: Duplicate object ID: {objid}.')
+                print(f'Fatal error: Duplicate object ID row {rownum}: {row}.')
                 sys.exit(1)
             location_dict[objid] = loc_arg if loc_arg else row[_args.col_loc].strip()
     return location_dict
@@ -229,7 +234,7 @@ def update_current_location(elem, idnum):
     change the current location into a previous location and insert a new
     current location element.
 
-    If --reset_current is set, delete all of the existing previous location elements.
+    If --reset_current is set, delete all the existing previous location elements.
 
     We've called validate_locations() so there is no need to test return
     values from function calls.
