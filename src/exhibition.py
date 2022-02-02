@@ -46,13 +46,14 @@ def trace(level, template, *args):
 
 def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
     """
-
+#
     :param objelt: the Object
     :param idnum: the ObjectIdentity/Number text (for trace)
     :param exhibition: the Exhibition tuple corresponding to exhibition_list.py
     :param catalog_num: for the CatalogueNumber element
     :return: a tuple containing the BeginDate, the new Exhibition element
     """
+    global found_old_key
 
     def new_exhib():
         newelt = ET.Element('Exhibition')
@@ -71,7 +72,6 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
         return exhibition.DateBegin, newelt
 
     def one_exhibition(exhib_elt):
-        global found_old_key
         """
         Handle an existing exhibition
         :param exhib_elt: an Exhibition element (under Object)
@@ -113,13 +113,11 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
                 for dateelt in dates:
                     if dateelt.tag == 'DateBegin':
                         xmldate = dateelt.text
+                        break
         xmlkey += ':' + xmlplace + ':' + xmldate
         # And finally, confirm that it's really the one we want to update.
-        trace(2, 'exhibkey={}\nxmlkey={}', exhibkey, xmlkey)
-        if exhibkey == xmlkey:
-            # Sanity check the --old_xxxx parameter
-            found_old_key = True
-        else:
+        trace(3, '{}: exhibkey={}\nxmlkey={}', idnum, exhibkey, xmlkey)
+        if exhibkey != xmlkey:
             return 1
         # The names match so update the values
         for subelt in subelts:
@@ -148,23 +146,30 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
     elts = list(objelt)  # the children of Object
     # for elt in elts:
     #     print(elt)
-    exhibs_to_insert = list()
-    exhibs_to_remove = list()
+    exhibs_to_insert = list()  # all current plus any new
+    exhibs_to_remove = list()  # empty Exhibition template or to be deleted
     firstexix = None  # index of the first Exhibition element
     need_new = True
     for n, elt in enumerate(elts):
         if elt.tag == "Exhibition":
-            status = one_exhibition(elt)
-            if status:  # 1 or 2
-                # Assume DateBegin exists
-                begindate, _ = datefrommodes(elt.find('./Date/DateBegin').text)
-                exhibs_to_insert.append((begindate, elt))  # will sort on date
-                if status == 2:
-                    need_new = False
-            else:
-                exhibs_to_remove.append(elt)  # empty template
             if firstexix is None:
                 firstexix = n
+            status = one_exhibition(elt)
+            if status == 0:  # This is an empty Exhibition template
+                exhibs_to_remove.append(elt)
+                continue
+            begindate, _ = datefrommodes(elt.find('./Date/DateBegin').text)
+            if status == 1:  # Not this exhibition
+                exhibs_to_insert.append((begindate, elt))  # will sort on date
+                continue
+            else:  # status == 2
+                # Sanity check that we got at least one hit on the --old_xxxx parameter
+                found_old_key = True
+                need_new = False
+                if _args.delete:
+                    exhibs_to_remove.append(elt)
+                else:
+                    exhibs_to_insert.append((begindate, elt))  # will sort on date
     if firstexix is None:  # no Exhibition elements were found
         etype = objelt.get('elementtype')
         trace(1, 'Object number {}: No Exhibition element. etype: {}',
@@ -230,7 +235,7 @@ def get_exhibition_dict():
 
 def get_csv_dict(csvfile):
     """
-    :param csvfile: contains the accession number specified by --col_acc,
+    :param: csvfile: contains the accession number specified by --col_acc,
     optionally the exhibition number in the column specified by  and --col_ex,
     and optionally the catalog number specified by --col_cat.
     :return: A dict with the key of the accession number and the value being
@@ -293,7 +298,7 @@ def main():
     if _args.object:
         objlist = expand_idnum(_args.object)  # JB001-002 -> JB001, JB002
         exmap = {normalize_id(obj):  # JB001 -> JB00000001
-                     (_args.exhibition, _args.catalogue) for obj in objlist}
+                 (_args.exhibition, _args.catalogue) for obj in objlist}
     else:
         exmap = get_csv_dict(_args.mapfile)  # acc # -> (exhibition #, catalog #)
     exdict = get_exhibition_dict()  # exhibition # -> Exhibition tuple
@@ -365,6 +370,9 @@ def getparser():
         Do not specify this if --exhibition is specified. It is mandatory
         otherwise. The column can be a number or a spreadsheet-style
         letter.''', called_from_sphinx))
+    parser.add_argument('--delete', action='store_true', help=sphinxify('''
+        Delete this exhibition from all objects selected.
+        Requires --exhibition.''', called_from_sphinx))
     exgroup.add_argument('-e', '--exhibition', type=int, help=sphinxify('''
         The exhibition number
         to apply to all objects in the CSV file. Do not specify this if
@@ -411,6 +419,9 @@ def getargs(argv):
     if (args.object or args.old_name) and not args.exhibition:
         raise(ValueError('You specified the object id or old name. You must'
                          ' also specify the exhibition.'))
+    if args.delete and not args.exhibition:  # Modes format?
+        raise ValueError('You specified --delete. You must also specify the'
+                         ' exhibition.')
     if args.col_acc is None:
         args.col_acc = 0
     else:
