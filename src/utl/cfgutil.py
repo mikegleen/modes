@@ -415,15 +415,14 @@ def expand_idnum(idstr: str) -> list[str]:
         idstr ::= <prefix>-<suffix> | <prefix>&<suffix>
         prefix ::= <any text><n digits>
         suffix ::= <n digits>
-        The prefix consists of any text followed by a string of digits of the
-        same length as the suffix.
-        The suffix is a string of digits.
+        The suffix is a string of digits terminating the idstr.
+        The prefix consists of any text preceding the suffix.
         Note: white space is removed from the idnum before parsing.
     :return: A list containing zero or more idnums. If idnum is just a single
     number, then it will be returned inside a list. If there is an error,
     an empty list will be returned. If a range is specified, then multiple
-    idnums will be returned in the list. If a second suffix is given,
-    specified by an "&", then two accession numbers are returned.
+    idnums will be returned in the list. If a second suffix rather than a
+    range is given, specified by an "&", then two accession numbers are returned.
 
     Examples:
         JB021-024 or JB021-24. These produce identical results:
@@ -431,17 +430,40 @@ def expand_idnum(idstr: str) -> list[str]:
         JB021&026 returns:
             ['JB021', 'JB026']
     """
+
+    def splitid():
+        """
+        Do the common processing for the "-" and "&" cases.
+
+        Consider the case of JB121-24.
+
+        :return: s_prefix = "JB1"
+                 variablepart = 21
+                 s_lastnum = 24
+                 len(variablepart) = 2
+        """
+        s_prefix = m[1]
+        lenprefix = len(s_prefix)
+        s_lastidnum = int(m[3])
+        # lenfirstid will change if the second # is shorter than the first
+        lenfirstid = len(m[2])
+        lastidlen = len(m[3])
+        lenfixedpart = lenfirstid - lastidlen
+        if lenfixedpart < 0:
+            lenfixedpart = 0
+        fixedpart = idstr[lenprefix:lenprefix + lenfixedpart]
+        variablepart = idstr[lenprefix + lenfixedpart:lenprefix + lenfirstid]
+        s_prefix = m[1] + fixedpart
+        return s_prefix, int(variablepart), s_lastidnum, len(variablepart)
+
     jlist = []
     idstr = ''.join(idstr.split())  # remove all whitespace
     if '-' in idstr:  # if ID is actually a range like JB021-23
         if m := re.match(r'(.+?)(\d+)-(\d+)$', idstr):
-            prefix = m[1]
-            firstidnum = int(m[2])
-            lastidnum = int(m[3])
+            prefix, firstidnum, lastidnum, lenvariablepart = splitid()
             try:
-                firstidlen = len(m[2])
                 for suffix in range(firstidnum, lastidnum + 1):
-                    newidnum = f'{prefix}{suffix:0{firstidlen}}'
+                    newidnum = f'{prefix}{suffix:0{lenvariablepart}}'
                     jlist.append(newidnum)
             except ValueError:
                 print(f'Bad accession number, contains "-" but not well'
@@ -450,13 +472,10 @@ def expand_idnum(idstr: str) -> list[str]:
             print('Bad accession number, failed pattern match:', idstr)
     elif '&' in idstr:
         if m := re.match(r'(.+?)(\d+)&(\d+)$', idstr):
-            prefix = m[1]
-            firstidnum = int(m[2])
-            secondidnum = int(m[3])
+            prefix, firstidnum, secondidnum, lenvariablepart = splitid()
             try:
-                firstidlen = len(m[2])
                 for suffix in (firstidnum, secondidnum):
-                    newidnum = f'{prefix}{suffix:0{firstidlen}}'
+                    newidnum = f'{prefix}{suffix:0{lenvariablepart}}'
                     jlist.append(newidnum)
             except ValueError:
                 print(f'Bad accession number, contains "&" but not well'

@@ -62,13 +62,16 @@ def loadcsv():
                 need_heading = False
                 continue
             objid = row[_args.col_acc].strip().upper()
-            if not objid:
-                print(f'Warning: Blank object ID row {rownum}: {row}')
-                continue  # blank number
-            if objid in location_dict:
-                print(f'Fatal error: Duplicate object ID row {rownum}: {row}.')
-                sys.exit(1)
-            location_dict[objid] = loc_arg if loc_arg else row[_args.col_loc].strip()
+            objidlist = expand_idnum(objid)
+            for ob in objidlist:
+                nobjid = nd.normalize_id(ob)
+                if not nobjid:
+                    print(f'Warning: Blank object ID row {rownum}: {row}')
+                    continue  # blank number
+                if nobjid in location_dict:
+                    print(f'Fatal error: Duplicate object ID row {rownum}: {row}.')
+                    sys.exit(1)
+                location_dict[nobjid] = loc_arg if loc_arg else row[_args.col_loc].strip()
     return location_dict
 
 
@@ -342,7 +345,8 @@ def handle_update(idnum, elem):
     """
     global total_updated, total_written
     updated = False
-    if idnum in newlocs:  # newlocs: list returned by loadcsv()
+    nidnum = nd.normalize_id(idnum)
+    if nidnum in newlocs:  # newlocs: list returned by loadcsv()
         if not validate_locations(idnum, elem):
             trace(1, 'Failed pre-update validation.')
             sys.exit(1)
@@ -353,11 +357,11 @@ def handle_update(idnum, elem):
             updated |= update_current_location(elem, idnum)
         if _args.previous:
             updated |= update_previous_location(elem, idnum)
-        del newlocs[idnum]
+        del newlocs[nidnum]
     else:
         if _args.warn:
             trace(1, '{}: Not in CSV file', idnum)
-    if idnum in newlocs and not validate_locations(idnum, elem):
+    if nidnum in newlocs and not validate_locations(idnum, elem):
         trace(1, 'Failed post-update validation.')
         sys.exit(1)
     if updated:
@@ -592,7 +596,7 @@ if __name__ == '__main__':
             raise(ValueError('You specified the object id. You must also '
                              'specify the location.'))
         objectlist = expand_idnum(_args.object)
-        newlocs = {obj: _args.location for obj in objectlist}
+        newlocs = {nd.normalize_id(obj): _args.location for obj in objectlist}
         trace(2, 'Object(s) specified, newlocs= {}', newlocs)
     else:
         newlocs = loadcsv()
