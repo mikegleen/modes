@@ -407,13 +407,14 @@ def yaml_fieldnames(config):
     return hdgs
 
 
-def expand_idnum(idstr: str) -> list[str]:
+def expand_one_idnum(idstr: str) -> list[str]:
     """
     :param idstr: An accession number or a range of numbers. If it is a range,
     indicated by a hyphen or ampersand anywhere in the string, the format of
     the number is:
-        idstr ::= <prefix>-<suffix> | <prefix>&<suffix>
-        prefix ::= <any text><n digits>
+        idstr ::= prefix-suffix | prefix&suffix
+    to do:    idstr ::= prefix-suffix | prefix&suffix*[&suffix]
+        prefix ::= text<n digits>
         suffix ::= <n digits>
         The suffix is a string of digits terminating the idstr.
         The prefix consists of any text preceding the suffix.
@@ -486,6 +487,14 @@ def expand_idnum(idstr: str) -> list[str]:
     else:
         jlist.append(idstr)
     return jlist
+
+
+def expand_idnum(idstr: str) -> list[str]:
+    idstrlist = idstr.split(',')
+    rtnlist = []
+    for ids in idstrlist:
+        rtnlist += expand_one_idnum(ids)
+    return rtnlist
 
 
 def read_include_dict(includes_file, include_column, include_skip, verbos=1,

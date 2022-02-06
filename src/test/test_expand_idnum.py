@@ -65,6 +65,11 @@ class TestExpandIDnum(unittest.TestCase):
         target = ['LDHRM.2021.2', 'LDHRM.2021.17']
         self.assertEqual(idnums, target)
 
+    def test_14(self):
+        idnums = expand_idnum('LDHRM.2021.2 & 17,JB001')
+        target = ['LDHRM.2021.2', 'LDHRM.2021.17', 'JB001']
+        self.assertEqual(idnums, target)
+
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
