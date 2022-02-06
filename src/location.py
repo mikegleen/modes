@@ -75,7 +75,7 @@ def loadcsv():
     return location_dict
 
 
-def handle_check(idnum, elem):
+def handle_diff(idnum, elem):
     if _args.all:
         if idnum not in newlocs and _args.warn:
             trace(3, 'Not in CSV file: {}', idnum)
@@ -91,13 +91,19 @@ def handle_check(idnum, elem):
                 text = location.text.strip().upper()
             else:
                 text = None
-            newtext = _args.location if _args.location else newlocs[idnum]
+            if _args.location:
+                newtext = _args.location
+            else:
+                nidnum = nd.normalize_id(idnum)
+                newtext = newlocs.get(nidnum, None)
+                if newtext is None:
+                    return
+                del newlocs[nidnum]
             trace(2, 'New location for {}: {}', idnum, newtext)
             if text != newtext:
                 trace(1, 'Different {}: XML: {}, CSV: {}', idnum, text,
                       newtext)
             break
-    del newlocs[idnum]
 
 
 def validate_locations(idnum, elem, strict=True):
@@ -395,7 +401,7 @@ def main():
         idelem = elem.find('./ObjectIdentity/Number')
         idnum = idelem.text.upper() if idelem is not None else None
         trace(3, 'idnum: {}', idnum)
-        _args.func(idnum, elem)  # handle_check() or handle_update() or handle_validate()
+        _args.func(idnum, elem)  # handle_diff() or handle_update() or handle_validate()
         if _args.short:
             break
     if outfile:
@@ -406,10 +412,10 @@ def main():
 
 
 def add_arguments(parser, command):
-    global is_update, is_check, is_select, is_validate  # Needed for Sphinx
+    global is_update, is_diff, is_select, is_validate  # Needed for Sphinx
     if 'is_update' not in globals():
         is_update = True if command == 'update' else False
-        is_check = True if command == 'check' else False
+        is_diff = True if command == 'diff' else False
         is_select = True if command == 'select' else False
         is_validate = True if command == 'validate' else False
     parser.add_argument('-i', '--infile', required=True, help='''
@@ -417,13 +423,13 @@ def add_arguments(parser, command):
     if is_update or is_select:
         parser.add_argument('-o', '--outfile', required=True, help='''
             The output XML file.''')
-    if is_check or is_update or is_select:
+    if is_diff or is_update or is_select:
         parser.add_argument('-a', '--all', action='store_true', help='''
         Write all objects and, if -w is selected, issue a warning if an object
         is not in the detail CSV file. The default is to only write updated
         objects. In either case warn if an object in the CSV file is not in the
         input XML file.''')
-    if is_update:
+    if is_update or is_diff:
         parser.add_argument('--col_acc', type=int, default=0, help='''
         The zero-based column containing the accession number of the
         object to be updated. The default is column zero.
@@ -434,7 +440,7 @@ def add_arguments(parser, command):
         object to be updated. The default is column 1. See the --location
         option which sets the location for all objects in which case this
         option is ignored.''', called_from_sphinx))
-    if is_update or is_check:
+    if is_update or is_diff:
         parser.add_argument('-c', '--current', action='store_true', help='''
         Update the current location and change the old current location to a
         previous location. See the descrption of "n" and "p". ''')
@@ -468,13 +474,13 @@ def add_arguments(parser, command):
         If a --location argument is specified, the first row is skipped and the
         value, which nevertheless must be specified, is ignored. 
         ''', called_from_sphinx))
-    if is_update or is_check:
+    if is_update or is_diff:
         parser.add_argument('-l', '--location', help='''
         Set the location for all of the objects in the CSV file. In this 
         case the CSV file only needs a single column containing the 
         accession number.  
         ''')
-    if is_check or is_select or is_update:
+    if is_diff or is_select or is_update:
         parser.add_argument('-m', '--mapfile', help=nd.sphinxify('''
             The CSV file mapping the object number to its new location. By
             default, the accession number is in the first column (column 0) but 
@@ -482,10 +488,10 @@ def add_arguments(parser, command):
             default in the second column (column 1) but can be changed by the
             --col_loc option. This  argument is ignored if --object is specified.
             ''', called_from_sphinx))
-    if is_update or is_check:
+    if is_update or is_diff:
         parser.add_argument('-n', '--normal', action='store_true', help='''
         Update the normal location. See the description for "p" and "c".''')
-    if is_check:
+    if is_diff:
         parser.add_argument('--old', action='store_true', help='''
             The column selected is the "old" location, the one we are moving
             the object from. Warn if the value in the CSV file does not match
@@ -537,7 +543,7 @@ def getparser():
         create a previous location from the existing current location.
         ''')
     subparsers = parser.add_subparsers(dest='subp')
-    check_parser = subparsers.add_parser('check', description=nd.sphinxify('''
+    diff_parser = subparsers.add_parser('diff', description=nd.sphinxify('''
     With no options, check that the location in the object specified by --col_loc
     is the same as the location specified by -c or -n option in the XML file.
     ''', called_from_sphinx))
@@ -553,11 +559,11 @@ def getparser():
     locations and ignores the -c, -n, and -p options. Check that dates exist
     and do not overlap.
     ''')
-    check_parser.set_defaults(func=handle_check)
+    diff_parser.set_defaults(func=handle_diff)
     select_parser.set_defaults(func=handle_select)
     update_parser.set_defaults(func=handle_update)
     validate_parser.set_defaults(func=handle_validate)
-    add_arguments(check_parser, 'check')
+    add_arguments(diff_parser, 'diff')
     add_arguments(select_parser, 'select')
     add_arguments(update_parser, 'update')
     add_arguments(validate_parser, 'update')
@@ -567,11 +573,12 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
-    if is_check or is_update:
+    if is_diff or is_update:
         # Set a fake value for the new location column as it will be taken from
         #  the --location value instead of a column in the CSV file.
         if args.location:
             args.col_loc = None
+    if is_update:
         nloctypes = int(args.current) + int(args.previous)
         if nloctypes != 1:
             print('Exactly one of -c or -p must be specified.')
@@ -585,13 +592,13 @@ called_from_sphinx = True
 if __name__ == '__main__':
     called_from_sphinx = False
     assert sys.version_info >= (3, 6)
-    is_check = sys.argv[1] == 'check'
+    is_diff = sys.argv[1] == 'diff'
     is_select = sys.argv[1] == 'select'
     is_update = sys.argv[1] == 'update'
     is_validate = sys.argv[1] == 'validate'
     _args = getargs(sys.argv)
     verbose = _args.verbose
-    if _args.object:
+    if is_update and _args.object:
         if not _args.location:
             raise(ValueError('You specified the object id. You must also '
                              'specify the location.'))
