@@ -221,7 +221,8 @@ def update_normal_location(ol, idnum):
     else:
         text = None
 
-    newtext = _args.location if _args.location else newlocs[idnum]
+    nidnum = nd.normalize_id(idnum)
+    newtext = _args.location if _args.location else newlocs[nidnum]
     if text != newtext:
         trace(2, '{}: Updated normal {} -> {}', idnum, text, newtext)
         location.text = newtext
@@ -579,7 +580,7 @@ def getargs(argv):
         if args.location:
             args.col_loc = None
     if is_update:
-        nloctypes = int(args.current) + int(args.previous)
+        nloctypes = int(args.current) + int(args.previous) + int(args.normal)
         if nloctypes != 1:
             print('Exactly one of -c or -p must be specified.')
             sys.exit(1)

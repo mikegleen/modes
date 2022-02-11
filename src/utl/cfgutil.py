@@ -423,8 +423,6 @@ def splitid(idstr: str, m: re.Match):
     lenprefix = len(prefix)
     firstidnum = int(m[2])
     secondidnum = int(m[3])  # the numbers after the '-' or '&'
-    if firstidnum >= secondidnum:
-        raise ValueError(f'{idstr} first number must be less than last number')
     # lenfirstid will change if the second # is shorter than the first
     lenfirstid = len(m[2])
     lenlastid = len(m[3])
@@ -435,6 +433,8 @@ def splitid(idstr: str, m: re.Match):
     variablepart = idstr[lenprefix + lenfixedpart:lenprefix + lenfirstid]
     prefix += fixedpart
     intvariablepart = int(variablepart)
+    if intvariablepart >= secondidnum:
+        raise ValueError(f'{idstr} first number must be less than last number')
     return prefix, intvariablepart, secondidnum, len(variablepart)
 
 

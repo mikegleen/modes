@@ -79,10 +79,18 @@ class TestExpandIDnum(unittest.TestCase):
         self.assertEqual(idnums, ['SH1', 'SH2', 'SH3'])
 
     def test_17(self):
-        self.assertRaises(ValueError, expand_idnum, 'SH10-9')
+        idnums = expand_idnum('SH10-3')
+        self.assertEqual(idnums, ['SH10', 'SH11', 'SH12', 'SH13'])
 
     def test_18(self):
         self.assertRaises(ValueError, expand_idnum, 'SH1-1')
+
+    def test_19(self):
+        idnums = expand_idnum('SH104-5')
+        self.assertEqual(idnums, ['SH104', 'SH105'])
+
+    def test_20(self):
+        self.assertRaises(ValueError, expand_idnum, 'SH109-08')
 
 
 if __name__ == '__main__':
