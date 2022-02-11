@@ -482,6 +482,8 @@ def expand_one_idnum(idstr: str) -> list[str]:
         head = parts[0]
         jlist.append(head)
         for tail in parts[1:]:
+            # Really don't have to do this. Better to extract prefix and num1
+            # from the head once and tail becomes num2. But this is good enough.
             partstr = f'{head}&{tail}'
             if m := re.match(r'(.+?)(\d+)&(\d+)$', partstr):
                 prefix, num1, num2, lenvariablepart = splitid(idstr, m)
