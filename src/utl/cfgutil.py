@@ -407,6 +407,37 @@ def yaml_fieldnames(config):
     return hdgs
 
 
+def splitid(idstr: str, m: re.Match):
+    """
+    Subroutine to expand_one_idnum.
+    Do the common processing for the "-" and "&" cases.
+
+    Consider the case of JB121-24.
+
+    :return: prefix = "JB1"
+             variablepart: int = 21
+             secondidnum: int = 24
+             len(variablepart) = 2
+    """
+    prefix = m[1]  # will be updated later if 2nd # is shorter than 1st #
+    lenprefix = len(prefix)
+    firstidnum = int(m[2])
+    secondidnum = int(m[3])  # the numbers after the '-' or '&'
+    if firstidnum >= secondidnum:
+        raise ValueError(f'{idstr} first number must be less than last number')
+    # lenfirstid will change if the second # is shorter than the first
+    lenfirstid = len(m[2])
+    lenlastid = len(m[3])
+    lenfixedpart = max(lenfirstid - lenlastid, 0)
+    # In a case like SH21-4, the fixed part will be the leading part of the
+    # number, in this case "2".
+    fixedpart = idstr[lenprefix:lenprefix + lenfixedpart]
+    variablepart = idstr[lenprefix + lenfixedpart:lenprefix + lenfirstid]
+    prefix += fixedpart
+    intvariablepart = int(variablepart)
+    return prefix, intvariablepart, secondidnum, len(variablepart)
+
+
 def expand_one_idnum(idstr: str) -> list[str]:
     """
     :param idstr: An accession number or a range of numbers. If it is a range,
@@ -432,38 +463,13 @@ def expand_one_idnum(idstr: str) -> list[str]:
             ['JB021', 'JB026']
     """
 
-    def splitid():
-        """
-        Do the common processing for the "-" and "&" cases.
-
-        Consider the case of JB121-24.
-
-        :return: s_prefix = "JB1"
-                 variablepart = 21
-                 s_lastnum = 24
-                 len(variablepart) = 2
-        """
-        s_prefix = m[1]
-        lenprefix = len(s_prefix)
-        s_lastidnum = int(m[3])
-        # lenfirstid will change if the second # is shorter than the first
-        lenfirstid = len(m[2])
-        lastidlen = len(m[3])
-        lenfixedpart = lenfirstid - lastidlen
-        if lenfixedpart < 0:
-            lenfixedpart = 0
-        fixedpart = idstr[lenprefix:lenprefix + lenfixedpart]
-        variablepart = idstr[lenprefix + lenfixedpart:lenprefix + lenfirstid]
-        s_prefix = m[1] + fixedpart
-        return s_prefix, int(variablepart), s_lastidnum, len(variablepart)
-
     jlist = []
     idstr = ''.join(idstr.split())  # remove all whitespace
     if '-' in idstr:  # if ID is actually a range like JB021-23
         if m := re.match(r'(.+?)(\d+)-(\d+)$', idstr):
-            prefix, firstidnum, lastidnum, lenvariablepart = splitid()
+            prefix, num1, num2, lenvariablepart = splitid(idstr, m)
             try:
-                for suffix in range(firstidnum, lastidnum + 1):
+                for suffix in range(num1, num2 + 1):
                     newidnum = f'{prefix}{suffix:0{lenvariablepart}}'
                     jlist.append(newidnum)
             except ValueError:
@@ -472,17 +478,17 @@ def expand_one_idnum(idstr: str) -> list[str]:
         else:
             print('Bad accession number, failed pattern match:', idstr)
     elif '&' in idstr:
-        if m := re.match(r'(.+?)(\d+)&(\d+)$', idstr):
-            prefix, firstidnum, secondidnum, lenvariablepart = splitid()
-            try:
-                for suffix in (firstidnum, secondidnum):
-                    newidnum = f'{prefix}{suffix:0{lenvariablepart}}'
-                    jlist.append(newidnum)
-            except ValueError:
-                print(f'Bad accession number, contains "&" but not well'
-                      f' formed: {m.groups()}')
-        else:
-            print('Bad accession number, failed pattern match:', idstr)
+        parts = idstr.split('&')
+        head = parts[0]
+        jlist.append(head)
+        for tail in parts[1:]:
+            partstr = f'{head}&{tail}'
+            if m := re.match(r'(.+?)(\d+)&(\d+)$', partstr):
+                prefix, num1, num2, lenvariablepart = splitid(idstr, m)
+                newidnum = f'{prefix}{num2:0{lenvariablepart}}'
+                jlist.append(newidnum)
+            else:
+                print('Bad accession number, failed pattern match:', idstr)
 
     else:
         jlist.append(idstr)

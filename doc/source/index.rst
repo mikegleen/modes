@@ -18,6 +18,7 @@ Modes Python Library
    update_from_csv
    xml2csv
    genindex
+   data_format
 
 
 Indices and tables
