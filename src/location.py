@@ -260,7 +260,8 @@ def update_current_location(elem, idnum):
         oldlocation = locationelt.text.strip().upper()
     else:
         oldlocation = None
-    newlocationtext = _args.location if _args.location else newlocs[idnum]
+    nidnum = nd.normalize_id(idnum)
+    newlocationtext = _args.location if _args.location else newlocs[nidnum]
 
     # If the current location is empty, just insert the new location without
     # creating a previous location.
