@@ -104,6 +104,9 @@ def getargs():
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     _args = getargs()
+    if _args.infile == _args.outfile:
+        print("Input is the same as output. Aborting.")
+        sys.exit(1)
     infile = open(_args.infile, encoding=_args.input_encoding)
     outfile = open(_args.outfile, 'wb')
     main()
