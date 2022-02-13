@@ -62,6 +62,9 @@ def loadcsv():
                 need_heading = False
                 continue
             objid = row[_args.col_acc].strip().upper()
+            if not objid and ''.join(row):
+                trace(2, 'Skipping row with blank object id: {}', row)
+                continue
             objidlist = expand_idnum(objid)
             for ob in objidlist:
                 nobjid = nd.normalize_id(ob)
