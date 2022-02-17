@@ -20,7 +20,7 @@ def main():
             ntarg += 1
             print(f'file {ntarg} of {numtargets}')
             filename, extension = os.path.splitext(target)
-            if extension.lower() in ('.jpg', '.png'):
+            if extension.lower() in ('.jpg', '.jpeg', '.png'):
                 subprocess.run(['open', '-W', os.path.join(targetdir, target)])
             else:
                 print('skipping', target)
