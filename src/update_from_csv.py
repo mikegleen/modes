@@ -32,7 +32,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Config, Stmt, Cmd
-from utl.normalize import normalize_id, sphinxify
+from utl.normalize import normalize_id, sphinxify, denormalize_id
 
 
 def trace(level, template, *args):
@@ -92,7 +92,7 @@ def loadnewvals():
 def one_element(elem, idnum):
     """
     Update the fields specified by "column" configuration documents.
-    Do not overwrite existing values unless --force is specified.
+    Do not overwrite existing values unless --replace is specified.
 
     Note that we have already tested that idnum is in newvals.
 
@@ -116,27 +116,29 @@ def one_element(elem, idnum):
                 trace(2, '{}: short line in CSV file', idnum)
             if xpath.lower() == Stmt.FILLER:
                 continue
-        if not newtext and not _args.force:
-            trace(2, '{}: empty field in CSV ignored. --force not specified',
+        if not newtext and not _args.empty:
+            trace(2, '{}: empty field in CSV ignored. --empty not specified',
                   idnum)
             continue
         target = elem.find(xpath)
-        if target is None:
+        if target is None and newtext:
             target = new_subelt(doc, elem)
-            if target is None:
+            if target is None:  # parent is not specified or doesn't exist
                 trace(1, '{}: Cannot find target "{}"', idnum, xpath)
                 continue
-        text = target.text
-        if not text or _args.force:
-            trace(2, '{}: Updated: "{}" -> "{}"', idnum, text, newtext)
+        oldtext = target.text
+        if not oldtext or _args.replace:
             if target.text == newtext:
                 nequal += 1
+            if newtext == '{{clear}}':
+                newtext = ''
+            trace(2, '{}: Updated: "{}" -> "{}"', idnum, oldtext, newtext)
             target.text = newtext
             updated = True
             nupdated += 1
         else:
-            trace(2, '{}: Unchanged: "{}" (new text = "{}")', idnum, text,
-                  newtext)
+            trace(2, '{}: Unchanged, --replace not set: "{}" (new text = "{}")',
+                  idnum, oldtext, newtext)
             nunchanged += 1
     return updated
 
@@ -148,11 +150,12 @@ def main():
         if elem.tag != 'Object':
             continue
         idelem = elem.find(cfg.record_id_xpath)
-        idnum = normalize_id(idelem.text) if idelem is not None else None
+        idnum = idelem.text if idelem is not None else None
+        nidnum = normalize_id(idnum)
         trace(3, 'idnum: {}', idnum)
-        if idnum and idnum in newvals:
-            updated = one_element(elem, idnum)
-            del newvals[idnum.upper()]
+        if nidnum and nidnum in newvals:
+            updated = one_element(elem, nidnum)
+            del newvals[nidnum.upper()]
         else:
             updated = False
             if _args.missing:
@@ -163,8 +166,8 @@ def main():
         if _args.short:
             break
     outfile.write(b'</Interchange>')
-    for idnum in newvals:
-        trace(1, 'In CSV but not XML: "{}"', idnum)
+    for nidnum in newvals:
+        trace(1, 'In CSV but not XML: "{}"', denormalize_id(nidnum))
 
 
 def getparser():
@@ -175,7 +178,7 @@ def getparser():
         XML file with data from the CSV file.
         If a row in the CSV file has fewer columns than the number of
         columns specified in the YAML file, replace the text with an empty
-        string.        ''')
+        string.''')
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
     parser.add_argument('outfile', help='''
@@ -185,21 +188,25 @@ def getparser():
     parser.add_argument('-c', '--cfgfile', required=True,
                         type=argparse.FileType('r'), help='''
         The YAML file describing the column path(s) to update''')
-    parser.add_argument('-f', '--force', action='store_true', help='''
-        Replace existing values. If not specified only empty elements will be
-        updated.
-        Allow replacing text fields with empty values from the CSV file.
-        ''')
+    parser.add_argument('-e', '--empty', action='store_true', help=sphinxify('''
+        Normally, an empty field in the CSV file means that no action is to be
+        taken. If -e is selected, empty values from the CSV will overwrite
+        the fields in the file. Another way to do this for specific fields is
+        to set the text to ``{{clear}}`` in the CSV field to be emptied.
+        --empty implies --replace.''', called_from_sphinx))
     parser.add_argument('--missing', action='store_true', help='''
         By default, ignore indices missing from the CSV file. If selected,
         trace the missing index.''')
     parser.add_argument('--heading', action='store_true', help='''
         The first row of the map file contains a heading which must match the
         value of the title statement in the corresponding column document
-        (case insensitive).
-        ''')
+        (case insensitive).''')
     parser.add_argument('-m', '--mapfile', required=True, help='''
         The CSV file mapping the object number to the new element value(s).''')
+    parser.add_argument('-r', '--replace', action='store_true', help='''
+        Replace existing values. If not specified only empty elements will be
+        updated. Existing values will be cleared if the value in the CSV file
+        contains the special value ``{{clear}}``. See also --empty.''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('--skip_rows', type=int, default=0, help='''
@@ -213,6 +220,8 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    if args.empty:
+        args.replace = True
     return args
 
 
