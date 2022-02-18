@@ -65,16 +65,16 @@ def datefrommodes(indate: str) -> tuple[datetime.date, int]:
              A ValueError if the date format is not parseable.
     """
     try:
-        d = datetime.datetime.strptime(indate, '%d.%m.%Y').date()
+        d = datetime.datetime.strptime(indate, '%d.%m.%Y')
         nparts = 3
     except ValueError:
         try:
-            d = datetime.datetime.strptime(indate, '%m.%Y').date()
+            d = datetime.datetime.strptime(indate, '%m.%Y')
             nparts = 2
         except ValueError:
-            d = datetime.datetime.strptime(indate, '%Y').date()
+            d = datetime.datetime.strptime(indate, '%Y')
             nparts = 1
-    return d, nparts
+    return d.date(), nparts
 
 
 def datefrombritishdate(indate: str) -> tuple[datetime.date, int, str]:
