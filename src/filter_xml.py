@@ -10,6 +10,8 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 from utl.cfgutil import Config, read_include_dict
+from utl.cfgutil import expand_idnum
+from utl.normalize import normalize_id, denormalize_id
 
 
 def trace(level, template, *args):
@@ -99,11 +101,14 @@ if __name__ == '__main__':
     else:
         cfgfile = None
     config = Config(cfgfile, dump=_args.verbose >= 2)
-    includes = read_include_dict(_args.include, _args.include_column,
-                                 _args.include_skip, _args.verbose)
     if _args.object:
-        includes.add(_args.object)
+        expanded = [normalize_id(obj) for obj in expand_idnum(_args.object)]
+        includeset = set(expanded)  # JB001-002 -> JB001, JB002
+        includes = dict.fromkeys(includeset)
+    else:
+        includes = read_include_dict(_args.include, _args.include_column,
+                                     _args.include_skip, _args.verbose)
     main()
     basename = os.path.basename(sys.argv[0])
-    print(f'{selcount}/{objcount} object{"" if selcount == 1 else "s"} selected.')
+    print(f'{selcount} object{"" if selcount == 1 else "s"} selected from {objcount}.')
     print(f'End {basename.split(".")[0]}')
