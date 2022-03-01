@@ -18,7 +18,7 @@ title: Brief Description
 ---
 cmd: column
 xpath: ./Production/SummaryText
----
+#---
 #cmd: if
 #xpath: ./Production/Date
 #---
@@ -26,5 +26,5 @@ xpath: ./Production/SummaryText
 #xpath: ./Production/Date/DateEnd
 #title: ifdate
 #---
-cmd: column
-xpath: ./Acquisition/Person/PersonName
+#cmd: column
+#xpath: ./Acquisition/Person/PersonName
