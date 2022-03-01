@@ -1,3 +1,4 @@
+import codecs
 import csv
 import re
 import sys
@@ -506,7 +507,7 @@ def expand_idnum(idstr: str) -> list[str]:
 
 
 def read_include_dict(includes_file, include_column, include_skip, verbos=1,
-                      logfile=sys.stdout):
+                      logfile=sys.stdout, allow_blank=False):
     """
     Read the optional CSV file from the --include argument. Build a dict
     of accession IDs in upper case for use by cfgutil.select. The value
@@ -517,7 +518,7 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
     if not includes_file:
         return None
     includedict: dict = dict()
-    includereader = csv.reader(open(includes_file))
+    includereader = csv.reader(codecs.open(includes_file, 'r', 'utf-8-sig'))
     for n in range(include_skip):  # default in xml2csv = 0
         skipped = next(includereader)  # skip header
         if verbos >= 1:
@@ -526,6 +527,12 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
         if not row:
             continue
         idnum = row[include_column].upper()  # cfgutil.select needs uppercase
+        if not idnum:
+            if allow_blank:
+                continue  # skip blank accession numbers
+            else:
+                raise ValueError('Blank accession number in include file;'
+                                 ' --allow_blank not selected.')
         # idnumlist: list[str] = expand_idnum(idnum)
         idnumlist: list[str] = [normalize_id(i) for i in expand_idnum(idnum)]
         if verbos >= 1:
