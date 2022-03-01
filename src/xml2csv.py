@@ -111,7 +111,8 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     else:
         includes = read_include_dict(_args.include, _args.include_column,
                                      _args.include_skip, _args.verbose,
-                                     logfile=_logfile)
+                                     logfile=_logfile,
+                                     allow_blank=_args.allow_blanks)
     for event, elem in ET.iterparse(infile, events=('start', 'end')):
         # print(event)
         if event == 'start':
@@ -215,6 +216,10 @@ def getparser():  # called either by getargs or sphinx
         Use this option when the CSV file is to be imported into Excel so that
         the proper character set (UTF-8) is used.
         ''')
+    parser.add_argument('--allow_blanks', action='store_true', help='''
+    Skip rows in the include CSV file with blank accession numbers. If not
+    set, this will cause an abort.
+    ''')
     parser.add_argument('-c', '--cfgfile', help='''
         The config file describing the column_paths to extract. If omitted,
         only the accession numbers will be output.''')
