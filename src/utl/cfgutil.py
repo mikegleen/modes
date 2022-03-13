@@ -507,7 +507,7 @@ def expand_idnum(idstr: str) -> list[str]:
 
 
 def read_include_dict(includes_file, include_column, include_skip, verbos=1,
-                      logfile=sys.stdout, allow_blank=False):
+                      logfile=sys.stdout, allow_blanks=False):
     """
     Read the optional CSV file from the --include argument. Build a dict
     of accession IDs in upper case for use by cfgutil.select. The value
@@ -528,7 +528,7 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
             continue
         idnum = row[include_column].upper()  # cfgutil.select needs uppercase
         if not idnum:
-            if allow_blank:
+            if allow_blanks:
                 continue  # skip blank accession numbers
             else:
                 raise ValueError('Blank accession number in include file;'
