@@ -56,9 +56,11 @@ def new_subelt(doc, root):
     return elt
 
 
-def loadnewvals():
+def loadnewvals(allow_blanks=False):
     """
     Read the CSV file containing objectid -> new element values
+    :param allow_blanks: if True, rows with a blank accession number are
+            skipped. Otherwise a ValueError exception is raised.
     :return: the dictionary containing the mappings where the key is the
              objectid and the value is a list of the remaining columns
     """
@@ -85,7 +87,15 @@ def loadnewvals():
                     sys.exit(1)
 
         for row in reader:
-            newval_dict[normalize_id(row[0].strip())] = [val.strip() for val in row[1:]]
+            idnum = row[0].strip()
+            if not idnum:
+                if allow_blanks:
+                    trace(2, 'Row with blank accession number skipped: {}', row)
+                    continue  # skip blank accession numbers
+                else:
+                    raise ValueError('Blank accession number in include file;'
+                                     ' --allow_blank not selected.')
+            newval_dict[normalize_id(idnum)] = [val.strip() for val in row[1:]]
     return newval_dict
 
 
@@ -185,6 +195,10 @@ def getparser():
         The output XML file.''')
     parser.add_argument('-a', '--all', action='store_true', help='''
         Write all objects. The default is to only write updated objects.''')
+    parser.add_argument('--allow_blanks', action='store_true', help='''
+        Skip rows in the include CSV file with blank accession numbers. If not
+        set, this will cause an abort.
+        ''')
     parser.add_argument('-c', '--cfgfile', required=True,
                         type=argparse.FileType('r'), help='''
         The YAML file describing the column path(s) to update''')
@@ -257,7 +271,7 @@ if __name__ == '__main__':
         trace(1, '{} command{} ignored.', errors, 's' if errors > 1 else '')
         print('update_from_csv aborting due to config error(s).')
         sys.exit(1)
-    newvals = loadnewvals()
+    newvals = loadnewvals(allow_blanks=_args.allow_blanks)
     nnewvals = len(newvals)
     main()
     trace(1, '{} element{} in {} object{} updated.\n'
