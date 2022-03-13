@@ -112,7 +112,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         includes = read_include_dict(_args.include, _args.include_column,
                                      _args.include_skip, _args.verbose,
                                      logfile=_logfile,
-                                     allow_blank=_args.allow_blanks)
+                                     allow_blanks=_args.allow_blanks)
     for event, elem in ET.iterparse(infile, events=('start', 'end')):
         # print(event)
         if event == 'start':
