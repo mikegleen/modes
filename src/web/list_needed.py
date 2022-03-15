@@ -24,14 +24,14 @@ def getargs():
     For every ID in a CSV file, report if the corresponding image is not in a
     folder.''')
     parser.add_argument('imgdir', help='''
-        Folder containing folders containing images we already have''')
+        Folder containing images or subfolders containing images we already
+        have. Only one level of subfolder is examined.''')
     parser.add_argument('-c', '--candidatefile', help='''
         CSV file containing the list of new objects or a directory containing
         jpg files with names consisting of the accession numbers.''')
-    parser.add_argument('--col_acc', help='''
+    parser.add_argument('--col_acc', type=int, default=0, help='''
         The zero-based column containing the accession number (ID) of the
-        object we are searching for. The default is column zero. The column can
-        be a number or a spreadsheet-style letter.''')
+        object we are searching for. The default is column zero.''')
     parser.add_argument('-i', '--invert', action='store_true', help='''
         Report if the image **IS** in the folder.''')
     parser.add_argument('-m', '--modesfile', help='''
@@ -60,32 +60,39 @@ def build_img_set(candidates: set):
     images.
     :return: The set of normalized numbers.
     """
+    def onefile(imgf: str):
+        m = re.match(r'(collection_)?(.*)', imgf)
+        imgf2 = m.group(2)  # remove optional leading 'collection_'
+        prefix, suffix = os.path.splitext(imgf2)
+        if suffix.lower() not in ('.jpg', '.png'):
+            if suffix.lower() != '.txt':
+                print('not image:', imgf)
+            return
+        try:
+            nid = normalize_id(prefix)
+        except ValueError as ve:
+            print(f'Skipping {imgf}')
+            return
+        if nid in img_ids:
+            print(f'Duplicate: {prefix} in {dirpath}')
+        else:
+            img_ids.add(nid)
+            if reportfile and nid in candidates:
+                print(prefix, file=reportfile)
+
     reportfile = open(_args.reportfile, 'w') if _args.reportfile else None
     img_ids = set()
     for imgdir in os.listdir(_args.imgdir):
         dirpath = os.path.join(_args.imgdir, imgdir)
         if not os.path.isdir(dirpath):
-            print('not directory:', imgdir)
+            onefile(imgdir)
             continue
         trace(1, 'Folder {}', dirpath)
         for imgfile in os.listdir(dirpath):
-            m = re.match(r'(collection_)?(.*)', imgfile)
-            imgfile2 = m.group(2)  # remove optional leading 'collection_'
-            prefix, suffix = os.path.splitext(imgfile2)
-            if suffix.lower() not in ('.jpg', '.png'):
-                print('not image:', imgfile)
+            if os.path.isdir(imgfile):
+                print('Directory skipped', imgfile)
                 continue
-            try:
-                nid = normalize_id(prefix)
-            except ValueError as ve:
-                print(f'Skipping {imgfile}')
-                continue
-            if nid in img_ids:
-                print(f'Duplicate: {prefix} in {dirpath}')
-            else:
-                img_ids.add(nid)
-                if reportfile and nid in candidates:
-                    print(prefix, file=reportfile)
+            onefile(imgfile)
     return img_ids
 
 
@@ -96,7 +103,7 @@ def build_candidate_set(valid_idnums):
         try:
             normid = normalize_id(candidate)
         except ValueError as ve:
-            trace(1, ve)
+            trace(1, '{}', ve)
             return
         if normid in valid_idnums:
             candidate_set.add(normid)
