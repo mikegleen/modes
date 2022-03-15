@@ -1,0 +1,45 @@
+# Update the Modes XML file from the columns in 2022-03-03_dulwich_comp_R2.csv
+cmd: column
+xpath: filler
+title: 'catalog #'
+---
+cmd: column
+xpath: filler
+title: 'page'
+---
+cmd: column
+xpath: filler
+title: 'Extract from document Catlogue listing Dulwich.doc'
+---
+cmd: column
+xpath: filler
+title: 'Old Title'
+---
+cmd: column
+xpath: ./Identification/Title
+---
+cmd: column
+xpath: filler
+title: 'Old BriefDescription'
+---
+cmd: column
+xpath: ./Identification/BriefDescription
+title: BriefDescription
+---
+cmd: column
+xpath: filler
+title: 'Production Publisher'
+---
+cmd: column
+xpath: filler
+title: 'Old Production/SummaryText'
+---
+cmd: column
+xpath: ./Production/SummaryText
+title: 'Production/SummaryText'
+---
+cmd: column
+xpath: ./Production/Date/DateBegin
+parent_path: ./Production/Date
+title: Date
+---

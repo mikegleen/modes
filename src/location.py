@@ -539,14 +539,14 @@ def add_arguments(parser, command):
 
 
 def getparser():
-    parser = argparse.ArgumentParser(description='''
+    parser = argparse.ArgumentParser(description=nd.sphinxify('''
         Set the normal location and/or current location to the new location
         from a CSV file with rows of the format: <object number>,<location>.
         If the location in the CSV file differs from the location in the XML
-        file, update the Date/DateBegin element to today's date unless the
+        file, update the ``Date/DateBegin`` element to today's date unless the
         --date option is specified. If a new current location is being set,
         create a previous location from the existing current location.
-        ''')
+        ''', called_from_sphinx))
     subparsers = parser.add_subparsers(dest='subp')
     diff_parser = subparsers.add_parser('diff', description=nd.sphinxify('''
     With no options, check that the location in the object specified by --col_loc
