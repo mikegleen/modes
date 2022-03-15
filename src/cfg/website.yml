@@ -34,3 +34,8 @@ title: ExhibitionName
 cmd: column
 xpath: ./Identification/BriefDescription
 title: Description
+---
+cmd: column
+xpath: ./Production/SummaryText
+title: Production_SummaryText
+---
