@@ -58,7 +58,7 @@ def main():
             width, height = im.size
         if max(width, height) > maxpixels:
             sipscmd = SIPSCMD.format(maxpixels, filepath, outdir)
-            trace(2, sipscmd)
+            trace(2, 'width = {}, height = {}, command = {}', width, height, sipscmd)
             nshrunk += 1
             if dryrun:
                 continue
