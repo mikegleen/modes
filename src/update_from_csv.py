@@ -76,6 +76,7 @@ def loadnewvals(allow_blanks=False):
             # Check that the first row in the CSV file contains the same
             # column headings as in the title statements of the YAML file.
             row = next(reader)
+            row = [r.strip() for r in row]
             irow = iter(row)
             next(irow)  # skip Serial column
             for doc in cfg.col_docs:
@@ -87,7 +88,8 @@ def loadnewvals(allow_blanks=False):
                     sys.exit(1)
 
         for row in reader:
-            idnum = row[0].strip()
+            row = [r.strip() for r in row]
+            idnum = row[0]
             if not idnum:
                 if allow_blanks:
                     trace(2, 'Row with blank accession number skipped: {}', row)
@@ -95,7 +97,10 @@ def loadnewvals(allow_blanks=False):
                 else:
                     raise ValueError('Blank accession number in include file;'
                                      ' --allow_blank not selected.')
-            newval_dict[normalize_id(idnum)] = [val.strip() for val in row[1:]]
+            # Strip off the accession number in the first column so that the
+            # list matches the columns in the config file. Note that this
+            # depends on the accession number being in the first column.
+            newval_dict[normalize_id(idnum)] = row[1:]
     return newval_dict
 
 
@@ -116,6 +121,7 @@ def one_element(elem, idnum):
     for doc in cfg.col_docs:
         command = doc[Stmt.CMD]
         xpath = doc[Stmt.XPATH]
+        title = doc[Stmt.TITLE]
         if command == Cmd.CONSTANT:
             newtext = doc[Stmt.VALUE]
         else:  # command is COLUMN
@@ -127,7 +133,7 @@ def one_element(elem, idnum):
             if xpath.lower() == Stmt.FILLER:
                 continue
         if not newtext and not _args.empty:
-            trace(2, '{}: empty field in CSV ignored. --empty not specified',
+            trace(3, '{}: empty field in CSV ignored. --empty not specified',
                   idnum)
             continue
         target = elem.find(xpath)
@@ -138,17 +144,20 @@ def one_element(elem, idnum):
                 continue
         oldtext = target.text
         if not oldtext or _args.replace:
-            if target.text == newtext:
+            if oldtext and oldtext == newtext:
                 nequal += 1
-            if newtext == '{{clear}}':
-                newtext = ''
-            trace(2, '{}: Updated: "{}" -> "{}"', idnum, oldtext, newtext)
-            target.text = newtext
-            updated = True
-            nupdated += 1
+                trace(2, '{} {}: Unchanged: "{}" == "{}"',idnum, title, oldtext, newtext)
+                continue
+            else:
+                if newtext == '{{clear}}':
+                    newtext = ''
+                trace(2, '{} {}: Updated: "{}" -> "{}"', idnum, title, oldtext, newtext)
+                target.text = newtext
+                updated = True
+                nupdated += 1
         else:
-            trace(2, '{}: Unchanged, --replace not set: "{}" (new text = "{}")',
-                  idnum, oldtext, newtext)
+            trace(2, '{} {}: Unchanged, --replace not set: "{}" (new text = "{}")',
+                  idnum, title, oldtext, newtext)
             nunchanged += 1
     return updated
 
