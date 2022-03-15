@@ -18,7 +18,7 @@ from utl.normalize import isoformatfrommodesdate
 from utl.normalize import sphinxify
 
 DEFAULT_EXHIBITION_PLACE = 'HRM'
-
+PROD_SUMMARYTEXT = 'Production_SummaryText'
 NEEDS_CLEANING = False
 REPLACE_FROM = ''
 REPLACE_TO = ''
@@ -69,7 +69,13 @@ def main():
         newrow['Title'] = clean(oldrow['Title'])
         newrow['Medium'] = oldrow['Medium']
         newrow['Description'] = clean(oldrow['Description'])
-
+        # Append the Production/SummaryText field to the end of the
+        # Description field.
+        if oldrow[PROD_SUMMARYTEXT]:
+            if newrow['Description']:
+                newrow['Description'] += f' ({oldrow[PROD_SUMMARYTEXT]})'
+            else:
+                newrow['Description'] = oldrow[PROD_SUMMARYTEXT]
         datebegin = oldrow['DateBegin']
         dateend = oldrow['DateEnd']
         accuracy = oldrow['Accuracy']
@@ -96,16 +102,16 @@ def main():
         if len(places) != len(names):
             print(f'Exhibition name/place mismatch count: {oldrow["Serial"]}')
             continue
-        exhibition = []
+        exhibitions = []
         for name, place in zip(names, places):
             if name.strip():
                 # Note: exhibition.py will insert HRM as the exhibition place
                 # if no place is explicitly given in cfg/exhibition_list.py
                 if place == DEFAULT_EXHIBITION_PLACE:
-                    exhibition.append(clean(name))
+                    exhibitions.append(clean(name))
                 else:
-                    exhibition.append(f"{clean(name)} at {clean(place)}")
-        newrow['Exhibition'] = '|'.join(exhibition)
+                    exhibitions.append(f"{clean(name)} at {clean(place)}")
+        newrow['Exhibition'] = '|'.join(exhibitions)
         writer.writerow(newrow)
         nrows += 1
 
@@ -145,7 +151,7 @@ called_from_sphinx = True
 
 if __name__ == '__main__':
     global nrows
-    assert sys.version_info >= (3, 8)
+    assert sys.version_info >= (3, 9)
     called_from_sphinx = False
     _args = getargs(sys.argv)
     incsvfile = codecs.open(_args.incsvfile, 'r', encoding='utf-8-sig')
