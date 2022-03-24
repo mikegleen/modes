@@ -93,6 +93,9 @@ Single-command Statements
    values when used with the **multiple** command. The statement may
    appear under the **global** command or a specific **multiple** command,
    which takes precedence. The default is "|".
+-  **date** allowed in ``csv2xml.py``. Indicates that a field may be in British
+   format, dd mmm yyyy, and should be converted to Modes format. If it is already in Modes
+   format, that will be preserved.
 
 Global-command Statements
 +++++++++++++++++++++++++
