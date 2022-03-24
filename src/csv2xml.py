@@ -12,7 +12,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Config, Stmt, Cmd
-from utl.normalize import modesdatefrombritishdate, sphinxify
+from utl.normalize import modesdatefrombritishdate, sphinxify, if_not_sphinx
 
 
 def trace(level, template, *args):
@@ -120,7 +120,9 @@ def getparser():
     parser = argparse.ArgumentParser(description=sphinxify('''
         Read a CSV file containing two or more columns. The first column
         is the index and the following columns are the field(s) defined by the
-        XPATH statement in the config file. Create an
+        XPATH statement in the config file.
+        
+        Create an
         XML file with data from the CSV file based on a template of the
         XML structure.
                 ''', calledfromsphinx))
@@ -142,10 +144,10 @@ def getparser():
     parser.add_argument('-o', '--outfile', help='''
         The output XML file.''')
     parser.add_argument('-c', '--cfgfile', required=True,
-                        type=argparse.FileType('r'), help='''
-        The YAML file describing the column path(s) to update
-        The config file may contain only "column" or "constant" commands.
-    ''')
+                        type=argparse.FileType('r'), help=sphinxify('''
+        The YAML file describing the column path(s) to update.
+        The config file may contain only ``column`` or ``constant`` commands.
+    ''', calledfromsphinx))
     parser.add_argument('-p', '--noprolog', action='store_true', help='''
         Inhibit the insertion of an XML prolog at the front of the file and an
         <Interchange> element as the root. This results in an invalid XML file
@@ -153,8 +155,10 @@ def getparser():
     parser.add_argument('--serial', default='Serial',
                         help=sphinxify('''
         The column containing the serial number must have a heading with this
-        value. This is ignored if the --acc_num parameter is specified. The
-        default value is "Serial".''',
+        value. This is ignored if the --acc_num parameter is specified.''' +
+                                       # Sphinx displays the default value.
+                                       if_not_sphinx('''
+        The default value is "Serial".''', calledfromsphinx),
                                        calledfromsphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
