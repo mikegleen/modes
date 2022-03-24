@@ -81,9 +81,11 @@ def main():
         accuracy = oldrow['Accuracy']
         use_published_date = False
         if not datebegin or datebegin == 'unknown':
-            datebegin = oldrow['DateFirstPublished']
-            if datebegin:
+            if datebegin := oldrow['DateFirstPublished']:
                 use_published_date = True
+        if not datebegin:
+            # Maybe it's a book, get the publication date
+            datebegin = oldrow['Date']
         newrow['HumanDate'] = britishdatefrommodes(datebegin)
         if use_published_date:
             newrow['HumanDate'] += ' (Date Published)'
@@ -112,6 +114,10 @@ def main():
                 else:
                     exhibitions.append(f"{clean(name)} at {clean(place)}")
         newrow['Exhibition'] = '|'.join(exhibitions)
+        if oldrow['ObjectType'] == 'books':
+            newrow['Medium'] = 'book'
+        elif oldrow['ObjectType'] != 'Original Artwork' and not newrow['Medium']:
+            newrow['Medium'] = oldrow['ObjectType']
         writer.writerow(newrow)
         nrows += 1
 
