@@ -10,6 +10,10 @@ cmd: column
 xpath: ./Description/Material[Part="medium"]/Keyword
 title: Medium
 ---
+# For books, this is the publication date.
+cmd: column
+xpath: ./Production/Date
+---
 cmd: column
 xpath: ./Production/Date/DateBegin
 ---
@@ -39,3 +43,7 @@ cmd: column
 xpath: ./Production/SummaryText
 title: Production_SummaryText
 ---
+cmd: attrib
+xpath: .
+attribute: elementtype
+title: ObjectType

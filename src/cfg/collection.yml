@@ -1,0 +1,22 @@
+# Update the Modes XML file from the columns in the batchxxx.csv file used to upload
+# images to the website. After this update is done, update the batch to reflect the
+# new XML file and run again.
+cmd: column
+xpath: filler
+title: Old Title
+---
+cmd: column
+xpath: ./Identification/Title
+---
+cmd: column
+xpath: filler
+title: Old Description
+---
+cmd: column
+xpath: ./Identification/BriefDescription
+title: Description
+---
+cmd: column
+xpath: ./Production/SummaryText
+title: 'Production_SummaryText'
+---
