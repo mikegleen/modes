@@ -3,7 +3,7 @@
 # Insert a heading in the CSV file even though it will be skipped by xml2csv (useful for debugging.
 #
 set -e
-python src/dir2csv.py ../collection/webimgs/${BATCH} tmp/${BR}_list.csv --heading
+python src/dir2csv.py ../collection/aawebimgs/${BATCH} tmp/${BR}_list.csv --heading
 #
 # Pull the relevant fields from the Modes XML file for the objects in the batch.
 #

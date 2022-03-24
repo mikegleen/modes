@@ -2,9 +2,9 @@
 # For the files in a batch, create the CSV file to be uploaded to WordPress for the collection images.
 #
 pushd ~/pyprj/hrm/modes
-export BATCH=batch001
-export REVISION=.02
+export BATCH=batch002
+export REVISION=
 export BR=${BATCH}${REVISION}
-export MODESFILE=prod_save/normal/2021-12-01_prod_save.xml
+export MODESFILE=prod_update/normal/2022-03-15_batch002.xml
 #
 bin/collection/batch_sub.sh
