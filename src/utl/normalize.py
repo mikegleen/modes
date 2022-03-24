@@ -280,6 +280,15 @@ def denormalize_id(objid, mdacode=DEFAULT_MDA_CODE):
         return objid
 
 
+def if_not_sphinx(txt: str, calledfromsphinx: bool) -> str:
+    """ For example, Sphinx automatically displays the default value
+        so don't display it in the text.
+    """
+    if not calledfromsphinx:
+        return txt
+    return ''
+
+
 def sphinxify(txt: str, calledfromsphinx: bool) -> str:
     """ Sphinx displays '--' as '—' so partially work around that. """
     if not calledfromsphinx:
