@@ -11,7 +11,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-from utl.cfgutil import Config, Stmt, Cmd
+from utl.cfgutil import Config, Stmt, Cmd, new_subelt
 from utl.normalize import modesdatefrombritishdate, sphinxify, if_not_sphinx
 
 
@@ -34,21 +34,6 @@ def next_accnum(accnum: str):
     while True:
         yield prefix + str(suffix)
         suffix += 1
-
-
-def new_subelt(doc, root):
-    elt = None
-    if Stmt.PARENT_PATH in doc:
-        parent = root.find(doc[Stmt.PARENT_PATH])
-        title = doc[Stmt.TITLE]
-        if parent is None:
-            trace(1, 'Cannot find parent of {}, column {}',
-                  doc[Stmt.XPATH], title)
-        elif ' ' in title:
-            trace(1, 'Cannot create title with embedded spaces: {}', title)
-        else:
-            elt = ET.SubElement(parent, title)
-    return elt
 
 
 def main():
@@ -88,7 +73,7 @@ def main():
                 continue
             elt = template.find(xpath)
             if elt is None:
-                elt = new_subelt(doc, template)
+                elt = new_subelt(doc, template, _args.verbose)
             if elt is None:
                 trace(0, '{}: Cannot create new {}.\nCheck parent_path statement.',
                       accnum, doc[Stmt.XPATH])

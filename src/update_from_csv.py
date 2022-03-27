@@ -31,29 +31,13 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-from utl.cfgutil import Config, Stmt, Cmd
+from utl.cfgutil import Config, Stmt, Cmd, new_subelt
 from utl.normalize import normalize_id, sphinxify, denormalize_id
 
 
 def trace(level, template, *args):
     if _args.verbose >= level:
         print(template.format(*args))
-
-
-def new_subelt(doc, root):
-    elt = None
-    if Stmt.PARENT_PATH in doc:
-        # print(f'{doc[Stmt.PARENT_PATH]}')
-        parent = root.find(doc[Stmt.PARENT_PATH])
-        title = doc[Stmt.TITLE]
-        if parent is None:
-            trace(1, 'Cannot find parent of {}, column {}',
-                  doc[Stmt.XPATH], title)
-        elif ' ' in title:
-            trace(1, 'Cannot create title with embedded spaces: {}', title)
-        else:
-            elt = ET.SubElement(parent, title)
-    return elt
 
 
 def loadnewvals(allow_blanks=False):
@@ -138,9 +122,9 @@ def one_element(elem, idnum):
             continue
         target = elem.find(xpath)
         if target is None and newtext:
-            target = new_subelt(doc, elem)
+            target = new_subelt(doc, elem, _args.verbose)
             if target is None:  # parent is not specified or doesn't exist
-                trace(1, '{}: Cannot find target "{}"', idnum, xpath)
+                trace(2, '{}: Cannot find target "{}"', idnum, xpath)
                 continue
         oldtext = target.text
         if not oldtext or _args.replace:

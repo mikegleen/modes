@@ -5,8 +5,8 @@ import sys
 
 import yaml
 
-from .excel_cols import col2num
-from utl.normalize import normalize_id, denormalize_id, DEFAULT_MDA_CODE
+import xml.etree.ElementTree as ET
+from utl.normalize import normalize_id
 
 # The difference between the 'attrib' command and the attribute statement:
 # The 'attrib' command is just like the column command except that the attribute
@@ -88,6 +88,7 @@ class Stmt:
     ATTRIBUTE = 'attribute'
     DATE = 'date'
     TITLE = 'title'
+    ELEMENT = 'element'
     VALUE = 'value'
     CASESENSITIVE = 'casesensitive'
     MULTIPLE_DELIMITER = 'multiple_delimiter'
@@ -211,6 +212,24 @@ class Config:
 
     def select(self, elem, include_list=None, exclude=False):
         return select(self, elem, include_list, exclude)
+
+
+def new_subelt(doc, root, verbos=1):
+    elt = None
+    if Stmt.PARENT_PATH in doc:
+        parent = root.find(doc[Stmt.PARENT_PATH])
+        title = doc[Stmt.TITLE]
+        element = doc[Stmt.ELEMENT]
+        if parent is None:
+            if verbos > 1:
+                print(f'Cannot find parent of {doc[Stmt.XPATH]}, column {title}')
+        elif ' ' in element:
+            if verbos > 1:
+                print(f'Cannot create element with embedded spaces: {element}')
+        else:
+            elt = ET.SubElement(parent, element)
+            # print(f'{elt=}')
+    return elt
 
 
 def select(cfg: Config, elem, includes=None, exclude=False):
@@ -388,6 +407,9 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
             elif cmd == Cmd.COUNT:
                 target = f'{target}(n)'
             document[Stmt.TITLE] = target
+        if Stmt.PARENT_PATH in document and Stmt.ELEMENT not in document:
+            document[Stmt.ELEMENT] = document[Stmt.TITLE]
+
         if document[Stmt.TITLE] in titles:
             raise ValueError(f'Duplicate title "{document[Stmt.TITLE]}"')
         titles.add(document[Stmt.TITLE])
