@@ -17,22 +17,28 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-def getargs():
+def getparser():
     parser = argparse.ArgumentParser(description='''
-    Delete every file in a directory and its subdirectories if it is a duplicate
-    in that tree.
+    List every file in a directory and its subdirectories marking any that are
+    duplicates in that tree.
 
     Directories are processed in alphabetical order.
     ''')
     parser.add_argument('imgdir', help='''
         Folder containing images or subfolders containing images we already
         have.''')
-    parser.add_argument('--outfile', help='''
-        Output file. Default is sys.stdout''')
+    parser.add_argument('-o', '--outfile', help='''
+        Output file for the list of files. Default is sys.stdout. The warning
+        messages are always written to sys.stdout.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
-    args = parser.parse_args()
+    return parser
+
+
+def getargs(argv):
+    parser = getparser()
+    args = parser.parse_args(args=argv[1:])
     return args
 
 
@@ -59,7 +65,7 @@ def handle_folder(img_ids: dict, imgdir: str):
             print(f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
                   f'original in {img_ids[nid][0].removeprefix(_args.imgdir)}')
         else:
-            img_ids[nid] = (dirpath, imgf2)
+            img_ids[nid] = (imgf2, dirpath)
 
     for subfile in sorted(os.listdir(imgdir)):
         dirpath = os.path.join(imgdir, subfile)
@@ -73,18 +79,18 @@ def handle_folder(img_ids: dict, imgdir: str):
 
 
 def main():
-    # x.normalized extracts the first entry in the namedtuple Obj_id.
-
     img_ids = dict()
     handle_folder(img_ids, _args.imgdir)
     for key in sorted(img_ids.keys()):
-        print(img_ids[key][1], file=outfile)
+        fname = img_ids[key][0]
+        prefix, _ = os.path.splitext(fname)
+        print(f'{prefix},{img_ids[key][1]}', file=outfile)
     trace(2, '{} image files found.', len(img_ids))
 
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
-    _args = getargs()
+    _args = getargs(sys.argv)
     if not os.path.isdir(_args.imgdir):
         raise ValueError(f'{_args.imgdir} is not a directory.')
     if _args.verbose < 2:

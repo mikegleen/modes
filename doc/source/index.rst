@@ -13,6 +13,7 @@ Modes Python Library
    csv2xml
    docx2csv
    exhibition
+   list_imgs
    location
    recode_collection
    update_from_csv
