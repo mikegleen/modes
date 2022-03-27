@@ -60,42 +60,49 @@ Statements
 Single-command Statements
 +++++++++++++++++++++++++
 
+-  **attribute** Required by the **attrib** and **ifattrib** commands.
+-  **casesensitive** By default, comparisons are case insensitive.
 -  **cmd** Required. See below for a description of the individual
    commands.
--  **xpath** Required. This describes the XSLT path to a relevant XML
-   element. If the path is **filler**, this column will not be copied
-   to the XML file by ``update_from_csv.py``. This is useful if the CSV file
-   has columns that you need to skip.
--  **parent_path** Include this statement if the **xpath** may not
-   exist, in which case a new one will be created as a child of this path.
-   Implemented in ``csv2xml.py`` and ``update_from_csv.py`` only. The element
-   name to be created will be taken from the **title** statement in the document. See the
-   **title** statement below. This element named by this path must already exist.
--  **attribute** Required by the **attrib** and **ifattrib** commands.
--  **title** Optional. If omitted, a best-guess title will be created
-   from the xpath statement. If in a control document, this will be
-   shown in diagnostics. The titles of documents must be unique.
--  **value** Required for **ifeq** or **ifattribeq** or **ifcontains**
-   or **constant** command.
--  **normalize** Adjust this accession number so that it sorts in numeric
-   order. The number will be de-normalized before output. The default serial
-   number in the first column and the accession number extracted from the XML
-   file will be normalized before use.
--  **casesensitive** By default, comparisons are case insensitive.
--  **width** truncate this column to this number of characters when writing to
-   a CSV file. Ignored when writing to an XML file.
--  **required** If this field is missing or
-   empty issue an error message and discard the row. Valid only with a control
-   command (**if** ...) or with a
-   **column** command in ``csv2xml.py``. In this case it is useful for
-   discarding rubbish rows in the CSV file.
+-  **date** allowed in ``csv2xml.py``. Indicates that a field may be in British
+   format, dd mmm yyyy, and should be converted to Modes format. If it is already in Modes
+   format, that will be preserved.
+-  **element** Referenced when processing the **parent_path** statment for the name
+   of the element's tag to be created. If this is omitted the element name will be taken
+   from the **title** statment. If both are omitted the name will be taken from the title
+   generated from the **xpath** statement.
 -  **multiple_delimiter**  The character to use within a column to separate the
    values when used with the **multiple** command. The statement may
    appear under the **global** command or a specific **multiple** command,
    which takes precedence. The default is "|".
--  **date** allowed in ``csv2xml.py``. Indicates that a field may be in British
-   format, dd mmm yyyy, and should be converted to Modes format. If it is already in Modes
-   format, that will be preserved.
+-  **normalize** Adjust this accession number so that it sorts in numeric
+   order. The number will be de-normalized before output. The default serial
+   number in the first column and the accession number extracted from the XML
+   file will be normalized before use.
+-  **parent_path** Include this statement if the **xpath** may not
+   exist, in which case a new one will be created as a child of this path.
+   Implemented in ``csv2xml.py`` and ``update_from_csv.py`` only. The element
+   name to be created will be taken from the **element** statement in the document.
+   If the **element** statement doesn't exist, the name will be taken from the **title**
+   statement in the document. See the **title** statement below. The element named by this
+   path must already exist.
+-  **required** If this field is missing or
+   empty issue an error message and discard the row. Valid only with a control
+   command (**if** ...) or with a **column** command in ``csv2xml.py``. In this case it is
+   useful for discarding rubbish rows in the CSV file.
+-  **title** Optional. If omitted, a best-guess title will be created
+   from the xpath statement. If in a control document, this will be
+   shown in diagnostics. The titles of documents must be unique. If the ``--heading``
+   option is selected in ``update_from_csv.py`` the value of this statement must match
+   the heading of the corresponding column in the CSV file.
+-  **value** Required for **ifeq** or **ifattribeq** or **ifcontains**
+   or **constant** command.
+-  **width** truncate this column to this number of characters when writing to
+   a CSV file. Ignored when writing to an XML file.
+-  **xpath** Required. This describes the XSLT path to a relevant XML
+   element. If the path is **filler**, this column will not be copied
+   to the XML file by ``csv2xml.py`` and ``update_from_csv.py``. This is useful if the CSV file
+   has columns that you need to skip.
 
 Global-command Statements
 +++++++++++++++++++++++++
@@ -118,7 +125,8 @@ Global-command Statements
    ID number can be manually inserted as another column.
 -  **sort_numeric** The default is to sort the output alphabetically.
    This statement directs the sort to be numeric based on the first
-   column of the output row.
+   column of the output row. Note that accession numbers are normally normalized before
+   sorting.
 
 
 Commands
