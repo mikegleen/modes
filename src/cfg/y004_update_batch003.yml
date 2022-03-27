@@ -1,0 +1,67 @@
+cmd: column
+xpath: filler
+title: Old Title
+---
+cmd: column
+xpath: ./Identification/Title
+title: New Title
+---
+cmd: column
+xpath: filler
+title: Old Medium
+---
+cmd: column
+xpath: ./Description/Material[Part="medium"]/Keyword
+title: New Medium
+---
+cmd: column
+xpath: filler
+title: Old DateBegin
+---
+cmd: column
+xpath: ./Production/Date/DateBegin
+parent_path: ./Production/Date
+title: New DateBegin
+---
+cmd: column
+xpath: ./Production/Date/DateEnd
+parent_path: ./Production/Date
+---
+cmd: column
+xpath: filler
+title: Old Accuracy
+---
+cmd: column
+xpath: ./Production/Date/Accuracy
+parent_path: ./Production/Date
+title: New Accuracy
+element: Accuracy
+---
+cmd: column
+xpath: filler
+title: Old Date First Published
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Date
+title: New Date First Published
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
+title: Title First Published
+---
+cmd: column
+xpath: filler
+title: Old Description
+---
+cmd: column
+xpath: ./Identification/BriefDescription
+title: New Description
+---
+cmd: column
+xpath: filler
+title: Old Production_SummaryText
+---
+cmd: column
+xpath: ./Production/SummaryText
+title: New Production_SummaryText
+---

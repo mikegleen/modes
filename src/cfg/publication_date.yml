@@ -1,4 +1,8 @@
+#cmd: column
+#xpath: ./Production/Date[@elementtype="publication date"]
+#title: pubdate
+---
 cmd: column
-xpath: ./Production/Date[@elementtype="publication date"]
-title: pubdate
+xpath: ./References/Reference[@elementtype="First Published In"]/Date
+title: firstpubindate
 ---
