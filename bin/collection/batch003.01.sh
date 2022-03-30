@@ -3,8 +3,8 @@
 #
 pushd ~/pyprj/hrm/modes
 export BATCH=batch003
-export REVISION=
-export BR=${BATCH}${REVISION}
-export MODESFILE=prod_update/normal/2022-03-27_edit.xml
+export REVISION=01
+export BR=${BATCH}.${REVISION}
+export MODESFILE=prod_update/normal/2022-03-28_edit.xml
 #
 bin/collection/batch_sub.sh
