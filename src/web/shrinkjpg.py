@@ -9,6 +9,8 @@ from shutil import copy2
 import subprocess
 import sys
 
+from utl.normalize import if_not_sphinx, sphinxify
+
 DEFAULT_MAXPIXELS = 1000
 SIPSCMD = 'sips -s format jpeg -Z {} "{}" -o "{}"'
 
@@ -26,11 +28,17 @@ def getargs():
         Input directory''')
     parser.add_argument('outdir', help='''
         Output directory''')
-    parser.add_argument('--dryrun', action='store_true', help='''
-        Print messages but don't do processing. Implies  --verbose=2''')
+    parser.add_argument('--dryrun', action='store_true', help=sphinxify('''
+        Print messages but don't do processing. Implies  --verbose=2''',
+                        calledfromsphinx))
     parser.add_argument('-m', '--maxpixels', type=int,
-                        default=DEFAULT_MAXPIXELS, help='''
-        Maximum number of pixels in either dimension.''')
+                        default=DEFAULT_MAXPIXELS, help=
+                        '''
+        Maximum number of pixels in either dimension.'''
+                        + if_not_sphinx(f''' The
+                         default is {DEFAULT_MAXPIXELS} pixels.''',
+                                        calledfromsphinx
+                                        ))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -58,7 +66,8 @@ def main():
             width, height = im.size
         if max(width, height) > maxpixels:
             sipscmd = SIPSCMD.format(maxpixels, filepath, outdir)
-            trace(2, 'width = {}, height = {}, command = {}', width, height, sipscmd)
+            trace(2, 'width = {}, height = {}, command = {}', width, height,
+                  sipscmd)
             nshrunk += 1
             if dryrun:
                 continue
@@ -72,7 +81,9 @@ def main():
     trace(1, '{} copied\n{} shrunk', ncopied, nshrunk)
 
 
+calledfromsphinx = True
 if __name__ == '__main__':
+    calledfromsphinx = False
     assert sys.version_info >= (3, 9)
     _args = getargs()
     if not os.path.isdir(_args.indir) or not os.path.isdir(_args.outdir):
