@@ -35,6 +35,7 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 24,2022-01-15,2022-05-15,Heath Robinson’s Children’s Stories
 25,2021-10-27,2022-01-30,The Art of W. Heath Robinson,The Willis Museum
 26,2022-05-21,2022-09-04,The Humour of William Heath Robinson
+27,2019-03-02,2019-05-27,The Beardsley Generation
 '''
 # data for testing
 '''
