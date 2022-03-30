@@ -19,6 +19,7 @@ from utl.normalize import sphinxify
 
 DEFAULT_EXHIBITION_PLACE = 'HRM'
 PROD_SUMMARYTEXT = 'Production_SummaryText'
+TITLE_FIRST_PUBLISHED = 'TitleFirstPublished'
 NEEDS_CLEANING = False
 REPLACE_FROM = ''
 REPLACE_TO = ''
@@ -54,12 +55,8 @@ def clean(s):
 def main():
     global nrows
     reader = csv.DictReader(incsvfile)
-    r = 'Serial Title Medium'.split()
-    r.append('Exhibition')
-    r.append('HumanDate')
-    r.append('IsoDate')
-    r.append('Decade')
-    r.append('Description')
+    r = 'Serial Title Medium Exhibition HumanDate IsoDate Decade Description'
+    r = r.split()
     writer = csv.DictWriter(outfile, fieldnames=r)
     writer.writeheader()
     nrows = 0
@@ -71,11 +68,16 @@ def main():
         newrow['Description'] = clean(oldrow['Description'])
         # Append the Production/SummaryText field to the end of the
         # Description field.
-        if oldrow[PROD_SUMMARYTEXT]:
+        # If Production/SummaryText is empty, use the First Published In title.
+        prod_text = oldrow[PROD_SUMMARYTEXT]
+        if not prod_text and oldrow[TITLE_FIRST_PUBLISHED]:
+            prod_text = f'First published in {oldrow[TITLE_FIRST_PUBLISHED]}'
+        if prod_text:
             if newrow['Description']:
-                newrow['Description'] += f' ({oldrow[PROD_SUMMARYTEXT]})'
+                newrow['Description'] += f' ({prod_text})'
             else:
-                newrow['Description'] = oldrow[PROD_SUMMARYTEXT]
+                newrow['Description'] = prod_text
+
         datebegin = oldrow['DateBegin']
         dateend = oldrow['DateEnd']
         accuracy = oldrow['Accuracy']
