@@ -27,6 +27,10 @@ cmd: column
 xpath: ./References/Reference[@elementtype="First Published In"]/Date
 title: DateFirstPublished
 ---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
+title: TitleFirstPublished
+---
 cmd: multiple
 xpath: ./Exhibition/Place
 title: ExhibitionPlace

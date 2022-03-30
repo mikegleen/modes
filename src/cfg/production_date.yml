@@ -1,8 +1,5 @@
 
 #cmd: column
-#xpath: ./Production/Date/DateBegin
-#---
-#cmd: column
 #xpath: ./Production/Date/DateEnd
 #---
 #cmd: column
@@ -28,3 +25,11 @@ xpath: ./Production/SummaryText
 #---
 #cmd: column
 #xpath: ./Acquisition/Person/PersonName
+---
+cmd: column
+xpath: ./Production/Date/DateBegin
+title: Production DateBegin
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
+title: First Pub In
