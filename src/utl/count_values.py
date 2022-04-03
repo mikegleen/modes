@@ -43,7 +43,7 @@ def main(inf):
         # for e, c in [(e, c) for e, c in values.items()]:
         for e, c in sorted(values.items()):
             print(e, c)
-        print(f'{len(values)} unique media.')
+        print(f'{len(values)} unique values.')
     return nonepathcount
 
 
