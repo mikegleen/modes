@@ -7,9 +7,10 @@ import argparse
 import os.path
 import re
 import sys
+from utl.normalize import normalize_id
 
 
-def dir2csv(jpegdir):
+def dir2csv(jpegdir, normalize=False):
     jpglist = list()
     jpgfiles = os.listdir(jpegdir)
     for jpgfile in jpgfiles:
@@ -17,19 +18,29 @@ def dir2csv(jpegdir):
         if not m:
             print(f'dir2csv skipping: {jpgfile}')
             continue
-        jpglist.append(m.group(2))
+        accn = m.group(2)
+        if normalize:
+            try:
+                accn = normalize_id(accn, verbose=2)
+            except ValueError:
+                pass
+        jpglist.append(accn)
     return sorted(jpglist)
 
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-    For every ID in a CSV file, report if the corresponding image is not in a
-    folder.''')
+        For every JPG file in a directory write the name minus the trailing
+        ".jpg" to a CSV file.
+        ''')
     parser.add_argument('indir', help='''
         Folder containing images to list''')
     parser.add_argument('csvfile', help='''
         CSV file containing the accession numbers extracted from the filenames
         in indir''')
+    parser.add_argument('-n', '--normalize', action='store_true', help='''
+        Noramlize the accession number written to the CSV file.
+        ''')
     parser.add_argument('--heading', action='store_true', help='''
         Write a row at the front of the CSV file containing 'Serial'.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -45,7 +56,7 @@ if __name__ == '__main__':
     indir = _args.indir
     outfile = open(_args.csvfile, 'w')
 
-    outlist = dir2csv(indir)
+    outlist = dir2csv(indir, _args.normalize)
     nout = 0
     if _args.heading:
         print('Serial', file=outfile)
