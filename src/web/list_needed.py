@@ -1,8 +1,7 @@
 """
-For every ID in a CSV file or XML file, report if the corresponding image is not in a
-folder.
+For every ID in a CSV file or every filename in a folder, report if the
+corresponding image is not in a folder.
 
-The CSV file can be created from a folder using dir2csv.py.
 """
 import argparse
 import csv
@@ -28,7 +27,9 @@ def getargs():
         have. Only one level of subfolder is examined.''')
     parser.add_argument('-c', '--candidatefile', help='''
         CSV file containing the list of new objects or a directory containing
-        jpg files with names consisting of the accession numbers.''')
+        jpg files with names consisting of the accession numbers. If omitted
+        then the objects in the Modes file will be the candidates, showing
+        all of the objects in Modes for which we don't have images.''')
     parser.add_argument('--col_acc', type=int, default=0, help='''
         The zero-based column containing the accession number (ID) of the
         object we are searching for. The default is column zero.''')
@@ -37,7 +38,7 @@ def getargs():
     parser.add_argument('-m', '--modesfile', help='''
         File to search for valid accession numbers.''')
     parser.add_argument('-r', '--reportfile', help='''
-        File containing a list of the images that we have.''')
+        File to contain a list of the images that we have.''')
     parser.add_argument('--outfile', help='''
         Output file. Default is sys.stdout''')
     parser.add_argument('-s', '--skip_rows', type=int, default=0, help='''
@@ -54,54 +55,61 @@ def getargs():
     return args
 
 
-def build_img_set(candidates: set):
+def build_img_dict(img_ids: dict, imgdir: str):
     """
     Build a set of normalized accession numbers from the folders containing
     images.
-    :return: The set of normalized numbers.
+    :return: A dict with key of the normalized id and value a tuple of the file
+             name without possible leading "collection_" and the path.
     """
     def onefile(imgf: str):
-        m = re.match(r'(collection_)?(.*)', imgf)
-        imgf2 = m.group(2)  # remove optional leading 'collection_'
+        imgf2 = imgf.removeprefix('collection_')
         prefix, suffix = os.path.splitext(imgf2)
         if suffix.lower() not in ('.jpg', '.png'):
-            if suffix.lower() != '.txt':
+            if _args.verbose > 1:
                 print('not image:', imgf)
             return
         try:
             nid = normalize_id(prefix)
         except ValueError as ve:
-            print(f'Skipping {imgf}')
+            print(f'Skipping {imgf}: {ve}')
             return
         if nid in img_ids:
-            print(f'Duplicate: {prefix} in {dirpath}')
+            print(f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
+                  f'original in {img_ids[nid][0].removeprefix(_args.imgdir)}')
         else:
-            img_ids.add(nid)
-            if reportfile and nid in candidates:
-                print(prefix, file=reportfile)
+            img_ids[nid] = (imgf2, dirpath)
 
-    reportfile = open(_args.reportfile, 'w') if _args.reportfile else None
-    img_ids = set()
-    for imgdir in os.listdir(_args.imgdir):
-        dirpath = os.path.join(_args.imgdir, imgdir)
-        if not os.path.isdir(dirpath):
-            onefile(imgdir)
+    for subfile in sorted(os.listdir(imgdir)):
+        dirpath = os.path.join(imgdir, subfile)
+        if os.path.isdir(dirpath):
+            trace(1, 'Folder {}', dirpath)
+            build_img_dict(img_ids, dirpath)
+        else:
+            onefile(subfile)
             continue
-        trace(1, 'Folder {}', dirpath)
-        for imgfile in os.listdir(dirpath):
-            if os.path.isdir(imgfile):
-                print('Directory skipped', imgfile)
-                continue
-            onefile(imgfile)
-    return img_ids
+    return
 
 
 def build_candidate_set(valid_idnums):
+    """
+    From a CSV file or a folder of JPG files, extract a set of accession
+    numbers that we want.
+    :param valid_idnums: The set of normalized accession numbers extracted
+           from a Modes XML file
+    :return:
+    """
 
     def add_one_id(candidate):
+        """
+        :param candidate: filename with trailing .csv removed
+        :return: None. The nonlocal candidate_set is updated if the name
+                 was valid.
+        """
         nonlocal notinmodes
+        candidate2 = candidate.removeprefix('collection_')
         try:
-            normid = normalize_id(candidate)
+            normid = normalize_id(candidate2)
         except ValueError as ve:
             trace(1, '{}', ve)
             return
@@ -142,16 +150,20 @@ def main():
         candidate_set = build_candidate_set(valid_idnums)
     else:
         candidate_set = valid_idnums
-    img_ids = build_img_set(candidate_set)
-    for nid in candidate_set:
+    img_dict = dict()
+    build_img_dict(img_dict, _args.imgdir)
+    for nid in sorted(candidate_set):
         if _args.invert:
-            if nid not in img_ids:
+            if nid not in img_dict:
                 trace(2, 'Not in image folder: {}', nid)
                 continue
         else:
-            if nid in img_ids:
+            if nid in img_dict:
                 trace(2, 'In image folder: {}', nid)
+                if reportfile:
+                    print(denormalize_id(nid), file=reportfile)
                 continue
+        # print IDs of objects need as they are not in the image folder(s).
         print(denormalize_id(nid), file=outfile)
 
 
@@ -165,4 +177,5 @@ if __name__ == '__main__':
     else:
         outfile = sys.stdout
     VERBOSE = _args.verbose
+    reportfile = open(_args.reportfile, 'w') if _args.reportfile else None
     main()
