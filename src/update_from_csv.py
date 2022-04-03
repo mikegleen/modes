@@ -124,7 +124,7 @@ def one_element(elem, idnum):
         if target is None and newtext:
             target = new_subelt(doc, elem, _args.verbose)
             if target is None:  # parent is not specified or doesn't exist
-                trace(2, '{}: Cannot find target "{}"', idnum, xpath)
+                trace(1, '{}: Cannot find target "{}"', idnum, xpath)
                 continue
         oldtext = target.text
         if not oldtext or _args.replace:
@@ -140,7 +140,8 @@ def one_element(elem, idnum):
                 updated = True
                 nupdated += 1
         else:
-            trace(2, '{} {}: Unchanged, --replace not set: "{}" (new text = "{}")',
+            trace(1, '{} {}: Warning: Unchanged, --replace not set: "{}"'
+                     ' (new text = "{}")',
                   idnum, title, oldtext, newtext)
             nunchanged += 1
     return updated
@@ -208,12 +209,17 @@ def getparser():
         The first row of the map file contains a heading which must match the
         value of the title statement in the corresponding column document
         (case insensitive).''')
-    parser.add_argument('-m', '--mapfile', required=True, help='''
-        The CSV file mapping the object number to the new element value(s).''')
+    parser.add_argument('-m', '--mapfile', required=True, help=sphinxify('''
+        The CSV file mapping the object number to the new element value(s).
+        If a row in the CSV file has fewer fields than defined in the
+        configuration file, zero-length strings will be assumed. See
+        --empty.''', called_from_sphinx))
     parser.add_argument('-r', '--replace', action='store_true', help='''
         Replace existing values. If not specified only empty elements will be
         updated. Existing values will be cleared if the value in the CSV file
-        contains the special value ``{{clear}}``. See also --empty.''')
+        contains the special value ``{{clear}}``. See also --empty. If
+        --replace is not set a warning will be issued if the existing value
+        is not blank.''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('--skip_rows', type=int, default=0, help='''
