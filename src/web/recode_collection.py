@@ -52,75 +52,82 @@ def clean(s):
     return s
 
 
+def onerow(oldrow):
+    newrow = dict()
+    newrow['Serial'] = oldrow['Serial']
+    newrow['Title'] = clean(oldrow['Title'])
+    newrow['Medium'] = oldrow['Medium']
+    newrow['Description'] = clean(oldrow['Description'])
+    # Append the Production/SummaryText field to the end of the
+    # Description field.
+    # If Production/SummaryText is empty, use the First Published In title.
+    prod_text = oldrow[PROD_SUMMARYTEXT]
+    if not prod_text and oldrow[TITLE_FIRST_PUBLISHED]:
+        prod_text = f'First published in {oldrow[TITLE_FIRST_PUBLISHED]}'
+    if prod_text:
+        if newrow['Description']:
+            newrow['Description'] += f' ({prod_text})'
+        else:
+            newrow['Description'] = prod_text
+
+    datebegin = oldrow['DateBegin']
+    dateend = oldrow['DateEnd']
+    accuracy = oldrow['Accuracy']
+    use_published_date = False
+    if not datebegin or datebegin == 'unknown':
+        if datebegin := oldrow['DateFirstPublished']:
+            use_published_date = True
+    if not datebegin:
+        # Maybe it's a book, get the publication date
+        datebegin = oldrow['Date']
+    newrow['HumanDate'] = britishdatefrommodes(datebegin)
+    if use_published_date:
+        newrow['HumanDate'] += ' (Date Published)'
+    if accuracy == 'circa':
+        newrow['HumanDate'] = 'c. ' + newrow['HumanDate']
+        if dateend:
+            newrow['HumanDate'] += ' - ' + britishdatefrommodes(dateend)
+    try:
+        newrow['IsoDate'] = isoformatfrommodesdate(datebegin)
+    except ValueError:
+        newrow['IsoDate'] = ''
+    newrow['Decade'] = decade(datebegin, dateend)
+
+    places = oldrow['ExhibitionPlace'].split('|')
+    names = oldrow['ExhibitionName'].split('|')
+    if len(places) != len(names):
+        print(f'Exhibition name/place mismatch count: {oldrow["Serial"]}')
+        return None
+    exhibitions = []
+    for name, place in zip(names, places):
+        if name.strip():
+            # Note: exhibition.py will insert HRM as the exhibition place
+            # if no place is explicitly given in cfg/exhibition_list.py
+            if place == DEFAULT_EXHIBITION_PLACE:
+                exhibitions.append(clean(name))
+            else:
+                exhibitions.append(f"{clean(name)} at {clean(place)}")
+    newrow['Exhibition'] = '|'.join(exhibitions)
+
+    if oldrow['ObjectType'] == 'books':
+        newrow['Medium'] = 'book'
+    elif oldrow['ObjectType'] != 'Original Artwork' and not newrow['Medium']:
+        newrow['Medium'] = oldrow['ObjectType']
+    return newrow
+
+
 def main():
     global nrows
     reader = csv.DictReader(incsvfile)
-    r = 'Serial Title Medium Exhibition HumanDate IsoDate Decade Description'
-    r = r.split()
-    writer = csv.DictWriter(outfile, fieldnames=r)
+    fields = 'Serial Title Medium Exhibition HumanDate IsoDate Decade'
+    fields += ' Description'
+    writer = csv.DictWriter(outfile, fieldnames=fields.split())
     writer.writeheader()
     nrows = 0
     for oldrow in reader:
-        newrow = dict()
-        newrow['Serial'] = oldrow['Serial']
-        newrow['Title'] = clean(oldrow['Title'])
-        newrow['Medium'] = oldrow['Medium']
-        newrow['Description'] = clean(oldrow['Description'])
-        # Append the Production/SummaryText field to the end of the
-        # Description field.
-        # If Production/SummaryText is empty, use the First Published In title.
-        prod_text = oldrow[PROD_SUMMARYTEXT]
-        if not prod_text and oldrow[TITLE_FIRST_PUBLISHED]:
-            prod_text = f'First published in {oldrow[TITLE_FIRST_PUBLISHED]}'
-        if prod_text:
-            if newrow['Description']:
-                newrow['Description'] += f' ({prod_text})'
-            else:
-                newrow['Description'] = prod_text
-
-        datebegin = oldrow['DateBegin']
-        dateend = oldrow['DateEnd']
-        accuracy = oldrow['Accuracy']
-        use_published_date = False
-        if not datebegin or datebegin == 'unknown':
-            if datebegin := oldrow['DateFirstPublished']:
-                use_published_date = True
-        if not datebegin:
-            # Maybe it's a book, get the publication date
-            datebegin = oldrow['Date']
-        newrow['HumanDate'] = britishdatefrommodes(datebegin)
-        if use_published_date:
-            newrow['HumanDate'] += ' (Date Published)'
-        if accuracy == 'circa':
-            newrow['HumanDate'] = 'c. ' + newrow['HumanDate']
-            if dateend:
-                newrow['HumanDate'] += ' - ' + britishdatefrommodes(dateend)
-        try:
-            newrow['IsoDate'] = isoformatfrommodesdate(datebegin)
-        except ValueError:
-            newrow['IsoDate'] = ''
-
-        newrow['Decade'] = decade(datebegin, dateend)
-        places = oldrow['ExhibitionPlace'].split('|')
-        names = oldrow['ExhibitionName'].split('|')
-        if len(places) != len(names):
-            print(f'Exhibition name/place mismatch count: {oldrow["Serial"]}')
-            continue
-        exhibitions = []
-        for name, place in zip(names, places):
-            if name.strip():
-                # Note: exhibition.py will insert HRM as the exhibition place
-                # if no place is explicitly given in cfg/exhibition_list.py
-                if place == DEFAULT_EXHIBITION_PLACE:
-                    exhibitions.append(clean(name))
-                else:
-                    exhibitions.append(f"{clean(name)} at {clean(place)}")
-        newrow['Exhibition'] = '|'.join(exhibitions)
-        if oldrow['ObjectType'] == 'books':
-            newrow['Medium'] = 'book'
-        elif oldrow['ObjectType'] != 'Original Artwork' and not newrow['Medium']:
-            newrow['Medium'] = oldrow['ObjectType']
-        writer.writerow(newrow)
+        newrow = onerow(oldrow)
+        if newrow:
+            writer.writerow(newrow)
         nrows += 1
 
 
