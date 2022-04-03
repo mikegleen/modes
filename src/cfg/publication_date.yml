@@ -6,3 +6,7 @@ cmd: column
 xpath: ./References/Reference[@elementtype="First Published In"]/Date
 title: firstpubindate
 ---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
+title: firstpubintitle
+---
