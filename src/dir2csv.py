@@ -10,13 +10,13 @@ import sys
 from utl.normalize import normalize_id
 
 
-def dir2csv(jpegdir, normalize=False):
+def dir2list(jpegdir, normalize=False):
     jpglist = list()
     jpgfiles = os.listdir(jpegdir)
     for jpgfile in jpgfiles:
         m = re.match(r'(collection_)?(.+)\.jpg', jpgfile)
         if not m:
-            print(f'dir2csv skipping: {jpgfile}')
+            print(f'dir2list skipping: {jpgfile}')
             continue
         accn = m.group(2)
         if normalize:
@@ -56,11 +56,11 @@ if __name__ == '__main__':
     indir = _args.indir
     outfile = open(_args.csvfile, 'w')
 
-    outlist = dir2csv(indir, _args.normalize)
+    outlist = dir2list(indir, _args.normalize)
     nout = 0
     if _args.heading:
         print('Serial', file=outfile)
     for fn in outlist:
         print(fn, file=outfile)
         nout += 1
-    print(f'End dir2csv. {nout} rows written to {_args.csvfile}.')
+    print(f'End dir2list. {nout} rows written to {_args.csvfile}.')
