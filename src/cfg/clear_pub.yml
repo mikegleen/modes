@@ -1,0 +1,8 @@
+cmd: constant
+xpath: ./References/Reference[@elementtype="First Published In"]/Date
+value:
+---
+cmd: constant
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
+value:
+---

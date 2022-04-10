@@ -1,0 +1,9 @@
+cmd: constant
+xpath: ./Production/Date/Accuracy
+parent_path: ./Production/Date
+value: circa
+---
+cmd: constant
+xpath: ./Production/Date/DateBegin
+value: '1935'
+---

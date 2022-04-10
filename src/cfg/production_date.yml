@@ -1,10 +1,4 @@
 
-#cmd: column
-#xpath: ./Production/Date/DateEnd
-#---
-#cmd: column
-#xpath: ./Production/Date/Accuracy
-#---
 cmd: column
 xpath: ./Identification/Title
 title: Title
@@ -12,24 +6,30 @@ title: Title
 cmd: column
 xpath: ./Identification/BriefDescription
 title: Brief Description
+width: 50
 ---
 cmd: column
 xpath: ./Production/SummaryText
-#---
-#cmd: if
-#xpath: ./Production/Date
+---
+cmd: column
+xpath: ./Production/Date
+title: Production Date
 #---
 #cmd: ifelt
 #xpath: ./Production/Date/DateEnd
 #title: ifdate
-#---
-#cmd: column
-#xpath: ./Acquisition/Person/PersonName
+---
+cmd: column
+xpath: ./Production/Date/Accuracy
 ---
 cmd: column
 xpath: ./Production/Date/DateBegin
 title: Production DateBegin
 ---
 cmd: column
-xpath: ./References/Reference[@elementtype="First Published In"]/Title
-title: First Pub In
+xpath: ./Production/Date/DateEnd
+title: Production DateEnd
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Date
+title: First Pub In Date
