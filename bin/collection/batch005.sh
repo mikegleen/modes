@@ -4,6 +4,6 @@
 pushd ~/pyprj/hrm/modes
 export BATCH=batch005
 export REVISION=
-export MODESFILE=prod_update/normal/2022-03-29_edit.xml
+export MODESFILE=prod_update/normal/2022-04-11_set_circa.xml
 #
 bin/collection/batch_sub.sh

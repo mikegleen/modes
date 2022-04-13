@@ -6,6 +6,6 @@ pushd ~/pyprj/hrm/modes
 # for example bin/collection/batch006.sh => batch006
 export BATCH=${0:t:r}
 export REVISION=
-export MODESFILE=prod_update/normal/2022-03-31_2020.xml
+export MODESFILE=prod_update/normal/2022-04-11_set_circa.xml
 #
 bin/collection/batch_sub.sh
