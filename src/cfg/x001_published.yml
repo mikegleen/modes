@@ -1,3 +1,7 @@
+cmd: ifeq
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
+value: to-day
+---
 cmd: column
 xpath: ./References/Reference[@elementtype="First Published In"]/Title
 ---
