@@ -6,7 +6,6 @@ corresponding image is not in a folder.
 import argparse
 import csv
 import os.path
-import re
 import sys
 from utl.excel_cols import col2num
 from utl.list_objects import list_objects
@@ -39,7 +38,7 @@ def getargs():
         File to search for valid accession numbers.''')
     parser.add_argument('-r', '--reportfile', help='''
         File to contain a list of the images that we have.''')
-    parser.add_argument('--outfile', help='''
+    parser.add_argument('-o', '--outfile', help='''
         Output file. Default is sys.stdout''')
     parser.add_argument('-s', '--skip_rows', type=int, default=0, help='''
         Skip rows at the beginning of the CSV file.''')
@@ -51,7 +50,7 @@ def getargs():
         args.col_acc = 0
     else:
         args.col_acc = col2num(str(args.col_acc))
-        print(f'{args.col_acc=}')
+        # print(f'{args.col_acc=}')
     return args
 
 
@@ -66,7 +65,7 @@ def build_img_dict(img_ids: dict, imgdir: str):
         imgf2 = imgf.removeprefix('collection_')
         prefix, suffix = os.path.splitext(imgf2)
         if suffix.lower() not in ('.jpg', '.png'):
-            if _args.verbose > 1:
+            if _args.verbose > 1 and not imgf.startswith('.'):  # ignore .DS_Store
                 print('not image:', imgf)
             return
         try:
@@ -83,7 +82,7 @@ def build_img_dict(img_ids: dict, imgdir: str):
     for subfile in sorted(os.listdir(imgdir)):
         dirpath = os.path.join(imgdir, subfile)
         if os.path.isdir(dirpath):
-            trace(1, 'Folder {}', dirpath)
+            trace(2, 'Folder {}', dirpath)
             build_img_dict(img_ids, dirpath)
         else:
             onefile(subfile)
@@ -111,18 +110,21 @@ def build_candidate_set(valid_idnums):
         try:
             normid = normalize_id(candidate2)
         except ValueError as ve:
-            trace(1, '{}', ve)
+            if not candidate2.startswith('.'):
+                trace(1, '{}', ve)
             return
         if normid in valid_idnums:
             candidate_set.add(normid)
         else:
+            trace(2, 'Skipping {}, not in Modes.', candidate2)
             notinmodes += 1
 
     notinmodes = 0
     candidate_set = set()
     trace(2, "Building candidate set.")
     if os.path.isdir(_args.candidatefile):
-        candidates = [os.path.splitext(f)[0] for f in os.listdir()]
+        candidates = [os.path.splitext(f)[0]
+                      for f in os.listdir(_args.candidatefile)]
         for c in candidates:
             add_one_id(c)
     else:
@@ -146,6 +148,7 @@ def main():
     # x.normalized extracts the first entry in the namedtuple Obj_id.
     # valid_idnums is a set of all the IDs in the XML file
     valid_idnums = set([x.normalized for x in list_objects(_args.modesfile)])
+    numneeded = 0
     if _args.candidatefile:
         candidate_set = build_candidate_set(valid_idnums)
     else:
@@ -153,18 +156,23 @@ def main():
     img_dict = dict()
     build_img_dict(img_dict, _args.imgdir)
     for nid in sorted(candidate_set):
+        denid = denormalize_id(nid)
         if _args.invert:
             if nid not in img_dict:
-                trace(2, 'Not in image folder: {}', nid)
+                trace(2, 'Not in image folder: {}', denid)
                 continue
         else:
             if nid in img_dict:
-                trace(2, 'In image folder: {}', nid)
+                trace(2, 'In image folder: {}', denid)
                 if reportfile:
-                    print(denormalize_id(nid), file=reportfile)
+                    print(denid, file=reportfile)
                 continue
-        # print IDs of objects need as they are not in the image folder(s).
-        print(denormalize_id(nid), file=outfile)
+        # print IDs of objects needed as they are not in the image folder(s).
+        # if --invert is set, print the objects in the image folder(s).
+        print(denid, file=outfile)
+        numneeded += 1
+    needq = f'{"not " if _args.invert else ""}needed'
+    print(f'Total {needq}: {numneeded} of {len(candidate_set)} candidates.')
 
 
 if __name__ == '__main__':
