@@ -17,7 +17,7 @@ def trace(level, template, *args):
 def getargs():
     parser = argparse.ArgumentParser(description='''
     For each file in a "candidate" folder, if that file is not in the "done"
-    folder or any of its subfolders, copy it to a "harvested" folder.
+    folder or any of its subfolders, copy it to a "staging" folder.
         ''')
     parser.add_argument('-c', '--candidate', required=True, help='''
         Directory containing new files that may need to be transferred''')
@@ -52,15 +52,18 @@ if __name__ == '__main__':
         for donef in filenames:
             donefile = donef.removeprefix('collection_')
             if not donefile.endswith('jpg'):
-                trace(2, f'----skipping {donefile}')
+                if not donefile.startswith('.'):  # ignore .DS_Store
+                    trace(2, f'----skipping {donef}')
                 continue
-            trace(2, f'   {donefile}')
+            trace(3, f'   {donefile}')
             donefiles.add(donefile)
     ncandidates = ncopied = 0
+    trace(1, 'Begin harvesting {}', candidatedir)
     for candidate in os.listdir(candidatedir):
         ncandidates += 1
-        if candidate in donefiles:
-            trace(1, 'skipping: {}', candidate)
+        if candidate in donefiles or candidate.startswith('.'):
+            if not candidate.startswith('.'):
+                trace(1, 'skipping: {}', candidate)
         else:
             ncopied += 1
             frompath = os.path.join(candidatedir, candidate)
