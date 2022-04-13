@@ -130,12 +130,12 @@ def one_element(elem, idnum):
         if not oldtext or _args.replace:
             if oldtext and oldtext == newtext:
                 nequal += 1
-                trace(2, '{} {}: Unchanged: "{}" == "{}"',idnum, title, oldtext, newtext)
+                trace(2, '{} {}: Unchanged: "{}" == "{}"', idnum, title, oldtext, newtext)
                 continue
             else:
                 if newtext == '{{clear}}':
                     newtext = ''
-                trace(2, '{} {}: Updated: "{}" -> "{}"', idnum, title, oldtext, newtext)
+                trace(3, '{} {}: Updated: "{}" -> "{}"', idnum, title, oldtext, newtext)
                 target.text = newtext
                 updated = True
                 nupdated += 1
@@ -210,9 +210,11 @@ def getparser():
         value of the title statement in the corresponding column document
         (case insensitive).''')
     parser.add_argument('-m', '--mapfile', required=True, help=sphinxify('''
-        The CSV file mapping the object number to the new element value(s).
+        The CSV file mapping the object number to the new element value(s). The
+        first column must contain the object number and subsequent columns
+        must correspond to the columns in the mapping file.
         If a row in the CSV file has fewer fields than defined in the
-        configuration file, zero-length strings will be assumed. See
+        mapping file, zero-length strings will be assumed. See
         --empty.''', called_from_sphinx))
     parser.add_argument('-r', '--replace', action='store_true', help='''
         Replace existing values. If not specified only empty elements will be
