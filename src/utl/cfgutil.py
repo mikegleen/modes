@@ -380,6 +380,8 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
     titles = set()
     for document in cfg:
         for key in document:
+            if document[key] is None:
+                document[key] = ''
             document[key] = str(document[key])
         if dump:
             dump_document(document, logfile=logfile)
