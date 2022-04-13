@@ -7,6 +7,7 @@ element if option -n is specified.
 
 import argparse
 import sys
+import time
 import xml.dom.minidom as minidom
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
@@ -14,6 +15,7 @@ import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
 def main():
     nlines = 0
+    t1 = time.perf_counter()
     declaration = ('<?xml version="1.0" encoding="'
                    f'{_args.output_encoding}"?>\n<Interchange>')
     outfile.write(bytes(declaration, _args.output_encoding))
@@ -59,8 +61,9 @@ def main():
         elem.clear()
     outfile.write(b'</Interchange>')
     if _args.verbose >= 1:
+        elapsed = time.perf_counter() - t1
         s = 's' if nlines > 1 else ''
-        print(f'End normalize_xml. {nlines} object{s} written.')
+        print(f'End normalize_xml. {nlines} object{s} written in {elapsed:.3f} seconds')
 
 
 def getargs():
