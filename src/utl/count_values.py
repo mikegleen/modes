@@ -3,7 +3,6 @@
     For a single field, display the number of occurances of each value.
 """
 import argparse
-import codecs
 from collections import defaultdict
 import sys
 # noinspection PyPep8Naming
