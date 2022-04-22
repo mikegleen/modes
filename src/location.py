@@ -418,11 +418,11 @@ def main():
 
 def add_arguments(parser, command):
     global is_update, is_diff, is_select, is_validate  # Needed for Sphinx
-    if 'is_update' not in globals():
-        is_update = True if command == 'update' else False
-        is_diff = True if command == 'diff' else False
-        is_select = True if command == 'select' else False
-        is_validate = True if command == 'validate' else False
+    if called_from_sphinx:
+        is_update = command == 'update'
+        is_diff = command == 'diff'
+        is_select = command == 'select'
+        is_validate = command == 'validate'
     parser.add_argument('-i', '--infile', required=True, help='''
         The XML file saved from Modes.''')
     if is_update or is_select:
@@ -571,7 +571,7 @@ def getparser():
     add_arguments(diff_parser, 'diff')
     add_arguments(select_parser, 'select')
     add_arguments(update_parser, 'update')
-    add_arguments(validate_parser, 'update')
+    add_arguments(validate_parser, 'validate')
     return parser
 
 
