@@ -7,18 +7,21 @@
 import os.path
 import subprocess
 import sys
+from utl.normalize import normalize_id
 
 
 def main():
     targetdir = sys.argv[1]
 
     try:
-        targetlist = os.listdir(targetdir)
+        targetlist = [(normalize_id(os.path.splitext(t)[0], strict=False), t)
+                      for t in os.listdir(targetdir)]
+        targetlist = sorted(targetlist, key=lambda item: item[0])
         numtargets = len(targetlist)
         ntarg = 0
-        for target in targetlist:
+        for _, target in targetlist:
             ntarg += 1
-            print(f'file {ntarg} of {numtargets}')
+            print(f'file {ntarg} of {numtargets}: {target}')
             filename, extension = os.path.splitext(target)
             if extension.lower() in ('.jpg', '.jpeg', '.png'):
                 subprocess.run(['open', '-W', os.path.join(targetdir, target)])
