@@ -175,7 +175,7 @@ def vdate(indate: str):
     return d
 
 
-def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1):
+def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
     """
     The parameter is a string in the format of one of the types of object
     identifiers (i.e. accession numbers) in our Modes file.
@@ -183,7 +183,10 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1):
     Return a string normalized for sorting.
 
     If a field that is expected to be an integer is not, a ValueError is
-    raised.
+    raised or if strict == False, return the input object ID.
+
+    strict=False is used in preview_dir.py where some of the files can have
+    non-cannonical filenames but the order is only helpful, not necessary.
 
     Input can be of the form JB001 or JB0001 or JB001a or SH1 or with a leading
     MDA code: LDHRM/2018/1 or LDHRM.2018.1. or LDHRM.2018.1.2. Input can also
@@ -202,7 +205,10 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1):
     For IDs that are simple integers, these are expanded to eight digits.
     """
     if objid is None:
-        return None
+        if strict:
+            return None
+        else:
+            return ""
     objidu = objid.upper()
     if objidu.startswith(mdacode):
         idlist = re.split(r'[/.]', objidu)  # split on either "/" or "."
@@ -245,7 +251,9 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1):
         return newobjid
     if verbose > 1:
         print(f'normalize_id: Unsupported accession ID format: "{objid}"')
-    raise ValueError(f'Unsupported accession ID format: "{objid}"')
+    if strict:
+        raise ValueError(f'Unsupported accession ID format: "{objid}"')
+    return objid
 
 
 def denormalize_id(objid, mdacode=DEFAULT_MDA_CODE):
