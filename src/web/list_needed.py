@@ -20,7 +20,7 @@ def trace(level, template, *args):
 def getargs():
     parser = argparse.ArgumentParser(description='''
     For every ID in a CSV file, report if the corresponding image is not in a
-    folder.''')
+    folder. This should be run before harvest_new.py.''')
     parser.add_argument('imgdir', help='''
         Folder containing images or subfolders containing images we already
         have. Only one level of subfolder is examined.''')
