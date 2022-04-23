@@ -5,6 +5,7 @@ import sys
 
 import yaml
 
+# noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 from utl.normalize import normalize_id
 
@@ -31,7 +32,7 @@ class Cmd:
     GLOBAL = 'global'
     KEYWORD = 'keyword'
     IF = 'if'  # if text is present
-    IFELT = 'ifelt' # if the element is present
+    IFELT = 'ifelt'  # if the element is present
     IFNOT = 'ifnot'  # if text is not present
     IFATTRIB = 'ifattrib'  # requires attribute statement
     IFATTRIBEQ = 'ifattribeq'  # requires attribute statement
@@ -432,7 +433,7 @@ def yaml_fieldnames(config):
     return hdgs
 
 
-def splitid(idstr: str, m: re.Match):
+def _splitid(idstr: str, m: re.Match) -> (str, int, int, int):
     """
     Subroutine to expand_one_idnum.
     Do the common processing for the "-" and "&" cases.
@@ -441,15 +442,15 @@ def splitid(idstr: str, m: re.Match):
 
     :return: prefix = "JB1"
              variablepart: int = 21
-             secondidnum: int = 24
+             intsecondidnum: int = 24
              len(variablepart) = 2
     """
     prefix = m[1]  # will be updated later if 2nd # is shorter than 1st #
     lenprefix = len(prefix)
-    firstidnum = int(m[2])
-    secondidnum = int(m[3])  # the numbers after the '-' or '&'
+    firstidnum = m[2]
+    intsecondidnum = int(m[3])  # the numbers after the '-' or '&'
     # lenfirstid will change if the second # is shorter than the first
-    lenfirstid = len(m[2])
+    lenfirstid = len(firstidnum)
     lenlastid = len(m[3])
     lenfixedpart = max(lenfirstid - lenlastid, 0)
     # In a case like SH21-4, the fixed part will be the leading part of the
@@ -458,9 +459,9 @@ def splitid(idstr: str, m: re.Match):
     variablepart = idstr[lenprefix + lenfixedpart:lenprefix + lenfirstid]
     prefix += fixedpart
     intvariablepart = int(variablepart)
-    if intvariablepart >= secondidnum:
+    if intvariablepart >= intsecondidnum:
         raise ValueError(f'{idstr} first number must be less than last number')
-    return prefix, intvariablepart, secondidnum, len(variablepart)
+    return prefix, intvariablepart, intsecondidnum, len(variablepart)
 
 
 def expand_one_idnum(idstr: str) -> list[str]:
@@ -468,13 +469,16 @@ def expand_one_idnum(idstr: str) -> list[str]:
     :param idstr: An accession number or a range of numbers. If it is a range,
     indicated by a hyphen or ampersand anywhere in the string, the format of
     the number is:
-        idstr ::= prefix-suffix | prefix&suffix
-    to do:    idstr ::= prefix-suffix | prefix&suffix*[&suffix]
+        idstr ::= rangestr | liststr
+        rangestr ::= prefix-suffix
+        liststr ::=  prefix&suffix | liststr&suffix
         prefix ::= text<n digits>
         suffix ::= <n digits>
         The suffix is a string of digits terminating the idstr.
-        The prefix consists of any text preceding the suffix.
+        The prefix consists of any text (possibly including trailing digits).
+
         Note: white space is removed from the idnum before parsing.
+
     :return: A list containing zero or more idnums. If idnum is just a single
     number, then it will be returned inside a list. If there is an error,
     an empty list will be returned. If a range is specified, then multiple
@@ -484,15 +488,15 @@ def expand_one_idnum(idstr: str) -> list[str]:
     Examples:
         JB021-024 or JB021-24. These produce identical results:
             ['JB021', 'JB022', 'JB023', 'JB024']
-        JB021&026 returns:
-            ['JB021', 'JB026']
+        JB021&026&033 returns:
+            ['JB021', 'JB026', 'JB033']
     """
 
     jlist = []
     idstr = ''.join(idstr.split())  # remove all whitespace
     if '-' in idstr:  # if ID is actually a range like JB021-23
         if m := re.match(r'(.+?)(\d+)-(\d+)$', idstr):
-            prefix, num1, num2, lenvariablepart = splitid(idstr, m)
+            prefix, num1, num2, lenvariablepart = _splitid(idstr, m)
             try:
                 for suffix in range(num1, num2 + 1):
                     newidnum = f'{prefix}{suffix:0{lenvariablepart}}'
@@ -511,7 +515,7 @@ def expand_one_idnum(idstr: str) -> list[str]:
             # from the head once and tail becomes num2. But this is good enough.
             partstr = f'{head}&{tail}'
             if m := re.match(r'(.+?)(\d+)&(\d+)$', partstr):
-                prefix, num1, num2, lenvariablepart = splitid(idstr, m)
+                prefix, num1, num2, lenvariablepart = _splitid(idstr, m)
                 newidnum = f'{prefix}{num2:0{lenvariablepart}}'
                 jlist.append(newidnum)
             else:
@@ -522,11 +526,17 @@ def expand_one_idnum(idstr: str) -> list[str]:
     return jlist
 
 
-def expand_idnum(idstr: str) -> list[str]:
-    idstrlist = idstr.split(',')
+def expand_idnum(idnumstr: str) -> list[str]:
+    """
+    Expand an idnumstr to a list of idnums.
+    :param idnumstr: (See expand_one_idnum for the definition of idstr)
+        idnumstr ::= idstr | idnumstr,idstr
+    :return: list of idnums
+    """
+    idstrlist = idnumstr.split(',')
     rtnlist = []
-    for ids in idstrlist:
-        rtnlist += expand_one_idnum(ids)
+    for idstr in idstrlist:
+        rtnlist += expand_one_idnum(idstr)
     return rtnlist
 
 
