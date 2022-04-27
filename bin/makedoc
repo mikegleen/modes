@@ -1,0 +1,4 @@
+set -e
+pushd doc
+touch source/*
+make html
