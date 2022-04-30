@@ -27,6 +27,7 @@
 import argparse
 import codecs
 import csv
+import os
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
@@ -84,6 +85,7 @@ def loadnewvals(allow_blanks=False):
             # Strip off the accession number in the first column so that the
             # list matches the columns in the config file. Note that this
             # depends on the accession number being in the first column.
+
             newval_dict[normalize_id(idnum)] = row[1:]
     return newval_dict
 
@@ -237,6 +239,8 @@ def getargs(argv):
     args = parser.parse_args(args=argv[1:])
     if args.empty:
         args.replace = True
+    if os.path.splitext(args.mapfile)[1].lower() != 'csv':
+        raise ValueError('mapfile must be a CSV file.')
     return args
 
 
