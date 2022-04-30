@@ -480,6 +480,11 @@ def add_arguments(parser, command):
         value, which nevertheless must be specified, is ignored. 
         ''', called_from_sphinx))
     if is_update or is_diff:
+        parser.add_argument('-j', '--object', help=nd.sphinxify('''
+        Specify a single object to be processed. If specified, do not specify
+        the CSV file containing object numbers and locations (--mapfile). You
+        must also specify --location.
+        ''', called_from_sphinx))
         parser.add_argument('-l', '--location', help='''
         Set the location for all of the objects in the CSV file. In this 
         case the CSV file only needs a single column containing the 
@@ -505,11 +510,6 @@ def add_arguments(parser, command):
             expected as the purpose is to update that value.
             ''')
     if is_update:
-        parser.add_argument('-j', '--object', help=nd.sphinxify('''
-        Specify a single object to be processed. If specified, do not specify
-        the CSV file containing object numbers and locations (--mapfile). You
-        must also specify --location.
-        ''', called_from_sphinx))
         parser.add_argument('--patch', action='store_true', help='''
         Update the specified location in place without creating history. This is always
         the behavior for normal locations but not for current or previous.
@@ -533,7 +533,8 @@ def add_arguments(parser, command):
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
-    parser.add_argument('-w', '--warn', action='store_true', help='''
+    if is_diff or is_select or is_update:
+        parser.add_argument('-w', '--warn', action='store_true', help='''
         Valid if -a is selected. Warn if an object in the XML file is not in the CSV file.
         ''')
 
@@ -584,7 +585,7 @@ def getargs(argv):
         if args.location:
             args.col_loc = None
     if is_update:
-        nloctypes = int(args.current) + int(args.previous) + int(args.normal)
+        nloctypes = int(args.current) + int(args.previous)
         if nloctypes != 1:
             print('Exactly one of -c or -p must be specified.')
             sys.exit(1)
