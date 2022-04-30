@@ -34,7 +34,7 @@ def main(inf):
             if value is None:
                 value = 'None'
             values[value] += 1
-            if _args.type and value == _args.type:
+            if _args.type and value in _args.type:
                 num = elem.find('./ObjectIdentity/Number')
                 print(num.text, value[:_args.width])
     if not _args.type:
@@ -70,8 +70,9 @@ def getargs():
         The config file may contain only a single ``column`` command. Specify 
         this or the --xpath parameter.
     ''', calledfromsphinx))
-    parser.add_argument('-t', '--type', help='''
-        Print the object number of all of the Object elements of this type.''')
+    parser.add_argument('-t', '--type', action='append', help=sphinxify('''
+        Print the object number of all of the Object elements of this type.
+        Multiple --type arguments may be entered.''', calledfromsphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
