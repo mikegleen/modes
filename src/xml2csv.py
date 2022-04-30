@@ -58,9 +58,7 @@ def one_document(document, parent, config: Config):
             text = keyword.text.strip()
     elif command == Cmd.MULTIPLE:
         elements = parent.findall(eltstr)
-        delimiter = config.multiple_delimiter
-        if Stmt.MULTIPLE_DELIMITER in document:
-            delimiter = document[Stmt.MULTIPLE_DELIMITER]
+        delimiter = document[Stmt.MULTIPLE_DELIMITER]
         # print(f'{elements=}')
         # for e in elements:
         #     print(f'{e.text=}')
