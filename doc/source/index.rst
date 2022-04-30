@@ -75,7 +75,8 @@ Single-command Statements
 -  **multiple_delimiter**  The character to use within a column to separate the
    values when used with the **multiple** command. The statement may
    appear under the **global** command or a specific **multiple** command,
-   which takes precedence. The default is "|".
+   which takes precedence. This statement is also used by the **items** command.
+   The default is "|".
 -  **normalize** Adjust this accession number so that it sorts in numeric
    order. The number will be de-normalized before output. The default serial
    number in the first column and the accession number extracted from the XML
@@ -110,10 +111,8 @@ Global-command Statements
 
 -  **delimiter** The character to use for the CSV file field
    separator. The default is “,”.
--  **multiple_delimiter**  The character to use within a column to separate the
-   values when used with the **multiple** command. The statement may
-   appear under the **global** command or a specific **multiple** command,
-   which takes precedence. The default is "|".
+-  **multiple_delimiter**  See the description of this command in the
+   *Single-command Statements* section.
 -  **record_tag** This is the tag (of which there are usually many)
    that will be the root for extracting columns. The default is
    ``Object``.
@@ -128,6 +127,8 @@ Global-command Statements
    This statement directs the sort to be numeric based on the first
    column of the output row. Note that accession numbers are normally normalized before
    sorting.
+-  **add_mda_code** If the serial number does not begin with the MDA code (default LDHRM)
+   then insert it as a prefix. This is used only in ``CSV2XML.py``.
 
 
 Commands
@@ -150,8 +151,12 @@ Column-generating Commands
 -  **keyword** Find the element specified by the xpath statement whose text
    equals the text in the **value** statement and then return the
    first Keyword sub-element's text.
+-  **items** Used by ``csv2xml.py`` to create ``<Item>`` elements for the multiple
+   text strings delimited by the delimiter specified by the **multiple_delimiter**
+   statement.
 -  **multiple** Like column except it produces a delimiter-separated list of
-   values. See the optional **multiple_delimiter** statement.
+   values. See the optional **multiple_delimiter** statement. This is used by
+   ``xml2csv.py`` where there are multiple occurrances of an element.
 -  **count** Displays the number of occurrences of an element under its
    parent.
 
