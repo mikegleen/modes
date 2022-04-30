@@ -38,7 +38,7 @@ def getargs():
         ''')
     args = parser.parse_args()
     if args.dryrun:
-        args.verbose = 2
+        args.verbose = max(2, args.verbose)
     return args
 
 
@@ -53,7 +53,7 @@ def getdone() -> dict[str]:
             if donefile.endswith('jpg'):
                 trace(3, f'   {donefile}')
                 # done_files.add(donefile)
-                done_files[donefile] = os.path.join(dirpath, donefile)
+                done_files[donefile] = os.path.join(dirpath, donef)
             elif not donefile.startswith('.'):  # ignore .DS_Store
                 trace(2, f'----skipping {donef}')
     return done_files
@@ -62,7 +62,6 @@ def getdone() -> dict[str]:
 def harvest(done_files: dict[str]):
     global ncandidates, ncopied
     candidatedir = _args.candidate
-    stagingdir = _args.staging
     trace(1, 'Begin harvesting {}', candidatedir)
     for candidate in os.listdir(candidatedir):
         candidatex = candidate.removeprefix('collection_').lower()
@@ -71,21 +70,20 @@ def harvest(done_files: dict[str]):
             if candidate.startswith('.'):
                 ncandidates -= 1  # don't count .DS_Store
             else:
-                trace(1, 'skipping: {}', done_files[candidatex])
+                trace(1, 'already done: {}', done_files[candidatex])
         else:
             ncopied += 1
             frompath = os.path.join(candidatedir, candidate)
-            topath = os.path.join(stagingdir, candidate)
             trace(1, 'harvesting: {}', candidate)
-            trace(2, '    from {}, to {}', frompath, topath)
+            trace(2, '    from {}, to directory {}', frompath, _args.staging)
             if not _args.dryrun:
-                shutil.copy(frompath, topath)
+                shutil.copy(frompath, _args.staging)
 
 
 calledfromsphinx = True
 if __name__ == '__main__':
     calledfromsphinx = False
-    assert sys.version_info >= (3, 6)
+    assert sys.version_info >= (3, 9)
     _args = getargs()
     verbose = _args.verbose
     ncandidates = ncopied = 0
