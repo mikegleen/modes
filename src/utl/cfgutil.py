@@ -1,5 +1,6 @@
 import codecs
 import csv
+import os
 import re
 import sys
 
@@ -10,10 +11,12 @@ import xml.etree.ElementTree as ET
 from utl.normalize import normalize_id
 
 # The difference between the 'attrib' command and the attribute statement:
-# The 'attrib' command is just like the column command except that the attribute
-# value as given in the attribute statement is extracted.
+# The 'attrib' command is just like the column command except that the value of
+# the attribute given in the attribute statement is extracted.
 # The 'attribute' statement is also used in the case of the 'ifattrib' command
 # to name the attribute to test against the 'value' statement.
+# Note that the 'ifattrib' command is redundant: You can use the 'if'
+# statement with an appropriate xpath like .[@elementtype="ephemera"].
 
 
 class Cmd:
@@ -31,6 +34,8 @@ class Cmd:
     COUNT = 'count'
     GLOBAL = 'global'
     KEYWORD = 'keyword'
+    ITEMS = 'items'
+    # "IF" commands follow:
     IF = 'if'  # if text is present
     IFELT = 'ifelt'  # if the element is present
     IFNOT = 'ifnot'  # if text is not present
@@ -48,7 +53,7 @@ class Cmd:
                        IFSERIAL, IFCONTAINS, CONSTANT)
     _NEEDXPATH_CMDS = (ATTRIB, COLUMN, KEYWORD, IF, IFNOT, COUNT, IFELT, IFEQ,
                        IFNOTEQ, IFCONTAINS, IFATTRIB, IFATTRIBEQ,
-                       IFATTRIBNOTEQ, CONSTANT)
+                       IFATTRIBNOTEQ, CONSTANT, ITEMS)
 
     @staticmethod
     def get_needxpath_cmds():
@@ -101,6 +106,7 @@ class Stmt:
     RECORD_ID_XPATH = 'record_id_xpath'
     SORT_NUMERIC = 'sort_numeric'
     DELIMITER = 'delimiter'
+    ADD_MDA_CODE = 'add_mda_code'
     _DEFAULT_RECORD_TAG = 'Object'
     _DEFAULT_RECORD_ID_XPATH = './ObjectIdentity/Number'
     #
@@ -175,6 +181,8 @@ class Config:
                     self.delimiter = document[stmt]
                 elif stmt == Stmt.MULTIPLE_DELIMITER:
                     self.multiple_delimiter = document[stmt]
+                elif stmt == Stmt.ADD_MDA_CODE:
+                    self.add_mda_code = True
                 else:
                     print(f'Unknown statement, ignored: {stmt}.')
         if Config.__instance is not None:
@@ -185,6 +193,7 @@ class Config:
         self.ctrl_docs = []  # control documents
         self.skip_number = False
         self.sort_numeric = False
+        self.add_mda_code = False
         self.record_tag = Stmt.get_default_record_tag()
         self.record_id_xpath = Stmt.get_default_record_id_xpath()
         self.delimiter = ','
@@ -209,6 +218,8 @@ class Config:
             self.norm.append(True)  # for the Serial number
         for doc in self.col_docs:
             self.norm.append(Stmt.NORMALIZE in doc)
+            if Stmt.MULTIPLE_DELIMITER not in doc:
+                doc[Stmt.MULTIPLE_DELIMITER] = self.multiple_delimiter
         self.lennorm = len(self.norm)
 
     def select(self, elem, include_list=None, exclude=False):
@@ -551,6 +562,8 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
 
     if not includes_file:
         return None
+    if os.path.splitext(includes_file)[1].lower() != 'csv':
+        raise ValueError('mapfile must be a CSV file.')
     includedict: dict = dict()
     includereader = csv.reader(codecs.open(includes_file, 'r', 'utf-8-sig'))
     for n in range(include_skip):  # default in xml2csv = 0
