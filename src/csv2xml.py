@@ -6,13 +6,16 @@ import argparse
 import codecs
 import copy
 import csv
+import os.path
 import re
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
+
 from utl.cfgutil import Config, Stmt, Cmd, new_subelt
 from utl.normalize import modesdatefrombritishdate, sphinxify, if_not_sphinx
+from utl.normalize import DEFAULT_MDA_CODE
 
 
 def trace(level, template, *args):
@@ -36,12 +39,36 @@ def next_accnum(accnum: str):
         suffix += 1
 
 
-def main():
-    global nrows
-    if not _args.noprolog:
-        outfile.write(b'<?xml version="1.0"?><Interchange>\n')
+def create_items(doc, elt, root, text):
+    """
+    :param doc: the Items document from the config
+    :param elt: the element created from the xpath
+    :param root: the object element
+    :param text: The descriptions joined by the delimiter usually "|"
+    :return: None
+    """
+    olditems = elt.findall('Item')
+    for item in olditems:
+        elt.remove(item)
+    if not text:
+        return
+    itemtexts = text.split(doc[Stmt.MULTIPLE_DELIMITER])
+    itemnumber = 0
+    for itemnumber, text in enumerate(itemtexts, start=1):
+        item = ET.SubElement(elt, 'Item')
+        listnumber = ET.SubElement(item, 'ListNumber')
+        listnumber.text = str(itemnumber)
+        description = ET.SubElement(item, 'BriefDescription')
+        description.text = text
+    numberofitems = root.find('NumberOfItems')
+    if numberofitems is None:
+        numberofitems = ET.SubElement(root, "NumberOfItems")
+    numberofitems.text = str(itemnumber)
+
+
+def get_object_from_file(templatefilepath):
+    templatefile = open(templatefilepath)
     root = ET.parse(templatefile)
-    # print('root', root)
     # Assume that the template is really an Interchange file with empty
     # elements.
     object_template = root.find('Object')
@@ -51,6 +78,26 @@ def main():
         if object_template is None:
             raise ValueError('Cannot find the Object element from root or'
                              'from ./template/Object')
+    templatefile.close()
+    return object_template
+
+
+def get_template(row: list[str]):
+    key = row[config.template_title]
+    if key not in config.templates:
+        raise ValueError(f'Template key in CSV file: {key} is not in config. {row=}')
+    templatefilepath = os.path.join(_args.template_dir, config.templates[key])
+    trace(2, 'template file: {}', templatefilepath)
+    return get_object_from_file(templatefilepath)
+
+
+def main():
+    global nrows
+    if not _args.noprolog:
+        outfile.write(b'<?xml version="1.0"?><Interchange>\n')
+    global_object_template = None
+    if _args.template:
+        global_object_template = get_object_from_file(_args.templatefile)
     reader = csv.DictReader(incsvfile)
     trace(1, 'CSV Column Headings: {}', reader.fieldnames)
     nrows = 0
@@ -58,16 +105,26 @@ def main():
     accnumgen = next_accnum(_args.acc_num)
     for row in reader:
         emit = True
-        template = copy.deepcopy(object_template)
+        if global_object_template:
+            template = copy.deepcopy(global_object_template)
+        else:
+            template = get_template(row)
         elt = template.find('./ObjectIdentity/Number')
         if _args.acc_num:
             accnum = next(accnumgen)
             trace(2, 'Serial generated: {}', accnum)
         else:
             accnum = row[_args.serial]
+            # TODO: validate the accession number; must be like 2022.12[.2]
+            if config.add_mda_code and accnum[0].isnumeric():
+                accnum = _args.mdacode + '_' + accnum
         elt.text = accnum
         for doc in config.col_docs:
-            # print(doc[Stmt.TITLE], doc[Stmt.XPATH])
+            cmd = doc[Stmt.CMD]
+            title = doc[Stmt.TITLE]
+            if cmd != Cmd.CONSTANT and not row[title]:
+                trace(3, '{}: cell empty {}', accnum, title)
+                continue
             xpath = doc[Stmt.XPATH]
             if xpath.lower() == Stmt.FILLER:
                 continue
@@ -75,18 +132,21 @@ def main():
             if elt is None:
                 elt = new_subelt(doc, template, _args.verbose)
             if elt is None:
-                trace(0, '{}: Cannot create new {}.\nCheck parent_path statement.',
+                trace(1, '{}: Cannot create new {}.\nCheck parent_path statement.',
                       accnum, doc[Stmt.XPATH])
-                sys.exit()
-            if doc[Stmt.CMD] == Cmd.CONSTANT:
+                continue
+            if cmd == Cmd.CONSTANT:
                 elt.text = doc[Stmt.VALUE]
                 continue
-            text = row[doc[Stmt.TITLE]]
+            text = row[title]
             if Stmt.REQUIRED in doc and not text:
-                print(f'*** Required column “{doc[Stmt.TITLE]}” is missing from'
+                print(f'*** Required column “{title}” is missing from'
                       f' {accnum}. Object excluded.')
                 emit = False
-            elt.text = text
+            if cmd == Cmd.ITEMS:
+                create_items(doc, elt, template, text)
+            else:
+                elt.text = text
             if Stmt.DATE in doc:
                 # Only britishdate supported now
                 try:
@@ -105,7 +165,11 @@ def getparser():
     parser = argparse.ArgumentParser(description=sphinxify('''
         Read a CSV file containing two or more columns. The first column
         is the index and the following columns are the field(s) defined by the
-        XPATH statement in the config file.
+        XPATH statement in the config file. The first row in the CSV file is
+        a heading row. The column titles must match the document titles in the
+        CSV file. Columns are referred to by name so it is permissible to omit
+        columns from the config file. Note that this contrasts with ``update_from_csv.py``
+        where the heading row may be omitted and filler columns must be included.
         
         Create an
         XML file with data from the CSV file based on a template of the
@@ -118,35 +182,45 @@ def getparser():
         if the parameter is "LDHRM.2021.2", the numbers assigned will be
         "LDHRM.2021.2", "LDHRM.2021.3", etc. This value will be stored in the
         ObjectIdentity/Number element.''')
+    parser.add_argument('-c', '--cfgfile', required=True,
+                        type=argparse.FileType('r'), help=sphinxify('''
+        The YAML file describing the column path(s) to update.
+        The config file may contain only ``column``, ``constant``, or
+        ``items`` commands.
+    ''', calledfromsphinx))
     parser.add_argument('-i', '--incsvfile', help='''
         The CSV file containing data to be inserted into the XML template.
         The CSV file must have a heading.
         The heading of the column containing the serial number must be 'Serial'
         or an alternative set by --serial parameter. Subsequent columns
         must match the corresponding title in the configuration file. ''')
-    parser.add_argument('-t', '--templatefile', help='''
-        The XML Object template.''')
+    parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
+        Specify the MDA code, used in normalizing the accession number.
+        The default is "{DEFAULT_MDA_CODE}". ''')
     parser.add_argument('-o', '--outfile', help='''
         The output XML file.''')
-    parser.add_argument('-c', '--cfgfile', required=True,
-                        type=argparse.FileType('r'), help=sphinxify('''
-        The YAML file describing the column path(s) to update.
-        The config file may contain only ``column`` or ``constant`` commands.
-    ''', calledfromsphinx))
     parser.add_argument('-p', '--noprolog', action='store_true', help='''
         Inhibit the insertion of an XML prolog at the front of the file and an
         <Interchange> element as the root. This results in an invalid XML file
         but is useful if the output is to be manually edited.''')
-    parser.add_argument('--serial', default='Serial',
-                        help=sphinxify('''
+    parser.add_argument('--serial', default='Serial', help=sphinxify('''
         The column containing the serial number must have a heading with this
-        value. This is ignored if the --acc_num parameter is specified.''' +
-                                       # Sphinx displays the default value.
-                                       if_not_sphinx('''
+        value. This is ignored if the --acc_num parameter is specified.
+        ''' + if_not_sphinx('''
         The default value is "Serial".''', calledfromsphinx),
                                        calledfromsphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument('-t', '--template', help=sphinxify('''
+        The XML file that is the template for creating the output XML.
+        Specify this or ``--template_dir`` and the corresponding ``template``
+        command and ``templates`` global statement in the configuration
+        ''', calledfromsphinx))
+    group.add_argument('--template_dir', help=sphinxify('''
+        The directory containing XML Object templates defined by the
+        ``templates`` global configuration statement. Specify this or
+        ``--template``.''', calledfromsphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -167,7 +241,7 @@ def check_cfg(c):
     """
     errs = 0
     for doc in c.col_docs:
-        if doc[Stmt.CMD] not in (Cmd.COLUMN, Cmd.CONSTANT):
+        if doc[Stmt.CMD] not in (Cmd.COLUMN, Cmd.CONSTANT, Cmd.ITEMS):
             print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting')
             errs += 1
     for doc in c.ctrl_docs:
@@ -181,10 +255,9 @@ calledfromsphinx = True
 
 if __name__ == '__main__':
     global nrows
-    assert sys.version_info >= (3, 6)
+    assert sys.version_info >= (3, 9)
     calledfromsphinx = False
     _args = getargs(sys.argv)
-    templatefile = open(_args.templatefile)
     incsvfile = codecs.open(_args.incsvfile, 'r', encoding='utf-8-sig')
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Input file: {}', _args.incsvfile)
