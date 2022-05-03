@@ -6,6 +6,7 @@
 import argparse
 import os.path
 import sys
+import time
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
@@ -36,6 +37,7 @@ def onefile(infile):
 
 
 def main():
+    t1 = time.perf_counter()
     declaration = f'<?xml version="1.0" encoding="{_args.encoding}"?>\n'
     outfile.write(bytes(declaration, encoding=_args.encoding))
     outfile.write(b'<Interchange>\n')
@@ -47,7 +49,8 @@ def main():
     outfile.write(b'</Interchange>')
     print(f'{count1} objects from file 1')
     print(f'{count2} objects from file 2')
-    print(f'{count1 + count2} objects written')
+    elapsed = time.perf_counter() - t1
+    print(f'{count1 + count2} objects written in {elapsed:.3f} seconds.')
 
 
 def getargs():
