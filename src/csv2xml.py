@@ -86,7 +86,7 @@ def get_template(row: list[str]):
     key = row[config.template_title]
     if key not in config.templates:
         raise ValueError(f'Template key in CSV file: {key} is not in config. {row=}')
-    templatefilepath = os.path.join(_args.template_dir, config.templates[key])
+    templatefilepath = os.path.join(config.template_dir, config.templates[key])
     trace(2, 'template file: {}', templatefilepath)
     return get_object_from_file(templatefilepath)
 
@@ -214,13 +214,9 @@ def getparser():
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-t', '--template', help=sphinxify('''
         The XML file that is the template for creating the output XML.
-        Specify this or ``--template_dir`` and the corresponding ``template``
-        command and ``templates`` global statement in the configuration
+        Specify this or global statements in the configuration ``template_dir`,
+        ``template_title``, and ``templates``.
         ''', calledfromsphinx))
-    group.add_argument('--template_dir', help=sphinxify('''
-        The directory containing XML Object templates defined by the
-        ``templates`` global configuration statement. Specify this or
-        ``--template``.''', calledfromsphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')

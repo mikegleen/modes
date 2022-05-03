@@ -108,6 +108,7 @@ class Stmt:
     SORT_NUMERIC = 'sort_numeric'
     DELIMITER = 'delimiter'
     ADD_MDA_CODE = 'add_mda_code'
+    TEMPLATE_DIR = 'template_dir'
     TEMPLATE_TITLE = 'template_title'
     TEMPLATES = 'templates'
     _DEFAULT_RECORD_TAG = 'Object'
@@ -186,12 +187,21 @@ class Config:
                     self.multiple_delimiter = document[stmt]
                 elif stmt == Stmt.ADD_MDA_CODE:
                     self.add_mda_code = True
+                elif stmt == Stmt.TEMPLATE_DIR:
+                    self.template_dir = document[stmt]
                 elif stmt == Stmt.TEMPLATE_TITLE:
                     self.template_title = document[stmt]
                 elif stmt == Stmt.TEMPLATES:
                     self.templates = yaml.safe_load(document[stmt])
                 else:
                     print(f'Unknown statement, ignored: {stmt}.')
+            if self.templates or self.template_title or self.template_dir:
+                if not (self.templates and self.template_title and
+                        self.template_dir):
+                    raise ValueError('All of the global statements '
+                                     'templates, template_title, and '
+                                     'template_dir must be specified if one '
+                                     'is.')
         if Config.__instance is not None:
             raise ValueError("This class is a singleton!")
         Config.__instance = self
@@ -203,6 +213,7 @@ class Config:
         self.add_mda_code = False
         self.templates = None
         self.template_title = None
+        self.template_dir = None
         self.record_tag = Stmt.get_default_record_tag()
         self.record_id_xpath = Stmt.get_default_record_id_xpath()
         self.delimiter = ','

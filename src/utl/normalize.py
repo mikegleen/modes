@@ -303,7 +303,9 @@ def sphinxify(txt: str, calledfromsphinx: bool) -> str:
     """ Sphinx displays '--' as '—' so partially work around that. """
     if not calledfromsphinx:
         return txt
+    # print(f'before:{txt}')
     txt = re.sub(r'(--\w+)', r'``\1``', txt)
+    # print(f'after:{txt}')
     return txt
 
 

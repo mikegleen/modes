@@ -1,0 +1,72 @@
+cmd: global
+add_mda_code:
+template_title: Template
+template_dir: /Users/mlg/pyprj/hrm/modes/etc/templates/normal
+templates:
+  books_o: 2021-07-14_books_organisation.xml
+  original_artwork_o: 2021-07-13_Original_Artwork_organisation.xml
+  ephemera: 2020-05-02_ephemera_template.xml
+  books: 2018-05-06_books.xml
+  original_artwork: 2021-06-27_Original_Artwork.xml
+  decorative_art: 2022-05-02_decorative_art_template.xml
+---
+cmd: column
+xpath: ./Identification/Title
+---
+cmd: column
+xpath: ./Acquisition/Date
+title: Date acquired
+---
+cmd: column
+xpath: ./Acquisition/Person/PersonName
+title: Acquired from
+---
+cmd: column
+xpath: ./Acquisition/Method
+title: Acquisition method
+---
+cmd: column
+xpath: ./Identification/BriefDescription
+title: Description
+---
+cmd: items
+xpath: ./Content
+parent_path: .
+title: Items
+element: Content
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="normal location"]/Location
+title: 'Normal Location'
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
+title: 'Current Location'
+---
+cmd: constant
+xpath: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
+title: 'Date Begin'
+value: "3.8.2021"
+---
+cmd: constant
+xpath: ./Production/Person/Role
+value: artist
+---
+cmd: column
+xpath: ./Production/Person/PersonName
+title: artist
+---
+cmd: column
+xpath: ./Production/Date/DateBegin
+parent_path: ./Production/Date
+title: production_date
+element: DateBegin
+---
+cmd: column
+xpath: ./Identification/ObjectName[@elementtype="simple name"]/Keyword
+title: simple_name
+---
+cmd: column
+xpath: ./Identification/ObjectName[@elementtype="other name"]/Keyword
+title: other_name
+---

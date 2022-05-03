@@ -46,10 +46,10 @@ selected for processing.
 The configuration consists of a YAML file broken into multiple
 documents, separated by lines containing ``---`` in the left three columns.
 Each document roughly corresponds to a column in the associated CSV file.
-Each document contains some of the following statements. Statements are
+Each document contains some of the following statements. Statement names are
 case sensitive; all must be lower case. The lead statement in a document
 is the **cmd** statement, which controls the function of the document.
-Commands can be column-generating or control statements.
+Commands can be column-related or control statements.
 
 By default, the first column in the CSV file is the serial number (accession
 number) of the object affected. On output, this can be suppressed using the
@@ -58,8 +58,12 @@ number) of the object affected. On output, this can be suppressed using the
 Statements
 ~~~~~~~~~~
 
-Single-command Statements
-+++++++++++++++++++++++++
+Single-document Statements
+++++++++++++++++++++++++++
+
+These are statements that affect a single column-related or control document. The
+other class of statements are those that affect the entire process and are under
+the ``cmd: global`` document.
 
 -  **attribute** Required by the **attrib** and **ifattrib** commands.
 -  **casesensitive** By default, comparisons are case insensitive.
@@ -76,11 +80,11 @@ Single-command Statements
    values when used with the **multiple** command. The statement may
    appear under the **global** command or a specific **multiple** command,
    which takes precedence. This statement is also used by the **items** command.
-   The default is "|".
+   The default is “|”.
 -  **normalize** Adjust this accession number so that it sorts in numeric
    order. The number will be de-normalized before output. The default serial
    number in the first column and the accession number extracted from the XML
-   file will be normalized before use.
+   file will always be normalized before use.
 -  **parent_path** Include this statement if the **xpath** may not
    exist, in which case a new one will be created as a child of this path.
    Implemented in ``csv2xml.py`` and ``update_from_csv.py`` only. The element
@@ -129,18 +133,32 @@ Global-command Statements
    sorting.
 -  **add_mda_code** If the serial number does not begin with the MDA code (default LDHRM)
    then insert it as a prefix. This is used only in ``CSV2XML.py``.
+-  **template_title** Only in ``csv2xml.py``: Defines a column containing a key that
+   matches one of the keys in the
+   global **templates** statement. For each row in the CSV file, this specifies which
+   template should be used to create the XML Object element. The default title of the
+   column in the CSV file is ``template``.
+-  **templates** Only in ``CSV2XML.py``: This is a complex statement used to map a key
+   to a filename. The folder holding all of these files is named as a program parameter,
+   ``--template_dir``. The format of the statement is::
 
+      templates:
+         key1: filename1.xml
+         key2: filename2.xml
+
+   The keys should be given as a column in the CSV file specified by ``--incsvfile``.
+   See command ``template``. Note that the indentation of the "key" rows is mandatory.
 
 Commands
 ~~~~~~~~
 
 Each document has one **cmd** statement, which is customarily the first
-statement in the document. Column-generating commands are those that map
+statement in the document. Column-related commands are those that map
 the elements in the XML document to a corresponding column in the associated CSV file
 (but see the **constant** command for an exception).
 
-Column-generating Commands
-++++++++++++++++++++++++++
+Column-related Commands
++++++++++++++++++++++++
 
 -  **attrib** Like **column** except displays the value of the attribute
    named in the **attribute** statement.
@@ -156,7 +174,7 @@ Column-generating Commands
    statement.
 -  **multiple** Like column except it produces a delimiter-separated list of
    values. See the optional **multiple_delimiter** statement. This is used by
-   ``xml2csv.py`` where there are multiple occurrances of an element.
+   ``xml2csv.py``.
 -  **count** Displays the number of occurrences of an element under its
    parent.
 
