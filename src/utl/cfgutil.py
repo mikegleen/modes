@@ -1,5 +1,6 @@
 import codecs
 import csv
+from datetime import date
 import os
 import re
 import sys
@@ -8,7 +9,7 @@ import yaml
 
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from utl.normalize import normalize_id
+from utl.normalize import normalize_id, modesdate
 
 # The difference between the 'attrib' command and the attribute statement:
 # The 'attrib' command is just like the column command except that the value of
@@ -107,6 +108,8 @@ class Stmt:
     SORT_NUMERIC = 'sort_numeric'
     DELIMITER = 'delimiter'
     ADD_MDA_CODE = 'add_mda_code'
+    TEMPLATE_TITLE = 'template_title'
+    TEMPLATES = 'templates'
     _DEFAULT_RECORD_TAG = 'Object'
     _DEFAULT_RECORD_ID_XPATH = './ObjectIdentity/Number'
     #
@@ -183,6 +186,10 @@ class Config:
                     self.multiple_delimiter = document[stmt]
                 elif stmt == Stmt.ADD_MDA_CODE:
                     self.add_mda_code = True
+                elif stmt == Stmt.TEMPLATE_TITLE:
+                    self.template_title = document[stmt]
+                elif stmt == Stmt.TEMPLATES:
+                    self.templates = yaml.safe_load(document[stmt])
                 else:
                     print(f'Unknown statement, ignored: {stmt}.')
         if Config.__instance is not None:
@@ -194,6 +201,8 @@ class Config:
         self.skip_number = False
         self.sort_numeric = False
         self.add_mda_code = False
+        self.templates = None
+        self.template_title = None
         self.record_tag = Stmt.get_default_record_tag()
         self.record_id_xpath = Stmt.get_default_record_id_xpath()
         self.delimiter = ','
@@ -590,3 +599,13 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
         for idnum in idnumlist:
             includedict[idnum] = row
     return includedict
+
+
+def expand_value(text):
+    match text.lower():
+        case '{{clear}}':
+            return ''
+        case '{{today}}':
+            return modesdate(date.today())
+        case _:
+            return text
