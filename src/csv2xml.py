@@ -67,22 +67,26 @@ def create_items(doc, elt, root, text):
 
 
 def get_object_from_file(templatefilepath):
-    templatefile = open(templatefilepath)
-    root = ET.parse(templatefile)
-    # Assume that the template is really an Interchange file with empty
-    # elements.
-    object_template = root.find('Object')
-    if object_template is None:
-        # Ok, so maybe it really is a template
-        object_template = root.find('./template/Object')
+    """
+    :param templatefilepath: The path from the --template parameter or the csv
+                             file
+    :return: the Object element
+    """
+    with open(templatefilepath) as templatefile:
+        root = ET.parse(templatefile)
+        # Assume that the template is actually an Interchange file with empty
+        # elements.
+        object_template = root.find('Object')
         if object_template is None:
-            raise ValueError('Cannot find the Object element from root or'
-                             'from ./template/Object')
-    templatefile.close()
+            # Ok, so maybe it really is a template
+            object_template = root.find('./template/Object')
+            if object_template is None:
+                raise ValueError('Cannot find the Object element from root or'
+                                 'from ./template/Object')
     return object_template
 
 
-def get_template(row: list[str]):
+def get_template_from_csv(row: list[str]):
     key = row[config.template_title]
     if key not in config.templates:
         raise ValueError(f'Template key in CSV file: {key} is not in config. {row=}')
@@ -108,7 +112,7 @@ def main():
         if global_object_template:
             template = copy.deepcopy(global_object_template)
         else:
-            template = get_template(row)
+            template = get_template_from_csv(row)
         elt = template.find('./ObjectIdentity/Number')
         if _args.acc_num:
             accnum = next(accnumgen)
