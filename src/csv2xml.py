@@ -117,7 +117,7 @@ def main():
             accnum = row[_args.serial]
             # TODO: validate the accession number; must be like 2022.12[.2]
             if config.add_mda_code and accnum[0].isnumeric():
-                accnum = _args.mdacode + '_' + accnum
+                accnum = _args.mdacode + '.' + accnum
         elt.text = accnum
         for doc in config.col_docs:
             cmd = doc[Stmt.CMD]
@@ -211,8 +211,7 @@ def getparser():
                                        calledfromsphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-t', '--template', help=sphinxify('''
+    parser.add_argument('-t', '--template', help=sphinxify('''
         The XML file that is the template for creating the output XML.
         Specify this or global statements in the configuration ``template_dir`,
         ``template_title``, and ``templates``.

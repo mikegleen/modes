@@ -34,6 +34,7 @@ import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Config, Stmt, Cmd, new_subelt
 from utl.normalize import normalize_id, sphinxify, denormalize_id
+from utl.normalize import if_not_sphinx
 
 
 def trace(level, template, *args):
@@ -42,53 +43,20 @@ def trace(level, template, *args):
 
 
 def loadnewvals(allow_blanks=False):
-    """
-    Read the CSV file containing objectid -> new element values
-    :param allow_blanks: if True, rows with a blank accession number are
-            skipped. Otherwise a ValueError exception is raised.
-    :return: the dictionary containing the mappings where the key is the
-             objectid and the value is a list of the remaining columns
-    """
     newval_dict = {}
     with codecs.open(_args.mapfile, 'r', 'utf-8-sig') as mapfile:
-        reader = csv.reader(mapfile)
-        skiprows = _args.skip_rows
-        for n in range(skiprows):  # default = 0
-            skipped = next(reader)  # skip header
-            if _args.verbose >= 1:
-                print(f'Skipping row in map file: {skipped}')
-        if _args.heading:
-            # Check that the first row in the CSV file contains the same
-            # column headings as in the title statements of the YAML file.
-            row = next(reader)
-            row = [r.strip() for r in row]
-            irow = iter(row)
-            next(irow)  # skip Serial column
-            for doc in cfg.col_docs:
-                col = next(irow)
-                title = doc[Stmt.TITLE]
-                if col.lower() != title.lower():
-                    print(f'Mismatch on heading: "{title}" in config !='
-                          f' "{col}" in CSV file')
-                    sys.exit(1)
-
+        reader = csv.DictReader(mapfile)
         for row in reader:
-            row = [r.strip() for r in row]
-            idnum = row[0]
-            if not idnum:
+            accnum = row[_args.serial]
+            if not accnum:
                 if allow_blanks:
                     trace(2, 'Row with blank accession number skipped: {}', row)
                     continue  # skip blank accession numbers
                 else:
                     raise ValueError('Blank accession number in include file;'
                                      ' --allow_blank not selected.')
-            # Strip off the accession number in the first column so that the
-            # list matches the columns in the config file. Note that this
-            # depends on the accession number being in the first column.
-
-            newval_dict[normalize_id(idnum)] = row[1:]
+            newval_dict[normalize_id(accnum)] = row
     return newval_dict
-
 
 def one_element(elem, idnum):
     """
@@ -103,7 +71,6 @@ def one_element(elem, idnum):
     """
     global nupdated, nunchanged, nequal
     updated = False
-    inewtexts = iter(newvals[idnum])  # we've already checked that it's there
     for doc in cfg.col_docs:
         command = doc[Stmt.CMD]
         xpath = doc[Stmt.XPATH]
@@ -111,13 +78,9 @@ def one_element(elem, idnum):
         if command == Cmd.CONSTANT:
             newtext = doc[Stmt.VALUE]
         else:  # command is COLUMN
-            try:
-                newtext = next(inewtexts)
-            except StopIteration:
-                newtext = ""
-                trace(2, '{}: short line in CSV file', idnum)
             if xpath.lower() == Stmt.FILLER:
                 continue
+            newtext = newvals[idnum][doc[Stmt.TITLE]]
         if not newtext and not _args.empty:
             trace(3, '{}: empty field in CSV ignored. --empty not specified',
                   idnum)
@@ -181,10 +144,7 @@ def getparser():
         Read a CSV file containing two or more column_paths. The first column
         is the index and the following columns are the field(s) defined by the
         XPATH statement in the YAML configuration file. Update the
-        XML file with data from the CSV file.
-        If a row in the CSV file has fewer columns than the number of
-        columns specified in the YAML file, replace the text with an empty
-        string.''')
+        XML file with data from the CSV file. ''')
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
     parser.add_argument('outfile', help='''
@@ -193,8 +153,7 @@ def getparser():
         Write all objects. The default is to only write updated objects.''')
     parser.add_argument('--allow_blanks', action='store_true', help='''
         Skip rows in the include CSV file with blank accession numbers. If not
-        set, this will cause an abort.
-        ''')
+        set, this will cause an abort. ''')
     parser.add_argument('-c', '--cfgfile', required=True,
                         type=argparse.FileType('r'), help='''
         The YAML file describing the column path(s) to update''')
@@ -207,10 +166,6 @@ def getparser():
     parser.add_argument('--missing', action='store_true', help='''
         By default, ignore indices missing from the CSV file. If selected,
         trace the missing index.''')
-    parser.add_argument('--heading', action='store_true', help='''
-        The first row of the map file contains a heading which must match the
-        value of the title statement in the corresponding column document
-        (case insensitive).''')
     parser.add_argument('-m', '--mapfile', required=True, help=sphinxify('''
         The CSV file mapping the object number to the new element value(s). The
         first column must contain the object number and subsequent columns
@@ -224,6 +179,12 @@ def getparser():
         contains the special value ``{{clear}}``. See also --empty. If
         --replace is not set a warning will be issued if the existing value
         is not blank.''')
+    parser.add_argument('--serial', default='Serial', help=sphinxify('''
+        The column containing the serial number must have a heading with this
+        value. This is ignored if the --acc_num parameter is specified.
+        ''' + if_not_sphinx('''
+        The default value is "Serial".''', called_from_sphinx),
+                                                         called_from_sphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('--skip_rows', type=int, default=0, help='''
@@ -239,7 +200,7 @@ def getargs(argv):
     args = parser.parse_args(args=argv[1:])
     if args.empty:
         args.replace = True
-    if os.path.splitext(args.mapfile)[1].lower() != 'csv':
+    if os.path.splitext(args.mapfile)[1].lower() != '.csv':
         raise ValueError('mapfile must be a CSV file.')
     return args
 
@@ -261,8 +222,6 @@ def sq(val):
 
 
 called_from_sphinx = True
-
-
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     called_from_sphinx = False
