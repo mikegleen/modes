@@ -58,6 +58,7 @@ def loadnewvals(allow_blanks=False):
             newval_dict[normalize_id(accnum)] = row
     return newval_dict
 
+
 def one_element(elem, idnum):
     """
     Update the fields specified by "column" configuration documents.
