@@ -256,7 +256,7 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
     return objid
 
 
-def denormalize_id(objid, mdacode=DEFAULT_MDA_CODE):
+def denormalize_id(objid: str, mdacode=DEFAULT_MDA_CODE):
     """
     :param objid: A normalized accession number
     :param mdacode: Usually LDHRM
