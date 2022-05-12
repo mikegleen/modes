@@ -23,7 +23,7 @@ Modes Python Library
 
 
 Indices and tables
-==================
+------------------
 
 * :ref:`genindex`
 * :ref:`modindex`
@@ -57,6 +57,11 @@ number) of the object affected. On output, this can be suppressed using the
 
 Statements
 ~~~~~~~~~~
+
+Introduction
+++++++++++++
+
+Statements can apply to a single document or globally to the whole configuration.
 
 Single-document Statements
 ++++++++++++++++++++++++++
@@ -110,8 +115,11 @@ the ``cmd: global`` document.
    to the XML file by ``csv2xml.py`` and ``update_from_csv.py``. This is useful if the CSV file
    has columns that you need to skip.
 
+
 Global-command Statements
 +++++++++++++++++++++++++
+
+These statements are in the document whose ``cmd`` statement is ``global``.
 
 -  **delimiter** The character to use for the CSV file field
    separator. The default is “,”.
@@ -133,21 +141,24 @@ Global-command Statements
    sorting.
 -  **add_mda_code** If the serial number does not begin with the MDA code (default LDHRM)
    then insert it as a prefix. This is used only in ``CSV2XML.py``.
--  **template_title** Only in ``csv2xml.py``: Defines a column containing a key that
+-  **template_title** Only in ``csv2xml.py``: Defines a CSV column containing a key that
    matches one of the keys in the
    global **templates** statement. For each row in the CSV file, this specifies which
    template should be used to create the XML Object element. The default title of the
-   column in the CSV file is ``template``.
+   column in the CSV file is ``template``. Note that this is case-sensitive.
+-  **template_dir** Only in ``csv2xml.py``: This names the path to the directory
+   containing the files named in the ``templates`` statement.
 -  **templates** Only in ``CSV2XML.py``: This is a complex statement used to map a key
-   to a filename. The folder holding all of these files is named as a program parameter,
-   ``--template_dir``. The format of the statement is::
+   to a filename. The format of the statement is::
 
       templates:
          key1: filename1.xml
          key2: filename2.xml
 
-   The keys should be given as a column in the CSV file specified by ``--incsvfile``.
-   See command ``template``. Note that the indentation of the "key" rows is mandatory.
+   The keys should be entered in a column specified by ``template_title`` in the CSV file
+   specified by ``--incsvfile``.
+   See commands ``template_title`` and ``template_dir``. Note that the indentation of the
+   "key" rows is mandatory.
 
 Commands
 ~~~~~~~~
@@ -172,9 +183,8 @@ Column-related Commands
 -  **items** Used by ``csv2xml.py`` to create ``<Item>`` elements for the multiple
    text strings delimited by the delimiter specified by the **multiple_delimiter**
    statement.
--  **multiple** Like column except it produces a delimiter-separated list of
-   values. See the optional **multiple_delimiter** statement. This is used by
-   ``xml2csv.py``.
+-  **multiple** Used by ``xml2csv.py``. Like the **column** command except it produces a
+   delimiter-separated list of values. See the optional **multiple_delimiter** statement.
 -  **count** Displays the number of occurrences of an element under its
    parent.
 
@@ -188,7 +198,8 @@ processed in succession and have an **and** relationship, meaning that all of
 the tests must succeed for a record to be selected.
 
 -  **global** This document contains statements that affect the
-   overall output, not just a specific column.
+   overall output, not just a specific column. See the section above *Global-command
+   Statements*.
 -  **if** Control command that selects an object to display if the
    element text is populated.
 -  **ifnot** Control command that selects an object to display if the
