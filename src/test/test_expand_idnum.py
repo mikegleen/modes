@@ -92,6 +92,10 @@ class TestExpandIDnum(unittest.TestCase):
     def test_20(self):
         self.assertRaises(ValueError, expand_idnum, 'SH109-08')
 
+    def test_21(self):
+        idnums = expand_idnum('SH104/5')
+        self.assertEqual(idnums, ['SH104', 'SH105'])
+
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
