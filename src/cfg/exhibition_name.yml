@@ -1,3 +1,7 @@
 cmd: ifcontains
 xpath: ./Exhibition/ExhibitionName
 value: "Children"
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype='normal location']/Location
+title: Normal Location
