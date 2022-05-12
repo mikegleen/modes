@@ -15,12 +15,26 @@ import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Config, Stmt, Cmd, new_subelt
 from utl.normalize import modesdatefrombritishdate, sphinxify, if_not_sphinx
-from utl.normalize import DEFAULT_MDA_CODE
+from utl.normalize import DEFAULT_MDA_CODE, normalize_id, denormalize_id
 
 
 def trace(level, template, *args):
     if _args.verbose >= level:
         print(template.format(*args))
+
+
+def clean_accnum(accnum: str):
+    """
+
+    :param accnum: input alleged accession number. Remove any leading zeroes
+                   and convert back to denormalized form fit for insertion into
+                   the XML file
+    :return:       denormalized accession number
+                   Raises ValueError or AssertionError if the accession number
+                   is invalid.
+    """
+    naccnum = normalize_id(accnum)
+    return denormalize_id(naccnum)
 
 
 def next_accnum(accnum: str):
@@ -76,17 +90,17 @@ def get_object_from_file(templatefilepath):
         root = ET.parse(templatefile)
         # Assume that the template is actually an Interchange file with empty
         # elements.
-        object_template = root.find('Object')
+        object_template = root.find(config.record_tag)
         if object_template is None:
             # Ok, so maybe it really is a template
-            object_template = root.find('./template/Object')
+            object_template = root.find(f'./template/{config.record_tag}')
             if object_template is None:
-                raise ValueError('Cannot find the Object element from root or'
-                                 'from ./template/Object')
+                raise ValueError(f'Cannot find the {config.record_tag} element'
+                                 f' from root or from ./template')
     return object_template
 
 
-def get_template_from_csv(row: list[str]):
+def get_template_from_csv(row: dict[str]):
     key = row[config.template_title]
     if key not in config.templates:
         raise ValueError(f'Template key in CSV file: {key} is not in config. {row=}')
@@ -113,15 +127,15 @@ def main():
             template = copy.deepcopy(global_object_template)
         else:
             template = get_template_from_csv(row)
-        elt = template.find('./ObjectIdentity/Number')
+        elt = template.find(config.record_id_xpath)
         if _args.acc_num:
             accnum = next(accnumgen)
             trace(2, 'Serial generated: {}', accnum)
         else:
             accnum = row[_args.serial]
-            # TODO: validate the accession number; must be like 2022.12[.2]
             if config.add_mda_code and accnum[0].isnumeric():
                 accnum = _args.mdacode + '.' + accnum
+        accnum = clean_accnum(accnum)
         elt.text = accnum
         for doc in config.col_docs:
             cmd = doc[Stmt.CMD]
