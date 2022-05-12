@@ -501,7 +501,7 @@ def expand_one_idnum(idstr: str) -> list[str]:
     indicated by a hyphen or ampersand anywhere in the string, the format of
     the number is:
         idstr ::= rangestr | liststr
-        rangestr ::= prefix-suffix
+        rangestr ::= prefix-suffix | prefix/suffix
         liststr ::=  prefix&suffix | liststr&suffix
         prefix ::= text<n digits>
         suffix ::= <n digits>
@@ -525,8 +525,8 @@ def expand_one_idnum(idstr: str) -> list[str]:
 
     jlist = []
     idstr = ''.join(idstr.split())  # remove all whitespace
-    if '-' in idstr:  # if ID is actually a range like JB021-23
-        if m := re.match(r'(.+?)(\d+)-(\d+)$', idstr):
+    if '-' in idstr or '/' in idstr:  # if ID is actually a range like JB021-23
+        if m := re.match(r'(.+?)(\d+)[-/](\d+)$', idstr):
             prefix, num1, num2, lenvariablepart = _splitid(idstr, m)
             try:
                 for suffix in range(num1, num2 + 1):
@@ -575,15 +575,16 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
                       logfile=sys.stdout, allow_blanks=False):
     """
     Read the optional CSV file from the --include argument. Build a dict
-    of accession IDs in upper case for use by cfgutil.select. The value
-    of the dict is the row from the CSV file.
+    of normalized accession IDs for use by cfgutil.select. The value
+    of the dict is the row from the CSV file. Function expand_num is called
+    so one row in the CSV file may result in multiple entries in the dict.
     :return: a dict or None if --include was not specified
     """
 
     if not includes_file:
         return None
-    if os.path.splitext(includes_file)[1].lower() != 'csv':
-        raise ValueError('mapfile must be a CSV file.')
+    if os.path.splitext(includes_file)[1].lower() != '.csv':
+        raise ValueError('--include file must be a CSV file.')
     includedict: dict = dict()
     includereader = csv.reader(codecs.open(includes_file, 'r', 'utf-8-sig'))
     for n in range(include_skip):  # default in xml2csv = 0
@@ -596,6 +597,9 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
         idnum = row[include_column].upper()  # cfgutil.select needs uppercase
         if not idnum:
             if allow_blanks:
+                if verbos >= 1 and ''.join(row):
+                    print(f'Skipping row with blank ID: {row}',
+                          file=logfile)
                 continue  # skip blank accession numbers
             else:
                 raise ValueError('Blank accession number in include file;'
