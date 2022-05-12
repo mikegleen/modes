@@ -25,9 +25,14 @@ def main():
     document = Document(infile)  # Read in file
     tables = document.tables  # Get the table set in the file
     data = []
+    # Note that if a parameter is not specified, the default is None.
     index_column = _args.index_column
     index_row = _args.index_row
-    index = _args.index_start
+    index = _args.index_start - 1
+    prepend_index = index_column == -1
+    upcol = _args.upper
+    if upcol and prepend_index:
+        upcol += 1
     for table in tables:
         trace(2, 'Processing table {}', tablenumber)
         tablenumber += 1
@@ -36,9 +41,16 @@ def main():
             continue
         for i, docrow in enumerate(table.rows):  # read each row
             row: list = []
-            ncell = 0
+            if prepend_index and i >= index_row:
+                index += 1
+                row.append(str(index))
+            data_in_row = False
             for j, cell in enumerate(docrow.cells):  # read all cells in a row
-                c = cell.text
+                c = cell.text.strip()
+                if c:
+                    data_in_row = True
+                    if not _args.include_lf:
+                        c = ' '.join(c.split())  # remove line feeds
                 if j == index_column and i >= index_row:
                     c = str(index)
                     index += 1
@@ -48,12 +60,14 @@ def main():
                 if len(row) > excol and row[excol] == _args.exclude:
                     continue
             if not _args.inhibit_upper and len(row):
-                row[0] = row[0].strip().upper()
-            upcol = _args.upper
+                uc = 1 if prepend_index else 0
+                row[uc] = row[uc].strip().upper()
             if upcol and len(row) > upcol:
                 row[upcol] = row[upcol].strip().upper()
-
-            data.append(row)
+            if data_in_row or _args.include_blank:
+                data.append(row)
+            else:
+                index -= 1
     data_write_csv(data)
 
 
@@ -66,18 +80,33 @@ def getparser():
     parser.add_argument('outfile', help='''
         The output CSV file.''')
     parser.add_argument('-b', '--bom', action='store_true', help='''
-        Select this option to insert a BOM at the front of the output CSV file.
+        Insert a BOM at the front of the output CSV file.
         Use this option when the CSV file is to be imported into Excel so that
         the proper character set (UTF-8) is used.
         ''')
+    parser.add_argument('-x', '--exclude', help=sphinxify('''
+        Exclude rows where this text appears in the column specified by the
+        --exclude_column argument.
+        ''', called_from_sphinx))
     parser.add_argument('--exclude_column', type=int, default=0,
                         help=sphinxify('''
         Specify the column to check for row exclusion. The default is
         column 0. This argument is ignored if --exclude is not specified.
         ''', called_from_sphinx))
+    parser.add_argument('--include_blank', action='store_true', default=0,
+                        help=sphinxify('''
+        Normally completely blank rows will be excluded. If specified, they
+        will be included.
+        ''', called_from_sphinx))
+    parser.add_argument('--include_lf', action='store_true', default=0,
+                        help=sphinxify('''
+        Normally line feeds will be converted to spaces. If specified, this is
+        not done.
+        ''', called_from_sphinx))
     parser.add_argument('-i', '--index_column', type=int, help=sphinxify('''
         Specify a column to generate an index in. This will overwrite whatever
-        is in that column
+        is in that column. If you specify -1, a column will be prepended to the
+        existing row.
         ''', called_from_sphinx))
     parser.add_argument('-r', '--index_row', type=int, default=0,
                         help=sphinxify('''
@@ -89,7 +118,8 @@ def getparser():
                         help=sphinxify('''
         The first number to insert into the index column. This is
         ignored unless --index_column is specified. The default is one which
-        is incremented for each row.
+        is incremented for each row. In other words, row zero, the first row,
+        will be given number one, and so on.
         ''', called_from_sphinx))
     parser.add_argument('-t', '--table', type=int, default=0, help='''
         Select a single table to process. The default is to process all tables.
@@ -103,14 +133,11 @@ def getparser():
                         help='''
                         Convert the zero-based column to upper case. This is
                         in addition to column zero unless -u is specified.
+                        Column zero is the first column in the input row.
         ''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
-    parser.add_argument('-x', '--exclude', help=sphinxify('''
-        Exclude rows where this text appears in the column specified by the
-        --exclude_column argument.
-        ''', called_from_sphinx))
     return parser
 
 
