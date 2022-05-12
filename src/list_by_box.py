@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-    Create a CSV file with the object location as the first field.
+    Create a report of box contents.
     Parameters:
-        1. Input XML file
+        1. Input XML file or CSV file.
+           XML: This is a Modes database
+           CSV: Heading is required. The first column is the serial number
+                and the second column is the location. Typically this was
+                produced by filtering the database by some prior criterion.
         2. Optional output CSV file. If omitted, output is to STDOUT.
 """
 from collections import defaultdict
@@ -56,22 +60,40 @@ def one_object(elt):
     titledict[nnum] = title
 
 
-def main():
+def handle_csv():
+    reader = csv.reader(infile)
+    header = next(reader)
+    print('CSV file header:', header)
+    for row in reader:
+        loc = pad_loc(row[1])
+        nnum = normalize_id(row[0])
+        boxdict[loc].append(nnum)
+
+
+def handle_xml():
     for event, obj in ET.iterparse(infile):
         if obj.tag == 'Object':
             one_object(obj)
             obj.clear()
+
+
+def main():
+    if infile.name.lower().endswith('.csv'):
+        handle_csv()
+    else:
+        handle_xml()
     for box in sorted(boxdict.keys()):
         writer.writerow([''])
         writer.writerow([''])
         writer.writerow([f'Box {unpad_loc(box)}'])
         writer.writerow(['--------------'])
         for nnum in sorted(boxdict[box]):
-            writer.writerow([denormalize_id(nnum), titledict[nnum]])
+            writer.writerow([denormalize_id(nnum),
+                             titledict[nnum] if nnum in titledict else ''])
 
 
 if __name__ == '__main__':
-    assert sys.version_info >= (3, 6)
+    assert sys.version_info >= (3, 9)
     infile = open(sys.argv[1])
     # outfile = codecs.open(sys.argv[2], 'w', 'utf-8-sig')
     if len(sys.argv) < 3:
