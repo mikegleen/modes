@@ -440,7 +440,6 @@ def add_arguments(parser, command):
     if is_update or is_select:
         parser.add_argument('-o', '--outfile', required=True, help='''
             The output XML file.''')
-    if is_update or is_select:
         parser.add_argument('-a', '--all', action='store_true', help='''
         Write all objects and, if -w is selected, issue a warning if an object
         is not in the detail CSV file. The default is to only write updated
