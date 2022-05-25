@@ -41,13 +41,15 @@ def loadcsv():
     :return: the dictionary containing the mappings
     """
     rownum = 0
-    location_dict = {}
+    location_dict, reason_dict = {}, {}
     if _args.subp == 'validate':
-        return location_dict
+        return location_dict, reason_dict
     loc_arg = _args.location
     need_heading = bool(_args.heading)
     with codecs.open(_args.mapfile, 'r', 'utf-8-sig') as mapfile:
         reader = csv.reader(mapfile)
+        for n in range(_args.skiprows):
+            next(reader)
         for row in reader:
             rownum += 1
             trace(3, 'row: {}', row)
@@ -62,10 +64,18 @@ def loadcsv():
                 need_heading = False
                 continue
             objid = row[_args.col_acc].strip().upper()
-            if not objid and ''.join(row):
-                trace(2, 'Skipping row with blank object id: {}', row)
+            if not objid:
+                if ''.join(row):
+                    trace(2, 'Skipping row with blank object id: {}', row)
                 continue
             objidlist = expand_idnum(objid)
+            reason = ''
+            if is_update:
+                if _args.reason:
+                    reason = _args.reason
+                elif _args.col_reason:
+                    reason = row[_args.col_reason]
+            location = loc_arg if loc_arg else row[_args.col_loc].strip()
             for ob in objidlist:
                 nobjid = nd.normalize_id(ob)
                 if not nobjid:
@@ -74,8 +84,9 @@ def loadcsv():
                 if nobjid in location_dict:
                     print(f'Fatal error: Duplicate object ID row {rownum}: {row}.')
                     sys.exit(1)
-                location_dict[nobjid] = loc_arg if loc_arg else row[_args.col_loc].strip()
-    return location_dict
+                location_dict[nobjid] = location
+                reason_dict[nobjid] = reason
+    return location_dict, reason_dict
 
 
 def handle_diff(idnum, elem):
@@ -305,7 +316,7 @@ def update_current_location(elem, idnum):
     ET.SubElement(newobjloc, 'Location').text = newlocationtext
     locdate = ET.SubElement(newobjloc, 'Date')
     ET.SubElement(locdate, 'DateBegin').text = _args.date
-    ET.SubElement(newobjloc, 'Reason').text = _args.reason
+    ET.SubElement(newobjloc, 'Reason').text = newreasons[nidnum]
 
     # Find the current location's index
     subelts = list(elem)
@@ -418,6 +429,7 @@ def main():
 
 def add_arguments(parser, command):
     global is_update, is_diff, is_select, is_validate  # Needed for Sphinx
+    reason_group = None  # stop PyCharm whining
     if called_from_sphinx:
         is_update = command == 'update'
         is_diff = command == 'diff'
@@ -428,7 +440,7 @@ def add_arguments(parser, command):
     if is_update or is_select:
         parser.add_argument('-o', '--outfile', required=True, help='''
             The output XML file.''')
-    if is_diff or is_update or is_select:
+    if is_update or is_select:
         parser.add_argument('-a', '--all', action='store_true', help='''
         Write all objects and, if -w is selected, issue a warning if an object
         is not in the detail CSV file. The default is to only write updated
@@ -445,6 +457,13 @@ def add_arguments(parser, command):
         object to be updated. The default is column 1. See the --location
         option which sets the location for all objects in which case this
         option is ignored.''', called_from_sphinx))
+    if is_update:
+        reason_group = parser.add_mutually_exclusive_group()
+        reason_group.add_argument('--col_reason', help=nd.sphinxify('''
+            The zero-based column containing text to be inserted as the
+            reason for the move to the new current location for the object
+            named in the row. Specify this or --reason.
+            ''', called_from_sphinx))
     if is_update or is_diff:
         parser.add_argument('-c', '--current', action='store_true', help='''
         Update the current location and change the old current location to a
@@ -479,8 +498,9 @@ def add_arguments(parser, command):
         If a --location argument is specified, the first row is skipped and the
         value, which nevertheless must be specified, is ignored. 
         ''', called_from_sphinx))
-    if is_update or is_diff:
-        parser.add_argument('-j', '--object', help=nd.sphinxify('''
+    if is_update or is_diff or is_select:
+        map_group = parser.add_mutually_exclusive_group(required=True)
+        map_group.add_argument('-j', '--object', help=nd.sphinxify('''
         Specify a single object to be processed. If specified, do not specify
         the CSV file containing object numbers and locations (--mapfile). You
         must also specify --location.
@@ -490,8 +510,7 @@ def add_arguments(parser, command):
         case the CSV file only needs a single column containing the 
         accession number.  
         ''')
-    if is_diff or is_select or is_update:
-        parser.add_argument('-m', '--mapfile', help=nd.sphinxify('''
+        map_group.add_argument('-m', '--mapfile', help=nd.sphinxify('''
             The CSV file mapping the object number to its new location. By
             default, the accession number is in the first column (column 0) but 
             this can be changed by the --col_acc option. The new location is by
@@ -511,8 +530,9 @@ def add_arguments(parser, command):
             ''')
     if is_update:
         parser.add_argument('--patch', action='store_true', help='''
-        Update the specified location in place without creating history. This is always
-        the behavior for normal locations but not for current or previous.
+        Update the specified location in place without creating history. This
+        is always the behavior for normal locations but not for current or
+        previous.
         ''')
         parser.add_argument('-p', '--previous', action='store_true',
                             help=nd.sphinxify('''
@@ -525,17 +545,23 @@ def add_arguments(parser, command):
         Only output the most recent current location element for each object,
         deleting all previous locations.
         ''')
-        parser.add_argument('-r', '--reason', default='', help='''
-            Insert this text as the reason for the move to the new current location.
-            ''')
-    parser.add_argument('-s', '--short', action='store_true', help='''
+        reason_group.add_argument('-r', '--reason', default='',
+                                  help=nd.sphinxify('''
+            Insert this text as the reason for the move to the new current
+            location for all of the objects updated. Specify this or
+            --col_reason.
+            ''', called_from_sphinx))
+    parser.add_argument('--short', action='store_true', help='''
         Only process a single object. For debugging.''')
+    parser.add_argument('-s', '--skiprows', type=int, default=0, help='''
+        Number of lines to skip at the start of the CSV file''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
     if is_diff or is_select or is_update:
         parser.add_argument('-w', '--warn', action='store_true', help='''
-        Valid if -a is selected. Warn if an object in the XML file is not in the CSV file.
+        Valid if -a is selected. Warn if an object in the XML file is not in
+        the CSV file.
         ''')
 
 
@@ -550,20 +576,22 @@ def getparser():
         ''', called_from_sphinx))
     subparsers = parser.add_subparsers(dest='subp')
     diff_parser = subparsers.add_parser('diff', description=nd.sphinxify('''
-    With no options, check that the location in the object specified by --col_loc
-    is the same as the location specified by -c or -n option in the XML file.
+    With no options, compare the location of the object in the mapfile as
+    specified by --col_loc
+    to either the normal or current location as specified by -c or -n option in
+    the XML file.
     ''', called_from_sphinx))
     select_parser = subparsers.add_parser('select', description='''
-    Select the objects named in the CSV file specified by -m and write them to the
-    output without modification. 
+    Select the objects named in the CSV file specified by -m and write them to
+    the output without modification. 
     ''')
     update_parser = subparsers.add_parser('update', description='''
     Update the XML file from the location in the CSV file specified by -m.
     ''')
     validate_parser = subparsers.add_parser('validate', description='''
-    Run the validate_locations function against the input file. This validates all
-    locations and ignores the -c, -n, and -p options. Check that dates exist
-    and do not overlap.
+    Run the validate_locations function against the input file. This validates
+    all locations and ignores the -c, -n, and -p options. This checks that
+    dates exist and do not overlap.
     ''')
     diff_parser.set_defaults(func=handle_diff)
     select_parser.set_defaults(func=handle_select)
@@ -579,15 +607,13 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
-    if is_diff or is_update:
-        # Set a fake value for the new location column as it will be taken from
-        #  the --location value instead of a column in the CSV file.
-        if args.location:
-            args.col_loc = None
     if is_update:
         nloctypes = int(args.current) + int(args.previous)
         if nloctypes != 1:
             print('Exactly one of -c or -p must be specified.')
+            sys.exit(1)
+        if not nd.vdate(args.date):
+            print('--date must be complete Modes format: d.m.yyyy')
             sys.exit(1)
     return args
 
@@ -612,7 +638,7 @@ if __name__ == '__main__':
         newlocs = {nd.normalize_id(obj): _args.location for obj in objectlist}
         trace(2, 'Object(s) specified, newlocs= {}', newlocs)
     else:
-        newlocs = loadcsv()
+        newlocs, newreasons = loadcsv()
     total_in_csvfile = len(newlocs)
     total_updated = total_written = 0
     total_failed = total_objects = 0  # validate only
