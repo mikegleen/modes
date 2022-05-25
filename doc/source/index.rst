@@ -32,7 +32,7 @@ Indices and tables
 
 This library provides for manipulation of the XML files exported from
 and imported into the *Modes* Museum database system. The source files
-contains many special-purpose programs that apply only to the Heath
+contain many special-purpose programs that apply only to the Heath
 Robinson Museum database. However, there are several general-purpose
 programs that will be documented here.
 
@@ -46,13 +46,18 @@ selected for processing.
 The configuration consists of a YAML file broken into multiple
 documents, separated by lines containing ``---`` in the left three columns.
 Each document roughly corresponds to a column in the associated CSV file.
+The various programs use the CSV file for slightly different purposes. For example,
+``csv2xml.py`` uses it to contain multiple columns each of which defines a value to
+go into a corresponding field in the XML file. On the other hand, ``xml2csv.py`` uses a
+CSV file of only one column that contains a list of objects to extract data from.
+
 Each document contains some of the following statements. Statement names are
 case sensitive; all must be lower case. The lead statement in a document
 is the **cmd** statement, which controls the function of the document.
 Commands can be column-related or control statements.
 
-By default, the first column in the CSV file is the serial number (accession
-number) of the object affected. On output, this can be suppressed using the
+By default, the first column in the output CSV file is the serial number (accession
+number) of the object affected. This can be suppressed using the
 ``skip_number`` statement under the ``global`` command.
 
 Statements
@@ -140,7 +145,7 @@ These statements are in the document whose ``cmd`` statement is ``global``.
    column of the output row. Note that accession numbers are normally normalized before
    sorting.
 -  **add_mda_code** If the serial number does not begin with the MDA code (default LDHRM)
-   then insert it as a prefix. This is used only in ``CSV2XML.py``.
+   then insert it as a prefix. This is used only in ``csv2xml.py``.
 -  **template_title** Only in ``csv2xml.py``: Defines a CSV column containing a key that
    matches one of the keys in the
    global **templates** statement. For each row in the CSV file, this specifies which
