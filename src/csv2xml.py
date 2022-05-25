@@ -222,8 +222,9 @@ def getparser():
         <Interchange> element as the root. This results in an invalid XML file
         but is useful if the output is to be manually edited.''')
     parser.add_argument('--serial', default='Serial', help=sphinxify('''
-        The column containing the serial number must have a heading with this
-        value. This is ignored if the --acc_num parameter is specified.
+        The column containing the serial number (the first column) must have a
+        heading with this value. This is ignored if the --acc_num parameter is
+        specified.
         ''' + if_not_sphinx('''
         The default value is "Serial".''', calledfromsphinx),
                                        calledfromsphinx))
