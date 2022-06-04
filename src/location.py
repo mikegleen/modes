@@ -546,10 +546,9 @@ def add_arguments(parser, command):
         ''')
         reason_group.add_argument('-r', '--reason', default='',
                                   help=nd.sphinxify('''
-            Insert this text as the reason for the move to the new current
-            location for all of the objects updated. Specify this or
-            --col_reason.
-            ''', called_from_sphinx))
+        Insert this text as the reason for the move to the new current location
+        for all of the objects updated. Do not specify this and --col_reason.
+        ''', called_from_sphinx))
     parser.add_argument('--short', action='store_true', help='''
         Only process a single object. For debugging.''')
     parser.add_argument('-s', '--skiprows', type=int, default=0, help='''
