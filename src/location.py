@@ -66,7 +66,7 @@ def loadcsv():
             objid = row[_args.col_acc].strip().upper()
             if not objid:
                 if ''.join(row):
-                    trace(2, 'Skipping row with blank object id: {}', row)
+                    trace(2, 'Skipping row with blank accession id: {}', row)
                 continue
             objidlist = expand_idnum(objid)
             reason = ''
@@ -90,10 +90,10 @@ def loadcsv():
 
 
 def handle_diff(idnum, elem):
-    if _args.all:
-        if idnum not in newlocs and _args.warn:
-            trace(3, 'Not in CSV file: {}', idnum)
-            return
+    global total_diff
+    if idnum not in newlocs and _args.warn:
+        trace(3, 'Not in CSV file: {}', idnum)
+        return
     objlocs = elem.findall('./ObjectLocation')
     for ol in objlocs:
         loc = ol.get(ELEMENTTYPE)
@@ -113,10 +113,13 @@ def handle_diff(idnum, elem):
                 if newtext is None:
                     return
                 del newlocs[nidnum]
-            trace(2, 'New location for {}: {}', idnum, newtext)
-            if text != newtext:
+            trace(3, 'New location for {}: {}', idnum, newtext)
+            if text == newtext:
+                trace(2, 'Same {}: {}', idnum, text)
+            else:
                 trace(1, 'Different {}: XML: {}, CSV: {}', idnum, text,
                       newtext)
+                total_diff += 1
             break
 
 
@@ -316,7 +319,8 @@ def update_current_location(elem, idnum):
     ET.SubElement(newobjloc, 'Location').text = newlocationtext
     locdate = ET.SubElement(newobjloc, 'Date')
     ET.SubElement(locdate, 'DateBegin').text = _args.date
-    ET.SubElement(newobjloc, 'Reason').text = newreasons[nidnum]
+    if newreasons[nidnum]:
+        ET.SubElement(newobjloc, 'Reason').text = newreasons[nidnum]
 
     # Find the current location's index
     subelts = list(elem)
@@ -463,10 +467,14 @@ def add_arguments(parser, command):
             reason for the move to the new current location for the object
             named in the row. Specify this or --reason.
             ''', called_from_sphinx))
-    if is_update or is_diff:
+    if is_update:
         parser.add_argument('-c', '--current', action='store_true', help='''
         Update the current location and change the old current location to a
         previous location. See the descrption of "n" and "p". ''')
+    if is_diff:
+        parser.add_argument('-c', '--current', action='store_true', help='''
+        Compare the location in the CSV file to the current location in the
+        XML file.''')
     if is_update:
         parser.add_argument('-d', '--date', default=nd.modesdate(date.today()), help='''
             When updating the current location, use this date as the DateEnd
@@ -516,10 +524,13 @@ def add_arguments(parser, command):
             default in the second column (column 1) but can be changed by the
             --col_loc option. This  argument is ignored if --object is specified.
             ''', called_from_sphinx))
-    if is_update or is_diff:
+    if is_update:
         parser.add_argument('-n', '--normal', action='store_true', help='''
         Update the normal location. See the description for "p" and "c".''')
     if is_diff:
+        parser.add_argument('-n', '--normal', action='store_true', help='''
+        Compare the location in the CSV file to the normal location in the
+        XML file.''')
         parser.add_argument('--old', action='store_true', help='''
             The column selected is the "old" location, the one we are moving
             the object from. Warn if the value in the CSV file does not match
@@ -606,9 +617,9 @@ def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
     if is_update:
-        nloctypes = int(args.current) + int(args.previous)
+        nloctypes = int(args.current) + int(args.normal)
         if nloctypes != 1:
-            print('Exactly one of -c or -p must be specified.')
+            print('Exactly one of -c or -n must be specified.')
             sys.exit(1)
         if not nd.vdate(args.date):
             print('--date must be complete Modes format: d.m.yyyy')
@@ -638,7 +649,7 @@ if __name__ == '__main__':
     else:
         newlocs, newreasons = loadcsv()
     total_in_csvfile = len(newlocs)
-    total_updated = total_written = 0
+    total_updated = total_written = total_diff = 0
     total_failed = total_objects = 0  # validate only
     infile = open(_args.infile, encoding=_args.encoding)
     if is_update:
@@ -649,6 +660,8 @@ if __name__ == '__main__':
     if is_update:
         print(f'Total Updated: {total_updated}/{total_in_csvfile}\n'
               f'Total Written: {total_written}')
-    if is_validate:
+    elif is_validate:
         print(f'Total failed: {total_failed}/{total_objects}.')
+    elif is_diff:
+        print(f'Total different: {total_diff}/{total_in_csvfile}')
     trace(1, 'End location {}.', _args.subp)
