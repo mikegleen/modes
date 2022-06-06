@@ -15,9 +15,9 @@ def col2num(col: str):
     num = 0
     if col.isnumeric():
         return int(col)
-    for c in col:
+    for c in col.upper():
         if c in string.ascii_letters:
-            num = num * 26 + (ord(c.upper()) - ord('A')) + 1
+            num = num * 26 + (ord(c) - ord('A')) + 1
         else:
             print(c, col)
             raise ValueError('Column must be ASCII letters only.')
