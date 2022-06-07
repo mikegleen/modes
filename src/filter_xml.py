@@ -11,6 +11,7 @@ import sys
 import xml.etree.ElementTree as ET
 from utl.cfgutil import Config, read_include_dict
 from utl.cfgutil import expand_idnum
+from utl.excel_cols import col2num
 from utl.normalize import normalize_id, sphinxify
 
 
@@ -89,11 +90,11 @@ def getargs():
         A CSV file specifying the accession numbers of records to process.
         If omitted, all records will be processed based on configuration
         statements.''')
-    parser.add_argument('--include_column', required=False, type=int,
-                        default=0, help='''
+    parser.add_argument('--include_column', required=False, type=str,
+                        default='0', help='''
         The column number containing the accession number in the file
-        specified by the --select option. The default is 0, the first column.
-        ''')
+        specified by the --include option. The default is 0, the first column.
+         The column can be a number or a spreadsheet-style letter.''')
     parser.add_argument('--include_skip', type=int, default=0, help='''
         The number of rows to skip at the front of the include file. The
         default is 0.
@@ -112,6 +113,7 @@ def getargs():
     parser.add_argument('-x', '--exclude', action='store_true', help='''
         Treat the include list as an exclude list.''')
     args = parser.parse_args()
+    args.include_column = col2num(args.include_column)
     return args
 
 

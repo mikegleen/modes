@@ -6,6 +6,7 @@ from docx import Document
 import csv
 import sys
 
+from utl.excel_cols import col2num
 from utl.normalize import sphinxify
 
 
@@ -88,7 +89,7 @@ def getparser():
         Exclude rows where this text appears in the column specified by the
         --exclude_column argument.
         ''', called_from_sphinx))
-    parser.add_argument('--exclude_column', type=int, default=0,
+    parser.add_argument('--exclude_column', type=str, default='0',
                         help=sphinxify('''
         Specify the column to check for row exclusion. The default is
         column 0. This argument is ignored if --exclude is not specified.
@@ -103,17 +104,17 @@ def getparser():
         Normally line feeds will be converted to spaces. If specified, this is
         not done.
         ''', called_from_sphinx))
-    parser.add_argument('-i', '--index_column', type=int, help=sphinxify('''
+    parser.add_argument('-i', '--index_column', type=str, help=sphinxify('''
         Specify a column to generate an index in. This will overwrite whatever
         is in that column. If you specify -1, a column will be prepended to the
-        existing row.
+        existing row. The column can be a number or a spreadsheet-style letter.
         ''', called_from_sphinx))
     parser.add_argument('-r', '--index_row', type=int, default=0,
                         help=sphinxify('''
         The zero-based row in which to begin generating the index. This is
         ignored unless --index_column is specified. The default is zero, that
-        is, to start numbering from the first row.
-        ''', called_from_sphinx))
+        is, to start numbering from the first row. The column can be a number
+        or a spreadsheet-style letter. ''', called_from_sphinx))
     parser.add_argument('-s', '--index_start', type=int, default=1,
                         help=sphinxify('''
         The first number to insert into the index column. This is
@@ -144,6 +145,9 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    if args.index_column is not None:
+        args.index_column = col2num(args.index_column)
+    args.exclude_column = col2num(args.exclude_column)
     return args
 
 
