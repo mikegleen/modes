@@ -20,6 +20,7 @@ import sys
 import xml.etree.ElementTree as ET
 import utl.normalize as nd
 from utl.cfgutil import expand_idnum
+from utl.excel_cols import col2num
 
 NORMAL_LOCATION = 'normal location'
 CURRENT_LOCATION = 'current location'
@@ -44,6 +45,7 @@ def loadcsv():
     location_dict, reason_dict = {}, {}
     if _args.subp == 'validate':
         return location_dict, reason_dict
+    # --location and --heading are mutually exclusive
     loc_arg = _args.location
     need_heading = bool(_args.heading)
     with codecs.open(_args.mapfile, 'r', 'utf-8-sig') as mapfile:
@@ -54,9 +56,8 @@ def loadcsv():
             rownum += 1
             trace(3, 'row: {}', row)
             if need_heading:
-                # if --location is given just skip the first row
-                if not loc_arg and (row[_args.col_loc].strip().lower()
-                                    != _args.heading.lower()):
+                if (row[_args.col_loc].strip().lower()
+                   != _args.heading.lower()):
                     print(f'Fatal error: Failed heading check. '
                           f'{row[_args.col_loc].lower()} is not '
                           f'{_args.heading.lower()}.')
@@ -433,7 +434,14 @@ def main():
 
 def add_arguments(parser, command):
     global is_update, is_diff, is_select, is_validate  # Needed for Sphinx
-    reason_group = None  # stop PyCharm whining
+    # reason_group: --col_reason or --reason
+    reason_group = parser.add_mutually_exclusive_group()
+    # diff_group: --current or --normal
+    diff_group = parser.add_mutually_exclusive_group(required=True)
+    # map_group: --mapfile or --object
+    map_group = parser.add_mutually_exclusive_group(required=True)
+    # heading_group: --heading or --location
+    heading_group = parser.add_mutually_exclusive_group(required=True)
     if called_from_sphinx:
         is_update = command == 'update'
         is_diff = command == 'diff'
@@ -450,29 +458,31 @@ def add_arguments(parser, command):
         objects. In either case warn if an object in the CSV file is not in the
         input XML file.''')
     if is_update or is_diff:
-        parser.add_argument('--col_acc', type=int, default=0, help='''
+        parser.add_argument('--col_acc', type=str, default='0', help='''
         The zero-based column containing the accession number of the
-        object to be updated. The default is column zero.
+        object to be updated. The default is column zero. The column can be a
+        number or a spreadsheet-style letter.
         ''')
-        parser.add_argument('--col_loc', type=int, default=1,
+        parser.add_argument('--col_loc', type=str, default='1',
                             help=nd.sphinxify('''
         The zero-based column containing the new location of the
         object to be updated. The default is column 1. See the --location
         option which sets the location for all objects in which case this
-        option is ignored.''', called_from_sphinx))
+        option is ignored. The column can be a
+        number or a spreadsheet-style letter.''', called_from_sphinx))
     if is_update:
-        reason_group = parser.add_mutually_exclusive_group()
         reason_group.add_argument('--col_reason', help=nd.sphinxify('''
             The zero-based column containing text to be inserted as the
             reason for the move to the new current location for the object
-            named in the row. Specify this or --reason.
+            named in the row. Specify this or --reason. The column can be a
+            number or a spreadsheet-style letter.
             ''', called_from_sphinx))
     if is_update:
         parser.add_argument('-c', '--current', action='store_true', help='''
         Update the current location and change the old current location to a
         previous location. See the descrption of "n" and "p". ''')
     if is_diff:
-        parser.add_argument('-c', '--current', action='store_true', help='''
+        diff_group.add_argument('-c', '--current', action='store_true', help='''
         Compare the location in the CSV file to the current location in the
         XML file.''')
     if is_update:
@@ -499,24 +509,22 @@ def add_arguments(parser, command):
         Write the object to the output file even if it hasn't been updated. This only
         applies to objects whose ID appears in the CSV file. -a implies -f.
         ''')
-    parser.add_argument('--heading', help=nd.sphinxify('''
+    heading_group.add_argument('--heading', help=nd.sphinxify('''
         The first row of the map file contains a column title which must match the
         parameter (case insensitive) in the column designated for the location.
-        If a --location argument is specified, the first row is skipped and the
-        value, which nevertheless must be specified, is ignored. 
+        Do not specify this and --location.
         ''', called_from_sphinx))
     if is_update or is_diff or is_select:
-        map_group = parser.add_mutually_exclusive_group(required=True)
         map_group.add_argument('-j', '--object', help=nd.sphinxify('''
         Specify a single object to be processed. If specified, do not specify
         the CSV file containing object numbers and locations (--mapfile). You
         must also specify --location.
         ''', called_from_sphinx))
-        parser.add_argument('-l', '--location', help='''
+        heading_group.add_argument('-l', '--location', help=nd.sphinxify('''
         Set the location for all of the objects in the CSV file. In this 
         case the CSV file only needs a single column containing the 
-        accession number.  
-        ''')
+        accession number. Do not specify this and --heading.
+        ''', called_from_sphinx))
         map_group.add_argument('-m', '--mapfile', help=nd.sphinxify('''
             The CSV file mapping the object number to its new location. By
             default, the accession number is in the first column (column 0) but 
@@ -528,7 +536,7 @@ def add_arguments(parser, command):
         parser.add_argument('-n', '--normal', action='store_true', help='''
         Update the normal location. See the description for "p" and "c".''')
     if is_diff:
-        parser.add_argument('-n', '--normal', action='store_true', help='''
+        diff_group.add_argument('-n', '--normal', action='store_true', help='''
         Compare the location in the CSV file to the normal location in the
         XML file.''')
         parser.add_argument('--old', action='store_true', help='''
@@ -585,7 +593,7 @@ def getparser():
         ''', called_from_sphinx))
     subparsers = parser.add_subparsers(dest='subp')
     diff_parser = subparsers.add_parser('diff', description=nd.sphinxify('''
-    With no options, compare the location of the object in the mapfile as
+    Compare the location of the object in the mapfile as
     specified by --col_loc
     to either the normal or current location as specified by -c or -n option in
     the XML file.
@@ -616,6 +624,10 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    args.col_acc = col2num(args.col_acc)
+    args.col_loc = col2num(args.col_loc)
+    if is_update and args.col_reason is not None:
+        args.col_reason = col2num(args.col_reason)
     if is_update:
         nloctypes = int(args.current) + int(args.normal)
         if nloctypes != 1:
@@ -624,6 +636,9 @@ def getargs(argv):
         if not nd.vdate(args.date):
             print('--date must be complete Modes format: d.m.yyyy')
             sys.exit(1)
+    if  (is_update or is_select) and args.infile == args.outfile:
+        print('Fatal error: Input and output files must be different.')
+        sys.exit(1)
     return args
 
 

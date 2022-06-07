@@ -18,6 +18,7 @@ import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Cmd, Stmt, yaml_fieldnames, expand_idnum
 from utl.cfgutil import Config, read_include_dict
+from utl.excel_cols import col2num
 from utl.normalize import normalize_id, denormalize_id, DEFAULT_MDA_CODE
 from utl.zipmagic import openfile
 
@@ -231,10 +232,11 @@ def getparser():  # called either by getargs or sphinx
         A CSV file specifying the accession numbers of objects to be processed.
         If omitted, all records will be processed. In either case, objects will
         be output based on configuration statements. ''')
-    parser.add_argument('--include_column', required=False, type=int,
-                        default=0, help='''
+    parser.add_argument('--include_column', required=False,
+                        default='0', type=str, help='''
         The column number containing the accession number in the file
         specified by the --include option. The default is 0, the first column.
+        The column can be a number or a spreadsheet-style letter.
         ''')
     parser.add_argument('--include_skip', type=int, default=0, help='''
         The number of rows to skip at the front of the include file. The
@@ -265,6 +267,7 @@ def getparser():  # called either by getargs or sphinx
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    args.include_column = col2num(args.include_column)
     return args
 
 
