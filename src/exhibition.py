@@ -333,15 +333,22 @@ def main():
 
 
 def getparser():
-    parser = argparse.ArgumentParser(description='''
+    parser = argparse.ArgumentParser(description=sphinxify('''
         Import exhibition information into a Modes XML file.
-        Read a CSV file containing one, two, or three columns containing 
+        Read a CSV file using the --mapfile argument containing one, two, or
+        three columns containing 
         the accession number whose record should be updated, the
-        optional exhibition number, and the optional catalog number. The
+        optional exhibition number, and the optional catalogue number. The
         exhibition number corresponds to the data in exhibition_list.py and
-        is used for this process. It is not recorded in the XML file.
-        See the parameters below for more details.
-        ''')
+        is used for this process but is not recorded in the XML file.
+        
+        Instead
+        of including the exhibition number in the CSV file, you can specify
+        a single exhibition number to apply to all rows using  the --exhibition
+        argument. If you need to process a single object, you can omit the
+        --mapfile argument and specify a single object wth the --object
+        argument. See also the --catalogue argument.
+        ''', called_from_sphinx))
     exgroup = parser.add_mutually_exclusive_group()
     objgroup = parser.add_mutually_exclusive_group()
     parser.add_argument('infile', help='''
