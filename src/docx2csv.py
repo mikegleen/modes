@@ -32,7 +32,7 @@ def main():
     index = _args.index_start - 1
     prepend_index = index_column == -1
     upcol = _args.upper
-    if upcol and prepend_index:
+    if upcol is not None and prepend_index:
         upcol += 1
     for table in tables:
         trace(2, 'Processing table {}', tablenumber)
@@ -63,7 +63,7 @@ def main():
             if not _args.inhibit_upper and len(row):
                 uc = 1 if prepend_index else 0
                 row[uc] = row[uc].strip().upper()
-            if upcol and len(row) > upcol:
+            if upcol is not None and len(row) > upcol:
                 row[upcol] = row[upcol].strip().upper()
             if data_in_row or _args.include_blank:
                 data.append(row)
@@ -94,12 +94,12 @@ def getparser():
         Specify the column to check for row exclusion. The default is
         column 0. This argument is ignored if --exclude is not specified.
         ''', called_from_sphinx))
-    parser.add_argument('--include_blank', action='store_true', default=0,
+    parser.add_argument('--include_blank', action='store_true',
                         help=sphinxify('''
         Normally completely blank rows will be excluded. If specified, they
         will be included.
         ''', called_from_sphinx))
-    parser.add_argument('--include_lf', action='store_true', default=0,
+    parser.add_argument('--include_lf', action='store_true',
                         help=sphinxify('''
         Normally line feeds will be converted to spaces. If specified, this is
         not done.

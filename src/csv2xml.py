@@ -182,11 +182,12 @@ def main():
 def getparser():
     parser = argparse.ArgumentParser(description=sphinxify('''
         Read a CSV file containing two or more columns. The first column
-        is the index and the following columns are the field(s) defined by the
-        XPATH statement in the config file. The first row in the CSV file is
-        a heading row. The column titles must match the document titles in the
-        CSV file. Columns are referred to by name so it is permissible to omit
-        columns from the config file. Note that this contrasts with ``update_from_csv.py``
+        is the accession number and the following columns are the fields
+        defined by the XPATH statement in the config file. The first row in the
+        CSV file is a heading row. The column titles must match the document
+        titles in the config file. Columns are referred to by name so it is
+        permissible to omit columns from the config file. Note that this
+        contrasts with ``update_from_csv.py``
         where the heading row may be omitted and filler columns must be included.
         
         Create an
@@ -196,7 +197,7 @@ def getparser():
     parser.add_argument('--acc_num', help='''
         This is the first accession number in a series to assign to rows
         in the input CSV file. If specified, the column in the CSV file
-        containing a serial number, if one exists, is ignored. For example,
+        containing an accession number, if one exists, is ignored. For example,
         if the parameter is "LDHRM.2021.2", the numbers assigned will be
         "LDHRM.2021.2", "LDHRM.2021.3", etc. This value will be stored in the
         ObjectIdentity/Number element.''')
@@ -213,8 +214,9 @@ def getparser():
         or an alternative set by --serial parameter. Subsequent columns
         must match the corresponding title in the configuration file. ''')
     parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
-        Specify the MDA code, used in normalizing the accession number.
-        The default is "{DEFAULT_MDA_CODE}". ''')
+        Specify the MDA code, used in normalizing the accession number.''' +
+                        if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".
+                        ''', calledfromsphinx))
     parser.add_argument('-o', '--outfile', help='''
         The output XML file.''')
     parser.add_argument('-p', '--noprolog', action='store_true', help='''
@@ -232,8 +234,8 @@ def getparser():
         Only process one object. For debugging.''')
     parser.add_argument('-t', '--template', help=sphinxify('''
         The XML file that is the template for creating the output XML.
-        Specify this or global statements in the configuration ``template_dir`,
-        ``template_title``, and ``templates``.
+        Specify this or global statements in the configuration
+        ``template_dir``, ``template_title``, and ``templates``.
         ''', calledfromsphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
