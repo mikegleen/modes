@@ -157,7 +157,7 @@ def getparser():
         set, this will cause an abort. ''')
     parser.add_argument('-c', '--cfgfile', required=True,
                         type=argparse.FileType('r'), help='''
-        The YAML file describing the column path(s) to update''')
+        Required. The YAML file describing the column path(s) to update''')
     parser.add_argument('-e', '--empty', action='store_true', help=sphinxify('''
         Normally, an empty field in the CSV file means that no action is to be
         taken. If -e is selected, empty values from the CSV will overwrite
@@ -168,7 +168,8 @@ def getparser():
         By default, ignore indices missing from the CSV file. If selected,
         trace the missing index.''')
     parser.add_argument('-m', '--mapfile', required=True, help=sphinxify('''
-        The CSV file mapping the object number to the new element value(s). The
+        Required. The CSV file mapping the object number to the new element
+        value(s). The
         first column must contain the object number and subsequent columns
         must correspond to the columns in the mapping file.
         If a row in the CSV file has fewer fields than defined in the
@@ -182,8 +183,7 @@ def getparser():
         is not blank.''')
     parser.add_argument('--serial', default='Serial', help=sphinxify('''
         The column containing the serial number must have a heading with this
-        value. This is ignored if the --acc_num parameter is specified.
-        ''' + if_not_sphinx('''
+        value. ''' + if_not_sphinx('''
         The default value is "Serial".''', called_from_sphinx),
                                                          called_from_sphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
