@@ -435,13 +435,13 @@ def main():
 def add_arguments(parser, command):
     global is_update, is_diff, is_select, is_validate  # Needed for Sphinx
     # reason_group: --col_reason or --reason
-    reason_group = parser.add_mutually_exclusive_group()
-    # diff_group: --current or --normal
-    diff_group = parser.add_mutually_exclusive_group(required=True)
+    reason_group = None
     # map_group: --mapfile or --object
-    map_group = parser.add_mutually_exclusive_group(required=True)
+    map_group = None
     # heading_group: --heading or --location
-    heading_group = parser.add_mutually_exclusive_group(required=True)
+    heading_group = None
+    # diff_group: --current or --normal
+    diff_group = None  # only if diff command
     if called_from_sphinx:
         is_update = command == 'update'
         is_diff = command == 'diff'
@@ -471,6 +471,7 @@ def add_arguments(parser, command):
         option is ignored. The column can be a
         number or a spreadsheet-style letter.''', called_from_sphinx))
     if is_update:
+        reason_group = parser.add_mutually_exclusive_group()
         reason_group.add_argument('--col_reason', help=nd.sphinxify('''
             The zero-based column containing text to be inserted as the
             reason for the move to the new current location for the object
@@ -482,6 +483,8 @@ def add_arguments(parser, command):
         Update the current location and change the old current location to a
         previous location. See the descrption of "n" and "p". ''')
     if is_diff:
+        # diff_group: --current or --normal
+        diff_group = parser.add_mutually_exclusive_group(required=True)
         diff_group.add_argument('-c', '--current', action='store_true', help='''
         Compare the location in the CSV file to the current location in the
         XML file.''')
@@ -509,12 +512,14 @@ def add_arguments(parser, command):
         Write the object to the output file even if it hasn't been updated. This only
         applies to objects whose ID appears in the CSV file. -a implies -f.
         ''')
+    heading_group = parser.add_mutually_exclusive_group()
     heading_group.add_argument('--heading', help=nd.sphinxify('''
         The first row of the map file contains a column title which must match the
         parameter (case insensitive) in the column designated for the location.
         Do not specify this and --location.
         ''', called_from_sphinx))
     if is_update or is_diff or is_select:
+        map_group = parser.add_mutually_exclusive_group()
         map_group.add_argument('-j', '--object', help=nd.sphinxify('''
         Specify a single object to be processed. If specified, do not specify
         the CSV file containing object numbers and locations (--mapfile). You
