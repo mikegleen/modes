@@ -210,15 +210,15 @@ def getparser():  # called either by getargs or sphinx
         a zipped file.''')
     parser.add_argument('outfile',  help='''
         The output CSV file.''')
-    parser.add_argument('-b', '--bom', action='store_true', help='''
-        Select this option to insert a BOM at the front of the output CSV file.
-        Use this option when the CSV file is to be imported into Excel so that
-        the proper character set (UTF-8) is used.
-        ''')
     parser.add_argument('--allow_blanks', action='store_true', help='''
     Skip rows in the include CSV file with blank accession numbers. If not
     set, this will cause an abort.
     ''')
+    parser.add_argument('-b', '--bom', action='store_true', help='''
+        Select this option to insert a byte order mark (BOM) at the front of
+        the output CSV file. Use this option when the CSV file is to be
+        imported into Excel so that the proper character set (UTF-8) is used.
+        ''')
     parser.add_argument('-c', '--cfgfile', help='''
         The config file describing the column_paths to extract. If omitted,
         only the accession numbers will be output.''')
