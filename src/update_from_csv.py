@@ -175,12 +175,12 @@ def getparser():
         If a row in the CSV file has fewer fields than defined in the
         mapping file, zero-length strings will be assumed. See
         --empty.''', called_from_sphinx))
-    parser.add_argument('-r', '--replace', action='store_true', help='''
+    parser.add_argument('-r', '--replace', action='store_true', help=sphinxify('''
         Replace existing values. If not specified only empty elements will be
         updated. Existing values will be cleared if the value in the CSV file
         contains the special value ``{{clear}}``. See also --empty. If
         --replace is not set a warning will be issued if the existing value
-        is not blank.''')
+        is not blank.''', called_from_sphinx))
     parser.add_argument('--serial', default='Serial', help=sphinxify('''
         The column containing the serial number must have a heading with this
         value. ''' + if_not_sphinx('''
