@@ -61,9 +61,9 @@ def handle_folder(img_ids: dict, imgdir: str):
         except ValueError as ve:
             print(f'Skipping {imgf}')
             return
-        if nid in img_ids:
+        if nid in img_ids and _args.verbose > 0:
             print(f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
-                  f'original in {img_ids[nid][0].removeprefix(_args.imgdir)}')
+                  f'original in {img_ids[nid][1].removeprefix(_args.imgdir)}')
         else:
             img_ids[nid] = (imgf2, dirpath)
 
