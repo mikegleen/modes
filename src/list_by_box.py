@@ -54,10 +54,12 @@ def one_object(elt):
     else:
         location = 'unknown'
     title = elt.find('./Identification/Title').text
-
+    briefdes = elt.find('./Identification/BriefDescription').text
+    if briefdes is None:
+        briefdes = ''
     nnum = normalize_id(num)
     boxdict[location].append(nnum)
-    titledict[nnum] = title
+    titledict[nnum] = (title, briefdes)
 
 
 def handle_csv():
@@ -82,26 +84,29 @@ def main():
         handle_csv()
     else:
         handle_xml()
-    # for box in sorted(boxdict.keys()):
-    #     writer.writerow([''])
-    #     writer.writerow([''])
-    #     writer.writerow([f'Box {unpad_loc(box)}'])
-    #     writer.writerow(['--------------'])
-    #     for nnum in sorted(boxdict[box]):
-    #         writer.writerow([denormalize_id(nnum),
-    #                          titledict[nnum] if nnum in titledict else ''])
-
-    print('Pictures already scanned', file=outfile)
-    print('========================', file=outfile)
     for box in sorted(boxdict.keys()):
-        print('\n', file=outfile)
-        print(f'{unpad_loc(box)}', file=outfile)
-        print('--------------', file=outfile)
+        writer.writerow([''])
+        writer.writerow([''])
+        writer.writerow([f'Box {unpad_loc(box)}'])
+        writer.writerow(['--------------'])
         for nnum in sorted(boxdict[box]):
             if nnum in titledict:
-                print(f'{denormalize_id(nnum)},{titledict[nnum]}', file=outfile)
-            else:
-                print(denormalize_id(nnum), file=outfile)
+                writer.writerow([denormalize_id(nnum),
+                                 f'{titledict[nnum][0]} ({titledict[nnum][1]})'])
+
+    # print('Pictures already scanned', file=outfile)
+    # print(f'Locations from {infile.name}', file=outfile)
+    # print('========================', file=outfile)
+    # for box in sorted(boxdict.keys()):
+    #     print('\n', file=outfile)
+    #     print(f'{unpad_loc(box)}', file=outfile)
+    #     print('--------------', file=outfile)
+    #     for nnum in sorted(boxdict[box]):
+    #         if nnum in titledict:
+    #             print(f'{denormalize_id(nnum)},{titledict[nnum][0]},'
+    #                   f'{titledict[nnum][1]}', file=outfile)
+    #         else:
+    #             print(denormalize_id(nnum), file=outfile)
 
 
 if __name__ == '__main__':
@@ -112,7 +117,7 @@ if __name__ == '__main__':
         outfile = sys.stdout
     else:
         outfile = open(sys.argv[2], 'w', newline='')
-    # writer = csv.writer(outfile)
+    writer = csv.writer(outfile)
     boxdict = defaultdict(list)
     titledict = dict()
     main()
