@@ -1,21 +1,28 @@
+#---
+#cmd: column
+#xpath: ./Description/Material[Part="medium"]/Keyword
+#title: 'Medium'
+#---
+#cmd: column
+#xpath: ./Description/Material[Part="support"]/Keyword
+#title: 'Support'
+#---
+#cmd: column
+#xpath: ./Identification/ObjectName[@elementtype="Type of Object"]/Keyword
+#title: 'Object Type'
+#---
+#cmd: column
+#xpath: ./Identification/ObjectName[@elementtype="simple name"]/Keyword
+#title: 'Simple Name'
+#---
+#cmd: column
+#xpath: ./Identification/ObjectName[@elementtype="other name"]/Keyword
+#title: 'Other Name'
+#---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="normal location"]/Location
+title: 'Normal Location'
 ---
 cmd: column
-xpath: ./Description/Material[Part="medium"]/Keyword
-title: 'Medium'
----
-cmd: column
-xpath: ./Description/Material[Part="support"]/Keyword
-title: 'Support'
----
-cmd: column
-xpath: ./Identification/ObjectName[@elementtype="Type of Object"]/Keyword
-title: 'Object Type'
----
-cmd: column
-xpath: ./Identification/ObjectName[@elementtype="simple name"]/Keyword
-title: 'Simple Name'
----
-cmd: column
-xpath: ./Identification/ObjectName[@elementtype="other name"]/Keyword
-title: 'Other Name'
----
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
+title: 'Current Location'
