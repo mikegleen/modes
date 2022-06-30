@@ -5,7 +5,10 @@ import os
 import re
 import sys
 
-import yaml
+# import yaml
+from ruamel.yaml import YAML
+from ruamel.yaml.constructor import DuplicateKeyError
+yaml = YAML(typ='safe')   # default, if not specfied, is 'rt' (round-trip)
 
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
@@ -192,7 +195,7 @@ class Config:
                 elif stmt == Stmt.TEMPLATE_TITLE:
                     self.template_title = document[stmt]
                 elif stmt == Stmt.TEMPLATES:
-                    self.templates = yaml.safe_load(document[stmt])
+                    self.templates = yaml.load(document[stmt])
                 else:
                     print(f'Unknown statement, ignored: {stmt}.')
             if self.templates or self.template_title or self.template_dir:
@@ -408,7 +411,11 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
     # Might be None for an empty document, like trailing "---"
     if cfgf is None:
         return []
-    cfg = [c for c in yaml.safe_load_all(cfgf) if c is not None]
+    try:
+        cfg = [c for c in yaml.load_all(cfgf) if c is not None]
+    except DuplicateKeyError as e:
+        print(e.args)
+        sys.exit()
     titles = set()
     for document in cfg:
         for key in document:
