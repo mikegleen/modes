@@ -244,6 +244,8 @@ class Config:
             if Stmt.MULTIPLE_DELIMITER not in doc:
                 doc[Stmt.MULTIPLE_DELIMITER] = self.multiple_delimiter
         self.lennorm = len(self.norm)
+        if len(self.ctrl_docs):
+            print("Config contains filtering commands.")
 
     def select(self, elem, include_list=None, exclude=False):
         return select(self, elem, include_list, exclude)
@@ -282,10 +284,10 @@ def select(cfg: Config, elem, includes=None, exclude=False):
     idnum = normalize_id(idelem.text) if idelem is not None else None
     # print(f'{idnum=}')
     if idnum and exclude and includes:
-        if idnum.upper() in includes:
+        if idnum in includes:
             return False
     elif includes is not None:
-        if not idnum or idnum.upper() not in includes:
+        if not idnum or idnum not in includes:
             # print('select return false')
             return False
     for document in cfg.ctrl_docs:
