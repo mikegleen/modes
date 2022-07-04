@@ -1,7 +1,7 @@
-cmd: ifeq
-xpath: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
-value: '10.6.2022'
----
+#cmd: ifeq
+#xpath: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
+#value: '10.6.2022'
+#---
 cmd: column
 xpath: ./ObjectLocation[@elementtype="normal location"]/Location
 title: 'Normal Location'
@@ -24,6 +24,10 @@ title: 'Reason'
 #---
 cmd: column
 xpath: ./Identification/Title
+---
+cmd: column
+xpath: ./Identification/BriefDescription
+title: Brief Description
 ---
 cmd: global
 record_tag: Object
