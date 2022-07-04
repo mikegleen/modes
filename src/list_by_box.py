@@ -87,7 +87,7 @@ def main():
     for box in sorted(boxdict.keys()):
         writer.writerow([''])
         writer.writerow([''])
-        writer.writerow([f'Box {unpad_loc(box)}'])
+        writer.writerow([f'Box,{unpad_loc(box)}'])
         writer.writerow(['--------------'])
         for nnum in sorted(boxdict[box]):
             if nnum in titledict:
