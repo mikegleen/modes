@@ -66,7 +66,7 @@ def build_img_dict(img_ids: dict, imgdir: str):
         prefix, suffix = os.path.splitext(imgf2)
         if suffix.lower() not in ('.jpg', '.png'):
             if _args.verbose > 1 and not imgf.startswith('.'):  # ignore .DS_Store
-                print('not image:', imgf)
+                trace(1, 'not image: {}', imgf)
             return
         try:
             nid = normalize_id(prefix)
@@ -75,7 +75,7 @@ def build_img_dict(img_ids: dict, imgdir: str):
             return
         if nid in img_ids:
             print(f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
-                  f'original in {img_ids[nid][0].removeprefix(_args.imgdir)}')
+                  f'original in {img_ids[nid][1].removeprefix(_args.imgdir)}')
         else:
             img_ids[nid] = (imgf2, dirpath)
 
@@ -165,7 +165,7 @@ def main():
             if nid in img_dict:
                 trace(2, 'In image folder: {}', denid)
                 if reportfile:
-                    print(denid, file=reportfile)
+                    print(denid, img_dict[nid][1], file=reportfile)
                 continue
         # print IDs of objects needed as they are not in the image folder(s).
         # if --invert is set, print the objects in the image folder(s).
