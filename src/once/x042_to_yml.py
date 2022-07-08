@@ -5,10 +5,13 @@ from collections import namedtuple
 import csv
 from datetime import date
 import sys
-import yaml
+# import yaml
+from ruamel.yaml import YAML
 
 from cfg.exhibition_list import EXSTR
 from exhibition import ExhibitionTuple
+
+yaml = YAML(typ='safe')
 
 
 def get_exhibition_dict():
