@@ -10,6 +10,9 @@ import time
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
+from utl.cfgutil import Config
+from utl.normalize import normalize_id
+
 
 def trace(level, template, *args):
     if _args.verbose >= level:
@@ -30,6 +33,18 @@ def onefile(infile):
         objectlevel -= 1
         if objectlevel:
             continue  # It's not a top level Object.
+        idelem = oldobject.find(cfg.record_id_xpath)
+        idnum = idelem.text if idelem is not None else None
+        if not idnum:
+            print('Empty accession ID; aborting. Check output file for last'
+                  ' good record.')
+            sys.exit(1)
+        nidnum = normalize_id(idnum)
+        if nidnum in iddict:
+            print(f'Duplicate ID: original: {iddict[nidnum]}, new: idnum')
+            print('Aborting.')
+            sys.exit(1)
+        iddict[nidnum] = idnum
         outfile.write(ET.tostring(oldobject, encoding=_args.encoding))
         written += 1
         oldobject.clear()
@@ -77,6 +92,8 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
     object_number = ''
     _args = getargs()
+    iddict = {}
+    cfg = Config()
     outfile = open(_args.outfile, 'wb')
     main()
     basename = os.path.basename(sys.argv[0])
