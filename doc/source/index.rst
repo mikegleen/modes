@@ -48,8 +48,9 @@ documents, separated by lines containing ``---`` in the left three columns.
 Each document roughly corresponds to a column in the associated CSV file.
 The various programs use the CSV file for slightly different purposes. For example,
 ``csv2xml.py`` uses it to contain multiple columns each of which defines a value to
-go into a corresponding field in the XML file. On the other hand, ``xml2csv.py`` uses a
-CSV file of only one column that contains a list of objects to extract data from.
+go into a corresponding field in the XML file. On the other hand, ``xml2csv.py`` uses
+an optional input CSV file of only one column that contains a list of accession
+numbers of objects to extract data from.
 
 Each document contains some of the following statements. Statement names are
 case sensitive; all must be lower case. The lead statement in a document
@@ -252,6 +253,32 @@ There are three accession number formats in use at the Heath Robinson Museum.
 When read from a CSV file, the XML file, or the command line, accession numbers are
 normalized so that numeric fields sort correctly. That is, internally, all numbers
 are padded with zeroes. In this way, JB1 and JB001 are treated as the same object.
+
+
+Reserved Words
+--------------
+
+The following words are reserved in the CSV file used as input to
+``updatefromcsv.py``:
+
+-  **{{clear}}** In ``updatefromcsv.py``, if this appears in a field in the input CSV
+   file, then the field in the XML file is cleared. An empty field in the CSV file
+   causes no action unless the ``--empty`` or ``--replace`` option is specified.
+
+The following words are reserved in the YAML configuration file and are to be
+given as the parameter to the ``xpath`` statement instead of an element path.
+The corresponding ``cmd`` statement must be ``column``:
+
+-  **filler** This column in the CSV file will not update any XML element.
+-  **location_type** In ``location.py`` set this to ``c``, ``n``, or ``cn`` indicating
+   that the current, normal, or both, respectively, should be updated.
+-  **patch** In ``location.py`` indicate that this column should contain
+   “``patch``” possibly abbreviated to “``p``” or be empty. This is equivalent for
+   this row to setting the --patch command-line option which applies to all of
+   the rows in the CSV file.
+-  **reason** In ``location.py`` use the text in this column to update the
+   ``<Reason>`` sub-element of current location.
+
 
 Utility Programs
 ----------------
