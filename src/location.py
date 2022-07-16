@@ -634,14 +634,10 @@ def getargs(argv):
     if is_update and args.col_reason is not None:
         args.col_reason = col2num(args.col_reason)
     if is_update:
-        nloctypes = int(args.current) + int(args.normal)
-        if nloctypes != 1:
-            print('Exactly one of -c or -n must be specified.')
-            sys.exit(1)
         if not nd.vdate(args.date):
             print('--date must be complete Modes format: d.m.yyyy')
             sys.exit(1)
-    if  (is_update or is_select) and args.infile == args.outfile:
+    if (is_update or is_select) and args.infile == args.outfile:
         print('Fatal error: Input and output files must be different.')
         sys.exit(1)
     return args
