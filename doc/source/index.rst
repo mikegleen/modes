@@ -277,7 +277,8 @@ The corresponding ``cmd`` statement must be ``column``:
    this row to setting the --patch command-line option which applies to all of
    the rows in the CSV file.
 -  **reason** In ``location.py`` use the text in this column to update the
-   ``<Reason>`` sub-element of current location.
+   ``<Reason>`` sub-element of current location. If this field is not populated
+   then the `--reason` argument will be used if present.
 
 
 Utility Programs
