@@ -241,7 +241,7 @@ def getparser():  # called either by getargs or sphinx
         The column can be a number or a spreadsheet-style letter.''' +
                         if_not_sphinx(f''' The default is 0, the first column.''',
                                       calledfromsphinx))
-        
+
     parser.add_argument('--include_skip', type=int, default=0, help='''
         The number of rows to skip at the front of the include file.''' +
                         if_not_sphinx(f''' The default is 0.
