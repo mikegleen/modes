@@ -270,6 +270,7 @@ given as the parameter to the ``xpath`` statement instead of an element path.
 The corresponding ``cmd`` statement must be ``column``:
 
 -  **filler** This column in the CSV file will not update any XML element.
+   Used in ``csv2xml.py`` and ``updatefromcsv.py``.
 -  **location_type** In ``location.py`` set this to ``c``, ``n``, or ``cn`` indicating
    that the current, normal, or both, respectively, should be updated.
 -  **patch** In ``location.py`` indicate that this column should contain
