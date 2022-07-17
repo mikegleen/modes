@@ -144,7 +144,7 @@ def main():
                 trace(3, '{}: cell empty {}', accnum, title)
                 continue
             xpath = doc[Stmt.XPATH]
-            if xpath.lower() == Stmt.FILLER:
+            if xpath.lower() == Stmt.get_filler():
                 continue
             elt = template.find(xpath)
             if elt is None:

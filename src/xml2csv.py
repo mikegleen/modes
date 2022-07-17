@@ -20,6 +20,7 @@ from utl.cfgutil import Cmd, Stmt, yaml_fieldnames, expand_idnum
 from utl.cfgutil import Config, read_include_dict
 from utl.excel_cols import col2num
 from utl.normalize import normalize_id, denormalize_id, DEFAULT_MDA_CODE
+from utl.normalize import if_not_sphinx
 from utl.zipmagic import openfile
 
 
@@ -36,7 +37,7 @@ def opencsvwriter(filename, delimiter):
     return outcsv, csvfile
 
 
-def one_document(document, parent, config: Config):
+def one_document(document, parent):
     command = document[Stmt.CMD]
     eltstr = document.get(Stmt.XPATH)
     text = None
@@ -146,7 +147,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
             data.append(norm_idnum)
 
         for document in config.col_docs:
-            text, command = one_document(document, elem, config)
+            text, command = one_document(document, elem)
             # print(f'{command=}')
             if text is None:
                 notfound += 1
@@ -227,7 +228,8 @@ def getparser():  # called either by getargs or sphinx
     parser.add_argument('--heading', action='store_true', help='''
         Write a row at the front of the CSV file containing the field names.
         These are defined by the "title" statements in the config or inferred
-        from the xpath.''')
+        from the xpath. The first column will contain the accession number
+        and the heading will be "Serial".''')
     parser.add_argument('--include', required=False, help='''
         A CSV file specifying the accession numbers of objects to be processed.
         If omitted, all records will be processed. In either case, objects will
@@ -235,13 +237,15 @@ def getparser():  # called either by getargs or sphinx
     parser.add_argument('--include_column', required=False,
                         default='0', type=str, help='''
         The column number containing the accession number in the file
-        specified by the --include option. The default is 0, the first column.
-        The column can be a number or a spreadsheet-style letter.
-        ''')
+        specified by the --include option.
+        The column can be a number or a spreadsheet-style letter.''' +
+                        if_not_sphinx(f''' The default is 0, the first column.''',
+                                      calledfromsphinx))
+        
     parser.add_argument('--include_skip', type=int, default=0, help='''
-        The number of rows to skip at the front of the include file. The
-        default is 0.
-        ''')
+        The number of rows to skip at the front of the include file.''' +
+                        if_not_sphinx(f''' The default is 0.
+        ''', calledfromsphinx))
     parser.add_argument('-j', '--object', help='''
     Specify a single object to be processed. Do not also specify the include
     file. The argument can be an object range, like JB001-2.
@@ -249,8 +253,9 @@ def getparser():  # called either by getargs or sphinx
     parser.add_argument('-l', '--logfile', help='''
     Specify a file to write messages to. Default is sys.stdout ''')
     parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
-        Specify the MDA code, used in normalizing the accession number.
-        The default is "{DEFAULT_MDA_CODE}". ''')
+        Specify the MDA code, used in normalizing the accession number.''' +
+                        if_not_sphinx(f''' The default is "{DEFAULT_MDA_CODE}". ''',
+                                      calledfromsphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -271,9 +276,12 @@ def getargs(argv):
     return args
 
 
+calledfromsphinx = True
+
 if __name__ == '__main__':
     global _args, _logfile
     assert sys.version_info >= (3, 6)
+    calledfromsphinx = False
     t1 = time.perf_counter()
     n_lines, n_written, not_found = main(sys.argv)
     elapsed = time.perf_counter() - t1

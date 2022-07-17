@@ -79,7 +79,7 @@ def one_element(elem, idnum):
         if command == Cmd.CONSTANT:
             newtext = doc[Stmt.VALUE]
         else:  # command is COLUMN
-            if xpath.lower() == Stmt.FILLER:
+            if xpath.lower() == Stmt.get_filler():
                 continue
             newtext = newvals[idnum][doc[Stmt.TITLE]]
         if not newtext and not _args.empty:

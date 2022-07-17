@@ -117,10 +117,14 @@ class Stmt:
     _DEFAULT_RECORD_TAG = 'Object'
     _DEFAULT_RECORD_ID_XPATH = './ObjectIdentity/Number'
     #
-    # FILLER is used instead of the xpath value. If specified,
+    # _FILLER is used instead of the xpath value. If specified,
     # update_from_csv will skip this column in the input CSV file. For example:
     #       xpath: filler
-    FILLER = 'filler'
+    _FILLER = 'filler'
+
+    @staticmethod
+    def get_filler():
+        return Stmt._FILLER
 
     @staticmethod
     def get_default_record_id_xpath():
@@ -134,7 +138,6 @@ class Stmt:
     def validate_yaml_stmts(document):
         validlist = [getattr(Stmt, stmt) for stmt in dir(Stmt)
                      if not stmt.startswith('_')]
-        validlist.remove(Stmt.FILLER)  # reserved word, not a statement
         valid = True
         for stmt in document:
             if stmt not in validlist:
@@ -235,8 +238,8 @@ class Config:
             else:  # not control command
                 self.col_docs.append(document)
         self.norm = []  # True if this column needs to normalized/unnormalized
-        # Do this as a separate step because we don't know whether we need
-        # to include the serial number until all of the documents are read.
+        # Do this as a separate step because we didn't know whether we need
+        # to include the serial number until all of the documents were read.
         if not self.skip_number:
             self.norm.append(True)  # for the Serial number
         for doc in self.col_docs:
