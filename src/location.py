@@ -434,14 +434,15 @@ def main():
 
 def add_arguments(parser, command):
     global is_update, is_diff, is_select, is_validate  # Needed for Sphinx
+    # Define groups as None to avoid warnings from PyCharm.
     # reason_group: --col_reason or --reason
     reason_group = None
     # map_group: --mapfile or --object
-    map_group = None
     # heading_group: --heading or --location
-    heading_group = None
     # diff_group: --current or --normal
     diff_group = None  # only if diff command
+    # patch_group: --col_patch or --patch
+    patch_group = None
     if called_from_sphinx:
         is_update = command == 'update'
         is_diff = command == 'diff'
@@ -471,6 +472,18 @@ def add_arguments(parser, command):
         option is ignored. The column can be a
         number or a spreadsheet-style letter.''', called_from_sphinx))
     if is_update:
+        parser.add_argument('--col_loc_type',
+                            help=nd.sphinxify('''
+        Set this to ``c``, ``n``, or ``cn`` indicating
+        that the current, normal, or both, respectively, should be updated.
+        If this is set, do not set the -c or -p argument.
+        ''', called_from_sphinx))
+        patch_group = parser.add_mutually_exclusive_group(required=False)
+        patch_group.add_argument('--col_patch', help=nd.sphinxify('''
+        Indicate that this column should contain
+        “``patch``” possibly abbreviated to “``p``” or be empty. This is equivalent for
+        this row to setting the --patch command-line option which applies to all of
+        the rows in the CSV file.''', called_from_sphinx))
         reason_group = parser.add_mutually_exclusive_group()
         reason_group.add_argument('--col_reason', help=nd.sphinxify('''
             The zero-based column containing text to be inserted as the
@@ -552,7 +565,7 @@ def add_arguments(parser, command):
             expected as the purpose is to update that value.
             ''')
     if is_update:
-        parser.add_argument('--patch', action='store_true', help='''
+        patch_group.add_argument('--patch', action='store_true', help='''
         Update the specified location in place without creating history. This
         is always the behavior for normal locations but not for current or
         previous.
@@ -634,6 +647,10 @@ def getargs(argv):
     if is_update and args.col_reason is not None:
         args.col_reason = col2num(args.col_reason)
     if is_update:
+        if args.col_loc_type:
+            if args.current or args.normal:
+                print('You may not specify both --col_loc_type and -c or -n.')
+                sys.exit(1)
         if not nd.vdate(args.date):
             print('--date must be complete Modes format: d.m.yyyy')
             sys.exit(1)
