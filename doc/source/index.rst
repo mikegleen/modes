@@ -271,15 +271,6 @@ The corresponding ``cmd`` statement must be ``column``:
 
 -  **filler** This column in the CSV file will not update any XML element.
    Used in ``csv2xml.py`` and ``updatefromcsv.py``.
--  **location_type** In ``location.py`` set this to ``c``, ``n``, or ``cn`` indicating
-   that the current, normal, or both, respectively, should be updated.
--  **patch** In ``location.py`` indicate that this column should contain
-   “``patch``” possibly abbreviated to “``p``” or be empty. This is equivalent for
-   this row to setting the --patch command-line option which applies to all of
-   the rows in the CSV file.
--  **reason** In ``location.py`` use the text in this column to update the
-   ``<Reason>`` sub-element of current location. If this field is not populated
-   then the `--reason` argument will be used if present.
 
 
 Utility Programs
