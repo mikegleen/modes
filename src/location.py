@@ -14,6 +14,7 @@ created (unless the --patch option is selected).
 import argparse
 import codecs
 import csv
+import time
 from datetime import date
 import sys
 # noinspection PyPep8Naming
@@ -76,7 +77,10 @@ def loadcsv():
                 if _args.reason:
                     reason = _args.reason
                 elif _args.col_reason:
-                    reason = row[_args.col_reason]
+                    try:
+                        reason = row[_args.col_reason]
+                    except IndexError:
+                        pass
             location = loc_arg if loc_arg else row[_args.col_loc].strip()
             for ob in objidlist:
                 nobjid = nd.normalize_id(ob)
@@ -251,7 +255,7 @@ def update_normal_location(ol, idnum):
     nidnum = nd.normalize_id(idnum)
     newtext = _args.location if _args.location else newlocs[nidnum]
     if text != newtext:
-        trace(2, '{}: Updated normal {} -> {}', idnum, text, newtext)
+        trace(2, '{}: Updated normal location: {} -> {}', idnum, text, newtext)
         location.text = newtext
         updated = True
     else:
@@ -306,7 +310,17 @@ def update_current_location(elem, idnum):
         else:
             return False
 
+    must_patch = False
     if _args.patch:
+        must_patch = True
+    elif _args.col_patch is not None:
+        try:
+            patch_txt = newrows[nidnum][_args.col_patch]
+            must_patch = bool(patch_txt.strip())  # True if populated
+        except IndexError:
+            pass  # False if the line is short
+
+    if must_patch:
         datebegin = ol.find('./Date/DateBegin')
         oldlocation = ol.find('./Location')
         datebegin.text = _args.date
@@ -314,6 +328,8 @@ def update_current_location(elem, idnum):
         oldlocation.text = newlocationtext
         oldreason = ol.find('./Reason')
         reasontext = _args.reason if _args.reason else 'Patched'
+        if newreasons[nidnum]:
+            reasontext = f'{newreasons[nidnum]} (Patched)'
         if oldreason is not None:
             oldreason.text = reasontext
         else:
@@ -361,7 +377,7 @@ def update_current_location(elem, idnum):
                 trace(2, 'Removing previous location from {}.', idnum)
                 elem.remove(elt)
 
-    trace(2, '{}: Updated current {} -> {}', idnum, oldlocation,
+    trace(2, '{}: Updated current location: {} -> {}', idnum, oldlocation,
           newlocationtext)
     return True
 
@@ -385,22 +401,23 @@ def loc_types(idnum, nidnum, args, rows):
     if args.col_loc_type is None:
         return args.current, args.normal, args.previous
     try:
-        clt = rows[nidnum][args.col_loc_type].upper().strip()
+        clt = rows[nidnum][args.col_loc_type].strip()
     except IndexError as e:
         raise Exception(f'Row with index {idnum} is too short; doesn‘t '
                         f'contain the location type.') from e
     if len(clt) < 1:
-        raise ValueError(f'{idnum} col_loc_type empty.')
+        raise ValueError(f'{idnum} location type column empty.')
     current = normal = False
     for c in clt:
-        match c:
+        nc = c.upper()
+        match nc:
             case 'C':
                 current = True
             case 'N':
                 normal = True
             case _:
                 e = (f'Illegal location type for {idnum}:'
-                     f' "{clt}"')
+                     f' "{c}"')
                 raise ValueError(e)
     return current, normal, None
 
@@ -701,7 +718,8 @@ def getargs(argv):
     if is_update:
         args.col_reason = col2num(args.col_reason)
         args.col_loc_type = col2num(args.col_loc_type)
-        args.col_patch = col2num(args.col_patch)
+        if args.col_patch is not None:
+            args.col_patch = col2num(args.col_patch)
         if args.col_loc_type:
             if args.current or args.normal:
                 print('You may not specify both --col_loc_type and -c or -n.')
@@ -721,6 +739,7 @@ called_from_sphinx = True
 if __name__ == '__main__':
     called_from_sphinx = False
     assert sys.version_info >= (3, 6)
+    t1 = time.perf_counter()
     is_diff = sys.argv[1] == 'diff'
     is_select = sys.argv[1] == 'select'
     is_update = sys.argv[1] == 'update'
@@ -752,4 +771,6 @@ if __name__ == '__main__':
         print(f'Total failed: {total_failed}/{total_objects}.')
     elif is_diff:
         print(f'Total different: {total_diff}/{total_in_csvfile}')
-    trace(1, 'End location {}.', _args.subp)
+    elapsed = time.perf_counter() - t1
+    trace(1, 'End location {}.  Elapsed: {:5.2f} seconds.', _args.subp,
+          elapsed)
