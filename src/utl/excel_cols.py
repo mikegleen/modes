@@ -10,8 +10,15 @@ import string
 import sys
 
 
-def col2num(col: str):
-    """ Map a spreadsheet column to a zero-based index. """
+def col2num(col: str | None):
+    """
+    Map a spreadsheet column to a zero-based index.
+    :param col: either like 'A' (case insensitive) or a number or None
+    :return: If None, return None (useful with optional arguments) or a
+             zero-based column number.
+    """
+    if col is None:
+        return None
     num = 0
     if col.isnumeric():
         return int(col)
