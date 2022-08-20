@@ -401,14 +401,14 @@ def loc_types(idnum, nidnum, args, rows):
     if args.col_loc_type is None:
         return args.current, args.normal, args.previous
     try:
-        clt = rows[nidnum][args.col_loc_type].strip()
+        loc_type = rows[nidnum][args.col_loc_type].strip()
     except IndexError as e:
         raise Exception(f'Row with index {idnum} is too short; doesn‘t '
                         f'contain the location type.') from e
-    if len(clt) < 1:
+    if len(loc_type) < 1:
         raise ValueError(f'{idnum} location type column empty.')
     current = normal = False
-    for c in clt:
+    for c in loc_type:
         nc = c.upper()
         match nc:
             case 'C':
