@@ -142,7 +142,7 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
     # end one_exhibition
 
     display_id = denormalize_id(idnum)
-    trace(2, 'one_element: {} {}', display_id, exhibition)
+    trace(3, 'one_object: {} {}', display_id, exhibition)
     elts = list(objelt)  # the children of Object
     # for elt in elts:
     #     print(elt)
@@ -160,6 +160,9 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
                 continue
             begindate, _ = datefrommodes(elt.find('./Date/DateBegin').text)
             if status == 1:  # Not this exhibition
+                # The <Exhibition> element from the XML file is not one we're
+                # interested in so just put it on the list to be written out.
+                trace(2, f'Keeping {display_id}')
                 exhibs_to_insert.append((begindate, elt))  # will sort on date
                 continue
             else:  # status == 2
@@ -167,13 +170,16 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
                 found_old_key = True
                 need_new = False
                 if _args.delete:
+                    trace(2, f'Removing {display_id}')
                     exhibs_to_remove.append(elt)
                 else:
+                    trace(2, f'Updating {display_id}')
                     exhibs_to_insert.append((begindate, elt))  # will sort on date
     if firstexix is None:  # no Exhibition elements were found
         etype = objelt.get('elementtype')
-        trace(1, 'Object number {}: No Exhibition element. etype: {}',
-              idnum, etype)
+        trace(1, '{}: No Exhibition element. etype: “{}”. '
+                 'Inserting the new exhibition after the Acquisition element.',
+              display_id, etype)
         for n, elt in enumerate(elts):
             if elt.tag == "Acquisition":
                 firstexix = n + 1  # insert the new elt after <Acquisition>
@@ -187,6 +193,7 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
         objelt.remove(exhib)
     if need_new:
         newexhibit = new_exhib()  # returns a tuple of (date, element)
+        trace(2, f'Adding {display_id}')
         exhibs_to_insert.append(newexhibit)
     # Insert the Exhibition elements with the most recent one first
     for _edate, exhib in sorted(exhibs_to_insert):
@@ -246,7 +253,7 @@ def get_csv_dict(csvfile):
         try:
             accnum = normalize_id(accno)
         except ValueError:
-            print(f"Skipping in csv: {accno}")
+            print(f"Skipping badly formed accession # in csv: {accno}")
             return
         if accnum in cdict:
             raise KeyError(f'Duplicate accession number: {accnum}')
@@ -289,7 +296,7 @@ def get_csv_dict(csvfile):
             accnumlist = expand_idnum(accnumber)
             for accn in accnumlist:
                 one_accession_number(accn)
-    trace(2, 'get_csv_dict: {}', cdict)
+    trace(3, 'get_csv_dict: {}', cdict)
     return cdict
 
 
@@ -326,7 +333,7 @@ def main():
             break
     outfile.write(b'</Interchange>')
     for idnum in exmap:
-        trace(1, 'In CSV but not XML: "{}"', idnum)
+        trace(1, 'In CSV but not XML: "{}"', denormalize_id(idnum))
     trace(1, f'End exhibition.py. {written} object'
              f'{"s" if written != 1 else ""} written '
              f'of which {numupdated} updated.')
