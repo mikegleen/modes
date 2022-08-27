@@ -87,6 +87,8 @@ the ``cmd: global`` document.
    of the element's tag to be created. If this is omitted the element name will be taken
    from the **title** statment. If both are omitted the name will be taken from the title
    generated from the **xpath** statement.
+-  **insert_after** If an element doesn't exist, it will be inserted after the
+   element who's simple name is given here. You must also specify **parent_path**.
 -  **multiple_delimiter**  The character to use within a column to separate the
    values when used with the **multiple** command. The statement may
    appear under the **global** command or a specific **multiple** command,
@@ -95,7 +97,8 @@ the ``cmd: global`` document.
 -  **normalize** Adjust this accession number so that it sorts in numeric
    order. The number will be de-normalized before output. The default serial
    number in the first column and the accession number extracted from the XML
-   file will always be normalized before use.
+   file will always be normalized before use. This may also be used to strip leading
+   zeros from another numeric field such as entry numbers.
 -  **parent_path** Include this statement if the **xpath** may not
    exist, in which case a new one will be created as a child of this path.
    Implemented in ``csv2xml.py`` and ``update_from_csv.py`` only. The element
@@ -182,7 +185,7 @@ Column-related Commands
 -  **column** This is the basic command to display or update the text of an
    element.
 -  **constant** For ``csv2xml.py`` and ``update_from_csv.py``, create an element
--  from the ``value`` statement of this document without reference to the CSV file.
+   from the ``value`` statement of this document without reference to the CSV file.
 -  **keyword** Find the element specified by the xpath statement whose text
    equals the text in the **value** statement and then return the
    first Keyword sub-element's text.
@@ -333,3 +336,65 @@ input data from a CSV file.
 Extract
 fields from an XML file, creating a CSV file with the fields as
 specified in the configuration.
+
+
+Examples
+--------
+The following examples illustrate various usages of the library.
+
+Insert ``Entry`` Elements
+~~~~~~~~~~~~~~~~~~~~~~~~~
+Entry numbers are recorded for recent acquisitions. They are recorded in elements such as::
+
+    <Entry>
+        <EntryNumber>53</EntryNumber>
+    </Entry>
+
+Not all of the elementtype's templates include skeleton Entry/EntryNumber elements so it
+may be necessary to create these elements. This may be done with a YAML configuration::
+
+   cmd: global
+   add_mda_code:
+   ---
+   cmd: constant
+   xpath: ./Entry
+   parent_path: .
+   insert_after: Acquisition
+   title: Entry
+   value:
+   ---
+   cmd: column
+   xpath: ./Entry/EntryNumber
+   parent_path: ./Entry
+   normalize:
+
+This is matched with an input CSV detail file::
+
+   Serial,EntryNumber
+   2018.6,008
+   2019.13-43,53
+   2019.44,50
+   2021.25,58
+   2022.23-26,103
+
+The command to effect this update is::
+
+    python src/update_from_csv.py prod_update/normal/2022-08-25_entry.xml \
+    prod_update/normal/2022-08-25_entry2.xml -c src/cfg/entry.yml \
+    -m data/sally/2022-08-20_object_entry.csv
+
+This illustrates several features.
+
+#. Accession numbers are expressed without leading MDA codes. The global statement
+   ``add_mda_code`` forces ``LDHRM.`` to be prepended to the given number.
+#. Accession number expansion is used. See :doc:`data_format`.
+#. The entry number is sometimes given with leading zeros. These are stripped off
+   because of the **normalize** statement in the ``EntryNumber`` column.
+#. The ``EntryNumber`` column does not have an explicit title. This is taken from the trailing
+   tag in the **xpath** statement.
+
+The script will attempt to insert the new value in an existing ``Entry`` element. If it
+doesn't exist, it will search for the parent and create a subelement.
+However, that does also not exist. The
+solution is to create the parent element first. Normally, this will be created as a new
+subelement of *its* parent. This is modified by the **insert_after** statement.

@@ -32,9 +32,9 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-from utl.cfgutil import Config, Stmt, Cmd, new_subelt
+from utl.cfgutil import Config, Stmt, Cmd, new_subelt, expand_idnum
 from utl.normalize import normalize_id, sphinxify, denormalize_id
-from utl.normalize import if_not_sphinx
+from utl.normalize import if_not_sphinx, DEFAULT_MDA_CODE
 
 
 def trace(level, template, *args):
@@ -55,7 +55,12 @@ def loadnewvals(allow_blanks=False):
                 else:
                     raise ValueError('Blank accession number in include file;'
                                      ' --allow_blank not selected.')
-            newval_dict[normalize_id(accnum)] = row
+            if cfg.add_mda_code and accnum[0].isnumeric():
+                accnum = _args.mdacode + '.' + accnum
+            accnums = expand_idnum(accnum)
+            trace(3, 'accnums = {}', accnums)
+            for accnum in accnums:
+                newval_dict[normalize_id(accnum)] = row
     return newval_dict
 
 
@@ -81,14 +86,15 @@ def one_element(elem, idnum):
         else:  # command is COLUMN
             if xpath.lower() == Stmt.get_filler():
                 continue
+            # get the text from the CSV column for this row
             newtext = newvals[idnum][doc[Stmt.TITLE]]
-        if not newtext and not _args.empty:
+        if not newtext and not (_args.empty or command == Cmd.CONSTANT):
             trace(3, '{}: empty field in CSV ignored. --empty not specified',
                   idnum)
             continue
         target = elem.find(xpath)
-        if target is None and newtext:
-            target = new_subelt(doc, elem, _args.verbose)
+        if target is None:
+            target = new_subelt(doc, elem, idnum, _args.verbose)
             if target is None:  # parent is not specified or doesn't exist
                 trace(1, '{}: Cannot find target "{}"', idnum, xpath)
                 continue
@@ -96,19 +102,23 @@ def one_element(elem, idnum):
         if not oldtext or _args.replace:
             if oldtext and oldtext == newtext:
                 nequal += 1
-                trace(2, '{} {}: Unchanged: "{}" == "{}"', idnum, title, oldtext, newtext)
+                trace(2, '{} {}: Unchanged: "{}" == "{}"', idnum, title,
+                      oldtext, newtext)
                 continue
             else:
                 if newtext == '{{clear}}':
                     newtext = ''
-                trace(3, '{} {}: Updated: "{}" -> "{}"', idnum, title, oldtext, newtext)
+                trace(3, '{} {}: Updated: "{}" -> "{}"', idnum, title, oldtext,
+                      newtext)
+                if Stmt.NORMALIZE in doc:
+                    newtext = denormalize_id(newtext)
                 target.text = newtext
                 updated = True
                 nupdated += 1
         else:
-            trace(1, '{} {}: Warning: Unchanged, --replace not set: "{}"'
-                     ' (new text = "{}")',
-                  idnum, title, oldtext, newtext)
+            trace(1, '{} {} Unchanged, old text: "{}",'
+                     ' new text: "{}"\nSet --replace to force update.',
+                  denormalize_id(idnum), title, oldtext, newtext)
             nunchanged += 1
     return updated
 
@@ -157,7 +167,8 @@ def getparser():
         set, this will cause an abort. ''')
     parser.add_argument('-c', '--cfgfile', required=True,
                         type=argparse.FileType('r'), help='''
-        Required. The YAML file describing the column path(s) to update''')
+        Required. The YAML configuration file describing the column path(s) to
+         update''')
     parser.add_argument('-e', '--empty', action='store_true', help=sphinxify('''
         Normally, an empty field in the CSV file means that no action is to be
         taken. If -e is selected, empty values from the CSV will overwrite
@@ -166,15 +177,19 @@ def getparser():
         --empty implies --replace.''', called_from_sphinx))
     parser.add_argument('--missing', action='store_true', help='''
         By default, ignore indices missing from the CSV file. If selected,
-        trace the missing index.''')
+        trace the missing index. Useful if you are updating all objects.''')
     parser.add_argument('-m', '--mapfile', required=True, help=sphinxify('''
         Required. The CSV file mapping the object number to the new element
         value(s). The
         first column must contain the object number and subsequent columns
-        must correspond to the columns in the mapping file.
+        must correspond to the columns in the configuration file.
         If a row in the CSV file has fewer fields than defined in the
-        mapping file, zero-length strings will be assumed. See
+        configuration file, zero-length strings will be assumed. See
         --empty.''', called_from_sphinx))
+    parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
+        Specify the MDA code, used in normalizing the accession number.''' +
+                        if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".
+                        ''', called_from_sphinx))
     parser.add_argument('-r', '--replace', action='store_true', help=sphinxify('''
         Replace existing values. If not specified only empty elements will be
         updated. Existing values will be cleared if the value in the CSV file

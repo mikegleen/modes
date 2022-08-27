@@ -114,6 +114,7 @@ class Stmt:
     TEMPLATE_DIR = 'template_dir'
     TEMPLATE_TITLE = 'template_title'
     TEMPLATES = 'templates'
+    INSERT_AFTER = 'insert_after'
     _DEFAULT_RECORD_TAG = 'Object'
     _DEFAULT_RECORD_ID_XPATH = './ObjectIdentity/Number'
     #
@@ -254,22 +255,37 @@ class Config:
         return select(self, elem, include_list, exclude)
 
 
-def new_subelt(doc, root, verbos=1):
-    elt = None
-    if Stmt.PARENT_PATH in doc:
-        parent = root.find(doc[Stmt.PARENT_PATH])
-        title = doc[Stmt.TITLE]
-        element = doc[Stmt.ELEMENT]
-        if parent is None:
-            if verbos > 1:
-                print(f'Cannot find parent of {doc[Stmt.XPATH]}, column {title}')
-        elif ' ' in element:
-            if verbos > 1:
-                print(f'Cannot create element with embedded spaces: {element}')
-        else:
-            elt = ET.SubElement(parent, element)
-            # print(f'{elt=}')
-    return elt
+def new_subelt(doc, root, idnum, verbos=1):
+    if Stmt.PARENT_PATH not in doc:
+        return None
+    newelt = None
+    title = doc[Stmt.TITLE]
+    element = doc[Stmt.ELEMENT]
+    insert_after = doc.get(Stmt.INSERT_AFTER)
+    if verbos > 2:
+        print(f'new_subelt: {idnum}, {element=}, {insert_after=} ')
+    parent = root.find(doc[Stmt.PARENT_PATH])
+    if parent is None:
+        if verbos > 1:
+            print(f'Cannot find parent of {doc[Stmt.XPATH]}, column {title}')
+    elif ' ' in element:
+        if verbos > 1:
+            print(f'Cannot create element with embedded spaces: {element}')
+    elif insert_after is None:
+        newelt = ET.SubElement(parent, element)
+        # print(f'{elt=}')
+    else:
+        elts = list(parent)
+        insert_ix = None
+        for n, e in enumerate(elts):
+            if e.tag == insert_after:
+                insert_ix = n + 1
+        if insert_ix is None:
+            raise ValueError(f'{idnum}: Cannot find insert_after element'
+                             f' "{insert_after}".')
+        newelt = ET.Element(element)
+        parent.insert(insert_ix, newelt)
+    return newelt
 
 
 def select(cfg: Config, elem, includes=None, exclude=False):
@@ -584,7 +600,7 @@ def expand_idnum(idnumstr: str) -> list[str]:
 
 
 def read_include_dict(includes_file, include_column, include_skip, verbos=1,
-                      logfile=sys.stdout, allow_blanks=False):
+                      logfile=sys.stdout, allow_blanks=False, mdacode=''):
     """
     Read the optional CSV file from the --include argument. Build a dict
     of normalized accession IDs for use by cfgutil.select. The value
@@ -617,6 +633,8 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
                 raise ValueError('Blank accession number in include file;'
                                  ' --allow_blank not selected.')
         # idnumlist: list[str] = expand_idnum(idnum)
+        if mdacode:
+            idnum = mdacode + '.' + idnum
         idnumlist: list[str] = [normalize_id(i) for i in expand_idnum(idnum)]
         if verbos >= 1:
             for num in idnumlist:
@@ -626,13 +644,3 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
         for idnum in idnumlist:
             includedict[idnum] = row
     return includedict
-
-
-def expand_value(text):
-    match text.lower():
-        case '{{clear}}':
-            return ''
-        case '{{today}}':
-            return modesdate(date.today())
-        case _:
-            return text

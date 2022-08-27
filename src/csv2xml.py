@@ -148,7 +148,7 @@ def main():
                 continue
             elt = template.find(xpath)
             if elt is None:
-                elt = new_subelt(doc, template, _args.verbose)
+                elt = new_subelt(doc, template, accnum, _args.verbose)
             if elt is None:
                 trace(1, '{}: Cannot create new {}.\nCheck parent_path statement.',
                       accnum, doc[Stmt.XPATH])

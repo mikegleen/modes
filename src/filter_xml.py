@@ -5,14 +5,14 @@
 """
 import argparse
 import os.path
-import re
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 from utl.cfgutil import Config, read_include_dict
 from utl.cfgutil import expand_idnum
 from utl.excel_cols import col2num
-from utl.normalize import normalize_id, sphinxify
+from utl.normalize import normalize_id, sphinxify, DEFAULT_MDA_CODE
+from utl.normalize import if_not_sphinx
 
 
 def trace(level, template, *args):
@@ -74,16 +74,16 @@ def getargs():
     parser.add_argument('-c', '--cfgfile', help='''
         The config file describing the Object elements to include in the
         output''')
-    parser.add_argument('-d', '--directory', action='store_true', help=
-                        sphinxify('''
+    parser.add_argument('-d', '--directory', action='store_true',
+                        help=sphinxify('''
         The output file is a directory. Create files in the directory,
         one per object in the XML file. The directory must be empty (but
         see --force).''', calledfromsphinx))
     parser.add_argument('-e', '--encoding', default='utf-8', help='''
         Set the output encoding. The default is "utf-8".
         ''')
-    parser.add_argument('-f', '--force', action='store_true', help=
-                        sphinxify('''
+    parser.add_argument('-f', '--force', action='store_true',
+                        help=sphinxify('''
         Allow output to a directory that is not empty.
         ''', calledfromsphinx))
     parser.add_argument('--include', required=False, help='''
@@ -101,6 +101,10 @@ def getargs():
         ''')
     parser.add_argument('-j', '--object', required=False, help='''
         Specify a single object to copy. ''')
+    parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
+        Specify the MDA code, used in normalizing the accession number.''' +
+                        if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".
+                        ''', calledfromsphinx))
     parser.add_argument('-n', '--normalize', action='store_true', help='''
         Noramlize the accession number written to the CSV file or used to
         create the output filename.
@@ -144,7 +148,8 @@ if __name__ == '__main__':
         includes = dict.fromkeys(includeset)
     else:
         includes = read_include_dict(_args.include, _args.include_column,
-                                     _args.include_skip, _args.verbose)
+                                     _args.include_skip, _args.verbose,
+                                     mdacode=_args.mdacode)
     main()
     basename = os.path.basename(sys.argv[0])
     print(f'{selcount} object{"" if selcount == 1 else "s"} selected from {objcount}.')
