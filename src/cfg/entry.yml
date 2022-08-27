@@ -1,0 +1,19 @@
+#
+# Insert an Entry/EntryNumber. If the element doesn't exist, create one after
+# the ./Acquisition element.
+# We must do this in two steps, creating the Entry element first and then the EntryNumber.
+#
+cmd: global
+add_mda_code:
+---
+cmd: constant
+xpath: ./Entry
+parent_path: .
+insert_after: Acquisition
+title: Entry
+value:
+---
+cmd: column
+xpath: ./Entry/EntryNumber
+parent_path: ./Entry
+normalize:
