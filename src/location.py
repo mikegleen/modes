@@ -557,10 +557,12 @@ def add_arguments(parser, command):
             named in the row. Specify this or --reason. The column can be a
             number or a spreadsheet-style letter.
             ''', called_from_sphinx))
-    if is_update:
-        parser.add_argument('-c', '--current', action='store_true', help='''
+        parser.add_argument('-c', '--current', action='store_true',
+                            help=nd.sphinxify('''
         Update the current location and change the old current location to a
-        previous location. See the descrption of "n" and "p". ''')
+        previous location. See the descrption of "n" and "p". Do not specify
+        this and --col_loc_type.''',
+                                              called_from_sphinx))
     if is_diff:
         # diff_group: --current or --normal
         diff_group = parser.add_mutually_exclusive_group(required=True)
@@ -622,8 +624,10 @@ def add_arguments(parser, command):
             specified.
             ''', called_from_sphinx))
     if is_update:
-        parser.add_argument('-n', '--normal', action='store_true', help='''
-        Update the normal location. See the description for "p" and "c".''')
+        parser.add_argument('-n', '--normal', action='store_true',
+                            help=nd.sphinxify('''
+        Update the normal location. See the description for "c" and "p".
+        Do not specify this and --col_loc_type.''', called_from_sphinx))
     if is_diff:
         diff_group.add_argument('-n', '--normal', action='store_true', help='''
         Compare the location in the CSV file to the normal location in the
@@ -637,9 +641,9 @@ def add_arguments(parser, command):
             ''')
     if is_update:
         patch_group.add_argument('--patch', action='store_true', help='''
-        Update the specified location in place without creating history. This
-        is always the behavior for normal locations but not for current or
-        previous.
+        Update the specified current location in place without creating
+        history. This is always the behavior for normal locations but not for
+        current or previous.
         ''')
         parser.add_argument('-p', '--previous', action='store_true',
                             help=nd.sphinxify('''
