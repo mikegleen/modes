@@ -277,6 +277,7 @@ def new_subelt(doc, root, idnum, verbos=1):
     else:
         elts = list(parent)
         insert_ix = None
+        # Insert after the last element named in the insert_after statement.
         for n, e in enumerate(elts):
             if e.tag == insert_after:
                 insert_ix = n + 1
