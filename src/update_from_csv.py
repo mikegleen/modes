@@ -182,8 +182,9 @@ def getparser():
         Required. The CSV file mapping the object number to the new element
         value(s). The
         first column must contain the object number and subsequent columns
-        must correspond to the columns in the configuration file.
-        If a row in the CSV file has fewer fields than defined in the
+        must have headers that correspond to the titles of the columns in the
+        configuration
+        file. If a row in the CSV file has fewer fields than defined in the
         configuration file, zero-length strings will be assumed. See
         --empty.''', called_from_sphinx))
     parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
