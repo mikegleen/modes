@@ -83,7 +83,7 @@ def loadcsv():
                         pass
             location = loc_arg if loc_arg else row[_args.col_loc].strip()
             for ob in objidlist:
-                nobjid = nd.normalize_id(ob)
+                nobjid = nd.normalize_id(ob, strict=not _args.force)
                 if not nobjid:
                     print(f'Warning: Blank object ID row {rownum}: {row}')
                     continue  # blank number
@@ -595,6 +595,9 @@ def add_arguments(parser, command):
         Write the object to the output file even if it hasn't been updated.
         This only
         applies to objects whose ID appears in the CSV file. -a implies -f.
+        
+        An illegal accession number format will be skipped instead of causing
+        a fatal error.
         ''')
     heading_group = parser.add_mutually_exclusive_group()
     heading_group.add_argument('--heading', help=nd.sphinxify('''
