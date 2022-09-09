@@ -1,7 +1,11 @@
-cmd: ifcontains
+cmd: ifeq
 xpath: ./Exhibition/ExhibitionName
-value: "Children"
+value: "The Humour of William Heath Robinson"
 ---
 cmd: column
 xpath: ./ObjectLocation[@elementtype='normal location']/Location
 title: Normal Location
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype='current location']/Location
+title: Current Location
