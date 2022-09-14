@@ -120,9 +120,7 @@ the ``cmd: global`` document.
 -  **width** truncate this column to this number of characters when writing to
    a CSV file. Ignored when writing to an XML file.
 -  **xpath** Required. This describes the XSLT path to a relevant XML
-   element. If the path is **filler**, this column will not be copied
-   to the XML file by ``csv2xml.py`` and ``update_from_csv.py``. This is useful if the CSV file
-   has columns that you need to skip.
+   element.
 
 
 Global-command Statements
@@ -267,14 +265,9 @@ The following words are reserved in the CSV file used as input to
 -  **{{clear}}** In ``updatefromcsv.py``, if this appears in a field in the input CSV
    file, then the field in the XML file is cleared. An empty field in the CSV file
    causes no action unless the ``--empty`` or ``--replace`` option is specified.
-
-The following words are reserved in the YAML configuration file and are to be
-given as the parameter to the ``xpath`` statement instead of an element path.
-The corresponding ``cmd`` statement must be ``column``:
-
--  **filler** This column in the CSV file will not update any XML element.
-   Used in ``csv2xml.py`` and ``updatefromcsv.py``.
-
+-  **{{today}}** In ``updatefromcsv.py``, if this appears in a field in the input CSV
+   file, then the field is set to the value of ``--date``. The default is today’s date
+   if the parameter is not set.
 
 Utility Programs
 ----------------

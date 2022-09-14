@@ -117,15 +117,6 @@ class Stmt:
     INSERT_AFTER = 'insert_after'
     _DEFAULT_RECORD_TAG = 'Object'
     _DEFAULT_RECORD_ID_XPATH = './ObjectIdentity/Number'
-    #
-    # _FILLER is used instead of the xpath value. If specified,
-    # update_from_csv will skip this column in the input CSV file. For example:
-    #       xpath: filler
-    _FILLER = 'filler'
-
-    @staticmethod
-    def get_filler():
-        return Stmt._FILLER
 
     @staticmethod
     def get_default_record_id_xpath():

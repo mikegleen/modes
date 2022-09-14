@@ -27,6 +27,7 @@
 import argparse
 import codecs
 import csv
+from datetime import date
 import os
 import sys
 # noinspection PyPep8Naming
@@ -35,6 +36,7 @@ import xml.etree.ElementTree as ET
 from utl.cfgutil import Config, Stmt, Cmd, new_subelt, expand_idnum
 from utl.normalize import normalize_id, sphinxify, denormalize_id
 from utl.normalize import if_not_sphinx, DEFAULT_MDA_CODE
+import utl.normalize as nd
 
 
 def trace(level, template, *args):
@@ -84,8 +86,6 @@ def one_element(elem, idnum):
         if command == Cmd.CONSTANT:
             newtext = doc[Stmt.VALUE]
         else:  # command is COLUMN
-            if xpath.lower() == Stmt.get_filler():
-                continue
             # get the text from the CSV column for this row
             newtext = newvals[idnum][doc[Stmt.TITLE]]
         if not newtext and not (_args.empty or command == Cmd.CONSTANT):
@@ -108,6 +108,8 @@ def one_element(elem, idnum):
             else:
                 if newtext == '{{clear}}':
                     newtext = ''
+                elif newtext == '{{today}}':
+                    newtext = _args.date
                 trace(3, '{} {}: Updated: "{}" -> "{}"', idnum, title, oldtext,
                       newtext)
                 if Stmt.NORMALIZE in doc:
@@ -169,6 +171,10 @@ def getparser():
                         type=argparse.FileType('r'), help='''
         Required. The YAML configuration file describing the column path(s) to
          update''')
+    parser.add_argument('-d', '--date', help='''
+        If a column in the CSV file contains '{{today}}', use this value for
+        the field text. The default is today’s date.
+        ''')
     parser.add_argument('-e', '--empty', action='store_true', help=sphinxify('''
         Normally, an empty field in the CSV file means that no action is to be
         taken. If -e is selected, empty values from the CSV will overwrite
@@ -219,6 +225,10 @@ def getargs(argv):
         args.replace = True
     if os.path.splitext(args.mapfile)[1].lower() != '.csv':
         raise ValueError('mapfile must be a CSV file.')
+    if args.date:
+        d = nd.datefrommodes(args.date)  #
+        args.date = 1
+        args.date = nd.modesdate(date.today())
     return args
 
 

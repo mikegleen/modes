@@ -144,8 +144,6 @@ def main():
                 trace(3, '{}: cell empty {}', accnum, title)
                 continue
             xpath = doc[Stmt.XPATH]
-            if xpath.lower() == Stmt.get_filler():
-                continue
             elt = template.find(xpath)
             if elt is None:
                 elt = new_subelt(doc, template, accnum, _args.verbose)
@@ -186,9 +184,7 @@ def getparser():
         defined by the XPATH statement in the config file. The first row in the
         CSV file is a heading row. The column titles must match the document
         titles in the config file. Columns are referred to by name so it is
-        permissible to omit columns from the config file. Note that this
-        contrasts with ``update_from_csv.py``
-        where the heading row may be omitted and filler columns must be included.
+        permissible to omit columns from the config file.
         
         Create an
         XML file with data from the CSV file based on a template of the
