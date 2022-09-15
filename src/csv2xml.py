@@ -11,6 +11,7 @@ import re
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
+from openpyxl import load_workbook
 
 
 from utl.cfgutil import Config, Stmt, Cmd, new_subelt
@@ -35,6 +36,41 @@ def clean_accnum(accnum: str):
     """
     naccnum = normalize_id(accnum)
     return denormalize_id(naccnum)
+
+
+def row_reader(verbos, skiprows):
+    """
+    A generator function to iterate throw either a CSV file or XLSX file.
+
+    :return:
+    """
+    filename = _args.incsvfile
+    _, suffix = os.path.splitext(filename)
+    if suffix.lower() == '.csv':
+        with codecs.open(filename, 'r', 'utf-8-sig') as mapfile:
+            for _ in range(skiprows):
+                next(mapfile)
+            reader = csv.DictReader(mapfile)
+            if verbos >= 1:
+                print(f'CSV Column Headings: {reader.fieldnames}')
+            for row in reader:
+                yield row
+    elif suffix.lower() == '.xlsx':
+        wb = load_workbook(filename=filename)
+        ws = wb.active
+        enumrows = enumerate(ws.iter_rows(values_only=True))
+        for _ in range(skiprows):
+            next(enumrows)
+        _, heading = next(enumrows)
+        if verbos >= 1:
+            print(f'Excel Column Headings: {heading}')
+        for nrow, rawrow in enumrows:
+            row = dict()
+            for ncell, cell in enumerate(rawrow):
+                if type(cell) == str:
+                    cell = cell.replace('\n', ' ')
+                row[heading[ncell]] = cell
+            yield row
 
 
 def next_accnum(accnum: str):
@@ -115,9 +151,8 @@ def main():
         outfile.write(b'<?xml version="1.0"?><Interchange>\n')
     global_object_template = None
     if _args.template:
-        global_object_template = get_object_from_file(_args.templatefile)
-    reader = csv.DictReader(incsvfile)
-    trace(1, 'CSV Column Headings: {}', reader.fieldnames)
+        global_object_template = get_object_from_file(_args.template)
+    reader = row_reader(_args.verbos, _args.skip_rows)
     nrows = 0
     # PyCharm whines if we don't initialize accnumgen
     accnumgen = next_accnum(_args.acc_num)
@@ -203,12 +238,15 @@ def getparser():
         The config file may contain only ``column``, ``constant``, or
         ``items`` commands.
     ''', calledfromsphinx))
-    parser.add_argument('-i', '--incsvfile', help='''
-        The CSV file containing data to be inserted into the XML template.
-        The CSV file must have a heading.
-        The heading of the column containing the serial number must be 'Serial'
-        or an alternative set by --serial parameter. Subsequent columns
-        must match the corresponding title in the configuration file. ''')
+    parser.add_argument('-i', '--incsvfile', help=sphinxify('''
+        The file containing data to be inserted into the XML template.
+        The file must have a heading, but see option --skip_rows.
+        The heading of the column containing the serial number must be
+        ``Serial`` or an alternative set by --serial parameter. Subsequent
+        columns must match the corresponding title in the configuration file.
+        The file must have a (case-insensitive) suffix of ``.csv`` or ``.xlsx``
+        containing CSV format or Excel format data, respectively.''',
+                                                            calledfromsphinx))
     parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.''' +
                         if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".
@@ -228,6 +266,8 @@ def getparser():
                                        calledfromsphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
+    parser.add_argument('--skip_rows', type=int, default=0, help='''
+        Skip rows at the beginning of the CSV file.''')
     parser.add_argument('-t', '--template', help=sphinxify('''
         The XML file that is the template for creating the output XML.
         Specify this or global statements in the configuration

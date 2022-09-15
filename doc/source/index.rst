@@ -147,7 +147,8 @@ These statements are in the document whose ``cmd`` statement is ``global``.
    column of the output row. Note that accession numbers are normally normalized before
    sorting.
 -  **add_mda_code** If the serial number does not begin with the MDA code (default LDHRM)
-   then insert it as a prefix. This is used only in ``csv2xml.py``.
+   then insert it as a prefix. This is used only in ``csv2xml.py``
+   and ``update_from_csv.py``.
 -  **template_title** Only in ``csv2xml.py``: Defines a CSV column containing a key that
    matches one of the keys in the
    global **templates** statement. For each row in the CSV file, this specifies which
