@@ -12,6 +12,7 @@ def openfile(filename, mode='r'):
     if magic.from_file(filename).lower().startswith('zip'):
         myzip = ZipFile(filename)
         names = myzip.namelist()
+        # noinspection PyTypeChecker
         file = myzip.open(names[0], mode)
     else:
         file = open(filename, mode)
