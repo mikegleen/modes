@@ -193,8 +193,12 @@ def getparser():
         file. If a row in the CSV file has fewer fields than defined in the
         configuration file, zero-length strings will be assumed. See
         --empty.''', called_from_sphinx))
-    parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
-        Specify the MDA code, used in normalizing the accession number.''' +
+    parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE,
+                        help=sphinxify(f'''
+        Specify the MDA code, used if the accession number in the CSV file
+        is specified without the leading MDA code. You must also specify
+        the global statement ``add_mda_code`` in the YAML config file.''',
+                                       called_from_sphinx) +
                         if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".
                         ''', called_from_sphinx))
     parser.add_argument('-r', '--replace', action='store_true', help=sphinxify('''
@@ -225,9 +229,7 @@ def getargs(argv):
         args.replace = True
     if os.path.splitext(args.mapfile)[1].lower() != '.csv':
         raise ValueError('mapfile must be a CSV file.')
-    if args.date:
-        d = nd.datefrommodes(args.date)  #
-        args.date = 1
+    if not args.date:
         args.date = nd.modesdate(date.today())
     return args
 
