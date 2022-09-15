@@ -30,12 +30,12 @@ if __name__ == '__main__':
     _args = getargs(sys.argv)
     wb = load_workbook(filename=_args.infile)
     ws = wb.active
-    print(ws.max_row, ws.max_column)
-    for row in ws.iter_rows():
-        for col in row:
+    print(f'{ws.max_row} rows, {ws.max_column} columns')
+    for nrow, row in enumerate(ws.iter_rows()):
+        for ncol, col in enumerate(row):
             value = col.value
             if type(value) == str:
                 col.value = value.replace('\n', ' ')
             if col.value != value:
-                print(col.value)
+                print(f'row: {nrow + 1}, col: {ncol + 1}', col.value)
     wb.save(_args.outfile)
