@@ -300,7 +300,8 @@ def if_not_sphinx(txt: str, calledfromsphinx: bool) -> str:
 
 
 def sphinxify(txt: str, calledfromsphinx: bool) -> str:
-    """ Sphinx displays '--' as '—' so partially work around that. """
+    """ Sphinx displays '--' as  an em dash, '—', so partially work around
+    that. """
     if not calledfromsphinx:
         return txt
     # print(f'before:{txt}')
