@@ -3,7 +3,7 @@
 
     The input is three files, an XML file, a YAML file and a CSV file. The
     XML file is the Modes database file to be updated. The YAML file
-    contains xslt definitions for elements to be updated from a CSV file.
+    contains definitions for elements to be updated from a CSV file.
     The format of the CSV file is that the first column contains a serial
     number and subsequent columns contain the values to be inserted into the
     corresponding elements. Note that there is no entry in the YAML file
@@ -25,8 +25,6 @@
 
 """
 import argparse
-import codecs
-import csv
 from datetime import date
 import os
 import sys
@@ -37,6 +35,7 @@ from utl.cfgutil import Config, Stmt, Cmd, new_subelt, expand_idnum
 from utl.normalize import normalize_id, sphinxify, denormalize_id
 from utl.normalize import if_not_sphinx, DEFAULT_MDA_CODE
 import utl.normalize as nd
+from utl.row_reader import row_reader
 
 
 def trace(level, template, *args):
@@ -46,23 +45,22 @@ def trace(level, template, *args):
 
 def loadnewvals(allow_blanks=False):
     newval_dict = {}
-    with codecs.open(_args.mapfile, 'r', 'utf-8-sig') as mapfile:
-        reader = csv.DictReader(mapfile)
-        for row in reader:
-            accnum = row[_args.serial]
-            if not accnum:
-                if allow_blanks:
-                    trace(2, 'Row with blank accession number skipped: {}', row)
-                    continue  # skip blank accession numbers
-                else:
-                    raise ValueError('Blank accession number in include file;'
-                                     ' --allow_blank not selected.')
-            if cfg.add_mda_code and accnum[0].isnumeric():
-                accnum = _args.mdacode + '.' + accnum
-            accnums = expand_idnum(accnum)
-            trace(3, 'accnums = {}', accnums)
-            for accnum in accnums:
-                newval_dict[normalize_id(accnum)] = row
+    reader = row_reader(_args.mapfile, _args.verbose, _args.skip_rows)
+    for row in reader:
+        accnum = row[_args.serial]
+        if not accnum:
+            if allow_blanks:
+                trace(2, 'Row with blank accession number skipped: {}', row)
+                continue  # skip blank accession numbers
+            else:
+                raise ValueError('Blank accession number in include file;'
+                                 ' --allow_blank not selected.')
+        if cfg.add_mda_code and accnum[0].isnumeric():
+            accnum = _args.mdacode + '.' + accnum
+        accnums = expand_idnum(accnum)
+        trace(3, 'accnums = {}', accnums)
+        for accnum in accnums:
+            newval_dict[normalize_id(accnum)] = row
     return newval_dict
 
 
@@ -157,7 +155,9 @@ def getparser():
         Read a CSV file containing two or more column_paths. The first column
         is the index and the following columns are the field(s) defined by the
         XPATH statement in the YAML configuration file. Update the
-        XML file with data from the CSV file. ''')
+        XML file with data from the CSV file. The CSV file must contain
+        a heading row with column titles matching the ``title`` statements
+        in the YAML configuration file.''')
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
     parser.add_argument('outfile', help='''
@@ -186,7 +186,8 @@ def getparser():
         trace the missing index. Useful if you are updating all objects.''')
     parser.add_argument('-m', '--mapfile', required=True, help=sphinxify('''
         Required. The CSV file mapping the object number to the new element
-        value(s). The
+        value(s). The file may also be an Excel spreadsheet with a filename
+        ending ``.xlsx``. The
         first column must contain the object number and subsequent columns
         must have headers that correspond to the titles of the columns in the
         configuration
@@ -214,8 +215,9 @@ def getparser():
                                                          called_from_sphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
-    parser.add_argument('--skip_rows', type=int, default=0, help='''
-        Skip rows at the beginning of the CSV file.''')
+    parser.add_argument('--skip_rows', type=int, default=0, help=sphinxify('''
+        Skip rows at the beginning of the CSV file specified by --mapfile.
+        ''', called_from_sphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -227,9 +229,11 @@ def getargs(argv):
     args = parser.parse_args(args=argv[1:])
     if args.empty:
         args.replace = True
-    if os.path.splitext(args.mapfile)[1].lower() != '.csv':
-        raise ValueError('mapfile must be a CSV file.')
-    if not args.date:
+    if os.path.splitext(args.mapfile)[1].lower() not in ('.csv', '.xlsx'):
+        raise ValueError('mapfile must be a CSV or Excel file.')
+    if args.date:
+        args.date, _, _ = nd.modesdatefrombritishdate(args.date)
+    else:
         args.date = nd.modesdate(date.today())
     return args
 
@@ -269,7 +273,7 @@ if __name__ == '__main__':
     main()
     trace(1, '{} element{} in {} object{} updated.\n'
           '{} existing element{} unchanged.\n'
-          '{} element{} where new == old.',
+          '{} element{} updated where new == old.',
           nupdated, sq(nupdated),
           nnewvals, sq(nnewvals),
           nunchanged, sq(nunchanged),

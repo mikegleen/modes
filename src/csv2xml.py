@@ -3,20 +3,18 @@
 
 """
 import argparse
-import codecs
 import copy
-import csv
 import os.path
 import re
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from openpyxl import load_workbook
 
 
 from utl.cfgutil import Config, Stmt, Cmd, new_subelt
 from utl.normalize import modesdatefrombritishdate, sphinxify, if_not_sphinx
 from utl.normalize import DEFAULT_MDA_CODE, normalize_id, denormalize_id
+from utl.row_reader import row_reader
 
 
 def trace(level, template, *args):
@@ -36,41 +34,6 @@ def clean_accnum(accnum: str):
     """
     naccnum = normalize_id(accnum)
     return denormalize_id(naccnum)
-
-
-def row_reader(verbos, skiprows):
-    """
-    A generator function to iterate throw either a CSV file or XLSX file.
-
-    :return:
-    """
-    filename = _args.incsvfile
-    _, suffix = os.path.splitext(filename)
-    if suffix.lower() == '.csv':
-        with codecs.open(filename, 'r', 'utf-8-sig') as mapfile:
-            for _ in range(skiprows):
-                next(mapfile)
-            reader = csv.DictReader(mapfile)
-            if verbos >= 1:
-                print(f'CSV Column Headings: {reader.fieldnames}')
-            for row in reader:
-                yield row
-    elif suffix.lower() == '.xlsx':
-        wb = load_workbook(filename=filename)
-        ws = wb.active
-        enumrows = enumerate(ws.iter_rows(values_only=True))
-        for _ in range(skiprows):
-            next(enumrows)
-        _, heading = next(enumrows)
-        if verbos >= 1:
-            print(f'Excel Column Headings: {heading}')
-        for nrow, rawrow in enumrows:
-            row = dict()
-            for ncell, cell in enumerate(rawrow):
-                if type(cell) == str:
-                    cell = cell.replace('\n', ' ')
-                row[heading[ncell]] = cell
-            yield row
 
 
 def next_accnum(accnum: str):
@@ -152,11 +115,10 @@ def main():
     global_object_template = None
     if _args.template:
         global_object_template = get_object_from_file(_args.template)
-    reader = row_reader(_args.verbos, _args.skip_rows)
     nrows = 0
     # PyCharm whines if we don't initialize accnumgen
     accnumgen = next_accnum(_args.acc_num)
-    for row in reader:
+    for row in row_reader(_args.incsvfile, _args.verbose, _args.skip_rows):
         emit = True
         if global_object_template:
             template = copy.deepcopy(global_object_template)
@@ -310,7 +272,6 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
     calledfromsphinx = False
     _args = getargs(sys.argv)
-    incsvfile = codecs.open(_args.incsvfile, 'r', encoding='utf-8-sig')
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Input file: {}', _args.incsvfile)
     trace(1, 'Creating file: {}', _args.outfile)
