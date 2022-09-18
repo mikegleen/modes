@@ -11,6 +11,8 @@ def row_reader(filename, verbos=1, skiprows=0):
     """
     A generator function to iterate throw either a CSV file or XLSX file.
 
+    We only look at the first sheet of an XLSX file.
+
     :param filename:
     :param verbos:
     :param skiprows:
