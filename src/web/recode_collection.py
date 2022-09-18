@@ -1,6 +1,6 @@
 """
     Add a column to a CSV file with the decade an object was created based on
-    the 'DateBegin' column.
+    the 'DateBegin' column which came from ./Production/Date/DateBegin.
 
     Merge the 'Exhibition Name' and 'Exhibition Place' columns producing a
     single column of "<name> at <place>".
