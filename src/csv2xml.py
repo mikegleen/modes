@@ -14,7 +14,7 @@ import xml.etree.ElementTree as ET
 from utl.cfgutil import Config, Stmt, Cmd, new_subelt
 from utl.normalize import modesdatefrombritishdate, sphinxify, if_not_sphinx
 from utl.normalize import DEFAULT_MDA_CODE, normalize_id, denormalize_id
-from utl.row_reader import row_reader
+from utl.row_reader import row_dict_reader
 
 
 def trace(level, template, *args):
@@ -102,7 +102,8 @@ def get_object_from_file(templatefilepath):
 def get_template_from_csv(row: dict[str]):
     key = row[config.template_title]
     if key not in config.templates:
-        raise ValueError(f'Template key in CSV file: {key} is not in config. {row=}')
+        raise ValueError(f'Template key in CSV file: {key} is not in config.'
+                         f' {row=}')
     templatefilepath = os.path.join(config.template_dir, config.templates[key])
     trace(2, 'template file: {}', templatefilepath)
     return get_object_from_file(templatefilepath)
@@ -118,7 +119,8 @@ def main():
     nrows = 0
     # PyCharm whines if we don't initialize accnumgen
     accnumgen = next_accnum(_args.acc_num)
-    for row in row_reader(_args.incsvfile, _args.verbose, _args.skip_rows):
+    for row in row_dict_reader(_args.incsvfile, _args.verbose,
+                               _args.skip_rows):
         emit = True
         if global_object_template:
             template = copy.deepcopy(global_object_template)
@@ -145,7 +147,8 @@ def main():
             if elt is None:
                 elt = new_subelt(doc, template, accnum, _args.verbose)
             if elt is None:
-                trace(1, '{}: Cannot create new {}.\nCheck parent_path statement.',
+                trace(1, '{}: Cannot create new {}.\n'
+                         'Check parent_path statement.',
                       accnum, doc[Stmt.XPATH])
                 continue
             if cmd == Cmd.CONSTANT:

@@ -35,7 +35,7 @@ from utl.cfgutil import Config, Stmt, Cmd, new_subelt, expand_idnum
 from utl.normalize import normalize_id, sphinxify, denormalize_id
 from utl.normalize import if_not_sphinx, DEFAULT_MDA_CODE
 import utl.normalize as nd
-from utl.row_reader import row_reader
+from utl.row_reader import row_dict_reader
 
 
 def trace(level, template, *args):
@@ -45,7 +45,7 @@ def trace(level, template, *args):
 
 def loadnewvals(allow_blanks=False):
     newval_dict = {}
-    reader = row_reader(_args.mapfile, _args.verbose, _args.skip_rows)
+    reader = row_dict_reader(_args.mapfile, _args.verbose, _args.skip_rows)
     for row in reader:
         accnum = row[_args.serial]
         if not accnum:

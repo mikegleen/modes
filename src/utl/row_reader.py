@@ -7,7 +7,7 @@ import csv
 from openpyxl import load_workbook
 
 
-def row_reader(filename, verbos=1, skiprows=0):
+def row_dict_reader(filename, verbos=1, skiprows=0):
     """
     A generator function to iterate throw either a CSV file or XLSX file.
 
