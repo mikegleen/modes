@@ -100,7 +100,7 @@ def get_object_from_file(templatefilepath):
 
 
 def get_template_from_csv(row: dict[str]):
-    key = row[config.template_title]
+    key = row[config.template_title].lower()
     if key not in config.templates:
         raise ValueError(f'Template key in CSV file: {key} is not in config.'
                          f' {row=}')

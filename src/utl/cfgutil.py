@@ -190,7 +190,9 @@ class Config:
                 elif stmt == Stmt.TEMPLATE_TITLE:
                     self.template_title = document[stmt]
                 elif stmt == Stmt.TEMPLATES:
-                    self.templates = yaml.load(document[stmt])
+                    templates = yaml.load(document[stmt])
+                    self.templates = {key.lower(): value for key, value in
+                                      templates.items()}
                 else:
                     print(f'Unknown statement, ignored: {stmt}.')
             if self.templates or self.template_title or self.template_dir:

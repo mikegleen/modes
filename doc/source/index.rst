@@ -41,7 +41,8 @@ The Configuration Domain Specific Language (DSL)
 
 A configuration language is defined in YAML syntax that provides
 specification of XML fields and control over whether records are
-selected for processing.
+selected for processing. The language is used for both CSV → XML and XML → CSV
+processing. Most but not all of the commands and statements are used for both cases.
 
 The configuration consists of a YAML file broken into multiple
 documents, separated by lines containing ``---`` in the left three columns.
@@ -163,10 +164,11 @@ These statements are in the document whose ``cmd`` statement is ``global``.
          key1: filename1.xml
          key2: filename2.xml
 
-   The keys should be entered in a column specified by ``template_title`` in the CSV file
-   specified by ``--incsvfile``.
+   The keys should be entered in the CSV file specified by ``--incsvfile`` in a column
+   specified by ``template_title``.
    See commands ``template_title`` and ``template_dir``. Note that the indentation of the
-   "key" rows is mandatory.
+   "key" rows in the YAML file is mandatory. The keys in the YAML and CSV files are case
+   insensitive.
 
 Commands
 ~~~~~~~~
