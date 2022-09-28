@@ -4,10 +4,15 @@
     Input: - exhibition list maintained in src/cfg/exhibition_list.py
            - input XML file.
            - CSV file of objects in an exhibition. CSV format:
-               accession#,[exhibition#]
+               accession#,[exhibition#],[catalogue#]
            The exhibition # is optional and is ignored if the --exhibition
            parameter is given. The accession number may contain a string
            specifying multiple numbers of the form JB001-003.
+           The catalogue number is optional and is set if specified. The
+           columns numbers may be specified by progrm arguments; The accession
+           number and exhibition number default to columns zero and one
+           respectively and the catalogue # is only processed if the argument
+           is specified.
     Output: updated XML file
 
     The Exhibition group template is:
