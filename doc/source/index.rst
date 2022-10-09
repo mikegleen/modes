@@ -208,7 +208,7 @@ processed in succession and have an **and** relationship, meaning that all of
 the tests must succeed for a record to be selected.
 
 -  **global** This document contains statements that affect the
-   overall output, not just a specific column. See the section above *Global-command
+   overall processing, not just a specific column. See the section above *Global-command
    Statements*.
 -  **if** Control command that selects an object to display if the
    element text is populated.
@@ -225,7 +225,7 @@ the tests must succeed for a record to be selected.
        ---
 
    This examines the ``elementtype`` attribute on the ``Object`` element.
--  **ifattribnoteq** Like **ifattribeq** except compares the value against an
+-  **ifattribnoteq** Like **ifnoteq** except compares the value against an
    attribute.
 -  **ifcontains** Select an object if the value in the **value**
    statement is contained in the element text.
@@ -249,10 +249,10 @@ There are three accession number formats in use at the Heath Robinson Museum.
 -  The second is for items from the Simon Heneage estate. These numbers start with "SH"
    followed by decimal numbers without any zero padding. For example, "SH1"
 -  The third format follows the Collections Trust standard. This is the MDA code,
-   "LDHRM", followed by a full stop, followed by the year, followed by a full stop,
-   followed by a serial number, optionally followed by another full stop and sub-serial
+   by default "LDHRM", followed by a full stop, followed by the year, followed by a full
+   stop, followed by a serial number, optionally followed by another full stop and item
    number, all without leading zeros. For example, "LDHRM.2020.1". Utility
-   programs provide an option for  overriding the default MDA code.
+   programs provide an option for overriding the default MDA code.
 
 When read from a CSV file, the XML file, or the command line, accession numbers are
 normalized so that numeric fields sort correctly. That is, internally, all numbers
