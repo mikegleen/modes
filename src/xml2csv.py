@@ -113,6 +113,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
                                      _args.include_skip, _args.verbose,
                                      logfile=_logfile,
                                      allow_blanks=_args.allow_blanks)
+    normids = {}
     for event, elem in ET.iterparse(infile, events=('start', 'end')):
         # print(event)
         if event == 'start':
@@ -132,11 +133,17 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         trace(3, 'idnum: {}', idnum)
         nlines += 1
 
+        norm_idnum = normalize_id(idnum, _args.mdacode, verbose=_args.verbose)
+        if norm_idnum in normids:
+            print(f'Duplicate id: {norm_idnum}. Old id: {normids[norm_idnum]},'
+                  f' New id: {idnum}')
+            print('Program aborted.')
+            sys.exit(-1)
+        normids[norm_idnum] = idnum
         writerow = config.select(elem, includes, exclude=_args.exclude)
         # print(f'{writerow=}')
         if not writerow:
             continue
-        norm_idnum = normalize_id(idnum, _args.mdacode, verbose=_args.verbose)
         # We have selected the id but only write the row if there is something
         # to display. There will always be at least the ID number in the first
         # column unless skip_number was specified in the config.
