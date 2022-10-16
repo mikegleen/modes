@@ -30,7 +30,7 @@ def main():
     index_column = _args.index_column
     index_row = _args.index_row
     index = _args.index_start
-    prepend_index = index_column == -1
+    prepend_index = index_column == '-1'
     upcol = _args.upper
     if upcol is not None and prepend_index:
         upcol += 1
@@ -42,9 +42,12 @@ def main():
             continue
         for i, docrow in enumerate(table.rows):  # read each row
             row: list = []
-            if prepend_index and i >= index_row:
-                row.append(str(index))
-                index += 1
+            if prepend_index:
+                if i >= index_row:
+                    row.append(str(index))
+                    index += 1
+                else:
+                    row.append('Index')
             data_in_row = False
             for j, cell in enumerate(docrow.cells):  # read all cells in a row
                 c = cell.text.strip()
@@ -146,7 +149,12 @@ def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
     if args.index_column is not None:
-        args.index_column = col2num(args.index_column)
+        if args.index_column != '-1':
+            try:
+                args.index_column = col2num(args.index_column)
+            except ValueError as err:
+                print(f'Invalid --index_column value: "{err}"\nAborting.')
+                sys.exit()
     args.exclude_column = col2num(args.exclude_column)
     return args
 
