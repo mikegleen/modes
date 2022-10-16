@@ -26,8 +26,8 @@ def col2num(col: str | None):
         if c in string.ascii_letters:
             num = num * 26 + (ord(c) - ord('A')) + 1
         else:
-            print(c, col)
-            raise ValueError('Column must be ASCII letters only.')
+            raise ValueError('Column must be ASCII letters or positive '
+                             f'numbers, not "{col}"')
     return num - 1
 
 
