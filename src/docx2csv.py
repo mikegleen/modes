@@ -29,7 +29,7 @@ def main():
     # Note that if a parameter is not specified, the default is None.
     index_column = _args.index_column
     index_row = _args.index_row
-    index = _args.index_start - 1
+    index = _args.index_start
     prepend_index = index_column == -1
     upcol = _args.upper
     if upcol is not None and prepend_index:
@@ -43,8 +43,8 @@ def main():
         for i, docrow in enumerate(table.rows):  # read each row
             row: list = []
             if prepend_index and i >= index_row:
-                index += 1
                 row.append(str(index))
+                index += 1
             data_in_row = False
             for j, cell in enumerate(docrow.cells):  # read all cells in a row
                 c = cell.text.strip()
