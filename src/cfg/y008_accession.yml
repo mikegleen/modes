@@ -1,0 +1,62 @@
+cmd: global
+add_mda_code:
+template_title: Template
+template_dir: /Users/mlg/pyprj/hrm/modes/etc/templates/normal
+templates:
+  books: 2022-10-17_books_template.xml
+  books_o: 2022-10-17_books_organisation_template.xml
+  decorative_art: 2022-10-17_decorative_art_template.xml
+  ephemera: 2022-10-17_ephemera_template.xml
+  original_artwork: 2022-10-17_Original_Artwork_template.xml
+  original_artwork_o: 2022-10-17_Original_Artwork_organisation_template.xml
+---
+cmd: column
+xpath: ./Acquisition/Date
+title: Date Acquired
+---
+cmd: column
+xpath: ./Acquisition/Person/PersonName
+title: Acquired from
+---
+cmd: column
+xpath: ./Acquisition/Method
+title: Acquisition method
+---
+cmd: column
+xpath: ./Identification/Title
+title: Title
+---
+#cmd: items
+#xpath: ./Content
+#parent_path: .
+#title: Items
+#element: Content
+#---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="normal location"]/Location
+title: 'Normal Location'
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
+title: 'Current Location'
+---
+cmd: constant
+xpath: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
+title: 'Date Begin'
+value: "21.5.2022"
+---
+cmd: column
+xpath: ./Description/Material[Part="medium"]/Keyword
+title: Medium
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
+title: First pub
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Date
+title: First pub date
+---
+cmd: column
+xpath: ./Identification/BriefDescription
+title: Description
