@@ -141,6 +141,10 @@ def main():
             title = doc[Stmt.TITLE]
             if cmd != Cmd.CONSTANT and not row[title]:
                 trace(3, '{}: cell empty {}', accnum, title)
+                if Stmt.REQUIRED in doc:
+                    print(f'*** Required column “{title}” is missing from'
+                          f' {accnum}. Object excluded.')
+                    emit = False
                 continue
             xpath = doc[Stmt.XPATH]
             elt = template.find(xpath)
@@ -155,10 +159,6 @@ def main():
                 elt.text = doc[Stmt.VALUE]
                 continue
             text = row[title]
-            if Stmt.REQUIRED in doc and not text:
-                print(f'*** Required column “{title}” is missing from'
-                      f' {accnum}. Object excluded.')
-                emit = False
             if cmd == Cmd.ITEMS:
                 create_items(doc, elt, template, text)
             else:
