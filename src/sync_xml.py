@@ -1,6 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Synchronize the normal and pretty XML folders.
+Synchronize the normal and pretty XML folders. This assumes a folder structure
+as:
+    Parent
+         |
+         |-normal
+         |-pretty
+
+    The files in the normal folder are in the form:
+        2022-01-01_title.xml
+    The corresponding files in the pretty folder are in the form:
+        2022-01-01_title_pretty.xml
+
 """
 
 import argparse
@@ -20,6 +31,14 @@ def trace(level, template, *args):
 
 def onefile(infile_name: str, outfile_name: str, mtime: float,
             make_pretty: bool):
+    """
+
+    :param infile_name:
+    :param outfile_name:
+    :param mtime: timestamp to set the outfile's modify time to
+    :param make_pretty:
+    :return: None
+    """
     trace(2, "From: {}\nTo:  {}", infile_name, outfile_name)
     if _args.dryrun:
         return
@@ -86,9 +105,10 @@ def onefile(infile_name: str, outfile_name: str, mtime: float,
 def get_mtime(subpath: str) -> (dict[str, float], str):
     """
     For each file in the folder formed by parent/subpath, make an entry in a
-    dict containing the last modified time.
+    dict with keys being the common part of the file and containing the last
+    modified time.
     :param subpath:
-    :return: dictionary of file basenames
+    :return: dictionary of file basenames -> mtime
     """
     path = op.join(_args.parent_dir, subpath)
     mtime = {}
@@ -104,6 +124,12 @@ def get_mtime(subpath: str) -> (dict[str, float], str):
 
 
 def select(source_mtime: dict[str, float], dest_mtime: dict[str, float]):
+    """
+
+    :param source_mtime:
+    :param dest_mtime:
+    :return: A list of files to be processed.
+    """
     selected = []
     for fn in source_mtime:
         # add 1 second to avoid issues comparing floats
