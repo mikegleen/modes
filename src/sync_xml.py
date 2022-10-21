@@ -20,6 +20,7 @@ def trace(level, template, *args):
 
 def onefile(infile_name: str, outfile_name: str, mtime: float,
             make_pretty: bool):
+    trace(2, "From: {}\nTo:  {}", infile_name, outfile_name)
     if _args.dryrun:
         return
     nlines = 0
@@ -82,7 +83,7 @@ def onefile(infile_name: str, outfile_name: str, mtime: float,
               f'written in {elapsed:.3f} seconds')
 
 
-def get_mtime(subpath) -> dict[str, float]:
+def get_mtime(subpath: str) -> (dict[str, float], str):
     """
     For each file in the folder formed by parent/subpath, make an entry in a
     dict containing the last modified time.
@@ -92,67 +93,47 @@ def get_mtime(subpath) -> dict[str, float]:
     path = op.join(_args.parent_dir, subpath)
     mtime = {}
     for fn in sorted(os.listdir(path)):
-        fn = str(fn)
+        fn = str(fn)  # might be bytes. PyCharm whines.
         if not fn.endswith('.xml'):
             continue
         basefn = os.path.splitext(fn)[0]
         basefn = basefn.removesuffix('_pretty')
         fullfn = op.join(path, fn)
         mtime[basefn] = op.getmtime(fullfn)
-    return mtime
+    return mtime, path
 
 
 def select(source_mtime: dict[str, float], dest_mtime: dict[str, float]):
     selected = []
-    for fn in dest_mtime:
-        if (fn not in source_mtime or
-                source_mtime[fn] < dest_mtime[fn]):
-            if fn in source_mtime:
+    for fn in source_mtime:
+        # add 1 second to avoid issues comparing floats
+        if (fn not in dest_mtime or
+                dest_mtime[fn] + 1. < source_mtime[fn]):
+            if fn in dest_mtime:
                 trace(2, '{}: source mtime: {}, dest mtime {}', fn,
                       source_mtime[fn], dest_mtime[fn])
             selected.append(fn)
             trace(3, '    Selecting {}', fn)
+    trace(2, '{} files selected.', len(selected))
     return selected
 
 
 def main():
-    normal_path = op.join(_args.parent_dir, 'normal')
-    pretty_path = op.join(_args.parent_dir, 'pretty')
-    normal_mtime = get_mtime('normal')
-    pretty_mtime = get_mtime('pretty')
-    to_normal = []
-    to_pretty = []
+    normal_mtime, normal_path = get_mtime('normal')
+    pretty_mtime, pretty_path = get_mtime('pretty')
+
     print('\nNormal to Pretty:')
-    for fn in normal_mtime:
-        if (fn not in pretty_mtime or
-                pretty_mtime[fn] < normal_mtime[fn]):
-            if fn in pretty_mtime:
-                trace(2, '{}: pretty mtime: {}, normal mtime {}', fn,
-                      pretty_mtime[fn], normal_mtime[fn])
-            to_pretty.append(fn)
-            trace(3, '    Selecting {}', fn)
-    print(f'{len(to_pretty)} files found (normal -> pretty).')
+    to_pretty = select(normal_mtime, pretty_mtime)
     for fn in to_pretty:
         from_file = op.join(normal_path, fn + '.xml')
         to_file = op.join(pretty_path, fn + '_pretty.xml')
-        trace(2, "From: {}\nTo:  {}", from_file, to_file)
         onefile(from_file, to_file, mtime=normal_mtime[fn], make_pretty=True)
 
     print('\nPretty to Normal:')
-    for fn in pretty_mtime:
-        if (fn not in normal_mtime or
-                normal_mtime[fn] < pretty_mtime[fn]):
-            if fn in normal_mtime:
-                trace(3, '{}: pretty mtime: {}, normal mtime {}', fn,
-                      pretty_mtime[fn], normal_mtime[fn])
-            to_normal.append(fn)
-            trace(3, '    Selecting {}', fn)
-    print(f'{len(to_normal)} files found (pretty -> normal).')
-
+    to_normal = select(pretty_mtime, normal_mtime)
     for fn in to_normal:
         from_file = op.join(pretty_path, fn + '_pretty.xml')
         to_file = op.join(normal_path, fn + '.xml')
-        trace(2, "From: {}\nTo:  {}", from_file, to_file)
         onefile(from_file, to_file, mtime=pretty_mtime[fn], make_pretty=False)
 
 
@@ -193,7 +174,6 @@ def getargs():
 
 
 if __name__ == '__main__':
-    assert sys.version_info >= (3, 6)
+    assert sys.version_info >= (3, 10)
     _args = getargs()
-    parent_dir = _args.parent_dir
     main()
