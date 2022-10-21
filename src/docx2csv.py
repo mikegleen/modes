@@ -155,6 +155,8 @@ def getargs(argv):
             except ValueError as err:
                 print(f'Invalid --index_column value: "{err}"\nAborting.')
                 sys.exit()
+        else:
+            args.index_column = -1
     args.exclude_column = col2num(args.exclude_column)
     return args
 
