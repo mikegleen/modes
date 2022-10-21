@@ -107,7 +107,7 @@ def get_mtime(subpath: str) -> (dict[str, float], str):
     For each file in the folder formed by parent/subpath, make an entry in a
     dict with keys being the common part of the file and containing the last
     modified time.
-    :param subpath:
+    :param subpath: either 'normal' or 'pretty'
     :return: dictionary of file basenames -> mtime
     """
     path = op.join(_args.parent_dir, subpath)
@@ -148,14 +148,14 @@ def main():
     normal_mtime, normal_path = get_mtime('normal')
     pretty_mtime, pretty_path = get_mtime('pretty')
 
-    print('\nNormal to Pretty:')
+    trace(1, '\nNormal to Pretty:')
     to_pretty = select(normal_mtime, pretty_mtime)
     for fn in to_pretty:
         from_file = op.join(normal_path, fn + '.xml')
         to_file = op.join(pretty_path, fn + '_pretty.xml')
         onefile(from_file, to_file, mtime=normal_mtime[fn], make_pretty=True)
 
-    print('\nPretty to Normal:')
+    trace(1, '\nPretty to Normal:')
     to_normal = select(pretty_mtime, normal_mtime)
     for fn in to_normal:
         from_file = op.join(pretty_path, fn + '_pretty.xml')
