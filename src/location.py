@@ -574,19 +574,21 @@ def add_arguments(parser, command):
         parser.add_argument('-d', '--date', default=nd.modesdate(date.today()),
                             help='''
             When updating the current location, use this date as the DateEnd
-            value for the previous location we're making and the DateBegin
-            value for the new current location we're making. The default is
+            value for the new previous location and the DateBegin
+            value for the new current location. The default is
             today's date in Modes format (d.m.yyyy).
             ''')
-        parser.add_argument('--datebegin', help='''
-        Use this string as the date to store in the new previous ObjectLocation
+        parser.add_argument('--datebegin', help=nd.sphinxify('''
+        When specifying the --previous option, use this string as the date to
+        store in the new previous ObjectLocation
         date. The format must be in Modes format (d.m.yyyy).
-        ''')
+        ''', called_from_sphinx))
         parser.add_argument('--dateend', default=nd.modesdate(date.today()),
-                            help='''
-        Use this string as the date to store in the new previous ObjectLocation
+                            help=nd.sphinxify('''
+        When specifying the --previous option, use this string as the date to
+        store in the new previous ObjectLocation
         date. The format must be in Modes format (d.m.yyyy).
-        ''')
+        ''', called_from_sphinx))
     parser.add_argument('--encoding', default='utf-8', help='''
         Set the input encoding. Default is utf-8. Output is always utf-8.
         ''')
