@@ -9,7 +9,7 @@ from openpyxl import load_workbook
 
 def row_dict_reader(filename, verbos=1, skiprows=0):
     """
-    A generator function to iterate throw either a CSV file or XLSX file.
+    A generator function to iterate through either a CSV file or XLSX file.
 
     We only look at the first sheet of an XLSX file.
 
