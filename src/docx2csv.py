@@ -35,8 +35,9 @@ def main():
     if upcol is not None and prepend_index:
         upcol += 1
     for table in tables:
-        trace(2, 'Processing table {}', tablenumber)
         tablenumber += 1
+        numrows = 0
+        trace(2, 'Processing table {}', tablenumber)
         if _args.table and _args.table != tablenumber:
             trace(1, 'Skipping table {}', tablenumber)
             continue
@@ -70,8 +71,10 @@ def main():
                 row[upcol] = row[upcol].strip().upper()
             if data_in_row or _args.include_blank:
                 data.append(row)
+                numrows += 1
             else:
                 index -= 1
+        trace(1, 'table {}: {} rows written.', tablenumber, numrows)
     data_write_csv(data)
 
 
@@ -133,7 +136,7 @@ def getparser():
         By default, the first column is converted to upper case and white
         space characters are removed. If specified, inhibit this conversion.
         ''')
-    parser.add_argument('--upper',type=int,
+    parser.add_argument('--upper', type=int,
                         help='''
                         Convert the zero-based column to upper case. This is
                         in addition to column zero unless -u is specified.
