@@ -138,6 +138,9 @@ def select(source_mtime: dict[str, float], dest_mtime: dict[str, float]):
             if fn in dest_mtime:
                 trace(2, '{}: source mtime: {}, dest mtime {}', fn,
                       source_mtime[fn], dest_mtime[fn])
+            else:
+                trace(2, '{}: source mtime: {}, dest not found', fn,
+                      source_mtime[fn])
             selected.append(fn)
             trace(3, '    Selecting {}', fn)
     trace(2, '{} files selected.', len(selected))
