@@ -94,6 +94,7 @@ class Stmt:
     """
     CMD = 'cmd'
     XPATH = 'xpath'
+    XPATH2 = 'xpath2'
     PARENT_PATH = 'parent_path'
     ATTRIBUTE = 'attribute'
     DATE = 'date'
@@ -115,6 +116,7 @@ class Stmt:
     TEMPLATE_TITLE = 'template_title'
     TEMPLATES = 'templates'
     INSERT_AFTER = 'insert_after'
+    PERSON_NAME = 'person_name'
     _DEFAULT_RECORD_TAG = 'Object'
     _DEFAULT_RECORD_ID_XPATH = './ObjectIdentity/Number'
 
@@ -387,6 +389,12 @@ def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
             break
         command = document[Stmt.CMD]
         if not Cmd.validate_yaml_cmd(command):
+            valid_doc = False
+        # These commands are mutually exclusive as they change the data in
+        # incompatible ways.
+        only_one = (Stmt.PERSON_NAME, Stmt.DATE, Stmt.NORMALIZE)
+        if [True for s in only_one if s in document].count(True) > 1:
+            print(f'ERROR: Only one of {", ".join(only_one)} allowed.')
             valid_doc = False
         if command in Cmd.get_needxpath_cmds() and Stmt.XPATH not in document:
             print(f'ERROR: XPATH statement missing, cmd: {command}', file=logfile)
