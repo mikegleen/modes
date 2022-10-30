@@ -36,12 +36,14 @@ def row_dict_reader(filename, verbos=1, skiprows=0):
             next(enumrows)
         _, heading = next(enumrows)
         if verbos >= 1:
-            print(f'Excel Column Headings: {heading}')
+            print(f'Excel Column Headings: {",".join([str(x) for x in heading])}')
         for nrow, rawrow in enumrows:
             row = dict()
             for ncell, cell in enumerate(rawrow):
                 if type(cell) == str:
                     cell = cell.replace('\n', ' ')
-                row[heading[ncell]] = cell
+                row[heading[ncell]] = '' if cell is None else str(cell).strip()
+            if not ''.join(row.values()):
+                continue
             yield row
 
