@@ -121,3 +121,5 @@ documentation
 history/
 .DS_Store
 index.html
+test/normal/
+test/pretty/

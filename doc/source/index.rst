@@ -89,7 +89,9 @@ the ``cmd: global`` document.
    from the **title** statment. If both are omitted the name will be taken from the title
    generated from the **xpath** statement.
 -  **insert_after** If an element doesn't exist, it will be inserted after the
-   element who's simple name is given here. You must also specify **parent_path**.
+   element who's simple name is given here. You must also specify **parent_path**. If this
+   statement is not specified, the new element will be inserted as the parent's last
+   subelement.
 -  **multiple_delimiter**  The character to use within a column to separate the
    values when used with the **multiple** command. The statement may
    appear under the **global** command or a specific **multiple** command,
@@ -107,6 +109,8 @@ the ``cmd: global`` document.
    If the **element** statement doesn't exist, the name will be taken from the **title**
    statement in the document. See the **title** statement below. The element named by this
    path must already exist.
+-  **person_name** This column contains a name in the form "last, first" or "first last".
+   The name will be converted to the "last, first" form.
 -  **required** If this field is missing or
    empty issue an error message and discard the row. Valid only with a control
    command (**if** ...) or with a **column** command in ``csv2xml.py``. In this case it is
@@ -122,6 +126,10 @@ the ``cmd: global`` document.
    a CSV file. Ignored when writing to an XML file.
 -  **xpath** Required. This describes the XSLT path to a relevant XML
    element.
+-  **xpath2** This describes the XSLT path to a relevant XML element in the case where a
+   single column must be stored in two places. Used in ``csv2xml.py``. This is only valid
+   for a ``column`` command. You can, for example, create both the ``normal`` and
+   ``current`` locations from a single column value.
 
 
 Global-command Statements
@@ -258,6 +266,10 @@ When read from a CSV file, the XML file, or the command line, accession numbers 
 normalized so that numeric fields sort correctly. That is, internally, all numbers
 are padded with zeroes. In this way, JB1 and JB001 are treated as the same object.
 
+When reading from a CSV file, the MDA code may be omitted (see the global command
+``add_mda_code``). Accession numbers that start with a digit will have the MDA code added
+as a prefix.
+
 
 Reserved Words
 --------------
@@ -281,7 +293,7 @@ All programs are executed by calling:
    python src/<name>.py
 
 The appropriate environment must be active. On my system this is done
-by calling ``conda activate py8`` prior to calling the program.
+by calling ``conda activate py311`` prior to calling the program.
 
 :doc:`compare_elts`
 ~~~~~~~~~~~~~~~~~~~
