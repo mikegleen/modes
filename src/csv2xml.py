@@ -3,6 +3,7 @@
 
 """
 import argparse
+from colorama import Fore, Style
 import copy
 import os.path
 import re
@@ -14,12 +15,16 @@ import xml.etree.ElementTree as ET
 from utl.cfgutil import Config, Stmt, Cmd, new_subelt
 from utl.normalize import modesdatefrombritishdate, sphinxify, if_not_sphinx
 from utl.normalize import DEFAULT_MDA_CODE, normalize_id, denormalize_id
+from utl.normalize import modes_person
 from utl.row_reader import row_dict_reader
 
 
-def trace(level, template, *args):
+def trace(level, template, *args, color=None):
     if _args.verbose >= level:
-        print(template.format(*args))
+        if color:
+            print(color, template.format(*args), Style.RESET_ALL)
+        else:
+            print(template.format(*args))
 
 
 def clean_accnum(accnum: str):
@@ -109,6 +114,43 @@ def get_template_from_csv(row: dict[str]):
     return get_object_from_file(templatefilepath)
 
 
+def store(xpath: str, doc, template, accnum, text):
+    """
+
+    :param xpath: The xpath or xpath2 from the document
+    :param doc: The full document
+    :param template: The template xml to be populated
+    :param accnum: The accession number from the CSV file
+    :param text: The text from the CSV file to store
+    :return: None
+    """
+    elt = template.find(xpath)
+    cmd = doc[Stmt.CMD]
+    if elt is None:
+        elt = new_subelt(doc, template, accnum, _args.verbose)
+    if elt is None:
+        trace(1, '{}({}): Cannot create new {}: {}\n'
+                 'Check parent_path statement.',
+              accnum, text, doc[Stmt.TITLE], doc[Stmt.XPATH])
+        return
+    if cmd == Cmd.CONSTANT:
+        elt.text = doc[Stmt.VALUE]
+        return
+    if cmd == Cmd.ITEMS:
+        create_items(doc, elt, template, text)
+    else:
+        elt.text = text
+    if Stmt.DATE in doc:
+        # Only britishdate supported now
+        try:
+            elt.text, _, _ = modesdatefrombritishdate(elt.text)
+            # print(type(elt.text))
+        except ValueError:
+            elt.text = 'unknown'
+    elif Stmt.PERSON_NAME in doc:
+        elt.text = modes_person(elt.text)
+
+
 def main():
     global nrows
     if not _args.noprolog:
@@ -132,6 +174,10 @@ def main():
             trace(2, 'Serial generated: {}', accnum)
         else:
             accnum = row[_args.serial]
+            if not accnum:
+                trace(1, '\n*** Serial number empty, row skipped: {}', ','.
+                      join(row.values()), color=Fore.RED)
+                continue
             if config.add_mda_code and accnum[0].isnumeric():
                 accnum = _args.mdacode + '.' + accnum
         accnum = clean_accnum(accnum)
@@ -139,7 +185,12 @@ def main():
         for doc in config.col_docs:
             cmd = doc[Stmt.CMD]
             title = doc[Stmt.TITLE]
-            if cmd != Cmd.CONSTANT and not row[title]:
+            if cmd == Cmd.CONSTANT:
+                text = doc[Stmt.VALUE]
+            else:
+                text = row[title]
+            trace(4, 'text="{}"', text)
+            if cmd != Cmd.CONSTANT and not text:
                 trace(3, '{}: cell empty {}', accnum, title)
                 if Stmt.REQUIRED in doc:
                     print(f'*** Required column “{title}” is missing from'
@@ -147,29 +198,9 @@ def main():
                     emit = False
                 continue
             xpath = doc[Stmt.XPATH]
-            elt = template.find(xpath)
-            if elt is None:
-                elt = new_subelt(doc, template, accnum, _args.verbose)
-            if elt is None:
-                trace(1, '{}: Cannot create new {}.\n'
-                         'Check parent_path statement.',
-                      accnum, doc[Stmt.XPATH])
-                continue
-            if cmd == Cmd.CONSTANT:
-                elt.text = doc[Stmt.VALUE]
-                continue
-            text = row[title]
-            if cmd == Cmd.ITEMS:
-                create_items(doc, elt, template, text)
-            else:
-                elt.text = text
-            if Stmt.DATE in doc:
-                # Only britishdate supported now
-                try:
-                    elt.text, _, _ = modesdatefrombritishdate(elt.text)
-                    # print(type(elt.text))
-                except ValueError:
-                    elt.text = 'unknown'
+            store(xpath, doc, template, accnum, text)
+            if Stmt.XPATH2 in doc:
+                store(doc[Stmt.XPATH2], doc, template, accnum, text)
         if emit:
             nrows += 1
             outfile.write(ET.tostring(template))
@@ -183,8 +214,8 @@ def getparser():
         is the accession number and the following columns are the fields
         defined by the XPATH statement in the config file. The first row in the
         CSV file is a heading row. The column titles must match the document
-        titles in the config file. Columns are referred to by name so it is
-        permissible to omit columns from the config file.
+        titles in the config file. Columns are referred to by name so columns
+        not named in the config file are ignored.
         
         Create an
         XML file with data from the CSV file based on a template of the
@@ -203,7 +234,7 @@ def getparser():
         The config file may contain only ``column``, ``constant``, or
         ``items`` commands.
     ''', calledfromsphinx))
-    parser.add_argument('-i', '--incsvfile', help=sphinxify('''
+    parser.add_argument('-i', '--incsvfile', required=True, help=sphinxify('''
         The file containing data to be inserted into the XML template.
         The file must have a heading, but see option --skip_rows.
         The heading of the column containing the serial number must be
@@ -216,7 +247,7 @@ def getparser():
         Specify the MDA code, used in normalizing the accession number.''' +
                         if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".
                         ''', calledfromsphinx))
-    parser.add_argument('-o', '--outfile', help='''
+    parser.add_argument('-o', '--outfile', required=True, help='''
         The output XML file.''')
     parser.add_argument('-p', '--noprolog', action='store_true', help='''
         Inhibit the insertion of an XML prolog at the front of the file and an
