@@ -310,5 +310,21 @@ def sphinxify(txt: str, calledfromsphinx: bool) -> str:
     return txt
 
 
+def modes_person(person: str) -> str:
+    """
+
+    :param person: A name in the form of <given-name(s)> <family-name> or
+                   <family-name>, <given-name(s)>
+    :return: The name in format <family-name>, <given-name(s)>
+    """
+    if ',' in person:
+        return person
+    parts = person.split()
+    if len(parts) <= 1:
+        return person
+    fullname = f'{parts[-1]}, {" ".join(parts[:-1])}'
+    return fullname
+
+
 if __name__ == '__main__':
     print('This module is not callable. Try src/normalize_xml.py')
