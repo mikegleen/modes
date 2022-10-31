@@ -761,6 +761,8 @@ if __name__ == '__main__':
                              'specify the location.'))
         objectlist = expand_idnum(_args.object)
         newlocs = {nd.normalize_id(obj): _args.location for obj in objectlist}
+        newreasons = {nd.normalize_id(obj): _args.reason for obj in objectlist}
+        newrows = None  # will be ignored if -j is set
         trace(2, 'Object(s) specified, newlocs= {}', newlocs)
     else:
         newlocs, newreasons, newrows = loadcsv()
