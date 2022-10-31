@@ -79,6 +79,9 @@ the ``cmd: global`` document.
 
 -  **attribute** Required by the **attrib** and **ifattrib** commands.
 -  **casesensitive** By default, comparisons are case insensitive.
+-  **child** Used by ``update_from_csv.py`` when ``parent_path`` is specified to force
+   creation of a new element. When that element is created, a subelement is also created.
+-  **child_value** Make this the text of the newly created subelement.
 -  **cmd** Required. See below for a description of the individual
    commands.
 -  **date** allowed in ``csv2xml.py``. Indicates that a field may be in British
@@ -110,16 +113,16 @@ the ``cmd: global`` document.
    statement in the document. See the **title** statement below. The element named by this
    path must already exist.
 -  **person_name** This column contains a name in the form "last, first" or "first last".
-   The name will be converted to the "last, first" form.
+   The name will be converted to the "last, first" form. Used by ``csv2xml.py`` and
+   ``update_from_csv.py``. Restriction: This will not work for a name with a suffix like
+   "Joseph Biden Jr.".
 -  **required** If this field is missing or
    empty issue an error message and discard the row. Valid only with a control
    command (**if** ...) or with a **column** command in ``csv2xml.py``. In this case it is
    useful for discarding rubbish rows in the CSV file.
 -  **title** Optional. If omitted, a best-guess title will be created
    from the xpath statement. If in a control document, this will be
-   shown in diagnostics. The titles of documents must be unique. If the ``--heading``
-   option is selected in ``update_from_csv.py`` the value of this statement must match
-   the heading of the corresponding column in the CSV file.
+   shown in diagnostics. The titles of documents must be unique.
 -  **value** Required for **ifeq** or **ifattribeq** or **ifcontains**
    or **constant** command.
 -  **width** truncate this column to this number of characters when writing to
@@ -403,6 +406,6 @@ This illustrates several features.
 
 The script will attempt to insert the new value in an existing ``Entry`` element. If it
 doesn't exist, it will search for the parent and create a subelement.
-However, that does also not exist. The
+However, that also does not exist. The
 solution is to create the parent element first. Normally, this will be created as a new
 subelement of *its* parent. This is modified by the **insert_after** statement.
