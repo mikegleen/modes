@@ -1,0 +1,34 @@
+cmd: constant
+xpath: ./Association[Type="Adopt a Picture"]
+parent_path: .
+title: Association
+child: Type
+child_value: Adopt a Picture
+value:
+---
+cmd: constant
+xpath: ./Association[Type="Adopt a Picture"]/Person
+parent_path: ./Association[Type="Adopt a Picture"]
+value:
+---
+cmd: column
+xpath: ./Association[Type="Adopt a Picture"]/Person/PersonName
+parent_path: ./Association[Type="Adopt a Picture"]/Person
+title: Name
+person_name:
+---
+cmd: constant
+xpath: ./Association[Type="Adopt a Picture"]/SummaryText
+parent_path: ./Association[Type="Adopt a Picture"]
+value:
+---
+cmd: constant
+xpath: ./Association[Type="Adopt a Picture"]/SummaryText/Keyword
+parent_path: ./Association[Type="Adopt a Picture"]/SummaryText
+value: dedication
+---
+cmd: column
+xpath: ./Association[Type="Adopt a Picture"]/SummaryText/Note
+parent_path: ./Association[Type="Adopt a Picture"]
+title: Dedication
+---
