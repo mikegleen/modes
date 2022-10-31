@@ -92,31 +92,33 @@ class Stmt:
     This is because we do a dir(Stmt) to get a list of valid statements,
     excluding those beginning with '_'.
     """
-    CMD = 'cmd'
-    XPATH = 'xpath'
-    XPATH2 = 'xpath2'
-    PARENT_PATH = 'parent_path'
+    ADD_MDA_CODE = 'add_mda_code'
     ATTRIBUTE = 'attribute'
-    DATE = 'date'
-    TITLE = 'title'
-    ELEMENT = 'element'
-    VALUE = 'value'
     CASESENSITIVE = 'casesensitive'
+    CHILD = 'child'
+    CHILD_VALUE = 'child_value'
+    CMD = 'cmd'
+    DATE = 'date'
+    DELIMITER = 'delimiter'
+    ELEMENT = 'element'
+    INSERT_AFTER = 'insert_after'
     MULTIPLE_DELIMITER = 'multiple_delimiter'
     NORMALIZE = 'normalize'
-    REQUIRED = 'required'
-    WIDTH = 'width'
-    SKIP_NUMBER = 'skip_number'
+    PARENT_PATH = 'parent_path'
+    PERSON_NAME = 'person_name'
     RECORD_TAG = 'record_tag'
     RECORD_ID_XPATH = 'record_id_xpath'
+    REQUIRED = 'required'
+    SKIP_NUMBER = 'skip_number'
     SORT_NUMERIC = 'sort_numeric'
-    DELIMITER = 'delimiter'
-    ADD_MDA_CODE = 'add_mda_code'
     TEMPLATE_DIR = 'template_dir'
     TEMPLATE_TITLE = 'template_title'
     TEMPLATES = 'templates'
-    INSERT_AFTER = 'insert_after'
-    PERSON_NAME = 'person_name'
+    TITLE = 'title'
+    VALUE = 'value'
+    WIDTH = 'width'
+    XPATH = 'xpath'
+    XPATH2 = 'xpath2'
     _DEFAULT_RECORD_TAG = 'Object'
     _DEFAULT_RECORD_ID_XPATH = './ObjectIdentity/Number'
 
@@ -251,20 +253,28 @@ class Config:
 
 
 def new_subelt(doc, root, idnum, verbos=1):
+    """
+
+    :param doc: The YAML document for this column (or constant)
+    :param root:
+    :param idnum:
+    :param verbos:
+    :return:
+    """
     if Stmt.PARENT_PATH not in doc:
         return None
     newelt = None
     title = doc[Stmt.TITLE]
     element = doc[Stmt.ELEMENT]
     insert_after = doc.get(Stmt.INSERT_AFTER)
-    if verbos > 2:
+    if verbos >= 3:
         print(f'new_subelt: {idnum}, {element=}, {insert_after=} ')
     parent = root.find(doc[Stmt.PARENT_PATH])
     if parent is None:
-        if verbos > 1:
+        if verbos >= 1:
             print(f'Cannot find parent of {doc[Stmt.XPATH]}, column {title}')
     elif ' ' in element:
-        if verbos > 1:
+        if verbos >= 1:
             print(f'Cannot create element with embedded spaces: {element}')
     elif insert_after is None:
         newelt = ET.SubElement(parent, element)
@@ -281,6 +291,10 @@ def new_subelt(doc, root, idnum, verbos=1):
                              f' "{insert_after}".')
         newelt = ET.Element(element)
         parent.insert(insert_ix, newelt)
+    if newelt is not None and Stmt.CHILD in doc:
+        childelt = ET.SubElement(newelt, doc[Stmt.CHILD])
+        if Stmt.CHILD_VALUE in doc:
+            childelt.text = doc.get(Stmt.CHILD_VALUE, '')
     return newelt
 
 

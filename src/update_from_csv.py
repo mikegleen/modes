@@ -34,6 +34,7 @@ import xml.etree.ElementTree as ET
 from utl.cfgutil import Config, Stmt, Cmd, new_subelt, expand_idnum
 from utl.normalize import normalize_id, sphinxify, denormalize_id
 from utl.normalize import if_not_sphinx, DEFAULT_MDA_CODE
+from utl.normalize import modes_person, modesdatefrombritishdate
 import utl.normalize as nd
 from utl.row_reader import row_dict_reader
 
@@ -112,6 +113,15 @@ def one_element(elem, idnum):
                       newtext)
                 if Stmt.NORMALIZE in doc:
                     newtext = denormalize_id(newtext)
+                elif Stmt.DATE in doc:
+                    # Only britishdate supported now
+                    try:
+                        newtext, _, _ = modesdatefrombritishdate(newtext)
+                        # print(type(elt.text))
+                    except ValueError:
+                        newtext = 'unknown'
+                elif Stmt.PERSON_NAME in doc:
+                    newtext = modes_person(newtext)
                 target.text = newtext
                 updated = True
                 nupdated += 1
