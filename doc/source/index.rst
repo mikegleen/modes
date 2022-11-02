@@ -77,7 +77,12 @@ These are statements that affect a single column-related or control document. Th
 other class of statements are those that affect the entire process and are under
 the ``cmd: global`` document.
 
--  **attribute** Required by the **attrib** and **ifattrib** commands.
+-  **attribute** Required by the **attrib** and **ifattrib** commands when used by
+   ``xml2csv.py``. If used by ``update_from_csv.py`` and you are creating an element
+   using the **parent_path** statement, this will create an attribute and requires a
+   **attribute_value** statement.
+-  **attribute_value** The value to insert in an attribute created with the **attribute**
+   statement.
 -  **casesensitive** By default, comparisons are case insensitive.
 -  **child** Used by ``update_from_csv.py`` when ``parent_path`` is specified to force
    creation of a new element. When that element is created, a subelement is also created.
@@ -409,3 +414,107 @@ doesn't exist, it will search for the parent and create a subelement.
 However, that also does not exist. The
 solution is to create the parent element first. Normally, this will be created as a new
 subelement of *its* parent. This is modified by the **insert_after** statement.
+
+Insert an ``Association`` Element Group
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+When an object is associated with an event or person, it is recorded here. This update
+adds an *Association* group recording a donation linked to individual objects.
+The association is recorded as::
+
+    <Association>
+        <Type>Adopt a Picture</Type>
+        <Person>
+            <Name>Bloggs, Joe</Name>
+        </Person>
+        <SummaryText>
+            <Keyword>dedication</Keyword>
+            <Note>In memory of Jack and Jill Bloggs</Note>
+        </SummaryText>
+        <Date>25.6.2022</Date>
+    </Association>
+
+The data to create this element group is from the CSV file::
+
+    Name,Date,Dedication,Accn. No.
+    Joe Bloggs,25 June 2022,"In memory of Jack and Jill Bloggs",LDHRM.2022.999
+
+This element group is created with the following YAML statements. The numbering has
+been added as comments to assist this discussion::
+
+    # 1
+    cmd: constant
+    xpath: ./Association[Type="Adopt a Picture"]
+    parent_path: .
+    title: Association
+    child: Type
+    child_value: Adopt a Picture
+    value:
+    ---
+    # 2
+    cmd: constant
+    xpath: ./Association[Type="Adopt a Picture"]/Person
+    parent_path: ./Association[Type="Adopt a Picture"]
+    value:
+    ---
+    # 3
+    cmd: column
+    xpath: ./Association[Type="Adopt a Picture"]/Person/PersonName
+    parent_path: ./Association[Type="Adopt a Picture"]/Person
+    title: Name
+    person_name:
+    ---
+    # 4
+    cmd: constant
+    xpath: ./Association[Type="Adopt a Picture"]/SummaryText
+    parent_path: ./Association[Type="Adopt a Picture"]
+    value:
+    ---
+    # 5
+    cmd: constant
+    xpath: ./Association[Type="Adopt a Picture"]/SummaryText/Keyword
+    parent_path: ./Association[Type="Adopt a Picture"]/SummaryText
+    value: dedication
+    ---
+    # 6
+    cmd: column
+    xpath: ./Association[Type="Adopt a Picture"]/SummaryText/Note
+    parent_path: ./Association[Type="Adopt a Picture"]/SummaryText
+    title: Dedication
+    element: Note
+    ---
+    # 7
+    cmd: column
+    xpath: ./Association[Type="Adopt a Picture"]/Date
+    parent_path: ./Association[Type="Adopt a Picture"]
+    date:
+    ---
+
+The first command searches for an *Association* element that has a child *Type* element
+containing text ``Adopt a Picture``. In this case we expect it to not be found so it will
+be created. Because we know that it doesn't already exist, we could have left out the
+``Type=`` clause in the xpath, but it is included to avoid confusion. The **child:** and
+**child_value:** statements in this document will create the subelement with tag *Type*
+and text ``Adopt a Picture``.
+
+Command # 2 creates a *Person* element with no text. Command # 3 creates a *PersonName*
+subelement to the newly created *Person* element containing text from the **Name** column
+in the CSV file. The **person_name:** statement causes the name to be converted to
+"lastname, firstname" format.
+
+Commands # 4, 5, and 6 similarly create *SummaryText/Keyword* and *SummaryText/Note*
+elements. Command # 6 contains the **element:** statement to designate the subelement
+name to be created. If it was not specified, then the element would be *Dedication* taken
+from the **title:** statment. The **title:** is ``Dedication`` because that is the heading
+of the corresponding column in the CSV file.
+
+Command # 7 creates a *Date* subelement. The **date:** statement says to convert the
+date to standard Modes format of dd.mm.yyyy.
+
+The shell command to effect this update is::
+
+    python src/update_from_csv.py\
+    prod_update/normal/2022-10-31_loc_JB010.xml\
+    prod_update/normal/2022-11-01_adopt.xml\
+    -c src/cfg/y010_adopt_a_picture.yml\
+    -m results/csv/sally/pictures_adopted.csv\
+    --serial 'Accn. No.' -a
