@@ -29,6 +29,12 @@ value: dedication
 ---
 cmd: column
 xpath: ./Association[Type="Adopt a Picture"]/SummaryText/Note
-parent_path: ./Association[Type="Adopt a Picture"]
+parent_path: ./Association[Type="Adopt a Picture"]/SummaryText
 title: Dedication
+element: Note
+---
+cmd: column
+xpath: ./Association[Type="Adopt a Picture"]/Date
+parent_path: ./Association[Type="Adopt a Picture"]
+date:
 ---

@@ -3,10 +3,42 @@ xpath: .
 attribute: elementtype
 value: decorative art
 ---
+#cmd: column
+#xpath: ./Identification/Title
+#---
+#cmd: column
+#xpath: ./Identification/BriefDescription
+#---
+#cmd: column
+#xpath: ./Identification/ObjectName[@elementtype="simple name"]/Keyword
+#title: Simple Name
+#---
+#cmd: column
+#xpath: ./Identification/ObjectName[@elementtype="other name"]/Keyword
+#title: Other Name
+#---
+#cmd: column
+#xpath: ./Production/SummaryText
+#title: Production SummaryText
+#---
+#cmd: column
+#xpath: ./Association/SummaryText
+#title: Association SummaryText
+#---
+#cmd: column
+#xpath: ./Description/SummaryText
+#title: Description SummaryText
+#---
 cmd: column
-xpath: ./Identification/Title
+xpath: ./Description/Measurement[Dimension="height"]/Reading
+title: Height
 ---
 cmd: column
-xpath: ./Identification/BriefDescription
-
+xpath: ./Description/Measurement[Dimension="width"]/Reading
+title: Width
+---
+cmd: column
+xpath: ./Description/Measurement[Dimension="length"]/Reading
+title: Length
+---
 
