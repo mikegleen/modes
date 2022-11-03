@@ -36,6 +36,8 @@ class Cmd:
     CONSTANT = 'constant'
     MULTIPLE = 'multiple'
     COUNT = 'count'
+    DELETE = 'delete'
+    DELETE_ALL = 'delete_all'
     GLOBAL = 'global'
     KEYWORD = 'keyword'
     ITEMS = 'items'

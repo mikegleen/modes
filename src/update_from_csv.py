@@ -69,14 +69,14 @@ def loadnewvals(allow_blanks=False):
     return newval_dict
 
 
-def one_element(elem, idnum):
+def one_element(objelem, idnum):
     """
     Update the fields specified by "column" configuration documents.
     Do not overwrite existing values unless --replace is specified.
 
     Note that we have already tested that idnum is in newvals.
 
-    :param elem: the Object
+    :param objelem: the Object
     :param idnum: the ObjectIdentity/Number text
     :return: True if updated, False otherwise
     """
@@ -86,6 +86,17 @@ def one_element(elem, idnum):
         command = doc[Stmt.CMD]
         xpath = doc[Stmt.XPATH]
         title = doc[Stmt.TITLE]
+        if command == Cmd.DELETE:
+            target = objelem.find(xpath)
+            if target is not None:
+                objelem.remove(target)
+            continue
+        elif command == Cmd.DELETE_ALL:
+            targets = objelem.findall(xpath)
+            if targets is not None:
+                for target in targets:
+                    objelem.remove(target)
+            continue
         if command == Cmd.CONSTANT:
             newtext = doc[Stmt.VALUE]
         else:  # command is COLUMN
@@ -95,9 +106,9 @@ def one_element(elem, idnum):
             trace(3, '{}: empty field in CSV ignored. --empty not specified',
                   idnum)
             continue
-        target = elem.find(xpath)
+        target = objelem.find(xpath)
         if target is None:
-            target = new_subelt(doc, elem, idnum, _args.verbose)
+            target = new_subelt(doc, objelem, idnum, _args.verbose)
             if target is None:  # parent is not specified or doesn't exist
                 trace(1, '{}: Cannot find target "{}"', idnum, xpath)
                 continue
@@ -255,16 +266,22 @@ def getargs(argv):
 def check_cfg(c):
     errs = 0
     for doc in c.col_docs:
-        if doc[Stmt.CMD] not in (Cmd.COLUMN, Cmd.CONSTANT):
-            trace(1, 'Command "{doc[Stmt.CMD]}" not allowed, ignored',
-                  color=Fore.RED)
+        cmd = doc[Stmt.CMD]
+        if cmd == Cmd.DELETE:
+            for stmt in doc:
+                if stmt not in (Stmt.CMD, Stmt.XPATH):
+                    trace(1, 'Delete command: Statement "{}" not allowed, '
+                             'ignored', cmd, color=Fore.RED)
+                    errs += 1
+        elif cmd not in (Cmd.COLUMN, Cmd.CONSTANT):
+            trace(1, 'Command "{}" not allowed, ignored', cmd, color=Fore.RED)
             errs += 1
         elif (Stmt.ATTRIBUTE in doc) ^ (Stmt.ATTRIBUTE_VALUE in doc):
             trace(1, 'cmd: {}: attribute statement requires '
-                  'attribute_value:', doc[Stmt.CMD], color=Fore.RED)
+                  'attribute_value:', cmd, color=Fore.RED)
             errs += 1
-    for doc in c.ctrl_docs:
-        trace(1, 'Command "{doc[Stmt.CMD]}" not allowed, ignored.',
+    for doc in c.ctrl_docs:  # "global" is not in this dict
+        trace(1, 'Command "{}" not allowed, ignored.', doc[Stmt.CMD],
               color=Fore.RED)
         errs += 1
     return errs
