@@ -25,7 +25,7 @@ def row_dict_reader(filename, verbos=1, skiprows=0):
                 next(mapfile)
             reader = csv.DictReader(mapfile)
             if verbos >= 1:
-                print(f'CSV Column Headings: {reader.fieldnames}')
+                print(f'CSV Column Headings: {", ".join(reader.fieldnames)}')
             for row in reader:
                 yield row
     elif suffix.lower() == '.xlsx':
@@ -36,7 +36,8 @@ def row_dict_reader(filename, verbos=1, skiprows=0):
             next(enumrows)
         _, heading = next(enumrows)
         if verbos >= 1:
-            print(f'Excel Column Headings: {",".join([str(x) for x in heading])}')
+            print(f'Excel Column Headings: '
+                  f'{", ".join([str(x) for x in heading])}')
         for nrow, rawrow in enumrows:
             row = dict()
             for ncell, cell in enumerate(rawrow):
@@ -46,4 +47,3 @@ def row_dict_reader(filename, verbos=1, skiprows=0):
             if not ''.join(row.values()):
                 continue
             yield row
-
