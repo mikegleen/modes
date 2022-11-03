@@ -190,12 +190,12 @@ Commands
 ~~~~~~~~
 
 Each document has one **cmd** statement, which is customarily the first
-statement in the document. Column-related commands are those that map
+statement in the document. Data-related commands are those that map
 the elements in the XML document to a corresponding column in the associated CSV file
-(but see the **constant** command for an exception).
+(but see the **constant** and **delete** commands for exceptions).
 
-Column-related Commands
-+++++++++++++++++++++++
+Data-related Commands
++++++++++++++++++++++
 
 -  **attrib** Like **column** except displays the value of the attribute
    named in the **attribute** statement.
@@ -203,6 +203,10 @@ Column-related Commands
    element.
 -  **constant** For ``csv2xml.py`` and ``update_from_csv.py``, create an element
    from the ``value`` statement of this document without reference to the CSV file.
+-  **delete** For ``update_from_csv.py``. Delete the first element specified by the
+    **xpath** statement. If the **delete** command is
+   specified, only the **xpath** statement is allowed.
+-  **delete_all** Like **delete** except all occurrences of the element are deleted.
 -  **keyword** Find the element specified by the xpath statement whose text
    equals the text in the **value** statement and then return the
    first Keyword sub-element's text.
