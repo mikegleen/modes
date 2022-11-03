@@ -22,7 +22,7 @@ from utl.row_reader import row_dict_reader
 def trace(level, template, *args, color=None):
     if _args.verbose >= level:
         if color:
-            print(color, template.format(*args), Style.RESET_ALL)
+            print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
         else:
             print(template.format(*args))
 
