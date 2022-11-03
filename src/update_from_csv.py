@@ -25,6 +25,7 @@
 
 """
 import argparse
+from colorama import Fore, Style
 from datetime import date
 import os
 import sys
@@ -39,9 +40,12 @@ import utl.normalize as nd
 from utl.row_reader import row_dict_reader
 
 
-def trace(level, template, *args):
+def trace(level, template, *args, color=None):
     if _args.verbose >= level:
-        print(template.format(*args))
+        if color:
+            print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
+        else:
+            print(template.format(*args))
 
 
 def loadnewvals(allow_blanks=False):
@@ -252,10 +256,16 @@ def check_cfg(c):
     errs = 0
     for doc in c.col_docs:
         if doc[Stmt.CMD] not in (Cmd.COLUMN, Cmd.CONSTANT):
-            print(f'Command "{doc[Stmt.CMD]}" not allowed, ignored')
+            trace(1, 'Command "{doc[Stmt.CMD]}" not allowed, ignored',
+                  color=Fore.RED)
+            errs += 1
+        elif (Stmt.ATTRIBUTE in doc) ^ (Stmt.ATTRIBUTE_VALUE in doc):
+            trace(1, 'cmd: {}: attribute statement requires '
+                  'attribute_value:', doc[Stmt.CMD], color=Fore.RED)
             errs += 1
     for doc in c.ctrl_docs:
-        print(f'Command "{doc[Stmt.CMD]}" not allowed, ignored.')
+        trace(1, 'Command "{doc[Stmt.CMD]}" not allowed, ignored.',
+              color=Fore.RED)
         errs += 1
     return errs
 
@@ -276,7 +286,8 @@ if __name__ == '__main__':
     cfg = Config(_args.cfgfile, dump=_args.verbose > 1)
     if errors := check_cfg(cfg):
         trace(1, '{} command{} ignored.', errors, 's' if errors > 1 else '')
-        print('update_from_csv aborting due to config error(s).')
+        trace(1, 'update_from_csv aborting due to config error(s).',
+              color=Fore.RED)
         sys.exit(1)
     newvals = loadnewvals(allow_blanks=_args.allow_blanks)
     nnewvals = len(newvals)
@@ -288,4 +299,5 @@ if __name__ == '__main__':
           nnewvals, sq(nnewvals),
           nunchanged, sq(nunchanged),
           nequal, sq(nequal))
-    trace(1, 'End update_from_csv. {} objects written.', nwritten)
+    trace(1, 'End update_from_csv. {} objects written.', nwritten,
+          color=Fore.GREEN)

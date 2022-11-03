@@ -94,6 +94,7 @@ class Stmt:
     """
     ADD_MDA_CODE = 'add_mda_code'
     ATTRIBUTE = 'attribute'
+    ATTRIBUTE_VALUE = 'attribute_value'
     CASESENSITIVE = 'casesensitive'
     CHILD = 'child'
     CHILD_VALUE = 'child_value'
@@ -291,10 +292,14 @@ def new_subelt(doc, root, idnum, verbos=1):
                              f' "{insert_after}".')
         newelt = ET.Element(element)
         parent.insert(insert_ix, newelt)
-    if newelt is not None and Stmt.CHILD in doc:
-        childelt = ET.SubElement(newelt, doc[Stmt.CHILD])
-        if Stmt.CHILD_VALUE in doc:
-            childelt.text = doc.get(Stmt.CHILD_VALUE, '')
+    if newelt is not None:
+        if Stmt.CHILD in doc:
+            childelt = ET.SubElement(newelt, doc[Stmt.CHILD])
+            if Stmt.CHILD_VALUE in doc:
+                childelt.text = doc.get(Stmt.CHILD_VALUE, '')
+        elif Stmt.ATTRIBUTE in doc:
+            value = doc[Stmt.ATTRIBUTE_VALUE] if Stmt.ATTRIBUTE_VALUE in doc else ''
+            newelt.set(doc[Stmt.ATTRIBUTE], value)
     return newelt
 
 
