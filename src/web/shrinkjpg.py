@@ -86,7 +86,9 @@ if __name__ == '__main__':
     calledfromsphinx = False
     assert sys.version_info >= (3, 9)
     _args = getargs()
-    if not os.path.isdir(_args.indir) or not os.path.isdir(_args.outdir):
-        raise ValueError('Input and output must be directories.')
+    if not os.path.isdir(_args.indir):
+        raise ValueError('Input must be a directory.')
+    if not os.path.isdir(_args.outdir):
+        os.mkdir(_args.outdir)
     VERBOSE = _args.verbose
     main()
