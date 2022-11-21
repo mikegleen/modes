@@ -52,6 +52,7 @@ def loadnewvals(allow_blanks=False):
     newval_dict = {}
     reader = row_dict_reader(_args.mapfile, _args.verbose, _args.skip_rows)
     for row in reader:
+        print(f'{row=}')
         accnum = row[_args.serial]
         if not accnum:
             if allow_blanks:
@@ -87,9 +88,11 @@ def one_element(objelem, idnum):
         xpath = doc[Stmt.XPATH]
         title = doc[Stmt.TITLE]
         if command == Cmd.DELETE:
+            parent = objelem.find(doc[Stmt.PARENT_PATH])
             target = objelem.find(xpath)
             if target is not None:
-                objelem.remove(target)
+                trace(2, 'Removing {}', xpath)
+                parent.remove(target)
             continue
         elif command == Cmd.DELETE_ALL:
             targets = objelem.findall(xpath)
@@ -113,38 +116,37 @@ def one_element(objelem, idnum):
                 trace(1, '{}: Cannot find target "{}"', idnum, xpath)
                 continue
         oldtext = target.text
-        if not oldtext or _args.replace:
-            if oldtext and oldtext == newtext:
-                nequal += 1
-                trace(2, '{} {}: Unchanged: "{}" == "{}"', idnum, title,
-                      oldtext, newtext)
-                continue
-            else:
-                if newtext == '{{clear}}':
-                    newtext = ''
-                elif newtext == '{{today}}':
-                    newtext = _args.date
-                trace(3, '{} {}: Updated: "{}" -> "{}"', idnum, title, oldtext,
-                      newtext)
-                if Stmt.NORMALIZE in doc:
-                    newtext = denormalize_id(newtext)
-                elif Stmt.DATE in doc:
-                    # Only britishdate supported now
-                    try:
-                        newtext, _, _ = modesdatefrombritishdate(newtext)
-                        # print(type(elt.text))
-                    except ValueError:
-                        newtext = 'unknown'
-                elif Stmt.PERSON_NAME in doc:
-                    newtext = modes_person(newtext)
-                target.text = newtext
-                updated = True
-                nupdated += 1
-        else:
+        if oldtext and not _args.replace:
             trace(1, '{} {} Unchanged, old text: "{}",'
                      ' new text: "{}"\nSet --replace to force update.',
                   denormalize_id(idnum), title, oldtext, newtext)
             nunchanged += 1
+            continue
+        if oldtext and oldtext == newtext:
+            nequal += 1
+            trace(2, '{} {}: Unchanged: "{}" == "{}"', idnum, title,
+                  oldtext, newtext)
+            continue
+        if newtext == '{{clear}}':
+            newtext = ''
+        elif newtext == '{{today}}':
+            newtext = _args.date
+        trace(3, '{} {}: Updated: "{}" -> "{}"', idnum, title, oldtext,
+              newtext)
+        if Stmt.NORMALIZE in doc:
+            newtext = denormalize_id(newtext)
+        elif Stmt.DATE in doc:
+            # Only britishdate supported now
+            try:
+                newtext, _, _ = modesdatefrombritishdate(newtext)
+                # print(type(elt.text))
+            except ValueError:
+                newtext = 'unknown'
+        elif Stmt.PERSON_NAME in doc:
+            newtext = modes_person(newtext)
+        target.text = newtext
+        updated = True
+        nupdated += 1
     return updated
 
 
@@ -269,9 +271,13 @@ def check_cfg(c):
         cmd = doc[Stmt.CMD]
         if cmd == Cmd.DELETE:
             for stmt in doc:
-                if stmt not in (Stmt.CMD, Stmt.XPATH):
+                # Note some statements are created internally if they are not
+                # explicitly specified in the config.
+                if stmt not in (Stmt.CMD, Stmt.XPATH, Stmt.TITLE,
+                                Stmt.MULTIPLE_DELIMITER, Stmt.PARENT_PATH,
+                                Stmt.ELEMENT):
                     trace(1, 'Delete command: Statement "{}" not allowed, '
-                             'ignored', cmd, color=Fore.RED)
+                             'ignored', stmt, color=Fore.RED)
                     errs += 1
         elif cmd not in (Cmd.COLUMN, Cmd.CONSTANT):
             trace(1, 'Command "{}" not allowed, ignored', cmd, color=Fore.RED)
