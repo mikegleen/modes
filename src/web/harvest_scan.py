@@ -58,7 +58,6 @@ def harvest():
         onebox(boxpath)
 
 
-calledfromsphinx = True
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
     inroot = sys.argv[1]
