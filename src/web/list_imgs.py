@@ -6,9 +6,12 @@ Directories are processed in alphabetical order.
 
 """
 import argparse
+import csv
 import os.path
 import re
 import sys
+
+from utl.excel_cols import col2num
 from utl.normalize import normalize_id
 
 
@@ -27,6 +30,18 @@ def getparser():
     parser.add_argument('imgdir', help='''
         Folder containing images or subfolders containing images we already
         have.''')
+    parser.add_argument('-a', '--all', action='store_true', help='''
+    Include filenames even if they are not valid accession numbers. This is
+    useful in the case of multiple partial scans of a single picture. They
+    would appear as, for example, ''')
+    parser.add_argument('--col_exclude', type=str, default='0', help='''
+    The zero-based column containing the accession number of the
+    object to be excluded. The default is column zero. The column can be a
+    number or a spreadsheet-style letter.
+    ''')
+    parser.add_argument('-e', '--exclude', help='''
+    A CSV file containing accession numbers  to be excluded from the
+    output list.''')
     parser.add_argument('-o', '--outfile', help='''
         Output file for the list of files. Default is sys.stdout. The warning
         messages are always written to sys.stdout.''')
@@ -39,6 +54,7 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    args.col_exclude = col2num(args.col_exclude)
     return args
 
 
@@ -49,17 +65,24 @@ def handle_folder(img_ids: dict, imgdir: str):
     :return: The set of normalized numbers.
     """
     def onefile(imgf: str):
+        global nexcluded
         m = re.match(r'(collection_)?(.*)', imgf)
         imgf2 = m.group(2)  # remove optional leading 'collection_'
         prefix, suffix = os.path.splitext(imgf2)
         if suffix.lower() not in ('.jpg', '.png'):
-            if _args.verbose > 1:
+            if _args.verbose > 2 or _args.verbose > 1 and imgf != '.DS_Store':
                 print('not image:', imgf)
             return
         try:
             nid = normalize_id(prefix)
-        except ValueError as ve:
-            print(f'Skipping {imgf}')
+        except ValueError:
+            if _args.all:
+                img_ids[prefix] = (imgf2, dirpath)
+            else:
+                print(f'Skipping {imgf}')
+            return
+        if nid in excludes:
+            nexcluded += 1
             return
         if nid in img_ids and _args.verbose > 0:
             print(f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
@@ -90,6 +113,7 @@ def main():
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
+    nexcluded = 0
     _args = getargs(sys.argv)
     if not os.path.isdir(_args.imgdir):
         raise ValueError(f'{_args.imgdir} is not a directory.')
@@ -100,4 +124,13 @@ if __name__ == '__main__':
         outfile = open(_args.outfile, 'w')
     else:
         outfile = sys.stdout
+    excludes = set()
+    if _args.exclude:
+        exfile = open(_args.exclude)
+        exreader = csv.reader(exfile)
+        for row in exreader:
+            if _args.verbose > 2:
+                print(f'{row=}')
+            excludes.add(normalize_id(row[_args.col_exclude]))
     main()
+    print(f'{nexcluded} excluded.')
