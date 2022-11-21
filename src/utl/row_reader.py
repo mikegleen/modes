@@ -7,7 +7,7 @@ import csv
 from openpyxl import load_workbook
 
 
-def row_dict_reader(filename, verbos=1, skiprows=0):
+def row_dict_reader(filename: str | None, verbos=1, skiprows=0):
     """
     A generator function to iterate through either a CSV file or XLSX file.
 
@@ -16,8 +16,10 @@ def row_dict_reader(filename, verbos=1, skiprows=0):
     :param filename:
     :param verbos:
     :param skiprows:
-    :return: an iterator that calls this function
+    :return: an iterator that calls this function or None
     """
+    if not filename:
+        return None
     _, suffix = os.path.splitext(filename)
     if suffix.lower() == '.csv':
         with codecs.open(filename, 'r', 'utf-8-sig') as mapfile:
