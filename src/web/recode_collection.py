@@ -59,14 +59,15 @@ def onerow(oldrow):
     newrow['Medium'] = oldrow['Medium']
     newrow['Description'] = clean(oldrow['Description'])
     # Append the Production/SummaryText field to the end of the
-    # Description field.
+    # Description field unless it just repeats the same text.
     # If Production/SummaryText is empty, use the First Published In title.
     prod_text = oldrow[PROD_SUMMARYTEXT]
     if not prod_text and oldrow[TITLE_FIRST_PUBLISHED]:
         prod_text = f'First published in {oldrow[TITLE_FIRST_PUBLISHED]}'
     if prod_text:
         if newrow['Description']:
-            newrow['Description'] += f' ({prod_text})'
+            if prod_text.lower() not in newrow['Description'].lower():
+                newrow['Description'] += f' ({prod_text})'
         else:
             newrow['Description'] = prod_text
 
