@@ -1,4 +1,5 @@
 import codecs
+from colorama import Fore, Style
 import csv
 from datetime import date
 import os
@@ -21,6 +22,14 @@ from utl.normalize import normalize_id, modesdate
 # to name the attribute to test against the 'value' statement.
 # Note that the 'ifattrib' command is redundant: You can use the 'if'
 # statement with an appropriate xpath like .[@elementtype="ephemera"].
+
+
+def trace(level, verbose, template, *args, color=None):
+    if verbose >= level:
+        if color:
+            print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
+        else:
+            print(template.format(*args))
 
 
 class Cmd:
@@ -270,18 +279,17 @@ def new_subelt(doc, root, idnum, verbos=1):
     title = doc[Stmt.TITLE]
     element = doc[Stmt.ELEMENT]
     insert_after = doc.get(Stmt.INSERT_AFTER)
-    if verbos >= 3:
-        print(f'new_subelt: {idnum}, {element=}, {insert_after=} ')
+    trace(3, verbos, 'new_subelt: {}, element={}, insert_after={} ',
+          idnum, element, insert_after)
     parent = root.find(doc[Stmt.PARENT_PATH])
     if parent is None:
-        if verbos >= 1:
-            print(f'Cannot find parent of {doc[Stmt.XPATH]}, column {title}')
+        trace(1, verbos, 'Cannot find parent of {}, column {}',
+              doc[Stmt.XPATH], title, color=Fore.YELLOW)
     elif ' ' in element:
-        if verbos >= 1:
-            print(f'Cannot create element with embedded spaces: {element}')
+        trace(1, verbos, 'Cannot create element with embedded spaces: {}',
+              element, color=Fore.YELLOW)
     elif insert_after is None:
         newelt = ET.SubElement(parent, element)
-        # print(f'{elt=}')
     else:
         elts = list(parent)
         insert_ix = None
@@ -290,10 +298,12 @@ def new_subelt(doc, root, idnum, verbos=1):
             if e.tag == insert_after:
                 insert_ix = n + 1
         if insert_ix is None:
-            raise ValueError(f'{idnum}: Cannot find insert_after element'
-                             f' "{insert_after}".')
-        newelt = ET.Element(element)
-        parent.insert(insert_ix, newelt)
+            trace(1, verbos, '{}: Cannot find insert_after element "{}", '
+                  'inserting at end.', idnum, insert_after, color=Fore.YELLOW)
+            newelt = ET.SubElement(parent, element)
+        else:
+            newelt = ET.Element(element)
+            parent.insert(insert_ix, newelt)
     if newelt is not None:
         if Stmt.CHILD in doc:
             childelt = ET.SubElement(newelt, doc[Stmt.CHILD])
