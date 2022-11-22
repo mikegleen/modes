@@ -126,8 +126,9 @@ the ``cmd: global`` document.
    command (**if** ...) or with a **column** command in ``csv2xml.py``. In this case it is
    useful for discarding rubbish rows in the CSV file.
 -  **title** Optional. If omitted, a best-guess title will be created
-   from the xpath statement. If in a control document, this will be
-   shown in diagnostics. The titles of documents must be unique.
+   from the xpath statement, ignoring predicates (expressions within square brackets)
+   If in a control document, the title will be shown in diagnostics but is not otherwise
+   used. The titles of documents must be unique.
 -  **value** Required for **ifeq** or **ifattribeq** or **ifcontains**
    or **constant** command.
 -  **width** truncate this column to this number of characters when writing to
