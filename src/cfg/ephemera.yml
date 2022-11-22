@@ -2,25 +2,75 @@
 #xpath: ./ObjectIdentity/Number
 #value: 2018
 #---
-cmd: ifattribeq
+#cmd: ifattribeq
+#xpath: .
+#attribute: elementtype
+#value: ephemera
+#---
+cmd: ifnoteq
+xpath: ./Description/Measurement[1]/Dimension
+title: M1D
+value: height x width
+---
+#cmd: column
+#xpath: ./Identification/Title
+#---
+#cmd: column
+#xpath: ./Identification/ObjectName[@elementtype="simple name"]/Keyword
+#title: 'simple name'
+#---
+#cmd: column
+#xpath: ./Identification/ObjectName[@elementtype="other name"]/Keyword
+#title: " other name"
+#---
+#cmd: column
+#xpath: './ObjectLocation[@elementtype="current location"]/Location'
+#title: Current
+#---
+#cmd: column
+#xpath: ./Identification/BriefDescription
+cmd: attrib
 xpath: .
 attribute: elementtype
-value: ephemera
+title: elementtype
+---
+cmd: count
+xpath: ./Description/Measurement
+title: count
 ---
 cmd: column
-xpath: ./Identification/Title
+xpath: ./Description/Measurement[1]/Part
+title: Part1
 ---
 cmd: column
-xpath: ./Identification/ObjectName[@elementtype="simple name"]/Keyword
-title: 'simple name'
+xpath: ./Description/Measurement[2]/Part
+title: Part2
 ---
 cmd: column
-xpath: ./Identification/ObjectName[@elementtype="other name"]/Keyword
-title: " other name"
+xpath: ./Description/Measurement[3]/Part
+title: Part3
 ---
 cmd: column
-xpath: './ObjectLocation[@elementtype="current location"]/Location'
-title: Current
+xpath: ./Description/Measurement[1]/Dimension
+title: Dimension1
 ---
 cmd: column
-xpath: ./Identification/BriefDescription
+xpath: ./Description/Measurement[2]/Dimension
+title: Dimension2
+---
+cmd: column
+xpath: ./Description/Measurement[3]/Dimension
+title: Dimension3
+---
+cmd: column
+xpath: ./Description/Measurement[1]/Reading
+title: Reading1
+---
+cmd: column
+xpath: ./Description/Measurement[2]/Reading
+title: Reading2
+---
+cmd: column
+xpath: ./Description/Measurement[3]/Reading
+title: Reading3
+---

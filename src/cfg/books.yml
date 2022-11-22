@@ -14,6 +14,14 @@ value: books
 ---
 cmd: column
 xpath: ./Identification/Title
+---
+cmd: column
+xpath: ./Description/Measurement[Dimension="height"]/Reading
+title: height
+---
+cmd: column
+xpath: ./Description/Measurement[Dimension="width"]/Reading
+title: width
 #---
 #cmd: column
 #xpath: './ObjectLocation[@elementtype="normal location"]/Location'
@@ -30,12 +38,12 @@ title: 'simple name'
 #cmd: column
 #xpath: ./Identification/ObjectName[@elementtype="other name"]/Keyword
 #title: " other name"
----
-cmd: column
-xpath: ./Acquisition/Person/PersonName
----
-cmd: column
-xpath: ./Production/Date
+#---
+#cmd: column
+#xpath: ./Acquisition/Person/PersonName
+#---
+#cmd: column
+#xpath: ./Production/Date
 #---
 #cmd: column
 #xpath: ./Identification/BriefDescription

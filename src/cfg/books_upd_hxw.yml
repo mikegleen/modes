@@ -1,0 +1,30 @@
+cmd: delete
+xpath: ./Description/Measurement[Dimension="height"]
+parent_path: ./Description
+---
+cmd: delete
+xpath: ./Description/Measurement[Dimension="width"]
+parent_path: ./Description
+title: width
+---
+cmd: delete
+xpath: ./Description/Measurement[Dimension="length"]
+parent_path: ./Description
+title: length
+---
+cmd: constant
+xpath: ./Description/Measurement
+parent_path: ./Description
+insert_after: SummaryText
+value:
+---
+cmd: column
+xpath: ./Description/Measurement/Dimension
+parent_path: ./Description/Measurement
+---
+cmd: column
+xpath: ./Description/Measurement/Reading
+parent_path: ./Description/Measurement
+title: hxw
+element: Reading
+

@@ -12,6 +12,9 @@ cmd: column
 xpath: ./Identification/Title
 ---
 cmd: column
+xpath: ./Identification/BriefDescription
+---
+cmd: column
 xpath: ./Description/Material[Part="medium"]/Keyword
 title: 'Medium'
 ---
