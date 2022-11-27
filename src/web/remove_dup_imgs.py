@@ -52,13 +52,13 @@ def handle_folder(img_ids: dict, imgdir: str):
             return
         try:
             nid = normalize_id(prefix)
-        except ValueError as ve:
+        except ValueError:
             print(f'Skipping {imgf}')
             return
         if nid in img_ids:
             print(f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
                   f'original in {img_ids[nid][0].removeprefix(_args.imgdir)}')
-            if  _args.delete:
+            if _args.delete:
                 print(f'Removing {dirpath}')
                 os.remove(dirpath)
         else:
