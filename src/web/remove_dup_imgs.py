@@ -77,8 +77,6 @@ def handle_folder(img_ids: dict, imgdir: str):
 
 
 def main():
-    # x.normalized extracts the first entry in the namedtuple Obj_id.
-
     img_ids = dict()
     handle_folder(img_ids, _args.imgdir)
     trace(1, '{} image files found.', len(img_ids))
