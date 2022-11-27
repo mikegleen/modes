@@ -14,7 +14,6 @@
 """
 from ftplib import FTP
 import os.path
-import shutil
 import sys
 import time
 
