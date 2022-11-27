@@ -230,14 +230,6 @@ def get_exhibition_dict():
                                              )
         if exdic[int(row[0])].DateBegin > exdic[int(row[0])].DateEnd:
             raise ValueError(f"In exhibition_list.py, Begin Date > End Date: {row}")
-    # Previous version: let it age a bit before deleting.
-    # exdic = {int(row[0]):
-    #          ExhibitionTuple(ExNum=row[0],
-    #                          DateBegin=date.fromisoformat(row[1]),
-    #                          DateEnd=date.fromisoformat(row[2]),
-    #                          ExhibitionName=row[3],
-    #                          Place=row[4] if len(row) >= 5 else 'HRM'
-    #                          ) for row in reader}
     if _args.exhibition:
         exnum = _args.exhibition
         trace(1, 'Processing exhibition {}: "{}"', exnum,
