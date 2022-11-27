@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-    Output selected Object elements based on the YAML configuration file.
-
+    Merge two XML files.
 """
 import argparse
 import os.path
@@ -70,7 +69,8 @@ def main():
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-        Merge two XML Object files.
+        Merge two XML Object files. Append the second file to the end of the
+        first.
         ''')
     parser.add_argument('infile', help='''
         The input XML file''')
