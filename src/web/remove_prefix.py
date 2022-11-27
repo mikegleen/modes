@@ -1,9 +1,7 @@
 """
     For each file in a directory, remove the prefix "collection_".
 """
-from ftplib import FTP
 import os.path
-import shutil
 import sys
 import time
 
