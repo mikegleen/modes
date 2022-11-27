@@ -1,7 +1,10 @@
 """
-    Read a Modes XML file and return a list of the ObjectIdentity/Number text
-    of each Object element. The list elements are tuples of:
+    Read a Modes XML file and return a list of the ObjectIdentity/Number
+    text of each Object element, sorted by the normalized id. The list elements
+    are tuples of:
         <normalized id>, <not normalized id>
+
+    The function list_objects is imported elsewhere in the project.
 """
 
 from collections import namedtuple
@@ -36,7 +39,6 @@ def list_objects(infile):
         objectlevel -= 1
         if objectlevel:
             continue  # It's not a top level Object.
-        data = []
         idelem = elem.find(config.record_id_xpath)
         idnum = idelem.text if idelem is not None else ''
         if idnum:
