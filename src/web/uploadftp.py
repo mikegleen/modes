@@ -21,7 +21,7 @@ import time
 HOST = 'heathrobinsonmuseum.org'
 USER = 'mike@heathrobinsonmuseum.org'
 PASSWORDFILE = 'etc/passwd'
-FILENAME_PREFIX = 'collection_'
+COLLECTION_PREFIX = 'collection_'
 VERBOSE = 2
 
 
@@ -47,8 +47,8 @@ for filename in files:
     if not filename.endswith('.jpg'):
         trace(1, 'Skipping non-jpg {}', filename)
         continue
-    if not filename.startswith(FILENAME_PREFIX):
-        newfilename = FILENAME_PREFIX + filename
+    if not filename.startswith(COLLECTION_PREFIX):
+        newfilename = COLLECTION_PREFIX + filename
         os.rename(filename, newfilename)
         filename = newfilename
     file = open(filename, 'rb')
