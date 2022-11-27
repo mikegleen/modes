@@ -32,8 +32,7 @@ def getargs():
         Print messages but don't do processing. Implies  --verbose=2''',
                         calledfromsphinx))
     parser.add_argument('-m', '--maxpixels', type=int,
-                        default=DEFAULT_MAXPIXELS, help=
-                        '''
+                        default=DEFAULT_MAXPIXELS, help='''
         Maximum number of pixels in either dimension.'''
                         + if_not_sphinx(f''' The
                          default is {DEFAULT_MAXPIXELS} pixels.''',
