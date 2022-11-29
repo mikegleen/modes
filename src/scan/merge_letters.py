@@ -6,6 +6,7 @@ The merged file will have an additional column at the left containing the
 accession number taken from the individual filenames.
 """
 import codecs
+
 import pandas as pd
 import os.path
 
@@ -31,4 +32,5 @@ for fname in flist:
     df.insert(0, 'Accession Number', os.path.splitext(fname)[0])
     outdf = outdf.append(df)
 
+# noinspection PyTypeChecker
 outdf.to_csv(csvfile, index=False)
