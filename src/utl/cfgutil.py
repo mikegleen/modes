@@ -561,14 +561,16 @@ def expand_one_idnum(idstr: str) -> list[str]:
     :param idstr: An accession number or a range of numbers. If it is a range,
     indicated by a hyphen or ampersand anywhere in the string, the format of
     the number is:
-        idstr ::= rangestr | liststr
+        idstr ::= idnum | rangestr | liststr
+        idnum ::= string without '-/&'
         rangestr ::= prefix-suffix | prefix/suffix
         liststr ::=  prefix&suffix | liststr&suffix
         prefix ::= text<n digits>
         suffix ::= <n digits>
         The suffix is a string of digits terminating the idstr.
         The prefix consists of any text (possibly including trailing digits).
-
+        An idnum is a single complete accession number. It might be passed to
+        expand_one_idnum if expand_idnum is called with a comma-delimited list.
         Note: white space is removed from the idnum before parsing.
 
     :return: A list containing zero or more idnums. If idnum is just a single
