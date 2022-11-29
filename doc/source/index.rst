@@ -205,7 +205,7 @@ Data-related Commands
 -  **constant** For ``csv2xml.py`` and ``update_from_csv.py``, create an element
    from the ``value`` statement of this document without reference to the CSV file.
 -  **delete** For ``update_from_csv.py``. Delete the first element specified by the
-    **xpath** statement. If the **delete** command is
+   **xpath** statement. If the **delete** command is
    specified, only the **xpath** statement is allowed.
 -  **delete_all** Like **delete** except all occurrences of the element are deleted.
 -  **keyword** Find the element specified by the xpath statement whose text
