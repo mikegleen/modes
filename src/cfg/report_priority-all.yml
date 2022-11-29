@@ -57,6 +57,10 @@ xpath: ./Production/SummaryText
 title: Production
 ---
 cmd: column
+xpath: ./Production/Date/DateBegin
+title: Production Date
+---
+cmd: column
 xpath: ./Production/Person[Role="artist"]/PersonName
 title: Artist
 ---

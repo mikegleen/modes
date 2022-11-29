@@ -37,6 +37,7 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 26,2022-05-21,2022-09-04,The Humour of William Heath Robinson
 27,2019-03-02,2019-05-27,The Beardsley Generation
 28,2021-10-21,2022-04-03,Beano: The Art of Breaking the Rules,Somerset House
+29,2022-12-29,2023-03-19,Heath Robinson’s Shakespeare Illustrations
 '''
 # data for testing
 '''

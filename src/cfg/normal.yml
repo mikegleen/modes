@@ -1,0 +1,3 @@
+cmd: column
+xpath: ./ObjectLocation[@elementtype="normal location"]/Location
+title: 'Normal Location'
