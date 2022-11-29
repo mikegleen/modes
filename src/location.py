@@ -527,8 +527,8 @@ def add_arguments(parser, command):
     if is_update or is_diff:
         parser.add_argument('--col_acc', type=str, default='0', help='''
         The zero-based column containing the accession number of the
-        object to be updated. The default is column zero. The column can be a
-        number or a spreadsheet-style letter.
+        object to be updated. The default is column zero, the first column. The
+        column can be a number or a spreadsheet-style letter.
         ''')
         parser.add_argument('--col_loc', type=str, default='1',
                             help=nd.sphinxify('''
@@ -541,15 +541,16 @@ def add_arguments(parser, command):
         parser.add_argument('--col_loc_type', help=nd.sphinxify('''
         Set this column in the CSV file to ``c``, ``n``, or ``cn`` indicating
         that the current, normal, or both, respectively, should be updated.
-        If this is set, do not set the -c or -p argument.
+        If this is set, do not set the -c or -n or -p argument. The column can
+        be a number or a spreadsheet-style letter.
         ''', called_from_sphinx))
         patch_group = parser.add_mutually_exclusive_group()
         patch_group.add_argument('--col_patch', help=nd.sphinxify('''
         Indicate that this column should contain
-        “``patch``” possibly abbreviated to “``p``” or be empty. This is
+        “``patch``”, possibly abbreviated to “``p``”, or be empty. This is
         equivalent for this row to setting the --patch command-line option
-        which applies to all of
-        the rows in the CSV file.''', called_from_sphinx))
+        which applies to all of the rows in the CSV file. The column can be a
+        number or a spreadsheet-style letter.''', called_from_sphinx))
         reason_group = parser.add_mutually_exclusive_group()
         reason_group.add_argument('--col_reason', help=nd.sphinxify('''
             The zero-based column containing text to be inserted as the
@@ -560,7 +561,7 @@ def add_arguments(parser, command):
         parser.add_argument('-c', '--current', action='store_true',
                             help=nd.sphinxify('''
         Update the current location and change the old current location to a
-        previous location. See the descrption of "n" and "p". Do not specify
+        previous location. See the descrption of "-n" and "-p". Do not specify
         this and --col_loc_type.''',
                                               called_from_sphinx))
     if is_diff:
@@ -631,7 +632,7 @@ def add_arguments(parser, command):
     if is_update:
         parser.add_argument('-n', '--normal', action='store_true',
                             help=nd.sphinxify('''
-        Update the normal location. See the description for "c" and "p".
+        Update the normal location. See the description for "-c" and "-p".
         Do not specify this and --col_loc_type.''', called_from_sphinx))
     if is_diff:
         diff_group.add_argument('-n', '--normal', action='store_true', help='''
@@ -654,8 +655,9 @@ def add_arguments(parser, command):
                             help=nd.sphinxify('''
         Add a previous location. This location's start and end dates must 
         not overlap with an existing current or previous location's date(s). 
-        If "p" is selected, do not select "n" or "c". If "p" is specified, you
-        must specify --datebegin and --dateend.
+        If "-p" is selected, do not select "-n" or "-c". If "-p" is specified,
+        you must specify --datebegin and --dateend. Do not specify
+        this and --col_loc_type.
         ''', called_from_sphinx))
         parser.add_argument('--reset_current', action='store_true', help='''
         Only output the most recent current location element for each object,
@@ -682,12 +684,8 @@ def add_arguments(parser, command):
 
 def getparser():
     parser = argparse.ArgumentParser(description=nd.sphinxify('''
-        Set the normal location and/or current location to the new location
-        from a CSV file with rows of the format: <object number>,<location>.
-        If the location in the CSV file differs from the location in the XML
-        file, update the ``Date/DateBegin`` element to today's date unless the
-        --date option is specified. If a new current location is being set,
-        create a previous location from the existing current location.
+    Specify one of the functions defined by the positional parameters. For
+    further details, specify ``-h`` after the function name.
         ''', called_from_sphinx))
     subparsers = parser.add_subparsers(dest='subp')
     diff_parser = subparsers.add_parser('diff', description=nd.sphinxify('''
