@@ -275,10 +275,16 @@ def denormalize_id(objid: str, mdacode=DEFAULT_MDA_CODE):
             idlist[3] = f'{int(idlist[3])}'
         return '.'.join(idlist)
     # Not an LDHRM/.. id
+    # The following regex matches (by group):
+    # 1. 'JB' or 'L'
+    # 2. nnnnnn - number padded to 6 digits
+    # 3. optional trailing letter
+    # 4. .nnnnnn - item number with leading period
+    # 5. nnnnnn - same as group 4 without leading period
     m = re.match(r'(\D+)(\d+)([A-Za-z]?)(\.(\d+))?$', objid)
-    # m = re.match(r'(\D+)(\d+)(.*)', objid)
     if m:
-        if objid.startswith('JB'):  # pad with leading zeroes to 3 columns
+        if m.group(1).upper() in ('JB', 'L'):
+            # pad with leading zeroes to 3 columns
             newobjid = m.group(1) + f'{int(m.group(2)):03d}' + m.group(3)
         else:
             newobjid = m.group(1) + f'{int(m.group(2))}' + m.group(3)
