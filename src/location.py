@@ -292,7 +292,12 @@ def update_current_location(elem, idnum):
     else:
         oldlocation = None
     nidnum = nd.normalize_id(idnum)
-    newlocationtext = _args.location if _args.location else newlocs[nidnum]
+    if _args.move_to_normal:
+        nl = elem.find('./ObjectLocation[@elementtype="normal location"]')
+        newlocationelt = nl.find('./Location')
+        newlocationtext = newlocationelt.text.strip().upper()
+    else:
+        newlocationtext = _args.location if _args.location else newlocs[nidnum]
 
     # If the current location is empty, just insert the new location without
     # creating a previous location.
@@ -630,6 +635,11 @@ def add_arguments(parser, command):
             specified.
             ''', called_from_sphinx))
     if is_update:
+        parser.add_argument('-q', '--move_to_normal', action='store_true',
+                            help=nd.sphinxify('''
+        Requires -c. Updates the current location. 
+        Do not specify this and --col_loc_type. If you select --move_to_normal 
+        you may not select --normal or --previous''', called_from_sphinx))
         parser.add_argument('-n', '--normal', action='store_true',
                             help=nd.sphinxify('''
         Update the normal location. See the description for "-c" and "-p".
@@ -730,6 +740,15 @@ def getargs(argv):
         if args.col_loc_type:
             if args.current or args.normal:
                 print('You may not specify both --col_loc_type and -c or -n.')
+                sys.exit(1)
+        if args.move_to_normal:
+            if not args.current:
+                print('If you select --move_to_normal you must also select '
+                      '--current')
+                sys.exit(1)
+            if args.normal or args.previous:
+                print('If you select --move_to_normal you may not select '
+                      '--normal or --previous.')
                 sys.exit(1)
         if not nd.vdate(args.date):
             print('--date must be complete Modes format: d.m.yyyy')
