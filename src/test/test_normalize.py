@@ -21,6 +21,10 @@ class TestNormalizeId(unittest.TestCase):
         nid = normalize_id('JB1a')
         self.assertEqual(nid, 'JB000001A')
 
+    def test_01c(self):
+        nid = normalize_id('L1')
+        self.assertEqual(nid, 'L000001')
+
     def test_02(self):
         nid = normalize_id('LDHRM.2018.1')
         self.assertEqual(nid, 'LDHRM.2018.000001')
@@ -70,6 +74,10 @@ class TestDenormalizeId(unittest.TestCase):
     def test_04(self):
         nid = denormalize_id('JB999999999')
         self.assertEqual(nid, 'JB999999999')
+
+    def test_05(self):
+        nid = denormalize_id('L000001')
+        self.assertEqual(nid, 'L001')
 
 
 class TestBritishDateFromModes(unittest.TestCase):
