@@ -62,11 +62,13 @@ def main():
 
 
 def getargs():
-    parser = argparse.ArgumentParser(description='''
+    parser = argparse.ArgumentParser(description=sphinxify('''
         Copy a selected set of objects to a new XML file based on the config
-        and a CSV file giving explicit accessions numbers to include or
-        exclude. If neither parameter is given, the entire file is copied,
-        possibly reformatting the text and converting ASCII to UTF-8.''')
+        and/or a CSV file giving explicit accessions numbers to include or
+        exclude. Alternatively, one or more accession numbers may be specified
+        with the --object parameter. If none of the parameters is given, the
+        entire file is copied, possibly reformatting the text and converting
+        ASCII to UTF-8.''', calledfromsphinx))
     parser.add_argument('infile', help='''
         The input XML file''')
     parser.add_argument('outfile', help='''
@@ -100,7 +102,9 @@ def getargs():
         default is 0.
         ''')
     parser.add_argument('-j', '--object', required=False, help='''
-        Specify a single object to copy. ''')
+        Specify one or more objects to copy. Multiple objects may be specified
+        using accession number expansion. See the Data Formats section of
+        the Sphinx-formatted documentation.''')
     parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.''' +
                         if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".

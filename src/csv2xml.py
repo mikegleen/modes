@@ -241,8 +241,8 @@ def getparser():
         ``Serial`` or an alternative set by --serial parameter. Subsequent
         columns must match the corresponding title in the configuration file.
         The file must have a (case-insensitive) suffix of ``.csv`` or ``.xlsx``
-        containing CSV format or Excel format data, respectively.''',
-                                                            calledfromsphinx))
+        containing CSV format or Excel format data,
+        respectively.''', calledfromsphinx))
     parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.''' +
                         if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".

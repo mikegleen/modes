@@ -52,7 +52,7 @@ def loadnewvals(allow_blanks=False):
     newval_dict = {}
     reader = row_dict_reader(_args.mapfile, _args.verbose, _args.skip_rows)
     for row in reader:
-        print(f'{row=}')
+        # print(f'{row=}')
         accnum = row[_args.serial]
         if not accnum:
             if allow_blanks:

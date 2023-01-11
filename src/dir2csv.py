@@ -63,4 +63,6 @@ if __name__ == '__main__':
     for fn in outlist:
         print(fn, file=outfile)
         nout += 1
-    print(f'End dir2list. {nout} rows written to {_args.csvfile}.')
+    print(f'End dir2csv. {nout} row'
+          f'{"" if nout == 1 else "s"}'
+          f' written to {_args.csvfile}.')

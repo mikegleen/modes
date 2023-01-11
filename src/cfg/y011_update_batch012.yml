@@ -1,0 +1,15 @@
+cmd: column
+xpath: ./Identification/Title
+title: Title
+---
+cmd: column
+xpath: ./Description/Material[Part="medium"]/Keyword
+title: Medium
+---
+cmd: column
+xpath: ./Identification/BriefDescription
+title: Description
+---
+cmd: column
+xpath: ./Production/SummaryText
+title: Production_SummaryText

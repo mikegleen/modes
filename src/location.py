@@ -83,7 +83,10 @@ def loadcsv():
                         pass
             location = loc_arg if loc_arg else row[_args.col_loc].strip()
             for ob in objidlist:
-                nobjid = nd.normalize_id(ob, strict=not _args.force)
+                try:
+                    nobjid = nd.normalize_id(ob)
+                except ValueError:
+                    continue  # normalize_id printed an error msg
                 if not nobjid:
                     print(f'Warning: Blank object ID row {rownum}: {row}')
                     continue  # blank number
@@ -500,7 +503,7 @@ def main():
         outfile.write(b'</Interchange>')
     if not _args.short:  # Skip warning if only processing one object.
         for idnum in newlocs:
-            trace(1, '{}: In CSV but not XML', idnum)
+            trace(1, '{}: In CSV but not XML, ignored.', nd.denormalize_id(idnum))
 
 
 def add_arguments(parser, command):

@@ -204,7 +204,7 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
 
     For IDs that are simple integers, these are expanded to eight digits.
     """
-    if objid is None:
+    if objid is None or len(objid) == 0:
         if strict:
             return None
         else:
@@ -223,7 +223,7 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
                 f'Fourth field, {idlist[3]}, of {objid} is too long')
             idlist[3] = f'{int(idlist[3]):06d}'
         newobjid = '.'.join(idlist)
-        if verbose >= 2:
+        if verbose >= 3:
             print(f'normalize: {objid} -> {newobjid}')
         return newobjid
 
@@ -243,12 +243,12 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
         if m.group(5):
             assert len(m.group(5)) <= 6
             newobjid += '.' + f'{int(m.group(5)):06d}'
-        if verbose > 2:
+        if verbose > 3:
             print(f'normalize: {objid} -> {newobjid}')
         return newobjid
     elif objid.isnumeric() and len(objid) <= 6:
         newobjid = f'{int(objid):06d}'
-        if verbose > 2:
+        if verbose > 3:
             print(f'normalize: {objid} -> {newobjid}')
         return newobjid
     if verbose >= 1:

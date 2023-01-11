@@ -54,7 +54,7 @@ def clean(s):
 
 def onerow(oldrow):
     newrow = dict()
-    newrow['Serial'] = oldrow['Serial']
+    newrow['Serial'] = oldrow['Serial'].upper()  # to be sure to be sure
     newrow['Title'] = clean(oldrow['Title'])
     newrow['Medium'] = oldrow['Medium']
     newrow['Description'] = clean(oldrow['Description'])
@@ -118,18 +118,22 @@ def onerow(oldrow):
 
 
 def main():
-    global nrows
     reader = csv.DictReader(incsvfile)
+    n_input_fields = len(reader.fieldnames)
     fields = 'Serial Title Medium Exhibition HumanDate IsoDate Decade'
     fields += ' Description'
     writer = csv.DictWriter(outfile, fieldnames=fields.split())
     writer.writeheader()
-    nrows = 0
+    n_rows = 0
     for oldrow in reader:
+        if len(oldrow) > n_input_fields:
+            print(f"Error: row {n_rows + 1} longer than heading: {oldrow}")
+            return
         newrow = onerow(oldrow)
         if newrow:
             writer.writerow(newrow)
-        nrows += 1
+        n_rows += 1
+    return n_rows
 
 
 def getparser() -> argparse.ArgumentParser:
@@ -166,7 +170,6 @@ called_from_sphinx = True
 
 
 if __name__ == '__main__':
-    global nrows
     assert sys.version_info >= (3, 9)
     called_from_sphinx = False
     _args = getargs(sys.argv)
@@ -175,6 +178,6 @@ if __name__ == '__main__':
     trace(1, 'Begin recode_collection.')
     trace(1, '    Input file: {}', _args.incsvfile)
     trace(1, '    Creating file: {}', _args.outfile)
-    main()
+    nrows = main()
     trace(1, 'End recode_collection. {} row{} written.', nrows,
           '' if nrows == 1 else 's')
