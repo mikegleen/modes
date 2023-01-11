@@ -1,5 +1,8 @@
 #!/bin/zsh
 #
+# batch010.sh
+# -----------
+#
 # For the files in a batch, create the CSV file to be uploaded to WordPress for the collection images.
 #
 pushd ~/pyprj/hrm/modes

@@ -1,9 +1,13 @@
 #!/bin/zsh
 #
+# batch_sub.sh
+# ------------
+#
 # Subroutine for creating the CSV file to be imported by the website system
 # Assumed to be in directory ~/pyprj/hrm/modes
 # The caller must set:
 #   BATCH     the name of the directory containing the new JPG files
+#             under ~/pyprj/hrm/collection/aawebimgs/
 #   REVISION  a number indicating a re-try of a batch, can be zero length
 #   MODESFILE The XML file from which to extract the image's metadata
 #
@@ -28,7 +32,7 @@ python src/dir2csv.py $IMGDIR tmp/${BR}_list.csv --heading
 #
 # Pull the relevant fields from the Modes XML file for the objects in the batch.
 #
-python src/xml2csv.py $MODESFILE $DESTDIR/${BR}_step1.csv -c src/cfg/website.yml --include tmp/${BR}_list.csv --include_skip 1 --heading -v 1 -b -l results/reports/${BR}_website.log
+python src/xml2csv.py $MODESFILE $DESTDIR/${BR}_step1.csv -c src/cfg/website.yml --include tmp/${BR}_list.csv --include_skip 1 --heading -b -l results/reports/${BR}_website.log -v 2
 #
 # Modify the CSV file to included new and adjusted columns.
 #
