@@ -199,7 +199,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     outfile.close()
     if includes and len(includes):
         trace(1, '{} items in include list not in XML.', len(includes))
-        if _args.verbose > 1:
+        if _args.verbose > 0:
             print('In include list but not xml:', file=_logfile)
             for accnum in includes:
                 print(accnum, file=_logfile)
