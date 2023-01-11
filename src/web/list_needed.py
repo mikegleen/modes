@@ -24,7 +24,7 @@ def getargs():
     parser.add_argument('imgdir', help='''
         Folder containing images or subfolders containing images we already
         have. Only one level of subfolder is examined.''')
-    parser.add_argument('-c', '--candidatefile', help='''
+    parser.add_argument('-c', '--candidatefile', required=True, help='''
         CSV file containing the list of new objects or a directory containing
         jpg files with names consisting of the accession numbers. If omitted
         then the objects in the Modes file will be the candidates, showing
@@ -34,7 +34,7 @@ def getargs():
         object we are searching for. The default is column zero.''')
     parser.add_argument('-i', '--invert', action='store_true', help='''
         Report if the image **IS** in the folder.''')
-    parser.add_argument('-m', '--modesfile', help='''
+    parser.add_argument('-m', '--modesfile', required=True, help='''
         File to search for valid accession numbers.''')
     parser.add_argument('-r', '--reportfile', help='''
         File to contain a list of the images that we have.''')
@@ -75,7 +75,7 @@ def build_img_dict(img_ids: dict, imgdir: str):
             return
         if nid in img_ids:
             print(f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
-                  f'original in {img_ids[nid][1].removeprefix(_args.imgdir)}')
+                  f' original in {img_ids[nid][1].removeprefix(_args.imgdir)}')
         else:
             img_ids[nid] = (imgf2, dirpath)
 
