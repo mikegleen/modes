@@ -88,7 +88,7 @@ def getdone() -> dict[str]:
             try:
                 naccnum = normalize_id(row[0])
             except (ValueError, AssertionError) as e:
-                trace(1, '******** Bad format in CSV: {}, {}, {}',
+                trace(1, '******** Bad format in CSV, skipping row: {}, {}, {}',
                       row[0], str(e), e.args)
                 continue
             done_files[naccnum] = row[0]
