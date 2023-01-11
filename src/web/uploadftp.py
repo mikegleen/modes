@@ -22,6 +22,7 @@ USER = 'mike@heathrobinsonmuseum.org'
 PASSWORDFILE = 'etc/passwd'
 COLLECTION_PREFIX = 'collection_'
 VERBOSE = 2
+DRYRUN = False
 
 
 def trace(level, template, *args):
@@ -47,9 +48,14 @@ for filename in files:
         trace(1, 'Skipping non-jpg {}', filename)
         continue
     if not filename.startswith(COLLECTION_PREFIX):
-        newfilename = COLLECTION_PREFIX + filename
+        prefix, suffix = os.path.splitext(filename)
+        prefix = prefix.upper()
+        newfilename = COLLECTION_PREFIX + prefix + suffix
         os.rename(filename, newfilename)
         filename = newfilename
+    if DRYRUN:
+        print(f"Dry Run: {filename=}")
+        continue
     file = open(filename, 'rb')
     response = session.storbinary(f'STOR {filename}', file)
     if not response.startswith('226'):
