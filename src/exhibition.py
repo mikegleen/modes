@@ -456,6 +456,8 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     called_from_sphinx = False
     found_old_key = False
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs(sys.argv)
     _oldname = _args.old_name
     _oldplace = _args.old_place

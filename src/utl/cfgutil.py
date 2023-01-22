@@ -60,12 +60,11 @@ class Cmd:
     IFCONTAINS = 'ifcontains'
     IFEQ = 'ifeq'  # if the elt text equals the value statement
     IFNOTEQ = 'ifnoteq'  # if the elt text does not equal the value statement
-    IFSERIAL = 'ifserial'
     # Commands that do not produce a column in the output CSV file
-    _CONTROL_CMDS = (IF, IFNOT, IFEQ, IFNOTEQ, IFATTRIB, IFSERIAL, GLOBAL,
+    _CONTROL_CMDS = (IF, IFNOT, IFEQ, IFNOTEQ, IFATTRIB, GLOBAL,
                      IFCONTAINS, IFATTRIBEQ, IFATTRIBNOTEQ, IFELT)
     _NEEDVALUE_CMDS = (KEYWORD, IFEQ, IFNOTEQ, IFATTRIBEQ, IFATTRIBNOTEQ,
-                       IFSERIAL, IFCONTAINS, CONSTANT)
+                       IFCONTAINS, CONSTANT)
     _NEEDXPATH_CMDS = (ATTRIB, COLUMN, KEYWORD, IF, IFNOT, COUNT, IFELT, IFEQ,
                        IFNOTEQ, IFCONTAINS, IFATTRIB, IFATTRIBEQ,
                        IFATTRIBNOTEQ, CONSTANT, ITEMS)
@@ -124,6 +123,7 @@ class Stmt:
     SKIP_NUMBER = 'skip_number'
     SORT_NUMERIC = 'sort_numeric'
     TEMPLATE_DIR = 'template_dir'
+    TEMPLATE_FILE = 'template_file'
     TEMPLATE_TITLE = 'template_title'
     TEMPLATES = 'templates'
     TITLE = 'title'
@@ -203,6 +203,8 @@ class Config:
                     self.add_mda_code = True
                 elif stmt == Stmt.TEMPLATE_DIR:
                     self.template_dir = document[stmt]
+                elif stmt == Stmt.TEMPLATE_FILE:
+                    self.template_file = document[stmt]
                 elif stmt == Stmt.TEMPLATE_TITLE:
                     self.template_title = document[stmt]
                 elif stmt == Stmt.TEMPLATES:
@@ -230,6 +232,7 @@ class Config:
         self.templates = None
         self.template_title = None
         self.template_dir = None
+        self.template_file = None
         self.record_tag = Stmt.get_default_record_tag()
         self.record_id_xpath = Stmt.get_default_record_id_xpath()
         self.delimiter = ','

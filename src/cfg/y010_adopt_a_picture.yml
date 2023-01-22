@@ -1,3 +1,5 @@
+# Create an "Association" element with a sub-element of "Type" containing text of "Adopt a Picture"
+# The "value:" statement is required by the "constant" command even if it is empty.
 cmd: constant
 xpath: ./Association[Type="Adopt a Picture"]
 parent_path: .
@@ -6,33 +8,41 @@ child: Type
 child_value: Adopt a Picture
 value:
 ---
+# Create a <Person> element under the <Association> element
 cmd: constant
 xpath: ./Association[Type="Adopt a Picture"]/Person
 parent_path: ./Association[Type="Adopt a Picture"]
 value:
 ---
+# Insert the <PersonName> element and text from the CSV file column "Name"
+# The "person_name:" statement says to convert "Firstname Lastname" to "Lastname, Firstname"
 cmd: column
 xpath: ./Association[Type="Adopt a Picture"]/Person/PersonName
 parent_path: ./Association[Type="Adopt a Picture"]/Person
 title: Name
 person_name:
 ---
+# Create a <SummaryText> element under the <Association> element
 cmd: constant
 xpath: ./Association[Type="Adopt a Picture"]/SummaryText
 parent_path: ./Association[Type="Adopt a Picture"]
 value:
 ---
+# Create a <Keyword> element under the <SummaryText> element with text of 'dedication'
 cmd: constant
 xpath: ./Association[Type="Adopt a Picture"]/SummaryText/Keyword
 parent_path: ./Association[Type="Adopt a Picture"]/SummaryText
 value: dedication
 ---
+# Create a <Note> element under the <SummaryText> element with text from CSV file column "Dedication"
+# The "element:" statement is necessary because by default the element name is taken from the title.
 cmd: column
 xpath: ./Association[Type="Adopt a Picture"]/SummaryText/Note
 parent_path: ./Association[Type="Adopt a Picture"]/SummaryText
 title: Dedication
 element: Note
 ---
+# Add a <Date> ement under the <Association> element.
 cmd: column
 xpath: ./Association[Type="Adopt a Picture"]/Date
 parent_path: ./Association[Type="Adopt a Picture"]

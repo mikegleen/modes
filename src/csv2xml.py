@@ -156,8 +156,12 @@ def main():
     if not _args.noprolog:
         outfile.write(b'<?xml version="1.0"?><Interchange>\n')
     global_object_template = None
+    # The command-line argument --template overrides the YML config value.
     if _args.template:
         global_object_template = get_object_from_file(_args.template)
+    elif config.template_file:
+        global_object_template = get_object_from_file(config.template_file)
+
     nrows = 0
     # PyCharm whines if we don't initialize accnumgen
     accnumgen = next_accnum(_args.acc_num)
@@ -283,7 +287,7 @@ def getargs(argv):
 
 def check_cfg(c):
     """
-    Only the column command is allowed.
+    Allow a restricted number of commands.
     :param c: The Config instance
     :return: Nonzero if the config fails.
     """
@@ -295,6 +299,10 @@ def check_cfg(c):
     for doc in c.ctrl_docs:
         print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting.')
         errs += 1
+    if c.template_file and c.templates:
+        print('Do not specify the template_file statement with other '
+              'template-related statements.')
+        errs += 1
     return errs
 
 
@@ -305,6 +313,8 @@ if __name__ == '__main__':
     global nrows
     assert sys.version_info >= (3, 9)
     calledfromsphinx = False
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs(sys.argv)
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Input file: {}', _args.incsvfile)

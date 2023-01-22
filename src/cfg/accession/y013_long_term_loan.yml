@@ -1,0 +1,96 @@
+# For Accessions Aug 22, 2022
+cmd: global
+template_file: /Users/mlg/pyprj/hrm/modes/etc/templates/normal/2022-10-17_Original_Artwork_template.xml
+---
+cmd: column
+xpath: ./Entry/EntryNumber
+title: OE Number
+---
+cmd: column
+xpath: ./Acquisition/Date
+title: Date acquired
+date:
+---
+cmd: column
+xpath: ./Acquisition/Person/PersonName
+title: Acquired from
+person_name:
+---
+cmd: column
+xpath: ./Acquisition/Method
+title: Acquisition method
+---
+cmd: column
+xpath: ./Acquisition/SummaryText
+title: Acquisition SummaryText
+parent_path: ./Acquisition
+element: SummaryText
+---
+cmd: column
+xpath: ./Identification/ObjectName[@elementtype="simple name"]/Keyword
+title: Simple Name
+---
+cmd: column
+xpath: ./Identification/ObjectName[@elementtype="other name"]/Keyword
+title: Other Name
+---
+cmd: column
+xpath: ./Identification/BriefDescription
+title: Description
+---
+#cmd: items
+#xpath: ./Content
+#parent_path: .
+#title: Items
+#element: Content
+#---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
+xpath2: ./ObjectLocation[@elementtype="normal location"]/Location
+title: 'Location'
+---
+cmd: constant
+xpath: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
+title: 'Date Begin'
+value: "30.10.2022"
+---
+cmd: column
+xpath: ./Identification/Title
+title: Title
+---
+cmd: column
+xpath: ./Description/Material[Part="medium"]/Keyword
+title: Medium
+---
+cmd: column
+xpath: ./Production/Date/DateBegin
+title: Production Date
+---
+cmd: column
+xpath: ./Production/Date/Accuracy
+parent_path: ./Production/Date
+title: Accuracy
+---
+cmd: column
+xpath: ./Production/Date[@elementtype="publication date"]
+title: Publication Date
+---
+cmd: column
+xpath: ./Production/SummaryText
+title: Production SummaryText
+---
+cmd: column
+xpath: ./Production/Person[Role="author"]/PersonName
+title: Production Author
+---
+cmd: column
+xpath: ./Content/SummaryText
+title: Content SummaryText
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="Reproduced In"]/SummaryText
+title: Reproduced In
+---
+cmd: column
+xpath: ./Production/Organisation[Role="publisher"]/OrganisationName
+title: Publisher

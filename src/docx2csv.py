@@ -170,6 +170,8 @@ called_from_sphinx = True
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
     called_from_sphinx = False
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs(sys.argv)
     infile = open(_args.infile, 'rb')
     if _args.bom:

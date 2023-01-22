@@ -116,6 +116,8 @@ def getargs():
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs()
     infile, outfile = getfiles()
     main()

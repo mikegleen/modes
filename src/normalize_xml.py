@@ -106,6 +106,8 @@ def getargs():
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs()
     if _args.infile == _args.outfile:
         print("Input is the same as output. Aborting.")

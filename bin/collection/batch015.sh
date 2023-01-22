@@ -12,6 +12,6 @@ pushd ~/pyprj/hrm/modes
 #     :r Remove a filename extension leaving the root name.
 export BATCH=${0:t:r}
 export REVISION=
-export MODESFILE=prod_update/normal/2023-01-10_batch14.xml
+export MODESFILE=/Users/mlg/pyprj/hrm/modes/prod_update/pretty/2023-01-11_batch14a_pretty.xml
 #
 bin/collection/batch_sub.sh

@@ -63,6 +63,8 @@ def getargs():
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 7)
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs()
     infile = open(_args.infile, encoding=_args.encoding)
     outfile = open(_args.outfile, 'wb') if _args.outfile else None

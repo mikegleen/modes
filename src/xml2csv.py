@@ -290,6 +290,8 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     calledfromsphinx = False
     t1 = time.perf_counter()
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     n_lines, n_written, not_found = main(sys.argv)
     elapsed = time.perf_counter() - t1
     if not_found:

@@ -301,6 +301,8 @@ called_from_sphinx = True
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     called_from_sphinx = False
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs(sys.argv)
     nupdated = nunchanged = nwritten = nequal = 0
     infile = open(_args.infile)

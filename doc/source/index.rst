@@ -167,6 +167,10 @@ These statements are in the document whose ``cmd`` statement is ``global``.
 -  **add_mda_code** If the serial number does not begin with the MDA code (default LDHRM)
    then insert it as a prefix. This is used only in ``csv2xml.py``
    and ``update_from_csv.py``.
+-  **template_file** Only in ``csv2xml.py``: This is the file to be used as the template
+   for all of the objects to be created. The --template command-line parameter overrides this.
+   If this statement or the --template command-line parameter is specified, do not specify other
+   tempate-related statements.
 -  **template_title** Only in ``csv2xml.py``: Defines a CSV column containing a key that
    matches one of the keys in the
    global **templates** statement. For each row in the CSV file, this specifies which
@@ -261,7 +265,7 @@ the tests must succeed for a record to be selected.
 
 Accession Number Handling
 -------------------------
-There are three accession number formats in use at the Heath Robinson Museum.
+There are four accession number formats in use at the Heath Robinson Museum.
 
 -  The first
    is for objects that are part of the Joan Brinsmead family gift. This is the bulk of the
@@ -274,6 +278,8 @@ There are three accession number formats in use at the Heath Robinson Museum.
    stop, followed by a serial number, optionally followed by another full stop and item
    number, all without leading zeros. For example, "LDHRM.2020.1". Utility
    programs provide an option for overriding the default MDA code.
+-  The fourth format is for long-term loans to the museum. These are handled like the JB
+   numbers and are padded to three columns of digits, like "L001".
 
 When read from a CSV file, the XML file, or the command line, accession numbers are
 normalized so that numeric fields sort correctly. That is, internally, all numbers

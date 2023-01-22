@@ -108,7 +108,7 @@ def get_mtime(subpath: str) -> (dict[str, float], str):
     dict with keys being the common part of the file and containing the last
     modified time.
     :param subpath: either 'normal' or 'pretty'
-    :return: dictionary of file basenames -> mtime
+    :return: dictionary of file basenames -> mtime, joined parent/subpath
     """
     path = op.join(_args.parent_dir, subpath)
     mtime = {}
@@ -204,5 +204,7 @@ def getargs():
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 10)
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs()
     main()

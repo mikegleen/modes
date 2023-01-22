@@ -25,8 +25,9 @@ IMGDIR=../collection/aawebimgs/${BATCH}
 DESTDIR=../collection/etc/$BATCH
 mkdir -p $DESTDIR
 #
-# Create a CSV file with the accession numbers from the names of the JPG files in the batch.
+# Create a file with the accession numbers from the names of the JPG files in the batch.
 # Insert a heading in the CSV file even though it will be skipped by xml2csv (useful for debugging).
+# Although it is called a CSV file, there is only one column, the accession number.
 #
 python src/dir2csv.py $IMGDIR tmp/${BR}_list.csv --heading
 #

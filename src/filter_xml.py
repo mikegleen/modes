@@ -131,6 +131,8 @@ if __name__ == '__main__':
     calledfromsphinx = False
     objcount = selcount = 0
     object_number = ''
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs()
     infile = open(_args.infile)
     if _args.directory:
