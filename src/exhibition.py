@@ -201,7 +201,7 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
         trace(2, f'Adding {display_id}')
         exhibs_to_insert.append(newexhibit)
     # Insert the Exhibition elements with the most recent one first
-    for _edate, exhib in sorted(exhibs_to_insert):
+    for _edate, exhib in sorted(exhibs_to_insert, key=lambda x: x[0]):
         objelt.insert(firstexix, exhib)
 
 
