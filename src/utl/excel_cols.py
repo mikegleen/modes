@@ -13,7 +13,7 @@ import sys
 def col2num(col: str | None):
     """
     Map a spreadsheet column to a zero-based index.
-    :param col: either like 'A' (case insensitive) or a number or None
+    :param col: either like 'A' (case-insensitive) or a number or None
     :return: If None, return None (useful with optional arguments) or a
              zero-based column number.
     """
