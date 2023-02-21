@@ -177,6 +177,7 @@ def main():
             accnum = next(accnumgen)
             trace(2, 'Serial generated: {}', accnum)
         else:
+            trace(2, '{}', row)
             accnum = row[_args.serial]
             if not accnum:
                 trace(1, '\n*** Serial number empty, row skipped: {}', ','.
@@ -270,8 +271,7 @@ def getparser():
         Skip rows at the beginning of the CSV file.''')
     parser.add_argument('-t', '--template', help=sphinxify('''
         The XML file that is the template for creating the output XML.
-        Specify this or global statements in the configuration
-        ``template_dir``, ``template_title``, and ``templates``.
+        Specify this or template-related statements in the configuration.
         ''', calledfromsphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
