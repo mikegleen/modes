@@ -9,11 +9,11 @@ import sys
 # import yaml
 from ruamel.yaml import YAML
 from ruamel.yaml.constructor import DuplicateKeyError
-yaml = YAML(typ='safe')   # default, if not specfied, is 'rt' (round-trip)
 
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 from utl.normalize import normalize_id, modesdate
+yaml = YAML(typ='safe')   # default, if not specfied, is 'rt' (round-trip)
 
 # The difference between the 'attrib' command and the attribute statement:
 # The 'attrib' command is just like the column command except that the value of
