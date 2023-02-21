@@ -237,11 +237,11 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
     # JB123 -> ('JB', '123', '', None, None)
     # JB123.2 -> ('JB', '123', '', '.2', '2')
     if m:
-        assert len(m.group(2)) <= 6
+        assert len(m.group(2)) <= 6, f'Length of field 2 > 6: "{objidu}"'
         newobjid = m.group(1) + f'{int(m.group(2)):06d}' + m.group(3)
         # See if it has a sub-number, like JB124.23
         if m.group(5):
-            assert len(m.group(5)) <= 6
+            assert len(m.group(5)) <= 6, f'Length of field 5 > 6: "{objidu}"'
             newobjid += '.' + f'{int(m.group(5)):06d}'
         if verbose > 3:
             print(f'normalize: {objid} -> {newobjid}')
