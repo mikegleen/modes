@@ -1,0 +1,12 @@
+cmd: ifeq
+xpath: ./Identification/Title
+title: Title
+value: "How to Build a New World"
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype='normal location']/Location
+title: Normal Location
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype='current location']/Location
+title: Current Location
