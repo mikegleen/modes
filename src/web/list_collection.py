@@ -51,9 +51,15 @@ def main():
     print(f'{outfile.name=}')
 
     accns = set()
+    nline = 0
     for line in infile:
+        nline += 1
         if m := re.search(r'<guid.*collection_(.*)\.jpg', line):
-            naccn = normalize_id(m.group(1))
+            try:
+                naccn = normalize_id(m.group(1))
+            except (ValueError, AssertionError) as err:
+                print(f'Line {nline}:', str(err))
+                continue
             if naccn in accns:
                 print(f'Duplicate: {m.group(1)}')
             accns.add(naccn)

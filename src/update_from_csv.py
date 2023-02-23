@@ -117,9 +117,10 @@ def one_element(objelem, idnum):
                 continue
         oldtext = target.text
         if oldtext and not _args.replace:
-            trace(1, '{} {} Unchanged, old text: "{}",'
-                     ' new text: "{}"\nSet --replace to force update.',
-                  denormalize_id(idnum), title, oldtext, newtext)
+            if oldtext != newtext:
+                trace(1, '{} {} Unchanged, old text: "{}",'
+                         ' new text: "{}"\nSet --replace to force update.',
+                      denormalize_id(idnum), title, oldtext, newtext)
             nunchanged += 1
             continue
         if oldtext and oldtext == newtext:

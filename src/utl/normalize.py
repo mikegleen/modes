@@ -214,13 +214,14 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
         objidu = mdacode + '.' + objidu
     if objidu.startswith(mdacode):
         idlist = re.split(r'[/.]', objidu)  # split on either "/" or "."
-        assert len(idlist) in (3, 4), f'Bad accession ID: {objid}'
-        assert len(idlist[2]) <= 6, (
-            f'Third field, {idlist[2]}, of {objid} is too long')
+        if len(idlist) not in (3, 4):
+            raise ValueError(f'Bad accession ID: {objid}')
+        if len(idlist[2]) > 6:
+            raise ValueError(f'Third field, {idlist[2]}, of {objid} is too long')
         idlist[2] = f'{int(idlist[2]):06d}'
         if len(idlist) == 4:
-            assert len(idlist[3]) <= 6, (
-                f'Fourth field, {idlist[3]}, of {objid} is too long')
+            if len(idlist[3]) > 6:
+                raise ValueError('Fourth field, {idlist[3]}, of {objid} is too long')
             idlist[3] = f'{int(idlist[3]):06d}'
         newobjid = '.'.join(idlist)
         if verbose >= 3:
@@ -237,11 +238,13 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
     # JB123 -> ('JB', '123', '', None, None)
     # JB123.2 -> ('JB', '123', '', '.2', '2')
     if m:
-        assert len(m.group(2)) <= 6, f'Length of field 2 > 6: "{objidu}"'
+        if len(m.group(2)) > 6:
+            raise ValueError(f'Length of field 2 > 6: "{objidu}"')
         newobjid = m.group(1) + f'{int(m.group(2)):06d}' + m.group(3)
         # See if it has a sub-number, like JB124.23
         if m.group(5):
-            assert len(m.group(5)) <= 6, f'Length of field 5 > 6: "{objidu}"'
+            if len(m.group(5)) > 6:
+                raise ValueError('Length of field 5 > 6: "{objidu}"')
             newobjid += '.' + f'{int(m.group(5)):06d}'
         if verbose > 3:
             print(f'normalize: {objid} -> {newobjid}')
@@ -261,7 +264,7 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
 def denormalize_id(objid: str, mdacode=DEFAULT_MDA_CODE):
     """
     :param objid: A normalized accession number
-    :param mdacode: Usually LDHRM
+    :param mdacode: Default: LDHRM
     :return: An accession number with leading zeroes removed from numeric
              fields.
     """

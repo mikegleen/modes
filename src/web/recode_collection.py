@@ -20,9 +20,12 @@ from utl.normalize import sphinxify
 DEFAULT_EXHIBITION_PLACE = 'HRM'
 PROD_SUMMARYTEXT = 'Production_SummaryText'
 TITLE_FIRST_PUBLISHED = 'TitleFirstPublished'
+PAGE_FIRST_PUBLISHED = 'PageFirstPublished'
 NEEDS_CLEANING = False
 REPLACE_FROM = ''
 REPLACE_TO = ''
+
+WHR_YD = 1944  # Year WHR died
 
 
 def trace(level, template, *args):
@@ -36,6 +39,8 @@ def decade(datebegin, dateend):
     dec = ''
     if matbegin:
         year = int(matbegin.group(1))
+        if year > WHR_YD:  # probably a year first published
+            return dec
         decbegin = (year // 10) * 10
         if matend:
             year = int(matend.group(1))
@@ -61,15 +66,23 @@ def onerow(oldrow):
     # Append the Production/SummaryText field to the end of the
     # Description field unless it just repeats the same text.
     # If Production/SummaryText is empty, use the First Published In title.
+    # Append the page number from the First Published In element if the
+    # Production/SummaryText or First-Published-In exists.
+    from_tfp = False  # the text is from the title first published
     prod_text = oldrow[PROD_SUMMARYTEXT]
+    page_text = oldrow[PAGE_FIRST_PUBLISHED]
     if not prod_text and oldrow[TITLE_FIRST_PUBLISHED]:
         prod_text = f'First published in {oldrow[TITLE_FIRST_PUBLISHED]}'
+        from_tfp = True
     if prod_text:
         if newrow['Description']:
             if prod_text.lower() not in newrow['Description'].lower():
                 newrow['Description'] += f' ({prod_text})'
         else:
             newrow['Description'] = prod_text
+    if from_tfp and page_text:
+        pg = ' page' if page_text.isdigit() else ''
+        newrow['Description'] += f',{pg} {page_text}'
 
     datebegin = oldrow['DateBegin']
     dateend = oldrow['DateEnd']
@@ -137,6 +150,10 @@ def main():
 
 
 def getparser() -> argparse.ArgumentParser:
+    """
+    Called either by getargs() in this file or by Sphinx.
+    :return: an argparse.ArgumentParser object
+    """
     parser = argparse.ArgumentParser(description='''
     Read a CSV file, recode columns and write the CSV file. The Exhibition
     Name and Exhibition Place columns are merged into a "name at place" format
@@ -172,6 +189,8 @@ called_from_sphinx = True
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
     called_from_sphinx = False
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs(sys.argv)
     incsvfile = codecs.open(_args.incsvfile, 'r', encoding='utf-8-sig')
     outfile = codecs.open(_args.outfile, 'w', encoding='utf-8-sig')

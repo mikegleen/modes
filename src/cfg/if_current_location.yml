@@ -1,7 +1,10 @@
 cmd: ifeq
+xpath: ./ObjectLocation[@elementtype='normal location']/Location
+title: Current Loc
+value: S7
+---
+cmd: column
 xpath: ./Identification/Title
-title: Title
-value: "How to Build a New World"
 ---
 cmd: column
 xpath: ./ObjectLocation[@elementtype='normal location']/Location

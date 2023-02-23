@@ -12,10 +12,11 @@ import sys
 
 def col2num(col: str | None):
     """
-    Map a spreadsheet column to a zero-based index.
+    Map a spreadsheet column to a zero-based index. If None, return None (useful with optional arguments) or a
+    zero-based column number.
+
     :param col: either like 'A' (case-insensitive) or a number or None
-    :return: If None, return None (useful with optional arguments) or a
-             zero-based column number.
+    :return: int
     """
     if col is None:
         return None
@@ -32,7 +33,9 @@ def col2num(col: str | None):
 
 
 def num2col(num):
-    """ Map a zero-based index to a spreadsheet column. """
+    """
+    Map a zero-based index to a spreadsheet column.
+    """
     s = ""
     num += 1
     while num > 0:

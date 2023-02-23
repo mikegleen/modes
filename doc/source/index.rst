@@ -12,6 +12,7 @@ Modes Python Library
    compare_elts
    csv2xml
    docx2csv
+   excel_cols
    exhibition
    list_imgs
    location
@@ -505,7 +506,9 @@ containing text ``Adopt a Picture``. In this case we expect it to not be found s
 be created. Because we know that it doesn't already exist, we could have left out the
 ``Type=`` clause in the xpath, but it is included to avoid confusion. The **child:** and
 **child_value:** statements in this document will create the subelement with tag *Type*
-and text ``Adopt a Picture``.
+and text ``Adopt a Picture``. The **value:** statement is mandatory with a **constant**
+command but is left empty resulting in no text in the ``Association`` element. The text
+will appear in the child element, ``Type``.
 
 Command # 2 creates a *Person* element with no text. Command # 3 creates a *PersonName*
 subelement to the newly created *Person* element containing text from the **Name** column

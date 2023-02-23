@@ -1,8 +1,5 @@
 #!/bin/zsh
 #
-# batch012.sh
-# -----------
-#
 # For the files in a batch, create the CSV file to be uploaded to WordPress for the collection images.
 #
 pushd ~/pyprj/hrm/modes
@@ -12,6 +9,6 @@ pushd ~/pyprj/hrm/modes
 #     :r Remove a filename extension leaving the root name.
 export BATCH=${0:t:r}
 export REVISION=
-export MODESFILE=/Users/mlg/pyprj/hrm/modes/prod_update/pretty/2023-01-11_batch14a_pretty.xml
+export MODESFILE=/Users/mlg/pyprj/hrm/modes/prod_update/pretty/2023-02-02_location_pretty.xml
 #
 bin/collection/batch_sub.sh

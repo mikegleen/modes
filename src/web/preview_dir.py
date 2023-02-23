@@ -8,6 +8,7 @@ import os.path
 import subprocess
 import sys
 from utl.normalize import normalize_id
+import time
 
 
 def main():
@@ -20,6 +21,7 @@ def main():
         numtargets = len(targetlist)
         ntarg = 0
         for _, target in targetlist:
+            time.sleep(0.05)
             ntarg += 1
             print(f'file {ntarg} of {numtargets}: {target}')
             filename, extension = os.path.splitext(target)

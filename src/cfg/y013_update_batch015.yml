@@ -3,9 +3,24 @@ xpath: ./Identification/Title
 title: Title
 ---
 cmd: column
+xpath: ./Description/Material[Part="medium"]/Keyword
+title: Medium
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Date
+title: 'DateFirstPublished'
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Title
+title: 'TitleFirstPublished'
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="First Published In"]/Page
+parent_path: ./References/Reference[@elementtype="First Published In"]
+title: 'PageFirstPublished'
+element: Page
+---
+cmd: column
 xpath: ./Identification/BriefDescription
 title: Description
 ---
-cmd: column
-xpath: ./Production/SummaryText
-title: Production_SummaryText

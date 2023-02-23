@@ -177,6 +177,8 @@ def main():
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs()
     if _args.verbose < 2:
         sys.tracebacklimit = 0
