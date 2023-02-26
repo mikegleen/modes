@@ -28,15 +28,17 @@ def trimrow(r: list, maxlen: int):
         ix -= 1
 
 
-def object_reader(infilename: str | None, verbos=1):
+def object_reader(infilename: str | None, config=None, verbos=1):
     """
 
     :param infilename: The XML file in Modes format
+    :param config: A Config object or None in which case an empty one is made
     :param verbos: trace level
     :return: A tuple of (accession number, element)
     """
     objectlevel = 0
-    config = Config()
+    if config is None:
+        config = Config()
     with openfile(infilename) as infile:
         for event, elem in ET.iterparse(infile, events=('start', 'end')):
             # print(event)

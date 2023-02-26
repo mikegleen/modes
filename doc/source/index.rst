@@ -100,7 +100,8 @@ the ``cmd: global`` document.
 -  **insert_after** If an element doesn't exist, it will be inserted after the
    element who's simple name is given here. You must also specify **parent_path**. If this
    statement is not specified, the new element will be inserted as the parent's last
-   subelement.
+   subelement. If the statement is specified but the element name parameter is
+   left blank, the new element will be inserted as the first subelement.
 -  **multiple_delimiter**  The character to use within a column to separate the
    values when used with the **multiple** command. The statement may
    appear under the **global** command or a specific **multiple** command,

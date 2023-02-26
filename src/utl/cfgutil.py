@@ -267,12 +267,12 @@ class Config:
         return select(self, elem, include_list, exclude)
 
 
-def new_subelt(doc, root, idnum, verbos=1):
+def new_subelt(doc, obj, idnum, verbos=1):
     """
 
     :param doc: The YAML document for this column (or constant)
-    :param root:
-    :param idnum:
+    :param obj: The Object element
+    :param idnum: Used for debugging
     :param verbos:
     :return:
     """
@@ -284,7 +284,7 @@ def new_subelt(doc, root, idnum, verbos=1):
     insert_after = doc.get(Stmt.INSERT_AFTER)
     trace(3, verbos, 'new_subelt: {}, element={}, insert_after={} ',
           idnum, element, insert_after)
-    parent = root.find(doc[Stmt.PARENT_PATH])
+    parent = obj.find(doc[Stmt.PARENT_PATH])
     if parent is None:
         trace(1, verbos, 'Cannot find parent of {}, column {}',
               doc[Stmt.XPATH], title, color=Fore.YELLOW)
@@ -293,6 +293,9 @@ def new_subelt(doc, root, idnum, verbos=1):
               element, color=Fore.YELLOW)
     elif insert_after is None:
         newelt = ET.SubElement(parent, element)
+    elif insert_after == '':
+        newelt = ET.Element(element)
+        parent.insert(0, newelt)
     else:
         elts = list(parent)
         insert_ix = None
@@ -459,13 +462,14 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
     Called by the Config constructor. Return the YAML documents with minor
     additions.
 
-    :param cfgf: The YAML file specifying the configuration
+    :param cfgf: The YAML file specifying the configuration. Might be None
+                 for an empty document, like trailing "---". An empty Config
+                 may be used to get the default values.
     :param dump: if True, dump YAML documents as processed.
     :return: A list of dicts, each of which is a YAML document. If the config
              file was not specified on the command line, then return an empty
              list.
     """
-    # Might be None for an empty document, like trailing "---"
     if cfgf is None:
         return []
     try:
