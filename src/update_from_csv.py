@@ -37,7 +37,7 @@ from utl.normalize import normalize_id, sphinxify, denormalize_id
 from utl.normalize import if_not_sphinx, DEFAULT_MDA_CODE
 from utl.normalize import modes_person, modesdatefrombritishdate
 import utl.normalize as nd
-from utl.row_reader import row_dict_reader
+from utl.readers import row_dict_reader
 
 
 def trace(level, template, *args, color=None):

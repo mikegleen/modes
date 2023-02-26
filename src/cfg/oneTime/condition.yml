@@ -1,0 +1,6 @@
+cmd: column
+xpath: ./Description/Condition
+---
+cmd: column
+xpath: ./Description/Condition/Note
+---

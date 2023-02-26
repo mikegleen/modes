@@ -99,11 +99,10 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     outlist = []
     titles = yaml_fieldnames(config)
     trace(1, 'Columns: {}', ', '.join(titles))
-    if not _args.heading:
-        trace(1, 'Heading row not written.')
     if _args.heading:
         outcsv.writerow(titles)
-    objectlevel = 0
+    else:
+        trace(1, 'Heading row not written.')
     if _args.object:
         expanded = [normalize_id(obj) for obj in expand_idnum(_args.object)]
         includeset = set(expanded)  # JB001-002 -> JB001, JB002
@@ -114,6 +113,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
                                      logfile=_logfile,
                                      allow_blanks=_args.allow_blanks)
     normids = {}
+    objectlevel = 0
     for event, elem in ET.iterparse(infile, events=('start', 'end')):
         # print(event)
         if event == 'start':

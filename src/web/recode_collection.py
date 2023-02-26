@@ -27,6 +27,9 @@ REPLACE_TO = ''
 
 WHR_YD = 1944  # Year WHR died
 
+FIELDS = 'Serial Title Medium Exhibition HumanDate IsoDate Decade'
+FIELDS += ' Description ObjectType Dimensions'
+
 
 def trace(level, template, *args):
     if _args.verbose >= level:
@@ -84,6 +87,8 @@ def onerow(oldrow):
         pg = ' page' if page_text.isdigit() else ''
         newrow['Description'] += f',{pg} {page_text}'
 
+    # ------------------------- Dates ----------------------------------
+
     datebegin = oldrow['DateBegin']
     dateend = oldrow['DateEnd']
     accuracy = oldrow['Accuracy']
@@ -107,6 +112,8 @@ def onerow(oldrow):
         newrow['IsoDate'] = ''
     newrow['Decade'] = decade(datebegin, dateend)
 
+    # ------------------------- Exhibitions ----------------------------------
+
     places = oldrow['ExhibitionPlace'].split('|')
     names = oldrow['ExhibitionName'].split('|')
     if len(places) != len(names):
@@ -123,19 +130,29 @@ def onerow(oldrow):
                 exhibitions.append(f"{clean(name)} at {clean(place)}")
     newrow['Exhibition'] = '|'.join(exhibitions)
 
+    # ------------------------- ObjectType ----------------------------------
+
     if oldrow['ObjectType'] == 'books':
         newrow['Medium'] = 'book'
     elif oldrow['ObjectType'] != 'Original Artwork' and not newrow['Medium']:
         newrow['Medium'] = oldrow['ObjectType']
+
+    # ------------------------- Dimensions ----------------------------------
+
+    dimensions = oldrow['Dimensions'].replace(' ', '')
+    m = re.match(r'(\d+)(mm)?x(\d+)(mm)?', dimensions)
+    if m:
+        dimensions = f'Height: {m.group(1)}mm|Width: {m.group(3)}mm'
+    if oldrow['Pages']:
+        dimensions += '|Pages: ' + oldrow['Pages']
+    newrow['Dimensions'] = dimensions
     return newrow
 
 
 def main():
     reader = csv.DictReader(incsvfile)
     n_input_fields = len(reader.fieldnames)
-    fields = 'Serial Title Medium Exhibition HumanDate IsoDate Decade'
-    fields += ' Description'
-    writer = csv.DictWriter(outfile, fieldnames=fields.split())
+    writer = csv.DictWriter(outfile, fieldnames=FIELDS.split())
     writer.writeheader()
     n_rows = 0
     for oldrow in reader:

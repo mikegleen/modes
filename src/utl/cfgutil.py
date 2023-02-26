@@ -559,7 +559,7 @@ def _splitid(idstr: str, m: re.Match) -> (str, int, int, int):
     return prefix, intvariablepart, intsecondidnum, len(variablepart)
 
 
-def expand_one_idnum(idstr: str) -> list[str]:
+def _expand_one_idnum(idstr: str) -> list[str]:
     """
     :param idstr: An accession number or a range of numbers. If it is a range,
     indicated by a hyphen or ampersand anywhere in the string, the format of
@@ -633,7 +633,7 @@ def expand_idnum(idnumstr: str) -> list[str]:
     idstrlist = idnumstr.split(',')
     rtnlist = []
     for idstr in idstrlist:
-        rtnlist += expand_one_idnum(idstr)
+        rtnlist += _expand_one_idnum(idstr)
     return rtnlist
 
 

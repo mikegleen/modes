@@ -21,6 +21,7 @@ def main():
         numtargets = len(targetlist)
         ntarg = 0
         for _, target in targetlist:
+            # Possibly fix process abort (weird macOS error?)
             time.sleep(0.05)
             ntarg += 1
             print(f'file {ntarg} of {numtargets}: {target}')

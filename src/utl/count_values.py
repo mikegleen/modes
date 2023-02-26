@@ -93,6 +93,8 @@ def getargs():
 calledfromsphinx = True
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     calledfromsphinx = False
     _args = getargs()
     infile = openfile(_args.infile)

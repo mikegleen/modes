@@ -16,7 +16,7 @@ from utl.cfgutil import Config, Stmt, Cmd, new_subelt
 from utl.normalize import modesdatefrombritishdate, sphinxify, if_not_sphinx
 from utl.normalize import DEFAULT_MDA_CODE, normalize_id, denormalize_id
 from utl.normalize import modes_person
-from utl.row_reader import row_dict_reader
+from utl.readers import row_dict_reader
 
 
 def trace(level, template, *args, color=None):

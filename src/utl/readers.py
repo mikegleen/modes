@@ -6,6 +6,11 @@ import csv
 import os
 import sys
 from openpyxl import load_workbook
+# noinspection PyPep8Naming
+import xml.etree.ElementTree as ET
+
+from utl.cfgutil import Config
+from utl.zipmagic import openfile
 
 
 def trimrow(r: list, maxlen: int):
@@ -21,6 +26,37 @@ def trimrow(r: list, maxlen: int):
             break
         r.pop()
         ix -= 1
+
+
+def object_reader(infilename: str | None, verbos=1):
+    """
+
+    :param infilename: The XML file in Modes format
+    :param verbos: trace level
+    :return: A tuple of (accession number, element)
+    """
+    objectlevel = 0
+    config = Config()
+    with openfile(infilename) as infile:
+        for event, elem in ET.iterparse(infile, events=('start', 'end')):
+            # print(event)
+            if event == 'start':
+                # print(elem.tag)
+                if elem.tag == config.record_tag:
+                    objectlevel += 1
+                continue
+            # It's an "end" event.
+            if elem.tag != config.record_tag:  # default: Object
+                continue
+            objectlevel -= 1
+            if objectlevel:
+                continue  # It's not a top level Object.
+            data = []
+            idelem = elem.find(config.record_id_xpath)
+            idnum = idelem.text if idelem is not None else ''
+            if verbos >= 3:
+                print('idnum: {}', idnum)
+            yield idnum, elem
 
 
 def row_dict_reader(filename: str | None, verbos=1, skiprows=0,

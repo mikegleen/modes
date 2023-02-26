@@ -55,3 +55,11 @@ cmd: attrib
 xpath: .
 attribute: elementtype
 title: ObjectType
+---
+cmd: column
+xpath: ./Description/Measurement[Part="Image"]/Reading
+title: Dimensions
+---
+cmd: column
+xpath: ./Description/Aspect[Keyword="pages"]/Reading
+title: Pages

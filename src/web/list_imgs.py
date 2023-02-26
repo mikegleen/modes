@@ -42,8 +42,8 @@ def getparser():
     parser.add_argument('-e', '--exclude', help='''
     A CSV file containing accession numbers  to be excluded from the
     output list.''')
-    parser.add_argument('-l', '--list_only', action='store_true', help='''
-    Only output the accession number, not the filename.''')
+    parser.add_argument('-f', '--list_files', action='store_true', help='''
+    Output the filename in addition to the accession number.''')
     parser.add_argument('-o', '--outfile', help='''
         Output file for the list of files. Default is sys.stdout. The warning
         messages are always written to sys.stdout.''')
@@ -109,10 +109,10 @@ def main():
     for key in sorted(img_ids.keys()):
         fname = img_ids[key][0]
         prefix, _ = os.path.splitext(fname)
-        if _args.list_only:
-            print(f'{prefix}', file=outfile)
-        else:
+        if _args.list_files:
             print(f'{prefix},{img_ids[key][1]}', file=outfile)
+        else:
+            print(prefix, file=outfile)
     trace(2, '{} image files found.', len(img_ids))
 
 
