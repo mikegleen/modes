@@ -84,6 +84,8 @@ calledfromsphinx = True
 if __name__ == '__main__':
     calledfromsphinx = False
     assert sys.version_info >= (3, 9)
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs()
     if not os.path.isdir(_args.indir):
         raise ValueError('Input must be a directory.')

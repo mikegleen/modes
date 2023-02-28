@@ -84,7 +84,7 @@ the ``cmd: global`` document.
    **attribute_value** statement.
 -  **attribute_value** The value to insert in an attribute created with the **attribute**
    statement.
--  **casesensitive** By default, comparisons are case insensitive.
+-  **case_sensitive** By default, comparisons are case insensitive.
 -  **child** Used by ``update_from_csv.py`` when ``parent_path`` is specified to force
    creation of a new element. When that element is created, a subelement is also created.
 -  **child_value** Make this the text of the newly created subelement.
@@ -232,15 +232,15 @@ These commands do not generate output columns. The **if...** commands are used
 by ``xml2csv.py`` and others that read from the XML file to select which
 records to output. Multiple **if...** commands may be used; these are
 processed in succession and have an **and** relationship, meaning that all of
-the tests must succeed for a record to be selected.
+the tests must succeed for a record to be selected. Note that tests are
+case insensitive unless a case_sensitive statement is specified in the
+control command document.
 
 -  **global** This document contains statements that affect the
    overall processing, not just a specific column. See the section above *Global-command
    Statements*.
--  **if** Control command that selects an object to display if the
-   element text is populated.
--  **ifnot** Control command that selects an object to display if the
-   element text is not populated.
+-  **if** Selects an object to display if the element text is populated.
+-  **ifnot** Selects an object to display if the element text is not populated.
 -  **ifattrib** Like **if** except tests for an attribute
 -  **ifattribeq** Like **ifeq** except compares the value against an
    attribute. Example::

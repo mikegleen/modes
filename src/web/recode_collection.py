@@ -28,7 +28,7 @@ REPLACE_TO = ''
 WHR_YD = 1944  # Year WHR died
 
 FIELDS = 'Serial Title Medium Exhibition HumanDate IsoDate Decade'
-FIELDS += ' Description ObjectType Dimensions'
+FIELDS += ' Description Height Width'
 
 
 def trace(level, template, *args):
@@ -139,13 +139,11 @@ def onerow(oldrow):
 
     # ------------------------- Dimensions ----------------------------------
 
-    dimensions = oldrow['Dimensions'].replace(' ', '')
-    m = re.match(r'(\d+)(mm)?x(\d+)(mm)?', dimensions)
+    m = re.search(r'(\d+)\D+(\d+)', oldrow['Dimensions'])
     if m:
-        dimensions = f'Height: {m.group(1)}mm|Width: {m.group(3)}mm'
-    if oldrow['Pages']:
-        dimensions += '|Pages: ' + oldrow['Pages']
-    newrow['Dimensions'] = dimensions
+        newrow['Height'] = m.group(1) + ' mm'
+        newrow['Width'] = m.group(2) + ' mm'
+    # print(f'{oldrow["Dimensions"]=}, {newrow["Height"]=}, {newrow["Width"]=}')
     return newrow
 
 

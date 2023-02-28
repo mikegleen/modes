@@ -105,7 +105,7 @@ class Stmt:
     ADD_MDA_CODE = 'add_mda_code'
     ATTRIBUTE = 'attribute'
     ATTRIBUTE_VALUE = 'attribute_value'
-    CASESENSITIVE = 'casesensitive'
+    CASE_SENSITIVE = 'case_sensitive'
     CHILD = 'child'
     CHILD_VALUE = 'child_value'
     CMD = 'cmd'
@@ -385,7 +385,7 @@ def select(cfg: Config, elem, includes=None, exclude=False):
                        Cmd.IFATTRIBEQ, Cmd.IFATTRIBNOTEQ):
             value = document[Stmt.VALUE]
             textvalue = text
-            if Stmt.CASESENSITIVE not in document:
+            if Stmt.CASE_SENSITIVE not in document:
                 value = value.lower()
                 textvalue = textvalue.lower()
             if command == Cmd.IFCONTAINS and value not in textvalue:

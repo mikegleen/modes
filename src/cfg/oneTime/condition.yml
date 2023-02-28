@@ -1,6 +1,9 @@
-cmd: column
-xpath: ./Description/Condition
+cmd: if
+xpath: ./Description/SummaryText
 ---
 cmd: column
-xpath: ./Description/Condition/Note
+xpath: ./Description/SummaryText
+---
+cmd: column
+xpath: ./Identification/BriefDescription
 ---
