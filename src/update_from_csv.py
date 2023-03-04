@@ -266,9 +266,9 @@ def getargs(argv):
     return args
 
 
-def check_cfg(c):
+def check_cfg(config: Config):
     errs = 0
-    for doc in c.col_docs:
+    for doc in config.col_docs:
         cmd = doc[Stmt.CMD]
         if cmd == Cmd.DELETE:
             for stmt in doc:
@@ -287,7 +287,7 @@ def check_cfg(c):
             trace(1, 'cmd: {}: attribute statement requires '
                   'attribute_value:', cmd, color=Fore.RED)
             errs += 1
-    for doc in c.ctrl_docs:  # "global" is not in this dict
+    for doc in config.ctrl_docs:  # "global" is not in this dict
         trace(1, 'Command "{}" not allowed, ignored.', doc[Stmt.CMD],
               color=Fore.RED)
         errs += 1
