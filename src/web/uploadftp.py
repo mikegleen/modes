@@ -67,4 +67,4 @@ for filename in files:
     if nsent % 10 == 0:
         trace(1, '{} of {} sent', nsent, nfiles)
 elapsed = time.perf_counter() - t1
-print(f'{elapsed:.3f} seconds to send {nsent} file{"s" if nsent == 1 else ""}')
+print(f'{elapsed:.3f} seconds to send {nsent} file{"" if nsent == 1 else "s"}')
