@@ -28,7 +28,8 @@ REPLACE_TO = ''
 WHR_YD = 1944  # Year WHR died
 
 FIELDS = 'Serial Title Medium Exhibition HumanDate IsoDate Decade'
-FIELDS += ' Description Height Width'
+FIELDS += ' Description Dimensions'
+# FIELDS += ' Description Height Width'
 
 
 def trace(level, template, *args):
@@ -139,11 +140,18 @@ def onerow(oldrow):
 
     # ------------------------- Dimensions ----------------------------------
 
+    # The field is like "300 x 500" as height x width in mm.
     m = re.search(r'(\d+)\D+(\d+)', oldrow['Dimensions'])
     if m:
-        newrow['Height'] = m.group(1) + ' mm'
-        newrow['Width'] = m.group(2) + ' mm'
-    # print(f'{oldrow["Dimensions"]=}, {newrow["Height"]=}, {newrow["Width"]=}')
+        height = m.group(1) + 'mm'
+        width = m.group(2) + 'mm'
+        # newrow['Height'] = height
+        # newrow['Width'] = width
+        newrow['Dimensions'] = f'Width: {width}<br/>Height: {height}'
+        # print(f'{oldrow["Dimensions"]=}, {newrow["Height"]=}, {newrow["Width"]=}')
+    if oldrow['Pages']:
+        nl = '<br/>' if m else ''
+        newrow['Dimensions'] += f"{nl}Number of Pages:{oldrow['Pages']}"
     return newrow
 
 
@@ -170,17 +178,22 @@ def getparser() -> argparse.ArgumentParser:
     :return: an argparse.ArgumentParser object
     """
     parser = argparse.ArgumentParser(description='''
-    Read a CSV file, recode columns and write the CSV file. The Exhibition
+    Read a CSV file, recode columns and write the CSV file.
+    The Exhibition
     Name and Exhibition Place columns are merged into a "name at place" format
     unless the place is "HRM" in which case it's omitted.
+    
     The DateBegin column (in Modes format) is deleted and replaced by a
     human-friendly column and an ISO date column.
+    
+    The Height, Width, and Pages columns are merged into a Dimensions column
+    if present.
     
     The input columns are defined in ``cfg/website.yml`` and must match
     names hard-coded here.''')
     parser.add_argument('incsvfile', help=sphinxify('''
-        The input is expected to have been produced by xml2csv.py using the
-        website.yml config file. You must specify the --heading option
+        The input is expected to have been produced by ``xml2csv.py`` using the
+        ``website.yml`` config file. You must specify the --heading option
         ''', called_from_sphinx))
     parser.add_argument('outfile', help='''
         The output CSV file.''')
