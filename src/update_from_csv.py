@@ -163,7 +163,7 @@ def main():
         trace(3, 'idnum: {}', idnum)
         if nidnum and nidnum in newvals:
             updated = one_element(elem, nidnum)
-            del newvals[nidnum.upper()]
+            del newvals[nidnum]
         else:
             updated = False
             if _args.missing:
