@@ -1,0 +1,2 @@
+cmd: column
+xpath: ./Description/Measurement[Part="Image"]/Reading

@@ -1,14 +1,9 @@
+cmd: ifnot
+#xpath: ./Description/Measurement[Part="Image"]/Reading
+xpath: ./Description/Measurement/Reading
 #cmd: ifeq
 #xpath: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
 #value: '10.6.2022'
-#---
-cmd: column
-xpath: ./ObjectLocation[@elementtype="normal location"]/Location
-title: 'Normal Location'
----
-cmd: column
-xpath: ./ObjectLocation[@elementtype="previous location"]/Location
-title: 'Previous Location'
 ---
 cmd: column
 xpath: ./ObjectLocation[@elementtype="current location"]/Location
@@ -18,6 +13,14 @@ cmd: column
 xpath: ./ObjectLocation[@elementtype="current location"]/Reason
 title: 'Reason'
 ---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="normal location"]/Location
+title: 'Normal Location'
+---
+#cmd: column
+#xpath: ./ObjectLocation[@elementtype="previous location"]/Location
+#title: 'Previous Location'
+#---
 #cmd: column
 #xpath: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
 #title: 'Date Begin'

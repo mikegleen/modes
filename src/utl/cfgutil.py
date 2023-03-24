@@ -1,18 +1,17 @@
 import codecs
 from colorama import Fore, Style
 import csv
-from datetime import date
 import os
 import re
 import sys
 
 # import yaml
 from ruamel.yaml import YAML
-from ruamel.yaml.constructor import DuplicateKeyError
+import ruamel.yaml.constructor
 
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from utl.normalize import normalize_id, modesdate
+from utl.normalize import normalize_id
 yaml = YAML(typ='safe')   # default, if not specfied, is 'rt' (round-trip)
 
 # The difference between the 'attrib' command and the attribute statement:
@@ -252,7 +251,7 @@ class Config:
                 self.col_docs.append(document)
         self.norm = []  # True if this column needs to normalized/unnormalized
         # Do this as a separate step because we didn't know whether we need
-        # to include the serial number until all of the documents were read.
+        # to include the serial number until all the documents were read.
         if not self.skip_number:
             self.norm.append(True)  # for the Serial number
         for doc in self.col_docs:
@@ -315,7 +314,7 @@ def new_subelt(doc, obj, idnum, verbos=1):
             childelt = ET.SubElement(newelt, doc[Stmt.CHILD])
             if Stmt.CHILD_VALUE in doc:
                 childelt.text = doc.get(Stmt.CHILD_VALUE, '')
-        elif Stmt.ATTRIBUTE in doc:
+        if Stmt.ATTRIBUTE in doc:
             value = doc[Stmt.ATTRIBUTE_VALUE] if Stmt.ATTRIBUTE_VALUE in doc else ''
             newelt.set(doc[Stmt.ATTRIBUTE], value)
     return newelt
@@ -474,7 +473,7 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
         return []
     try:
         cfg = [c for c in yaml.load_all(cfgf) if c is not None]
-    except DuplicateKeyError as e:
+    except ruamel.yaml.constructor.DuplicateKeyError as e:
         print(e.args)
         sys.exit()
     titles = set()

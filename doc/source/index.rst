@@ -12,7 +12,7 @@ Modes Python Library
    compare_elts
    csv2xml
    docx2csv
-   excel_cols
+   utility_functions
    exhibition
    list_imgs
    location
@@ -102,11 +102,11 @@ the ``cmd: global`` document.
    statement is not specified, the new element will be inserted as the parent's last
    subelement. If the statement is specified but the element name parameter is
    left blank, the new element will be inserted as the first subelement.
--  **multiple_delimiter**  The character to use within a column to separate the
-   values when used with the **multiple** command. The statement may
-   appear under the **global** command or a specific **multiple** command,
-   which takes precedence. This statement is also used by the **items** command.
-   The default is “|”.
+-  **multiple_delimiter**  The character or characters to use within a column
+   to separate the
+   values when used with the **multiple** command or the **items** command.
+   The statement may appear under the **global** command or a specific command,
+   which takes precedence. The default is “|”.
 -  **normalize** Adjust this accession number so that it sorts in numeric
    order. The number will be de-normalized before output. The default serial
    number in the first column and the accession number extracted from the XML
@@ -263,6 +263,15 @@ control command document.
    statement text.
 -  **ifnoteq** Select an object if the element text does not equal the
    **value** statement text.
+
+The **global** Command
+++++++++++++++++++++++
+
+-  **global** This document contains statements that affect the
+   overall processing, not just a specific column. See the section above *Global-command
+   Statements*. Some of the statements affect the entire process, like **delimiter**.
+   Some of the statements affect the individual columns in the associated CSV file and
+   may be overriden by the same named statement in individual documents.
 
 
 Accession Number Handling
@@ -533,3 +542,4 @@ The shell command to effect this update is::
     -c src/cfg/y010_adopt_a_picture.yml\
     -m results/csv/sally/pictures_adopted.csv\
     --serial 'Accn. No.' -a
+

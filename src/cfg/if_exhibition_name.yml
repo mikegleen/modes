@@ -1,6 +1,6 @@
 cmd: ifeq
 xpath: ./Exhibition/ExhibitionName
-value: "The Humour of William Heath Robinson"
+value: "Heath Robinson’s Shakespeare Illustrations"
 ---
 cmd: column
 xpath: ./ObjectLocation[@elementtype='normal location']/Location
