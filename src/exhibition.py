@@ -38,7 +38,7 @@ from cfg.exhibition_list import EXSTR
 from utl.cfgutil import Stmt, expand_idnum
 from utl.excel_cols import col2num
 from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
-from utl.normalize import sphinxify, vdate
+from utl.normalize import sphinxify, vdate, isoformatfrommodesdate
 
 ExhibitionTuple = namedtuple('ExhibitionTuple',
                              'ExNum DateBegin DateEnd ExhibitionName Place')
@@ -119,7 +119,7 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
                     if dateelt.tag == 'DateBegin':
                         xmldate = dateelt.text
                         break
-        xmlkey += ':' + xmlplace + ':' + xmldate
+        xmlkey += ':' + xmlplace + ':' + isoformatfrommodesdate(xmldate)
         # And finally, confirm that it's really the one we want to update.
         trace(3, '{}: exhibkey={}\nxmlkey={}', idnum, exhibkey, xmlkey)
         if exhibkey != xmlkey:
