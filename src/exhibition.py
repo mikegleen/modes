@@ -64,7 +64,7 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
         newelt = ET.Element('Exhibition')
         subelt = ET.SubElement(newelt, 'ExhibitionName')
         subelt.text = exhibition.ExhibitionName
-        if catalog_num is not None:
+        if catalog_num:
             subelt = ET.SubElement(newelt, 'CatalogueNumber')
             subelt.text = str(catalog_num)
         subelt = ET.SubElement(newelt, 'Place')
@@ -120,7 +120,7 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
                         xmldate = dateelt.text
                         break
         xmlkey += ':' + xmlplace + ':' + isoformatfrommodesdate(xmldate)
-        # And finally, confirm that it's really the one we want to update.
+        # Confirm that it's really the one we want to update or delete.
         trace(3, '{}: exhibkey={}\nxmlkey={}', idnum, exhibkey, xmlkey)
         if exhibkey != xmlkey:
             return 1
