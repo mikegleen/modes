@@ -28,10 +28,12 @@
 """
 import argparse
 import codecs
+import os
 from collections import namedtuple
 import csv
 from datetime import date
 import sys
+from colorama import Fore, Style
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 from cfg.exhibition_list import EXSTR
@@ -47,6 +49,14 @@ ExhibitionTuple = namedtuple('ExhibitionTuple',
 def trace(level, template, *args):
     if _args.verbose >= level:
         print(template.format(*args))
+
+
+def trace(level, template, *args, color=None):
+    if _args.verbose >= level:
+        if color:
+            print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
+        else:
+            print(template.format(*args))
 
 
 def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
@@ -102,8 +112,8 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
             return 1  # not a match so just keep this element as is
         # The exhibition names match but if they are duplicated elsewhere in
         # the list, we must look deeper.
-        exhibkey = _oldname if _oldname else exhibition.ExhibitionName + ':'
-        exhibkey += _oldplace if _oldplace else exhibition.Place + ':'
+        exhibkey = (_oldname if _oldname else exhibition.ExhibitionName) + ':'
+        exhibkey += (_oldplace if _oldplace else exhibition.Place) + ':'
         exhibkey += _olddate if _olddate else (exhibition.DateBegin.isoformat()[:10])
         xmlkey = exhibname.text
         xmlplace = ''
@@ -189,6 +199,13 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
             if elt.tag == "Acquisition":
                 firstexix = n + 1  # insert the new elt after <Acquisition>
                 break
+    if firstexix is None:
+        outfile.close()
+        os.remove(_args.outfile)
+        trace(0, '{}: No Acquisition element found. Program aborting.',
+              display_id, color=Fore.RED)
+        sys.exit(1)
+
     # Remove all the Exhibition elements and re-insert the ones we're
     # keeping in date order.
     for _edate, exhib in exhibs_to_insert:
@@ -333,7 +350,7 @@ def main():
         trace(1, 'In CSV but not XML: "{}"', denormalize_id(idnum))
     trace(1, f'End exhibition.py. {written} object'
              f'{"s" if written != 1 else ""} written '
-             f'of which {numupdated} updated.')
+             f'of which {numupdated} updated.', color=Fore.GREEN)
 
 
 def getparser():
@@ -425,14 +442,20 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
-    if args.mapfile is None and args.object is None:
+    if (args.mapfile is None) == (args.object is None):
         raise ValueError('You must specify one of --mapfile and --object')
+    if (args.exhibition is None) == (args.col_ex is None):
+        raise ValueError('You must specify one of --exhibition and --col_ex')
     if (args.object or args.old_name) and not args.exhibition:
         raise(ValueError('You specified the object id or old name. You must'
                          ' also specify the exhibition.'))
     if args.delete and not args.exhibition:  # Modes format?
         raise ValueError('You specified --delete. You must also specify the'
                          ' exhibition.')
+    if args.catalogue and args.col_cat:
+        raise ValueError('You may not specify both --catalogue and --col_cat')
+    if args.catalogue and not args.object:
+        raise ValueError('If you specify --catalogue you must specify --object.')
     if args.col_acc is None:
         args.col_acc = 0
     else:
@@ -468,4 +491,5 @@ if __name__ == '__main__':
     trace(1, 'Creating file: {}', _args.outfile)
     main()
     if (_oldname or _oldplace or _olddate) and not found_old_key:
-        print("**** Warning: Old name/place/date specified but no old key found.")
+        trace(0, "Warning: Old name/place/date specified but no old key found.",
+              color=Fore.YELLOW)
