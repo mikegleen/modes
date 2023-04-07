@@ -113,7 +113,8 @@ def one_element(objelem, idnum):
         if target is None:
             target = new_subelt(doc, objelem, idnum, _args.verbose)
             if target is None:  # parent is not specified or doesn't exist
-                trace(1, '{}: Cannot find target "{}"', idnum, xpath)
+                trace(1, '{}: Cannot find target "{}", document "{}"', idnum,
+                      xpath, title)
                 continue
         oldtext = target.text
         if oldtext and not _args.replace:
