@@ -25,7 +25,7 @@ NEEDS_CLEANING = False
 REPLACE_FROM = ''
 REPLACE_TO = ''
 
-WHR_YD = 1944  # Year WHR died
+WHR_DD = 1949  # Last year of the decade in which WHR died
 
 FIELDS = 'Serial Title Medium Exhibition HumanDate IsoDate Decade'
 FIELDS += ' Description Dimensions'
@@ -43,7 +43,7 @@ def decade(datebegin, dateend):
     dec = ''
     if matbegin:
         year = int(matbegin.group(1))
-        if year > WHR_YD:  # probably a year first published
+        if year > WHR_DD:  # probably a year first published
             return dec
         decbegin = (year // 10) * 10
         if matend:
@@ -52,6 +52,7 @@ def decade(datebegin, dateend):
         else:
             decend = decbegin
         dec = '|'.join([str(d) + 's' for d in range(decbegin, decend + 10, 10)])
+    trace(2, f'{datebegin=} {dateend=} {dec=}')
     return dec
 
 
@@ -64,6 +65,7 @@ def clean(s):
 def onerow(oldrow):
     newrow = dict()
     newrow['Serial'] = oldrow['Serial'].upper()  # to be sure to be sure
+    trace(2, 'Serial = {}', newrow['Serial'])
     newrow['Title'] = clean(oldrow['Title'])
     newrow['Medium'] = oldrow['Medium']
     newrow['Description'] = clean(oldrow['Description'])
@@ -112,6 +114,7 @@ def onerow(oldrow):
     except ValueError:
         newrow['IsoDate'] = ''
     newrow['Decade'] = decade(datebegin, dateend)
+    trace(2, f'{newrow["Decade"]=}')
 
     # ------------------------- Exhibitions ----------------------------------
 

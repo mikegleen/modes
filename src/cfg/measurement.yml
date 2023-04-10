@@ -1,0 +1,9 @@
+#cmd: ifattribeq
+#xpath: .
+#attribute: elementtype
+#value: books
+#---
+cmd: column
+xpath: ./Description/Measurement/Reading
+title: Reading
+---

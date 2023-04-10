@@ -209,21 +209,24 @@ Data-related Commands
 -  **column** This is the basic command to display or update the text of an
    element.
 -  **constant** For ``csv2xml.py`` and ``update_from_csv.py``, create an element
-   from the ``value`` statement of this document without reference to the CSV file.
+   from the **value** statement of this document without reference to the CSV file.
+   You may also use **constant** in ``xml2csv.py`` but you must include an **xpath**
+   statement with a value that is used for the heading if no **title** statement
+   is specified.
+-  **count** Displays the number of occurrences of an element under its
+   parent.
 -  **delete** For ``update_from_csv.py``. Delete the first element specified by the
    **xpath** statement. If the **delete** command is
    specified, only the **xpath** statement is allowed.
 -  **delete_all** Like **delete** except all occurrences of the element are deleted.
--  **keyword** Find the element specified by the xpath statement whose text
-   equals the text in the **value** statement and then return the
-   first Keyword sub-element's text.
 -  **items** Used by ``csv2xml.py`` to create ``<Item>`` elements for the multiple
    text strings delimited by the delimiter specified by the **multiple_delimiter**
    statement.
+-  **keyword** Find the element specified by the xpath statement whose text
+   equals the text in the **value** statement and then return the
+   first Keyword sub-element's text.
 -  **multiple** Used by ``xml2csv.py``. Like the **column** command except it produces a
    delimiter-separated list of values. See the optional **multiple_delimiter** statement.
--  **count** Displays the number of occurrences of an element under its
-   parent.
 
 Control Commands
 ++++++++++++++++

@@ -64,9 +64,9 @@ class Cmd:
                      IFCONTAINS, IFATTRIBEQ, IFATTRIBNOTEQ, IFELT)
     _NEEDVALUE_CMDS = (KEYWORD, IFEQ, IFNOTEQ, IFATTRIBEQ, IFATTRIBNOTEQ,
                        IFCONTAINS, CONSTANT)
-    _NEEDXPATH_CMDS = (ATTRIB, COLUMN, KEYWORD, IF, IFNOT, COUNT, IFELT, IFEQ,
+    _NEEDXPATH_CMDS = (ATTRIB, COLUMN, CONSTANT, COUNT, ITEMS, IF, IFNOT, IFELT, IFEQ,
                        IFNOTEQ, IFCONTAINS, IFATTRIB, IFATTRIBEQ,
-                       IFATTRIBNOTEQ, CONSTANT, ITEMS)
+                       IFATTRIBNOTEQ, KEYWORD, MULTIPLE)
 
     @staticmethod
     def get_needxpath_cmds():
@@ -240,7 +240,7 @@ class Config:
         valid = validate_yaml_cfg(cfglist, allow_required)
         if not valid:
             sys.tracebacklimit = 0
-            raise ValueError('Config failed validation.')
+            raise ValueError(Fore.RED + 'Config failed validation.' + Style.RESET_ALL)
         for document in cfglist:
             cmd = document[Stmt.CMD]
             if cmd == Cmd.GLOBAL:
@@ -433,7 +433,8 @@ def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
             print(f'ERROR: Only one of {", ".join(only_one)} allowed.')
             valid_doc = False
         if command in Cmd.get_needxpath_cmds() and Stmt.XPATH not in document:
-            print(f'ERROR: XPATH statement missing, cmd: {command}', file=logfile)
+            print(f'{Fore.RED}ERROR: XPATH statement missing, cmd: '
+                  f'{command}{Style.RESET_ALL}', file=logfile)
             valid_doc = False
         if command in Cmd.get_needvalue_cmds() and Stmt.VALUE not in document:
             print(f'ERROR: value is required for {command} command.', file=logfile)
@@ -498,6 +499,8 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
         # statement is there if needed.
         # print('readyaml')
         if Stmt.TITLE not in document:
+            if Stmt.XPATH not in document:
+                continue  # error will be caught later
             target = document.get(Stmt.XPATH)
             # print('target', target)
             attribute = document.get(Stmt.ATTRIBUTE)

@@ -24,7 +24,7 @@ def getargs():
     parser.add_argument('imgdir', help='''
         Folder containing images or subfolders containing images we already
         have. Only one level of subfolder is examined.''')
-    parser.add_argument('-c', '--candidatefile', required=True, help='''
+    parser.add_argument('-c', '--candidatefile',  help='''
         CSV file containing the list of new objects or a directory containing
         jpg files with names consisting of the accession numbers. If omitted
         then the objects in the Modes file will be the candidates, showing
@@ -74,7 +74,7 @@ def build_img_dict(img_ids: dict, imgdir: str):
             print(f'Skipping {imgf}: {ve}')
             return
         if nid in img_ids:
-            print(f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
+            trace(1, f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
                   f' original in {img_ids[nid][1].removeprefix(_args.imgdir)}')
         else:
             img_ids[nid] = (imgf2, dirpath)
@@ -172,7 +172,7 @@ def main():
         print(denid, file=outfile)
         numneeded += 1
     needq = f'{"not " if _args.invert else ""}needed'
-    print(f'Total {needq}: {numneeded} of {len(candidate_set)} candidates.')
+    trace(1, f'Total {needq}: {numneeded} of {len(candidate_set)} candidates.')
 
 
 if __name__ == '__main__':

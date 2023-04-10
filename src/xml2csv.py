@@ -45,7 +45,7 @@ def one_document(document, parent):
         element = parent.find(eltstr)
     else:
         element = None
-    if element is None:
+    if element is None and command != Cmd.CONSTANT:
         return None, command
     if command == Cmd.ATTRIB:
         attribute = document[Stmt.ATTRIBUTE]
@@ -65,6 +65,8 @@ def one_document(document, parent):
         # for e in elements:
         #     print(f'{e.text=}')
         text = delimiter.join([e.text for e in elements if e.text is not None])
+    elif command == Cmd.CONSTANT:
+        text = document[Stmt.VALUE]
     elif element.text is None:
         text = ''
     else:
@@ -201,8 +203,8 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         trace(1, '{} items in include list not in XML.', len(includes))
         if _args.verbose > 0:
             print('In include list but not xml:', file=_logfile)
-            for accnum in includes:
-                print(accnum, file=_logfile)
+            for accnum in sorted(includes):
+                print(denormalize_id(accnum), file=_logfile)
     if not _args.bom:
         trace(1, 'BOM not written.')
     return nlines, nwritten, notfound

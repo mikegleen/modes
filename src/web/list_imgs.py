@@ -95,7 +95,8 @@ def handle_folder(img_ids: dict, imgdir: str):
     for subfile in sorted(os.listdir(imgdir)):
         dirpath = os.path.join(imgdir, subfile)
         if os.path.isdir(dirpath):
-            trace(1, 'Folder {}', dirpath)
+            if _args.list_files:
+                trace(0, 'Folder {}', dirpath)
             handle_folder(img_ids, dirpath)
         else:
             onefile(subfile)

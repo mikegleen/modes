@@ -4,11 +4,11 @@ template_title: Template
 template_dir: /Users/mlg/pyprj/hrm/modes/etc/templates/normal
 templates:
   books_o: 2021-07-14_books_organisation.xml
-  original_artwork_o: 2021-07-13_Original_Artwork_organisation.xml
-  ephemera: 2020-05-02_ephemera_template.xml
+  original_artwork_o: 2022-10-17_Original_Artwork_organisation_template.xml
+  ephemera: 2022-10-17_ephemera_template.xml
   books: 2018-05-06_books.xml
-  original_artwork: 2021-06-27_Original_Artwork.xml
-  decorative_art: 2022-05-02_decorative_art_template.xml
+  original_artwork: 2022-10-17_Original_Artwork_template.xml
+  decorative_art: 2022-10-17_decorative_art_template.xml
 ---
 cmd: column
 xpath: ./Identification/Title

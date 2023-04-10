@@ -16,6 +16,7 @@ from ftplib import FTP
 import os.path
 import sys
 import time
+from colorama import Fore, Style
 
 HOST = 'heathrobinsonmuseum.org'
 USER = 'mike@heathrobinsonmuseum.org'
@@ -25,10 +26,17 @@ VERBOSE = 2
 DRYRUN = False
 
 
-def trace(level, template, *args):
+def trace(level, template, *args, color=None):
     if VERBOSE >= level:
-        print(template.format(*args))
+        if color:
+            print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
+        else:
+            print(template.format(*args))
 
+
+if len(sys.argv) < 2:
+    trace(0, 'One parameter required, the directory holding images to upload. Exiting.', color=Fore.RED)
+    sys.exit(1)
 
 sending_dir = sys.argv[1]
 files = os.listdir(sending_dir)
@@ -45,7 +53,7 @@ for filename in files:
     if filename.startswith('.'):
         continue
     if not filename.endswith('.jpg'):
-        trace(1, 'Skipping non-jpg {}', filename)
+        trace(1, 'Skipping non-jpg {}', filename, color=Fore.YELLOW)
         continue
     if not filename.startswith(COLLECTION_PREFIX):
         prefix, suffix = os.path.splitext(filename)
@@ -59,7 +67,7 @@ for filename in files:
     file = open(filename, 'rb')
     response = session.storbinary(f'STOR {filename}', file)
     if not response.startswith('226'):
-        trace(1, 'Error in {}: {}', filename, response)
+        trace(1, 'Error in {}: {}', filename, response, color=Fore.RED)
     else:
         trace(2, '{}: {}', filename, response)
     file.close()
@@ -67,4 +75,4 @@ for filename in files:
     if nsent % 10 == 0:
         trace(1, '{} of {} sent', nsent, nfiles)
 elapsed = time.perf_counter() - t1
-print(f'{elapsed:.3f} seconds to send {nsent} file{"" if nsent == 1 else "s"}')
+trace(1, f'{elapsed:.3f} seconds to send {nsent} file{"" if nsent == 1 else "s"}', color=Fore.GREEN)

@@ -22,5 +22,6 @@ The following formats are allowed::
     JB002&4&6&...
     JB002,SH2,...
     JB002 - JB004
+    SH1-99
 
 White space in the field is ignored.
