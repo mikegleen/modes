@@ -10,6 +10,7 @@
 #             under ~/pyprj/hrm/collection/aawebimgs/
 #   REVISION  a number indicating a re-try of a batch, can be zero length
 #   MODESFILE The XML file from which to extract the image's metadata
+#   VERBOS    The verbosity level
 #
 # The following set command is "poor man's strict mode"
 #   -e - abort on non-zero exit status
