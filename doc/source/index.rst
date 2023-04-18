@@ -14,7 +14,9 @@ Modes Python Library
    docx2csv
    utility_functions
    exhibition
+   list_elt_type
    list_imgs
+   list_needed
    location
    recode_collection
    update_from_csv

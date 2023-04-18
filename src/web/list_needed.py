@@ -17,7 +17,7 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-def getargs():
+def getparser():
     parser = argparse.ArgumentParser(description='''
     For every ID in a CSV file, report if the corresponding image is not in a
     folder. This should be run before harvest_new.py.''')
@@ -29,9 +29,10 @@ def getargs():
         jpg files with names consisting of the accession numbers. If omitted
         then the objects in the Modes file will be the candidates, showing
         all of the objects in Modes for which we don't have images.''')
-    parser.add_argument('--col_acc', type=int, default=0, help='''
+    parser.add_argument('--col_acc', type=str, default='0', help='''
         The zero-based column containing the accession number (ID) of the
-        object we are searching for. The default is column zero.''')
+        object we are searching for. The default is column zero.  The column
+        can be a number or a spreadsheet-style letter.''')
     parser.add_argument('-i', '--invert', action='store_true', help='''
         Report if the image **IS** in the folder.''')
     parser.add_argument('-m', '--modesfile', required=True, help='''
@@ -45,12 +46,14 @@ def getargs():
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
+    return parser
+
+
+def getargs(argv):
+    parser = getparser()
     args = parser.parse_args()
-    if args.col_acc is None:
-        args.col_acc = 0
-    else:
-        args.col_acc = col2num(str(args.col_acc))
-        # print(f'{args.col_acc=}')
+    args.col_acc = col2num(args.col_acc)
+    # print(f'{args.col_acc=}')
     return args
 
 

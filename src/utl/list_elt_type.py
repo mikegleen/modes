@@ -33,7 +33,7 @@ def main(inf):
         print(e, c)
 
 
-def getargs():
+def getparser():
     parser = argparse.ArgumentParser(description='''
     List the elementtype attributes of the Object elements.
         ''')
@@ -47,6 +47,11 @@ def getargs():
     parser.add_argument('-w', '--width', type=int, default=50, help='''
         Set the width of the title printed. The default is 50.
         ''')
+    return parser
+
+
+def getargs():
+    parser = getparser()
     args = parser.parse_args()
     return args
 
