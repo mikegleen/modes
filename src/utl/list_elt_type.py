@@ -8,6 +8,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
+from utl.normalize import if_not_sphinx, sphinxify
 from utl.zipmagic import openfile
 
 
@@ -40,13 +41,17 @@ def getparser():
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
     parser.add_argument('-t', '--type', help='''
-        Print the object number of all of the Object elements of this type.''')
+        Print the object number and title of all of the Object elements of this
+        type.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
-    parser.add_argument('-w', '--width', type=int, default=50, help='''
-        Set the width of the title printed. The default is 50.
-        ''')
+    parser.add_argument('-w', '--width', type=int, default=50,
+                        help=''' Set the width of the title printed.'''
+                        + if_not_sphinx(''' The default is 50. ''',
+                                        calledfromsphinx)
+                        + sphinxify(''' Ignored if --type is not specified.''',
+                                    calledfromsphinx))
     return parser
 
 
@@ -56,8 +61,14 @@ def getargs():
     return args
 
 
+calledfromsphinx = True
+
+
 if __name__ == '__main__':
+    calledfromsphinx = False
     assert sys.version_info >= (3, 6)
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs()
     infile = openfile(_args.infile)
     main(infile)
