@@ -39,6 +39,7 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 28,2021-10-21,2022-04-03,Beano: The Art of Breaking the Rules,Somerset House
 29,2022-12-29,2023-03-19,Heath Robinson’s Shakespeare Illustrations
 30,2023-03-25,2023-05-21,Hidden Treasures
+31,2023-06-12,2023-07-15,Heath Robinson’s Watercolours,Jersey Arts Centre
 '''
 # data for testing
 '''
