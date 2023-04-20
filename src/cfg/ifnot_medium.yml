@@ -1,0 +1,22 @@
+cmd: ifattribeq
+xpath: .
+attribute: elementtype
+value: Original Artwork
+---
+cmd: ifnot
+xpath: ./Description/Material[Part="medium"]/Keyword
+title: if_Medium
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype='normal location']/Location
+title: Normal Location
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype='current location']/Location
+title: Current Location
+---
+cmd: column
+xpath: ./Identification/Title
+---
+cmd: column
+xpath: ./Identification/BriefDescription
