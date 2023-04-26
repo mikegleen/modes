@@ -49,7 +49,7 @@ def getparser():
     return parser
 
 
-def getargs(argv):
+def getargs():
     parser = getparser()
     args = parser.parse_args()
     args.col_acc = col2num(args.col_acc)
@@ -77,7 +77,7 @@ def build_img_dict(img_ids: dict, imgdir: str):
             print(f'Skipping {imgf}: {ve}')
             return
         if nid in img_ids:
-            trace(1, f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
+            trace(2, f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
                   f' original in {img_ids[nid][1].removeprefix(_args.imgdir)}')
         else:
             img_ids[nid] = (imgf2, dirpath)
