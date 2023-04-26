@@ -89,7 +89,7 @@ def onefile(infile_name: str, outfile_name: str, mtime: float,
         elem.clear()
     outfile.write(b'</Interchange>')
     infile.close()
-    print(f'updating {outfile_name=}, {mtime=}')
+    print(f'updating {outfile_name=}')
     outfile.close()
     # Set the destination modification time to the same as the source file so
     # that subsequent executions of this program don't copy the output file
