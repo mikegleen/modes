@@ -51,6 +51,7 @@ nsent = 0
 t1 = time.perf_counter()
 for filename in files:
     if filename.startswith('.'):
+        trace(1, 'Skipping hidden file {}', filename, color=Fore.YELLOW)
         continue
     if not filename.endswith('.jpg'):
         trace(1, 'Skipping non-jpg {}', filename, color=Fore.YELLOW)
