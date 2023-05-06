@@ -34,11 +34,11 @@ class TestNormalizeId(unittest.TestCase):
         self.assertEqual(nid, 'LDHRM.2018.000001.000002')
 
     def test_04(self):
-        with self.assertRaises(AssertionError):
+        with self.assertRaises(ValueError):
             normalize_id('JB9999999')
 
     def test_05(self):
-        self.assertRaises(AssertionError,
+        self.assertRaises(ValueError,
                           normalize_id, 'LDHRM.2018.1.0000002')
 
     def test_06(self):
