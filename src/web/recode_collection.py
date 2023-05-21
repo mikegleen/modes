@@ -74,21 +74,26 @@ def onerow(oldrow):
     # If Production/SummaryText is empty, use the First Published In title.
     # Append the page number from the First Published In element if the
     # Production/SummaryText or First-Published-In exists.
-    from_tfp = False  # the text is from the title first published
+    # from_tfp = False  # the text is from the title first published
     prod_text = oldrow[PROD_SUMMARYTEXT]
     page_text = oldrow[PAGE_FIRST_PUBLISHED]
     if not prod_text and oldrow[TITLE_FIRST_PUBLISHED]:
         prod_text = f'First published in {oldrow[TITLE_FIRST_PUBLISHED]}'
-        from_tfp = True
+        # from_tfp = True
+        # page_text could be an actual page number or something like
+        # "frontispiece". So only insert "page" if required.
+        if page_text:
+            pg = 'page' if page_text.isdigit() else ''
+            prod_text += f', {pg} {page_text}'
     if prod_text:
         if newrow['Description']:
             if prod_text.lower() not in newrow['Description'].lower():
                 newrow['Description'] += f' ({prod_text})'
         else:
             newrow['Description'] = prod_text
-    if from_tfp and page_text:
-        pg = ' page' if page_text.isdigit() else ''
-        newrow['Description'] += f',{pg} {page_text}'
+    # if from_tfp and page_text:
+    #     pg = ' page' if page_text.isdigit() else ''
+    #     newrow['Description'] += f',{pg} {page_text}'
 
     # ------------------------- Dates ----------------------------------
 
