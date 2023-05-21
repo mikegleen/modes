@@ -59,7 +59,8 @@ numbers of objects to extract data from.
 Each document contains some of the following statements. Statement names are
 case sensitive; all must be lower case. The lead statement in a document
 is the **cmd** statement, which controls the function of the document.
-Commands can be column-related or control statements.
+Commands can be column-related or control command which determine which objects
+are processed. There is also a ``global`` command.
 
 By default, the first column in the output CSV file is the serial number (accession
 number) of the object affected. This can be suppressed using the
@@ -130,10 +131,10 @@ the ``cmd: global`` document.
    command (**if** ...) or with a **column** command in ``csv2xml.py``. In this case it is
    useful for discarding rubbish rows in the CSV file.
 -  **title** Optional. If omitted, a best-guess title will be created
-   from the xpath statement, ignoring predicates (expressions within square brackets)
+   from the xpath statement, ignoring predicates (expressions within square brackets).
    If in a control document, the title will be shown in diagnostics but is not otherwise
    used. The titles of documents must be unique.
--  **value** Required for **ifeq** or **ifattribeq** or **ifcontains**
+-  **value** Required for **ifeq**, **ifnoteq**, **ifattribeq**, **ifcontains**,
    or **constant** command.
 -  **width** truncate this column to this number of characters when writing to
    a CSV file. Ignored when writing to an XML file.
@@ -245,8 +246,10 @@ control command document.
    overall processing, not just a specific column. See the section above *Global-command
    Statements*.
 -  **if** Selects an object to display if the element text is populated.
--  **ifnot** Selects an object to display if the element text is not populated.
--  **ifattrib** Like **if** except tests for an attribute
+-  **ifnot** Selects an object to display if the element doesn’t exist or the
+   text is not populated.
+-  **ifattrib** Selects an object if the attribute is present and the value is
+   populated.
 -  **ifattribeq** Like **ifeq** except compares the value against an
    attribute. Example::
 
@@ -262,10 +265,10 @@ control command document.
 -  **ifcontains** Select an object if the value in the **value**
    statement is contained in the element text.
 -  **ifelt** Select an object if the element exists, even if the text is empty.
-   If the **required** statement is included, this can be used to detect badly
-   formed elements.
+   If the **required** statement is included, a warning message is issued.
+-  **ifnotelt** Select an object if the element doesn’t exist.
 -  **ifeq** Select an object if the element text equals the **value**
-   statement text.
+   statement text. Returns false if the element doesn’t exist.
 -  **ifnoteq** Select an object if the element text does not equal the
    **value** statement text.
 
