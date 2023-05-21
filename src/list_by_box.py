@@ -17,9 +17,10 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-from utl.cfgutil import expand_idnum
+from utl.cfgutil import expand_idnum, read_include_dict
+from utl.excel_cols import col2num
 from utl.normalize import normalize_id, denormalize_id
-from utl.normalize import sphinxify
+from utl.normalize import sphinxify, if_not_sphinx
 from utl.readers import object_reader
 
 
@@ -52,6 +53,10 @@ def unpad_loc(loc):
 
 def one_xml_object(elt):
     num = elt.find('./ObjectIdentity/Number').text
+    nnum = normalize_id(num)
+    if includes:
+        if nnum not in includes:
+            return
     loc = elt.find('./ObjectLocation[@elementtype="current location"]/Location')
     if loc is not None and loc.text:
         location = pad_loc(loc.text)
@@ -63,7 +68,6 @@ def one_xml_object(elt):
     briefdes = elt.find('./Identification/BriefDescription').text
     if briefdes is None:
         briefdes = ''
-    nnum = normalize_id(num)
     boxdict[location].append(nnum)
     titledict[nnum] = (title, briefdes)
 
@@ -108,8 +112,11 @@ def main():
             # titledict[accn#] = (title, description)
             # print(titledict[nnum])
             comment = f'{titledict[nnum][0]} ({titledict[nnum][1]})'[:50]
-            writerow([f'{denormalize_id(nnum):15}',
-                      scanned if nnum in image_set else notscanned, comment])
+            if image_set:
+                writerow([f'{denormalize_id(nnum):15}',
+                         scanned if nnum in image_set else notscanned, comment])
+            else:
+                writerow([f'{denormalize_id(nnum):15}', comment])
 
 
 def getparser() -> argparse.ArgumentParser:
@@ -127,6 +134,22 @@ def getparser() -> argparse.ArgumentParser:
         written.''')
     parser.add_argument('-i', '--imglist', help='''
         Text file with accession numbers of pictures already scanned.''')
+    parser.add_argument('--include', required=False, help='''
+        A CSV file specifying the accession numbers of objects to be processed.
+        If omitted, all records will be processed. In either case, objects will
+        be output based on configuration statements. ''')
+    parser.add_argument('--include_column', required=False,
+                        default='0', type=str, help='''
+        The column number containing the accession number in the file
+        specified by the --include option.
+        The column can be a number or a spreadsheet-style letter.''' +
+                                                    if_not_sphinx(f''' The default is 0, the first column.''',
+                                                                  called_from_sphinx))
+
+    parser.add_argument('--include_skip', type=int, default=0, help='''
+        The number of rows to skip at the front of the include file.''' +
+                                                                    if_not_sphinx(f''' The default is 0.
+        ''', called_from_sphinx))
     parser.add_argument('-o', '--outfile', type=argparse.FileType('w'),
                         default='-', help='''
         The output CSV file.''')
@@ -141,6 +164,7 @@ def getparser() -> argparse.ArgumentParser:
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    args.include_column = col2num(args.include_column)
     return args
 
 
@@ -174,4 +198,6 @@ if __name__ == '__main__':
     boxdict = defaultdict(list)
     titledict = dict()
     image_set = get_imgset()
+    includes = read_include_dict(_args.include, _args.include_column,
+                                 _args.include_skip, allow_blanks=True)
     main()
