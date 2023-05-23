@@ -1,0 +1,9 @@
+---
+cmd: ifattribeq
+xpath: ./ObjectLocation
+attribute: elementtype
+value: current location
+title: testcmd
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="current location"]/Reason

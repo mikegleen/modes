@@ -2,12 +2,17 @@
 INXML=2023-04-21_loc.xml
 OUTXML=2023-04-26_measurement.xml
 cat >tmp/update.csv <<EOF
-Serial,Reading
-SH28,390x305mm
+Serial,Reading,Medium
+SH28,390x305mm,pen and watercolour
+SH100,,pen and ink
 EOF
 cat >tmp/update.yml <<EOF
 cmd: column
 xpath: ./Description/Measurement[Part='Image']/Reading
+---
+cmd: column
+xpath: ./Description/Material[Part='medium']/Keyword
+title: Medium
 ---
 EOF
 python src/update_from_csv.py prod_update/normal/$INXML \

@@ -1,0 +1,7 @@
+---
+cmd: ifnot
+xpath: ./ObjectLocation[@elementtype="current location"]/Reason
+---
+# "location" misspelled to force no-find error.
+cmd: column
+xpath: ./ObjectLocation[@elementtype="current location"]/Reason

@@ -52,21 +52,22 @@ class Cmd:
     # "IF" commands follow:
     IF = 'if'  # if text is present
     IFELT = 'ifelt'  # if the element is present
-    IFNOT = 'ifnot'  # if text is not present
+    IFNOTELT = 'ifnotelt'  # if the element is not present
+    IFNOT = 'ifnot'  # if the element doesn't exist or text is not present
     IFATTRIB = 'ifattrib'  # requires attribute statement
-    IFATTRIBEQ = 'ifattribeq'  # requires attribute statement
-    IFATTRIBNOTEQ = 'ifattribnoteq'  # requires attribute statement
-    IFCONTAINS = 'ifcontains'
+    IFATTRIBEQ = 'ifattribeq'  # requires attribute and value statements
+    IFATTRIBNOTEQ = 'ifattribnoteq'  # requires attribute and value statements
+    IFCONTAINS = 'ifcontains'  # requires value statement
     IFEQ = 'ifeq'  # if the elt text equals the value statement
     IFNOTEQ = 'ifnoteq'  # if the elt text does not equal the value statement
     # Commands that do not produce a column in the output CSV file
     _CONTROL_CMDS = (IF, IFNOT, IFEQ, IFNOTEQ, IFATTRIB, GLOBAL,
-                     IFCONTAINS, IFATTRIBEQ, IFATTRIBNOTEQ, IFELT)
+                     IFCONTAINS, IFATTRIBEQ, IFATTRIBNOTEQ, IFELT, IFNOTELT)
     _NEEDVALUE_CMDS = (KEYWORD, IFEQ, IFNOTEQ, IFATTRIBEQ, IFATTRIBNOTEQ,
                        IFCONTAINS, CONSTANT)
     _NEEDXPATH_CMDS = (ATTRIB, COLUMN, CONSTANT, COUNT, ITEMS, IF, IFNOT, IFELT, IFEQ,
                        IFNOTEQ, IFCONTAINS, IFATTRIB, IFATTRIBEQ,
-                       IFATTRIBNOTEQ, KEYWORD, MULTIPLE)
+                       IFATTRIBNOTEQ, KEYWORD, MULTIPLE, IFNOTELT)
 
     @staticmethod
     def get_needxpath_cmds():
@@ -171,7 +172,7 @@ class Config:
         Config.__instance = None
 
     def __init__(self, yamlcfgfile=None, dump: bool = False,
-                 allow_required: bool = False, logfile=sys.stdout):
+                 allow_required: bool = False, logfile=sys.stdout, verbos=1):
         """
 
         :param yamlcfgfile: If None then only the default global values will
@@ -249,7 +250,7 @@ class Config:
                 self.ctrl_docs.append(document)
             else:  # not control command
                 self.col_docs.append(document)
-        self.norm = []  # True if this column needs to normalized/unnormalized
+        self.norm = []  # True if this column needs to be normalized/unnormalized
         # Do this as a separate step because we didn't know whether we need
         # to include the serial number until all the documents were read.
         if not self.skip_number:
@@ -259,7 +260,7 @@ class Config:
             if Stmt.MULTIPLE_DELIMITER not in doc:
                 doc[Stmt.MULTIPLE_DELIMITER] = self.multiple_delimiter
         self.lennorm = len(self.norm)
-        if len(self.ctrl_docs):
+        if len(self.ctrl_docs) and verbos:
             print("Config contains filtering commands.")
 
     def select(self, elem, include_list=None, exclude=False):
@@ -326,10 +327,30 @@ def select(cfg: Config, elem, includes=None, exclude=False):
     :param elem: the Object element
     :param includes: A set or dict of id numbers of objects to be included
                      in the output CSV file. The list must be all uppercase.
-    :param exclude: Treat the include list as an exclude list.
+    :param exclude: Treat the includes list as an excludes list.
     :return: selected is true if the Object element should be written out
     """
+    # _CONTROL_CMDS = (IF, IFNOT, IFEQ, IFNOTEQ, IFATTRIB, GLOBAL,
+    #                  IFCONTAINS, IFATTRIBEQ, IFATTRIBNOTEQ, IFELT)
     # print('select')
+
+    def striptext(txt):
+        if txt is None:
+            return ''
+        return txt.strip()
+
+    def getvalues():
+        docvalue = document[Stmt.VALUE]  # we have tested that this exists
+        if element is None:
+            return docvalue, ''
+        elttext = element.text
+        if elttext is None:
+            return docvalue, ''
+        if Stmt.CASE_SENSITIVE not in document:
+            docvalue = docvalue.lower()
+            elttext = elttext.lower()
+        return docvalue, elttext
+
     selected = True
     idelem = elem.find(cfg.record_id_xpath)
     idnum = normalize_id(idelem.text) if idelem is not None else None
@@ -343,63 +364,75 @@ def select(cfg: Config, elem, includes=None, exclude=False):
             return False
     for document in cfg.ctrl_docs:
         command = document[Stmt.CMD]
-        if command == Cmd.GLOBAL:
-            continue
         eltstr = document.get(Stmt.XPATH)
         if eltstr:
             element = elem.find(eltstr)
         else:
             element = None
-        # print(f'{element=}')
-        if element is None:
-            if Stmt.REQUIRED in document:
-                print(f'*** Required element {eltstr} is missing from'
-                      f' {idnum}. Object excluded.', file=cfg.logfile)
-            selected = False
+        # print(f'{command=}')
+        match command:
+            case Cmd.IF:
+                # select if element has text
+                if element is None or not element.text:
+                    # print('\nnot selected')
+                    selected = False
+            case Cmd.IFNOT:
+                # select if element does not exist or does not have text
+                if element is None:
+                    continue
+                if striptext(element.text):
+                    selected = False
+            case Cmd.IFEQ:
+                if element is None:
+                    selected = False
+                else:
+                    ymlvalue, textvalue = getvalues()
+                    if ymlvalue != textvalue:
+                        selected = False
+            case Cmd.IFNOTEQ:
+                if element is not None:
+                    ymlvalue, textvalue = getvalues()
+                    if ymlvalue == textvalue:
+                        selected = False
+            case Cmd.IFATTRIB:
+                attribute = document[Stmt.ATTRIBUTE]
+                text = element.get(attribute)
+                if not text:
+                    selected = False
+            case Cmd.IFATTRIBEQ:
+                ymlvalue = document[Stmt.VALUE]  # we have tested that this exists
+                attribute = document[Stmt.ATTRIBUTE]
+                textvalue = element.get(attribute, default='')
+                if ymlvalue != textvalue:
+                    selected = False
+            case Cmd.IFATTRIBNOTEQ:
+                ymlvalue = document[Stmt.VALUE]  # we have tested that this exists
+                attribute = document[Stmt.ATTRIBUTE]
+                textvalue = element.get(attribute, default='')
+                if ymlvalue == textvalue:
+                    selected = False
+            case Cmd.IFCONTAINS:
+                ymlvalue, textvalue = getvalues()
+                # print(f'{ymlvalue=}, {textvalue=}, {selected=}')
+                if ymlvalue not in textvalue:
+                    # print('setting selected false')
+                    selected = False
+            case Cmd.IFELT:  # if the element exists
+                if element is None:
+                    selected = False
+                    if Stmt.REQUIRED in document:
+                        print(f'*** Required text in {eltstr} is missing from'
+                              f' {idnum}. Object excluded.', file=cfg.logfile)
+            case Cmd.IFNOTELT:
+                if element is not None:
+                    selected = False
+            case _:
+                print(f'Unrecognized command: {command}.')
+        # print(f'{selected=}')
+        if not selected:
             break
-        elif command == Cmd.IFELT:
-            continue  # if the element exists
-        if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ, Cmd.IFATTRIBNOTEQ):
-            attribute = document[Stmt.ATTRIBUTE]
-            text = element.get(attribute).strip()
-        elif element is None or element.text is None:
-            text = ''
-        else:
-            # noinspection PyUnresolvedReferences
-            text = element.text.strip()
-        # print(f'{text=}')
-        if text:
-            if command == Cmd.IFNOT:
-                selected = False
-                break
-        else:
-            if Stmt.REQUIRED in document:
-                print(f'*** Required text in {eltstr} is missing from'
-                      f' {idnum}. Object excluded.', file=cfg.logfile)
-            if command in (Cmd.IF, Cmd.IFATTRIB, Cmd.IFCONTAINS,
-                           Cmd.IFEQ, Cmd.IFATTRIBEQ):
-                selected = False
-                break
-        if command in (Cmd.IFEQ, Cmd.IFNOTEQ, Cmd.IFCONTAINS,
-                       Cmd.IFATTRIBEQ, Cmd.IFATTRIBNOTEQ):
-            value = document[Stmt.VALUE]
-            textvalue = text
-            if Stmt.CASE_SENSITIVE not in document:
-                value = value.lower()
-                textvalue = textvalue.lower()
-            if command == Cmd.IFCONTAINS and value not in textvalue:
-                selected = False
-                break
-            elif (command in (Cmd.IFEQ, Cmd.IFATTRIBEQ)
-                  and value != textvalue):
-                selected = False
-                break
-            elif (command in (Cmd.IFNOTEQ, Cmd.IFATTRIBNOTEQ)
-                  and value == textvalue):
-                selected = False
-                break
-            continue
-    # print(f'{selected=}')
+#
+    # print(f'\nreturning {selected=}')
     return selected
 
 

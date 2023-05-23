@@ -1,0 +1,7 @@
+---
+cmd: ifelt
+xpath: ./ObjectLocation[@elementtype="current location"]/Reason
+title: testcmd
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="current location"]/Reason

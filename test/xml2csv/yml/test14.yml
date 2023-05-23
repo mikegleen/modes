@@ -1,0 +1,8 @@
+---
+cmd: ifcontains
+xpath: ./ObjectLocation[@elementtype="current location"]/Reason
+value: reason
+title: testcmd
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="current location"]/Reason

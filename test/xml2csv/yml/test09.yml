@@ -1,0 +1,8 @@
+---
+cmd: ifnoteq
+xpath: ./ObjectLocation[@elementtype="current location"]/Reason
+value: Like to move
+title: testcmd
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="current location"]/Reason

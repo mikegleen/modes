@@ -249,7 +249,7 @@ control command document.
 -  **ifnot** Selects an object to display if the element doesn’t exist or the
    text is not populated.
 -  **ifattrib** Selects an object if the attribute is present and the value is
-   populated.
+   populated. Requires an **attribute** statement.
 -  **ifattribeq** Like **ifeq** except compares the value against an
    attribute. Example::
 
