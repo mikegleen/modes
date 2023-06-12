@@ -31,6 +31,10 @@ def trace(level, verbose, template, *args, color=None):
             print(template.format(*args))
 
 
+def red(msg):
+    return f'{Fore.RED}{msg}{Style.RESET_ALL}'
+
+
 class Cmd:
     """
     Define the configuration commands. This is the value of the "cmd:" statement.
@@ -241,7 +245,7 @@ class Config:
         valid = validate_yaml_cfg(cfglist, allow_required)
         if not valid:
             sys.tracebacklimit = 0
-            raise ValueError(Fore.RED + 'Config failed validation.' + Style.RESET_ALL)
+            raise ValueError(red('Config failed validation.'))
         for document in cfglist:
             cmd = document[Stmt.CMD]
             if cmd == Cmd.GLOBAL:
@@ -452,7 +456,7 @@ def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
         if not Stmt.validate_yaml_stmts(document):
             valid_doc = False
         if Stmt.CMD not in document:
-            print('ERROR: cmd statement is missing.', file=logfile)
+            print(red('ERROR: cmd statement is missing.'), file=logfile)
             valid = False
             dump_document(document, logfile=logfile)
             break
@@ -463,25 +467,30 @@ def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
         # incompatible ways.
         only_one = (Stmt.PERSON_NAME, Stmt.DATE, Stmt.NORMALIZE)
         if [True for s in only_one if s in document].count(True) > 1:
-            print(f'ERROR: Only one of {", ".join(only_one)} allowed.')
+            print(red(f'ERROR: Only one of {", ".join(only_one)} allowed.'))
             valid_doc = False
         if command in Cmd.get_needxpath_cmds() and Stmt.XPATH not in document:
-            print(f'{Fore.RED}ERROR: XPATH statement missing, cmd: '
-                  f'{command}{Style.RESET_ALL}', file=logfile)
+            print(red(f'ERROR: "xpath" statement missing, cmd: '
+                  f'{command}'), file=logfile)
             valid_doc = False
-        if command in Cmd.get_needvalue_cmds() and Stmt.VALUE not in document:
-            print(f'ERROR: value is required for {command} command.', file=logfile)
-            valid_doc = False
-        if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ):
+        if command in Cmd.get_needvalue_cmds():
+            if Stmt.VALUE not in document:
+                print(red(f'ERROR: "value" statement is required for {command} command.'), file=logfile)
+                valid_doc = False
+        else:
+            if Stmt.VALUE in document:
+                print(red(f'ERROR: "value" statement is not allowed for {command} command.'), file=logfile)
+                valid_doc = False
+        if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ, Cmd.IFATTRIBNOTEQ):
             if Stmt.ATTRIBUTE not in document:
-                print(f'ERROR: attribute is required for {command} command.', file=logfile)
+                print(red(f'ERROR: "attribute" statement is required for {command} command.'), file=logfile)
                 valid_doc = False
         if command not in Cmd.get_control_cmds():
             # for csv2xml.py allow required on a column command
             if Stmt.REQUIRED in document:
                 if not (command == Cmd.COLUMN and allow_required):
-                    print(f'ERROR: "required" not allowed for {command} '
-                          f'command. Use an "if" command.', file=logfile)
+                    print(red(f'ERROR: "required" not allowed for {command} '
+                          f'command. Use an "if" command.'), file=logfile)
                     valid_doc = False
         if not valid_doc:
             valid = False
