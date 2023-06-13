@@ -280,8 +280,10 @@ def new_subelt(doc, obj, idnum, verbos=1):
     :param verbos:
     :return:
     """
+    # print(f'new_subelt: {doc[Stmt.TITLE]=}: {obj.tag=}')
     if Stmt.PARENT_PATH not in doc:
         return None
+    # print(f'new_subelt: {doc[Stmt.TITLE]=}: {obj.tag=}')
     newelt = None
     title = doc[Stmt.TITLE]
     element = doc[Stmt.ELEMENT]
@@ -290,8 +292,8 @@ def new_subelt(doc, obj, idnum, verbos=1):
           idnum, element, insert_after)
     parent = obj.find(doc[Stmt.PARENT_PATH])
     if parent is None:
-        trace(1, verbos, 'Cannot find parent of {}, column {}',
-              doc[Stmt.XPATH], title, color=Fore.YELLOW)
+        trace(1, verbos, 'Cannot find parent of {}, column {}: {}',
+              doc[Stmt.XPATH], title, doc[Stmt.PARENT_PATH], color=Fore.YELLOW)
     elif ' ' in element:
         trace(1, verbos, 'Cannot create element with embedded spaces: {}',
               element, color=Fore.YELLOW)
@@ -302,9 +304,11 @@ def new_subelt(doc, obj, idnum, verbos=1):
         parent.insert(0, newelt)
     else:
         elts = list(parent)
+        # print(f'{elts=}')
         insert_ix = None
         # Insert after the last element named in the insert_after statement.
         for n, e in enumerate(elts):
+            # print(f'{n=} {e.tag=} {insert_after=}')
             if e.tag == insert_after:
                 insert_ix = n + 1
         if insert_ix is None:
@@ -319,7 +323,9 @@ def new_subelt(doc, obj, idnum, verbos=1):
             childelt = ET.SubElement(newelt, doc[Stmt.CHILD])
             if Stmt.CHILD_VALUE in doc:
                 childelt.text = doc.get(Stmt.CHILD_VALUE, '')
+        # print(f'{doc[Stmt.TITLE]}: {newelt.tag=}')
         if Stmt.ATTRIBUTE in doc:
+            # print(f'setting attribute {newelt.tag=}')
             value = doc[Stmt.ATTRIBUTE_VALUE] if Stmt.ATTRIBUTE_VALUE in doc else ''
             newelt.set(doc[Stmt.ATTRIBUTE], value)
     return newelt
@@ -450,6 +456,8 @@ def dump_document(document, logfile=sys.stdout):
 def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
     valid = True
     for document in cfglist:
+        # print('In validate_yaml_cfg')
+        # dump_document(document, logfile=logfile)
         # Do not change this to valid_doc = Stmt.val.... to allow for more
         # tests before this one.
         valid_doc = True
@@ -492,6 +500,10 @@ def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
                     print(red(f'ERROR: "required" not allowed for {command} '
                           f'command. Use an "if" command.'), file=logfile)
                     valid_doc = False
+        if Stmt.INSERT_AFTER in document and document[Stmt.INSERT_AFTER].startswith('.'):
+            print(red(f'ERROR: "insert_after" statement must be a simple tag name, not an '
+                      f'xpath. title: {document[Stmt.TITLE]}'))
+            valid_doc = False
         if not valid_doc:
             valid = False
             dump_document(document, logfile=logfile)
@@ -540,7 +552,10 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
         # statement. The validate_yaml_cfg function checks that the xpath
         # statement is there if needed.
         # print('readyaml')
-        if Stmt.TITLE not in document:
+        if Stmt.TITLE in document:
+            if Stmt.ELEMENT not in document:
+                document[Stmt.ELEMENT] = document[Stmt.TITLE]
+        else:
             if Stmt.XPATH not in document:
                 continue  # error will be caught later
             target = document.get(Stmt.XPATH)
@@ -548,17 +563,20 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
             attribute = document.get(Stmt.ATTRIBUTE)
             h = target.split('/')[-1]  # trailing element name
             target = h.split('[')[0]  # strip trailing [@xyz='def']
+            # Handle the edge case where the element is not specified and the
+            # title contains the attribute name.
+            element = target
             if attribute:
                 target += '@' + attribute
             elif cmd == Cmd.COUNT:
                 target = f'{target}(n)'
             document[Stmt.TITLE] = target
-        if Stmt.PARENT_PATH in document and Stmt.ELEMENT not in document:
-            document[Stmt.ELEMENT] = document[Stmt.TITLE]
-
+            if Stmt.ELEMENT not in document:
+                document[Stmt.ELEMENT] = element
         if document[Stmt.TITLE] in titles:
             raise ValueError(f'Duplicate title "{document[Stmt.TITLE]}"')
         titles.add(document[Stmt.TITLE])
+        # dump_document(document, logfile=logfile)
     return cfg
 
 
