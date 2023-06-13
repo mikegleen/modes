@@ -219,8 +219,8 @@ def getparser():
         is the accession number and the following columns are the fields
         defined by the XPATH statement in the config file. The first row in the
         CSV file is a heading row. The column titles must match the document
-        titles in the config file. Columns are referred to by name so columns
-        not named in the config file are ignored.
+        titles in the config file; case is significant. Columns are referred to
+        by name so columns not named in the config file are ignored.
         
         Create an
         XML file with data from the CSV file based on a template of the
@@ -237,7 +237,7 @@ def getparser():
                         type=argparse.FileType('r'), help=sphinxify('''
         The YAML file describing the column path(s) to update.
         The config file may contain only ``column``, ``constant``, or
-        ``items`` commands.
+        ``items`` column-related commands or template-related commands.
     ''', calledfromsphinx))
     parser.add_argument('-i', '--incsvfile', required=True, help=sphinxify('''
         The file containing data to be inserted into the XML template.
