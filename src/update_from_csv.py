@@ -172,7 +172,7 @@ def main():
         if updated or _args.all:
             outfile.write(ET.tostring(elem, encoding='utf-8'))
             nwritten += 1
-        if _args.short:
+        if updated and _args.short:
             break
     outfile.write(b'</Interchange>')
     for nidnum in newvals:
