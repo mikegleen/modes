@@ -54,7 +54,8 @@ The various programs use the CSV file for slightly different purposes. For examp
 ``csv2xml.py`` uses it to contain multiple columns each of which defines a value to
 go into a corresponding field in the XML file. On the other hand, ``xml2csv.py`` uses
 an optional input CSV file of only one column that contains a list of accession
-numbers of objects to extract data from.
+numbers of objects to extract data from. For more detail, see the documentation
+on the individual programs.
 
 Each document contains some of the following statements. Statement names are
 case sensitive; all must be lower case. The lead statement in a document
@@ -133,7 +134,8 @@ the ``cmd: global`` document.
 -  **title** Optional. If omitted, a best-guess title will be created
    from the xpath statement, ignoring predicates (expressions within square brackets).
    If in a control document, the title will be shown in diagnostics but is not otherwise
-   used. The titles of documents must be unique.
+   used. The titles of data-related documents must be unique as this title corresponds to
+   a CSV column heading.
 -  **value** Required for **ifeq**, **ifnoteq**, **ifattribeq**, **ifcontains**,
    or **constant** command.
 -  **width** truncate this column to this number of characters when writing to
@@ -551,3 +553,83 @@ The shell command to effect this update is::
     -m results/csv/sally/pictures_adopted.csv\
     --serial 'Accn. No.' -a
 
+
+Insert an element with Attributes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+We want to create a complete element group under the ``Object`` element with
+an attribute of elementtype. In this case, the template for the Object was
+``reproduction`` which does not include a ``References`` group. The
+resultant element group is like::
+
+       <References>
+           <Reference elementtype="First Published In">
+               <Title>Child’s Arabian Nights: The fisherman</Title>
+               <Page>Frontis</Page>
+           </Reference>
+       </References>
+
+
+The following is an edited copy of ``.../modes/bin/update/2023-06-12_canprints.sh``::
+
+   #!/bin/zsh
+   INXML=2023-05-21_loc.xml
+   OUTXML=2023-06-12_canprints.xml
+   cat >tmp/update.csv <<EOF
+   Serial,Story,Page
+   2022.11,Child’s Arabian Nights: The fisherman,Frontis
+   ...
+   2022.22,Child’s Arabian Nights: The fish bone,p.80
+   EOF
+   cat >tmp/update.yml <<EOF
+   # 1
+   cmd: global
+   add_mda_code:
+   ---
+   # 2
+   cmd: constant
+   xpath: ./References
+   parent_path: .
+   insert_after: Reproduction
+   value:
+   ---
+   # 3
+   cmd: constant
+   xpath: ./References/Reference
+   parent_path: ./References
+   attribute: elementtype
+   attribute_value: "First Published In"
+   value:
+   ---
+   # 4
+   cmd: column
+   xpath: ./References/Reference/Title
+   parent_path: ./References/Reference
+   title: Story
+   element: Title
+   ---
+   # 5
+   cmd: column
+   xpath: ./References/Reference/Page
+   parent_path: ./References/Reference
+   ---
+   EOF
+   python src/update_from_csv.py prod_update/normal/$INXML \
+                                 prod_update/normal/$OUTXML \
+                                 -c tmp/update.yml -m tmp/update.csv -r -a -v 2
+   bin/syncprod.sh
+
+The first command, *global*, contains the *add_mda_code* statement, required because the given
+serial numbers were missing the leading ``LDHRM`` prefix.
+
+Command # 2 creates the initial *References* group. The *value* statement is
+required but is left empty. Note that the *insert_after* statement contains
+a simple tag name, not an XPATH.
+
+Command # 3 creates the *Reference* element with the
+attribute ``elementtype="First Published In"``.
+
+Commands # 4 and 5 create the sub-elements containing the actual data from the
+CSV file. In #4, the *title* statement indicates the CSV file column to fetch
+the data from and the *element* statement indicates the name of the element to
+create. This is required as it would otherwise be "Story", taken from the *title*
+statement.
