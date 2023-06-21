@@ -224,6 +224,8 @@ class Config:
                                      'templates, template_title, and '
                                      'template_dir must be specified if one '
                                      'is.')
+        # end def set_globals
+
         if Config.__instance is not None:
             raise ValueError("This class is a singleton!")
         Config.__instance = self
