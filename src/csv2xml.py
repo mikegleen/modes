@@ -218,13 +218,13 @@ def getparser():
         Read a CSV file containing two or more columns. The first column
         is the accession number and the following columns are the fields
         defined by the XPATH statement in the config file. The first row in the
-        CSV file is a heading row. The column titles must match the document
-        titles in the config file; case is significant. Columns are referred to
-        by name so columns not named in the config file are ignored.
+        CSV file is a heading row. The column titles in the CSV file must match
+        the document titles in the config file; case is significant. Columns
+        are referred to by name so columns not named in the config file are
+        ignored.
         
-        Create an
-        XML file with data from the CSV file based on a template of the
-        XML structure.
+        Create an XML file with data from the CSV file based on a template of
+        the XML structure.
                 ''', calledfromsphinx))
     parser.add_argument('--acc_num', help='''
         This is the first accession number in a series to assign to rows
@@ -250,7 +250,7 @@ def getparser():
         respectively.''', calledfromsphinx))
     parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.''' +
-                        if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".
+                        if_not_sphinx(f''' The default is "{DEFAULT_MDA_CODE}".
                         ''', calledfromsphinx))
     parser.add_argument('-o', '--outfile', required=True, help='''
         The output XML file.''')
