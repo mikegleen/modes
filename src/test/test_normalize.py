@@ -25,6 +25,10 @@ class TestNormalizeId(unittest.TestCase):
         nid = normalize_id('L1')
         self.assertEqual(nid, 'L000001')
 
+    def test_01d(self):
+        nid = normalize_id('JB1234.1')
+        self.assertEqual(nid, 'JB001234.000001')
+
     def test_02(self):
         nid = normalize_id('LDHRM.2018.1')
         self.assertEqual(nid, 'LDHRM.2018.000001')
