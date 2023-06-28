@@ -1,0 +1,10 @@
+cmd: global
+subid_parent: ItemList
+subid_grandparent: .
+---
+cmd: column
+xpath: Date
+---
+cmd: column
+xpath: BriefDescription
+title: Description

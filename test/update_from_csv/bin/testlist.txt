@@ -1,4 +1,6 @@
-TEST01 --heading -v 0
-TEST02 --heading -v 0
-TEST03 --heading -v 0
-TEST04 --heading --force -v 0
+TEST1 -v 0
+TEST2 -v 0
+TEST3 -v 0
+TEST4 -r -v 0
+TEST5 -v 0
+TEST6 -v 0

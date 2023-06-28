@@ -1,7 +1,7 @@
-<?xml version="1.0"?><Interchange>
+<?xml version="1.0" encoding="UTF-8"?><Interchange>
 <Object elementtype="Original Artwork">
 	<ObjectIdentity>
-		<Number>TEST01</Number>
+		<Number>TEST7</Number>
 	</ObjectIdentity>
 	<DummyElement />
 	<DummyElement />
@@ -13,9 +13,19 @@
 		<Date>
 			<DateBegin>27.9.2017</DateBegin>
 		</Date>
-		<Reason>Like to move</Reason>
+		<Reason />
 	</ObjectLocation>
-	<DummyElement />
+	<Description>
+		<SummaryText />
+		<Material>
+			<Part>medium</Part>
+			<Keyword>pen and ink</Keyword>
+		</Material>
+		<Material>
+			<Part>support</Part>
+			<Keyword />
+		</Material>
+    </Description>
 	<DummyElement />
 </Object>
 </Interchange>

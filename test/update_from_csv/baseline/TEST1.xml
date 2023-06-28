@@ -1,7 +1,7 @@
-<?xml version="1.0" encoding="ASCII"?>
-<Interchange><Object elementtype="Original Artwork">
+<?xml version="1.0" encoding="UTF-8"?><Interchange>
+<Object elementtype="Original Artwork">
 	<ObjectIdentity>
-		<Number>TEST01</Number>
+		<Number>TEST1</Number>
 	</ObjectIdentity>
 	<DummyElement />
 	<DummyElement />
@@ -13,7 +13,7 @@
 		<Date>
 			<DateBegin>27.9.2017</DateBegin>
 		</Date>
-		<Reason/>
+		<Reason>Like to move</Reason>
 	</ObjectLocation>
 	<DummyElement />
 	<DummyElement />

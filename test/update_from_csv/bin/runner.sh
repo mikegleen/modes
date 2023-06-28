@@ -1,22 +1,23 @@
+#!/bin/zsh
 ap=test/update_from_csv/bin/update_from_csv.sh
 tl=test/update_from_csv/bin/testlist.txt
 testsrun=0
 #testsfailed=0
 #
-function run {
+function runn {
     let "testsrun++"
-    if [[ "${tst:0:1}" == "-"]]; then
+    if [[ "${tst:0:1}" == "-" ]] ; then
         tst=${tst:1}
     fi
-    $ap $*
+    $ap "$@"
     if (( $? ))
     then
         let testsfailed++
     fi
 }
-#
+# The '=' sign forces the string to expand to an array
 while read -r; do
-    run $REPLY
+    runn ${=REPLY}
 done < $tl
 #
 RED='\033[0;31m'
