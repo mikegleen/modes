@@ -141,7 +141,7 @@ the ``cmd: global`` document.
 -  **width** truncate this column to this number of characters when writing to
    a CSV file. Ignored when writing to an XML file.
 -  **xpath** Required. This describes the XSLT path to a relevant XML
-   element.
+   element. In subid mode this is a simple tag name.
 -  **xpath2** This describes the XSLT path to a relevant XML element in the case where a
    single column must be stored in two places. Used in ``csv2xml.py``. This is only valid
    for a ``column`` command. You can, for example, create both the ``normal`` and
@@ -153,6 +153,9 @@ Global-command Statements
 
 These statements are in the document whose ``cmd`` statement is ``global``.
 
+-  **add_mda_code** If the serial number does not begin with the MDA code (default LDHRM)
+   then insert it as a prefix. This is used only in ``csv2xml.py``
+   and ``update_from_csv.py``.
 -  **delimiter** The character to use for the CSV file field
    separator. The default is “,”.
 -  **multiple_delimiter**  See the description of this command in the
@@ -171,9 +174,18 @@ These statements are in the document whose ``cmd`` statement is ``global``.
    This statement directs the sort to be numeric based on the first
    column of the output row. Note that accession numbers are normally normalized before
    sorting.
--  **add_mda_code** If the serial number does not begin with the MDA code (default LDHRM)
-   then insert it as a prefix. This is used only in ``csv2xml.py``
-   and ``update_from_csv.py``.
+-  **subid_parent** This statement contains the path to the containing element
+   for the Item elements we are creating. The presence of this statement triggers
+   subid mode. The value usually should be ``ItemList``.
+   Serial numbers are expected to contain sub-IDs, for example ``JB1024.1``
+   or ``LDHRM.2022.1.12``. The main ID is expected to exist in the XML file. Each
+   row in the CSV file will create an Item entry in the main ID's object under an
+   ItemList element. The sub-ID
+   will become the ListNumber entry. If the number already exists, the record will be
+   overwritten, otherwise a new one will be created. The columns in the CSV file will
+   become sub-elements under the Item.
+-  **subid_grandparent** If the element named in **subid_parent** doesn't exist, it
+   will be appended under this element.
 -  **template_file** Only in ``csv2xml.py``: This is the file to be used as the template
    for all of the objects to be created. The --template command-line parameter overrides this.
    If this statement or the --template command-line parameter is specified, do not specify other
@@ -633,3 +645,21 @@ CSV file. In #4, the *title* statement indicates the CSV file column to fetch
 the data from and the *element* statement indicates the name of the element to
 create. This is required as it would otherwise be "Story", taken from the *title*
 statement.
+
+
+Inserting Sub-IDs
+~~~~~~~~~~~~~~~~~
+
+This is a special mode in ``update_from_csv.py`` wherein all of the rows in the
+input CSV file contain serial numbers which specify sub-IDs. Examples are::
+
+   JB1204.10
+   LDHRM.2022.10.4
+
+In each case there is an extra field at the end of the ID. This field must be
+numeric. This mode is enabled by the global statement **subid_parent** which
+must contain the path to the parent element of the Item elements to be inserted
+for the new subIDs.
+
+
+

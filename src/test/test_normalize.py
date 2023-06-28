@@ -5,7 +5,7 @@ from datetime import date
 import unittest
 from utl.normalize import britishdatefrommodes, datefrombritishdate
 from utl.normalize import modesdatefrombritishdate, MODESTYPE, BRITISHTYPE
-from utl.normalize import normalize_id, denormalize_id
+from utl.normalize import normalize_id, denormalize_id, split_subid
 
 
 class TestNormalizeId(unittest.TestCase):
@@ -60,6 +60,22 @@ class TestNormalizeId(unittest.TestCase):
     def test_09(self):
         self.assertRaises(ValueError,
                           normalize_id, 'LDHRM.2018.x')
+
+    def test_10(self):
+        nid = split_subid('JB001.32')
+        self.assertEqual(nid, ('JB001', 32))
+
+    def test_11(self):
+        nid = split_subid('LDHRM.2022.1.32')
+        self.assertEqual(nid, ('LDHRM.2022.1', 32))
+
+    def test_12(self):
+        nid = split_subid('LDHRM.2022.1')
+        self.assertEqual(nid, ('LDHRM.2022.1', None))
+
+    def test_13(self):
+        nid = split_subid('JB001')
+        self.assertEqual(nid, ('JB001', None))
 
 
 class TestDenormalizeId(unittest.TestCase):

@@ -115,7 +115,7 @@ def datefrombritishdate(indate: str) -> tuple[datetime.date, int, str]:
     try:
         d = datetime.datetime.strptime(indate, '%b %Y').date()
         return d, 2, BRITISHTYPE
-    except ValueError as ve:
+    except ValueError:
         pass
     try:
         d = datetime.datetime.strptime(indate, '%B %Y').date()
@@ -173,6 +173,24 @@ def vdate(indate: str):
     except ValueError:
         return None
     return d
+
+
+def split_subid(objid: str, mdacode=DEFAULT_MDA_CODE) -> (str, int | None):
+    """
+
+    :param objid: A normalized or unnormalized accession number
+                  like LDHRM.2018.22[.1] or JB001[.1]
+    :param mdacode:
+    :return: a tuple of the mainid and the subid if it exists or None. In the
+             above example, mainid is 'LDHRM.2018.22' and subid is int(1).
+    """
+    len_with_sub = 4 if objid.startswith(mdacode) else 2
+    parts = objid.split('.')
+    if len(parts) == len_with_sub:
+        mainid = '.'.join(parts[:-1])
+        return mainid, int(parts[len_with_sub - 1])
+    else:
+        return objid, None
 
 
 def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
@@ -236,6 +254,7 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
     # group 4 as it includes the '.' followed by the subgroup ID whereas group
     # 5 includes just the subgroup ID. So:
     # JB123 -> ('JB', '123', '', None, None)
+    # JB123A -> ('JB', '123', 'A', None, None)
     # JB123.2 -> ('JB', '123', '', '.2', '2')
     if m:
         if len(m.group(2)) > 6:
@@ -272,10 +291,10 @@ def denormalize_id(objid: str, mdacode=DEFAULT_MDA_CODE):
         idlist = re.split(r'[/.]', objid)  # split on either "/" or "."
         assert len(idlist) in (3, 4)
         assert len(idlist[2]) <= 6
-        idlist[2] = f'{int(idlist[2])}'
+        idlist[2] = f'{int(idlist[2])}'  # remove leading zeroes
         if len(idlist) == 4:
             assert len(idlist[3]) <= 6
-            idlist[3] = f'{int(idlist[3])}'
+            idlist[3] = f'{int(idlist[3])}'  # remove leading zeroes
         return '.'.join(idlist)
     # Not an LDHRM/.. id
     # The following regex matches (by group):

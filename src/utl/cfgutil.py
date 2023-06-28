@@ -126,6 +126,8 @@ class Stmt:
     REQUIRED = 'required'
     SKIP_NUMBER = 'skip_number'
     SORT_NUMERIC = 'sort_numeric'
+    SUBID_PARENT = 'subid_parent'
+    SUBID_GRANDPARENT = 'subid_grandparent'
     TEMPLATE_DIR = 'template_dir'
     TEMPLATE_FILE = 'template_file'
     TEMPLATE_TITLE = 'template_title'
@@ -195,6 +197,10 @@ class Config:
                     self.skip_number = True
                 elif stmt == Stmt.SORT_NUMERIC:
                     self.sort_numeric = True
+                elif stmt == Stmt.SUBID_PARENT:
+                    self.subid_parent = document[stmt]
+                elif stmt == Stmt.SUBID_GRANDPARENT:
+                    self.subid_grandparent = document[stmt]
                 elif stmt == Stmt.RECORD_ID_XPATH:
                     self.record_id_xpath = document[stmt]
                 elif stmt == Stmt.RECORD_TAG:
@@ -234,6 +240,8 @@ class Config:
         self.ctrl_docs = []  # control documents
         self.skip_number = False
         self.sort_numeric = False
+        self.subid_parent = None
+        self.subid_grandparent = None
         self.add_mda_code = False
         self.templates = None
         self.template_title = None
@@ -323,12 +331,11 @@ def new_subelt(doc, obj, idnum, verbos=1):
     if newelt is not None:
         if Stmt.CHILD in doc:
             childelt = ET.SubElement(newelt, doc[Stmt.CHILD])
-            if Stmt.CHILD_VALUE in doc:
-                childelt.text = doc.get(Stmt.CHILD_VALUE, '')
+            childelt.text = doc.get(Stmt.CHILD_VALUE, '')
         # print(f'{doc[Stmt.TITLE]}: {newelt.tag=}')
         if Stmt.ATTRIBUTE in doc:
             # print(f'setting attribute {newelt.tag=}')
-            value = doc[Stmt.ATTRIBUTE_VALUE] if Stmt.ATTRIBUTE_VALUE in doc else ''
+            value = doc.get(Stmt.ATTRIBUTE_VALUE, '')
             newelt.set(doc[Stmt.ATTRIBUTE], value)
     return newelt
 

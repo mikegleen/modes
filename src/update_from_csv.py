@@ -48,9 +48,48 @@ def trace(level, template, *args, color=None):
             print(template.format(*args))
 
 
-def loadnewvals(allow_blanks=False):
-    newval_dict = {}
+def loadsubidvals(reader, allow_blanks) -> (dict, dict):
+    """
+
+    :param reader:
+    :param allow_blanks:
+    :return: dict with key of accession number with subid as in the CSV file
+             without added MDA code (if applicable).
+    """
+    newval_dict = dict()  # dict updated with key of accession # without the subid
+    # subval_dict is a dict with key of accession number with subid as in the
+    # CSV file without added MDA code (if applicable).
+    subval_dict = dict()
+    for row in reader:
+        # print(f'{row=}')
+        accnum = row[_args.serial]
+        if not accnum:
+            if allow_blanks:
+                trace(2, 'Row with blank accession number skipped: {}', row)
+                continue  # skip blank accession numbers
+            else:
+                raise ValueError('Blank accession number in include file;'
+                                 ' --allow_blank not selected.')
+        naccnum = normalize_id(accnum)
+        mainid, subid = nd.split_subid(naccnum)
+        if subid is None:
+            raise ValueError(f'Accession number "{accnum}" is missing the subid.')
+        fullmainid = mainid
+        if cfg.add_mda_code and mainid[0].isnumeric():
+            fullmainid = _args.mdacode + '.' + mainid
+        # Don't call expand_idnum as only a single subid is allowed.
+        trace(2, 'loadsubidvals: mainid = {}, subid = {}', mainid, subid)
+        newval_dict[normalize_id(fullmainid)] = None
+        subval_dict[naccnum] = fullmainid, subid, row
+    return newval_dict, subval_dict
+
+
+def loadnewvals(allow_blanks=False, subid_mode=False):
     reader = row_dict_reader(_args.mapfile, _args.verbose, _args.skip_rows)
+    if subid_mode:
+        newval_dict, subval_dict = loadsubidvals(reader, allow_blanks)
+        return newval_dict, subval_dict
+    newval_dict = {}
     for row in reader:
         # print(f'{row=}')
         accnum = row[_args.serial]
@@ -64,10 +103,51 @@ def loadnewvals(allow_blanks=False):
         if cfg.add_mda_code and accnum[0].isnumeric():
             accnum = _args.mdacode + '.' + accnum
         accnums = expand_idnum(accnum)
-        trace(3, 'accnums = {}', accnums)
+        trace(2, 'loadnewvals: accnums = {}', accnums)
         for accnum in accnums:
             newval_dict[normalize_id(accnum)] = row
-    return newval_dict
+    return newval_dict, None
+
+
+def add_item(elt, subid: int) -> ET.Element:
+    """
+    For an existing parent (Usually ItemList) if there is an Item with the
+    subid as a ListNumber, return the Item element. Otherwise, create an Item with a
+    ListNumber equal to the subid and insert it in sort order in the list.
+    :param elt:
+    :param subid:
+    :return: the exist or new Item element
+    """
+    olditem = elt.find(f'./Item[ListNumber="{subid}"]')
+    if olditem is not None:
+        return olditem
+    items = list(elt)
+    newitem = ET.Element('Item')
+    list_number = ET.SubElement(newitem, 'ListNumber')
+    list_number.text = str(subid)
+    if len(items) == 0:
+        elt.append(newitem)
+        return newitem
+
+    # If the new item id is greater than the highest one on the list just
+    # append it to the end.
+    highest = items[-1].find('ListNumber')
+    if highest is None:
+        raise ValueError('Cannot find expected ListNumber')
+    oldid = int(highest.text)
+    if subid > oldid:
+        elt.append(newitem)
+        return newitem
+    # Insert the new item before the first one that is greater.
+    for n, item in enumerate(items):
+        listnumberelt = item.find('ListNumber')
+        if listnumberelt is None:
+            raise ValueError('Cannot find expected ListNumber')
+        oldid = int(listnumberelt.text)
+        if subid < oldid:
+            elt.insert(n, newitem)
+            return newitem
+    raise ValueError('Could not find where to insert the new element')
 
 
 def one_element(objelem, idnum):
@@ -152,6 +232,34 @@ def one_element(objelem, idnum):
     return updated
 
 
+def one_element_subid_mode(nidnum: str, objelem: ET.Element):
+    """
+
+    :param nidnum: accession number of object
+    :param objelem:
+    :return:
+    """
+    grandparent = objelem.find(cfg.subid_grandparent)
+    if grandparent is None:
+        raise ValueError(f'Cannot find grandparent path: '
+                         f'"{cfg.subid_grandparent}" of "{nidnum}"')
+    parent = grandparent.find(cfg.subid_parent)  # usually ItemList
+    if parent is None:
+        parent = ET.SubElement(grandparent, cfg.subid_parent)
+    for idnum, val in subvals.items():
+        # print(f'{val=}')
+        mainid, subid, row = val
+        if mainid != nidnum:
+            continue
+        newitem = add_item(parent, subid)
+        for doc in cfg.col_docs:
+            newelt = ET.SubElement(newitem, doc[Stmt.XPATH])
+            if doc[Stmt.CMD] == Cmd.COLUMN:
+                newelt.text = row[doc[Stmt.TITLE]]
+            else:  # cmd: constant
+                newelt.text = doc[Stmt.TITLE]
+
+
 def main():
     global nwritten
     outfile.write(b'<?xml version="1.0" encoding="UTF-8"?><Interchange>\n')
@@ -163,8 +271,12 @@ def main():
         nidnum = normalize_id(idnum)
         trace(3, 'idnum: {}', idnum)
         if nidnum and nidnum in newvals:
-            updated = one_element(elem, nidnum)
-            del newvals[nidnum]
+            if cfg.subid_parent is not None:
+                one_element_subid_mode(nidnum, elem)
+                updated = True
+            else:
+                updated = one_element(elem, nidnum)
+                del newvals[nidnum]
         else:
             updated = False
             if _args.missing:
@@ -174,9 +286,10 @@ def main():
             nwritten += 1
         if updated and _args.short:
             break
-    outfile.write(b'</Interchange>')
-    for nidnum in newvals:
-        trace(1, 'In CSV but not XML: "{}"', denormalize_id(nidnum))
+    outfile.write(b'</Interchange>\n')
+    if cfg.subid_parent is None:
+        for nidnum in newvals:
+            trace(1, 'In CSV but not XML: "{}"', denormalize_id(nidnum))
 
 
 def getparser():
@@ -316,7 +429,8 @@ if __name__ == '__main__':
         trace(1, 'update_from_csv aborting due to config error(s).',
               color=Fore.RED)
         sys.exit(1)
-    newvals = loadnewvals(allow_blanks=_args.allow_blanks)
+    newvals, subvals = loadnewvals(allow_blanks=_args.allow_blanks,
+                                   subid_mode=cfg.subid_parent is not None)
     nnewvals = len(newvals)
     main()
     trace(1, '{} element{} in {} object{} updated.\n'

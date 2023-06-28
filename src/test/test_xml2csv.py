@@ -20,6 +20,7 @@ class TestXml2csv(unittest.TestCase):
 
 TESTLOCATION = '/Users/mlg/pyprj/hrm/modes/test/xml2csv'
 DEFAULT_FIXEDPARAMS = ['--heading', '-v', '0']
+VERBOSE_FIXEDPARAMS = ['--heading', '-v', '1']
 TESTFILES = [
     # (test number, expected rows, expected not found, cmd line params
     (1, 1, 0, None),  # column
@@ -32,7 +33,7 @@ TESTFILES = [
     (8, 1, 0, None),  # ifeq
     (9, 3, 1, None),  # ifnoteq
     (10, 3, 1, None),  # ifattrib
-    (11, 0, 0, None),  # ifattribeq
+    (11, 0, 0, VERBOSE_FIXEDPARAMS),  # ifattribeq
     (12, 1, 1, None),  # ifattribeq
     (13, 3, 1, None),  # ifattribnoteq
     (14, 1, 0, None),  # ifcontains
