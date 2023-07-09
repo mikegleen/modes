@@ -46,11 +46,6 @@ ExhibitionTuple = namedtuple('ExhibitionTuple',
                              'ExNum DateBegin DateEnd ExhibitionName Place')
 
 
-def trace(level, template, *args):
-    if _args.verbose >= level:
-        print(template.format(*args))
-
-
 def trace(level, template, *args, color=None):
     if _args.verbose >= level:
         if color:
