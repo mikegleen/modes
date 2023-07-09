@@ -1,0 +1,7 @@
+cmd: column
+xpath: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
+title: 'Current Location Date Begin'
+---
+cmd: column
+xpath: ./ObjectLocation[@elementtype="previous location"]/Date/DateEnd
+title: 'Previous Location Date End'
