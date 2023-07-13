@@ -71,7 +71,8 @@ def getargs():
         this or the --xpath parameter.
     ''', calledfromsphinx))
     parser.add_argument('-t', '--type', action='append', help=sphinxify('''
-        Print the object number of all of the Object elements of this type.
+        Print the accession number of all of the Object elements that have this
+        value in the specified field.
         Multiple --type arguments may be entered.''', calledfromsphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
