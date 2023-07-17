@@ -19,7 +19,8 @@ def trace(level, template, *args):
 
 
 def main(inf):
-    values = defaultdict(int)
+    counts = defaultdict(int)
+    accn_nums = defaultdict(list)
     xpath = get_xpath()
     trace(2, 'xpath: {}', xpath)
     nonepathcount = 0
@@ -33,16 +34,21 @@ def main(inf):
             value = path.text
             if value is None:
                 value = 'None'
-            values[value] += 1
+            counts[value] += 1
+            accn = elem.find('./ObjectIdentity/Number')
+            accn_nums[value].append(accn)
             if _args.type and value in _args.type:
-                num = elem.find('./ObjectIdentity/Number')
-                print(num.text, value[:_args.width])
+                print(accn.text, value[:_args.width])
     if not _args.type:
         # for e, c in values.items():
         # for e, c in [(e, c) for e, c in values.items()]:
-        for e, c in sorted(values.items()):
-            print(e, c)
-        print(f'{len(values)} unique values.')
+        for accn, count in sorted(counts.items()):
+            print('\n===================', accn, count)
+            if _args.report:
+                print([an.text for an in accn_nums[accn]])
+        #         for accn_num in accn_nums[e]:
+        #             print(f'    {accn_num.text}')
+        # print(f'{len(values)} unique values.')
     return nonepathcount
 
 
@@ -53,7 +59,7 @@ def get_xpath():
         config: Config = Config(_args.cfgfile, dump=_args.verbose > 1,
                                 allow_required=True)
         if len(config.col_docs) > 1:
-            raise ValueError('Only a single column command is allowed in the'
+            raise ValueError('Only a single column command is allowed in the '
                              'config file.')
         return config.col_docs[0].xpath
 
@@ -70,6 +76,10 @@ def getargs():
         The config file may contain only a single ``column`` command. Specify 
         this or the --xpath parameter.
     ''', calledfromsphinx))
+    parser.add_argument('-r', '--report', action='store_true', help=sphinxify('''
+        For each value, print the accession numbers of all of the Object
+        elements that have this value in the specified field.
+        Do not specify this option and the --type option.''', calledfromsphinx))
     parser.add_argument('-t', '--type', action='append', help=sphinxify('''
         Print the accession number of all of the Object elements that have this
         value in the specified field.
