@@ -53,7 +53,6 @@ def object_reader(infilename: str | None, config=None, verbos=1):
             objectlevel -= 1
             if objectlevel:
                 continue  # It's not a top level Object.
-            data = []
             idelem = elem.find(config.record_id_xpath)
             idnum = idelem.text if idelem is not None else ''
             if verbos >= 3:
