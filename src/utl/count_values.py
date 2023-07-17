@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 from utl.cfgutil import Config
 from utl.zipmagic import openfile
 from utl.normalize import sphinxify
+from utl.readers import object_reader
 
 
 def trace(level, template, *args):
@@ -24,9 +25,8 @@ def main(inf):
     xpath = get_xpath()
     trace(2, 'xpath: {}', xpath)
     nonepathcount = 0
-    for event, elem in ET.iterparse(inf):
-        if elem.tag != 'Object':
-            continue
+
+    for accn, elem in object_reader(inf):
         path = elem.find(xpath)
         if path is None:
             nonepathcount += 1
@@ -35,21 +35,23 @@ def main(inf):
             if value is None:
                 value = 'None'
             counts[value] += 1
-            accn = elem.find('./ObjectIdentity/Number')
             accn_nums[value].append(accn)
             if _args.type and value in _args.type:
-                print(accn.text, value[:_args.width])
+                print(accn, value[:_args.width])
+
     if not _args.type:
         # for e, c in values.items():
         # for e, c in [(e, c) for e, c in values.items()]:
         for accn, count in sorted(counts.items()):
             print('\n===================', accn, count)
             if _args.report:
-                print([an.text for an in accn_nums[accn]])
+                print([an for an in accn_nums[accn]])
         #         for accn_num in accn_nums[e]:
         #             print(f'    {accn_num.text}')
         # print(f'{len(values)} unique values.')
-    return nonepathcount
+    if nonepathcount:
+        print(f'Number of objects not containing the xpath: {npc}')
+    return
 
 
 def get_xpath():
@@ -108,7 +110,4 @@ if __name__ == '__main__':
         sys.argv.append('-h')
     calledfromsphinx = False
     _args = getargs()
-    infile = openfile(_args.infile)
-    npc = main(infile)
-    if npc:
-        print(f'Number of objects not containing the xpath: {npc}')
+    main(_args.infile)
