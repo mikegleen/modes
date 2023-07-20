@@ -659,7 +659,46 @@ input CSV file contain serial numbers which specify sub-IDs. Examples are::
 In each case there is an extra field at the end of the ID. This field must be
 numeric. This mode is enabled by the global statement **subid_parent** which
 must contain the path to the parent element of the Item elements to be inserted
-for the new subIDs.
+for the new subIDs. You must also specify **subid_grandparent** for the case
+of the parent not existing.
 
+A sample YAML configuration file is::
 
+   cmd: global
+   subid_parent: ItemList
+   subid_grandparent: .
+   ---
+   cmd: column
+   xpath: Date
+   ---
+   cmd: column
+   xpath: BriefDescription
+   title: Description
 
+The corresponding CSV file is::
+
+   Serial,Date,Description
+   L7.1,13.12.1940,"From: Jack Sprat, To: Joe Blow"
+   L7.2,14.12.1940,"From: Jack Sprat, To: Joe Blogs"
+
+This results in the following being inserted in the Object element::
+
+        <ItemList>
+            <Item>
+                <ListNumber>1</ListNumber>
+                <ObjectIdentity>L007.1</ObjectIdentity>
+                <Date>13.12.1940</Date>
+                <BriefDescription>From: Jack Sprat, To: Joe Blow</BriefDescription>
+            </Item>
+            <Item>
+                <ListNumber>2</ListNumber>
+                <ObjectIdentity>L007.2</ObjectIdentity>
+                <Date>14.12.1940</Date>
+                <BriefDescription>From: Jack Sprat, To: Joe Blogs</BriefDescription>
+            </Item>
+                <BriefDescription>From: Jack Sprat, To: Joe Blogssuper</BriefDescription>
+            </Item>
+        </ItemList>
+
+Note that the accession number has been expanded from L7 to L007 in accordance
+with the rule for "JB" and "L" numbers.

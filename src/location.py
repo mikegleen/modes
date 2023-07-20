@@ -15,6 +15,7 @@ import argparse
 import codecs
 import csv
 import time
+from colorama import Fore, Style
 from datetime import date
 import sys
 # noinspection PyPep8Naming
@@ -31,9 +32,12 @@ ELEMENTTYPE = 'elementtype'
 verbose = 1  # overwritten by _args.verbose; set here for unittest
 
 
-def trace(level, template, *args):
-    if verbose >= level:
-        print(template.format(*args))
+def trace(level, template, *args, color=None):
+    if _args.verbose >= level:
+        if color:
+            print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
+        else:
+            print(template.format(*args))
 
 
 def loadcsv():
@@ -216,24 +220,24 @@ def validate_locations(idnum, elem, strict=True):
 
     # Check that the youngest date is the current location and that there is
     # no overlap.
-    locationdates.sort(reverse=True)
+    locationdates.sort(key=lambda x: x[0], reverse=True)
     if locationdates[0][1] is not None:  # should not have an end date
-        trace(1, 'E08 {}: current location is not the youngest.', idnum)
+        trace(1, 'E10 {}: current location is not the youngest.', idnum)
         return False
     prevbegin, prevend = locationdates[0]
     for nxtbegin, nxtend in locationdates[1:]:
         if nxtend < nxtbegin:
-            trace(1, 'E09 {}: end date {} is younger than begin date {}.',
+            trace(1, 'E11 {}: end date {} is younger than begin date {}.',
                   idnum, nxtbegin.isoformat(), nxtend.isoformat())
             return False
         if nxtend != prevbegin:
             if strict:
-                trace(1, 'E10 {}: begin date "{}" not equal to previous end '
+                trace(1, 'E12 {}: begin date "{}" not equal to previous end '
                          'date "{}".',
                       idnum, str(prevbegin), str(nxtend))
                 return False
             elif nxtend > prevbegin:
-                trace(1, 'E11 {}: Younger begin date "{}" overlaps with end '
+                trace(1, 'E13 {}: Younger begin date "{}" overlaps with end '
                          'date. "{}".',
                       idnum, str(prevbegin), str(nxtend))
                 return False
@@ -733,8 +737,9 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
-    args.col_acc = col2num(args.col_acc)
-    args.col_loc = col2num(args.col_loc)
+    if is_update or is_diff:
+        args.col_acc = col2num(args.col_acc)
+        args.col_loc = col2num(args.col_loc)
     if is_update:
         args.col_reason = col2num(args.col_reason)
         args.col_loc_type = col2num(args.col_loc_type)
@@ -786,6 +791,8 @@ if __name__ == '__main__':
         newreasons = {nd.normalize_id(obj): _args.reason for obj in objectlist}
         newrows = None  # will be ignored if -j is set
         trace(2, 'Object(s) specified, newlocs= {}', newlocs)
+    elif is_validate:
+        newlocs = {}
     else:
         newlocs, newreasons, newrows = loadcsv()
     total_in_csvfile = len(newlocs)
@@ -806,4 +813,4 @@ if __name__ == '__main__':
         print(f'Total different: {total_diff}/{total_in_csvfile}')
     elapsed = time.perf_counter() - t1
     trace(1, 'End location {}.  Elapsed: {:5.2f} seconds.', _args.subp,
-          elapsed)
+          elapsed, color=Fore.GREEN)

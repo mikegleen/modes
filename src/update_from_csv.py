@@ -80,15 +80,14 @@ def loadsubidvals(reader, allow_blanks) -> (dict, dict):
         # Don't call expand_idnum as only a single subid is allowed.
         trace(2, 'loadsubidvals: mainid = {}, subid = {}', mainid, subid)
         newval_dict[normalize_id(fullmainid)] = None
+        if naccnum in subval_dict:
+            sys.tracebacklimit = 0
+            raise ValueError(f'Duplicate subid: {accnum}')
         subval_dict[naccnum] = fullmainid, subid, row
     return newval_dict, subval_dict
 
 
-def loadnewvals(allow_blanks=False, subid_mode=False):
-    reader = row_dict_reader(_args.mapfile, _args.verbose, _args.skip_rows)
-    if subid_mode:
-        newval_dict, subval_dict = loadsubidvals(reader, allow_blanks)
-        return newval_dict, subval_dict
+def loadnewvals(reader, allow_blanks=False):
     newval_dict = {}
     for row in reader:
         # print(f'{row=}')
@@ -106,16 +105,17 @@ def loadnewvals(allow_blanks=False, subid_mode=False):
         trace(2, 'loadnewvals: accnums = {}', accnums)
         for accnum in accnums:
             newval_dict[normalize_id(accnum)] = row
-    return newval_dict, None
+    return newval_dict
 
 
-def add_item(elt, subid: int) -> ET.Element:
+def add_item(elt, subid: int, nmainid: str) -> ET.Element:
     """
     For an existing parent (Usually ItemList) if there is an Item with the
     subid as a ListNumber, return the Item element. Otherwise, create an Item with a
     ListNumber equal to the subid and insert it in sort order in the list.
     :param elt:
     :param subid:
+    :param nmainid: normalized ID without the subid
     :return: the exist or new Item element
     """
     olditem = elt.find(f'./Item[ListNumber="{subid}"]')
@@ -125,10 +125,12 @@ def add_item(elt, subid: int) -> ET.Element:
     newitem = ET.Element('Item')
     list_number = ET.SubElement(newitem, 'ListNumber')
     list_number.text = str(subid)
+    object_identity = ET.SubElement(newitem, 'ObjectIdentity')
+    mainid = denormalize_id(nmainid)
+    object_identity.text = f'{mainid}.{subid}'
     if len(items) == 0:
         elt.append(newitem)
         return newitem
-
     # If the new item id is greater than the highest one on the list just
     # append it to the end.
     highest = items[-1].find('ListNumber')
@@ -251,7 +253,7 @@ def one_element_subid_mode(nidnum: str, objelem: ET.Element):
         mainid, subid, row = val
         if mainid != nidnum:
             continue
-        newitem = add_item(parent, subid)
+        newitem = add_item(parent, subid, mainid)
         for doc in cfg.col_docs:
             newelt = ET.SubElement(newitem, doc[Stmt.XPATH])
             if doc[Stmt.CMD] == Cmd.COLUMN:
@@ -429,8 +431,11 @@ if __name__ == '__main__':
         trace(1, 'update_from_csv aborting due to config error(s).',
               color=Fore.RED)
         sys.exit(1)
-    newvals, subvals = loadnewvals(allow_blanks=_args.allow_blanks,
-                                   subid_mode=cfg.subid_parent is not None)
+    csvreader = row_dict_reader(_args.mapfile, _args.verbose, _args.skip_rows)
+    if cfg.subid_parent is not None:
+        newvals, subvals = loadsubidvals(csvreader, allow_blanks=_args.allow_blanks)
+    else:
+        newvals = loadnewvals(csvreader, allow_blanks=_args.allow_blanks)
     nnewvals = len(newvals)
     main()
     trace(1, '{} element{} in {} object{} updated.\n'
