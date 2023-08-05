@@ -3,8 +3,8 @@
     Create a report of box contents.
     Parameters:
         1. Input XML file or CSV file.
-           XML: This is a Modes database
-           CSV: Heading is required. The first column is the serial number
+           XML  This is a Modes database
+           CSV  Heading is required. The first column is the serial number
                 and the second column is the location. Typically, this was
                 produced by filtering the database by some prior criterion.
         2. Optional output CSV file. If omitted, output is to STDOUT.
