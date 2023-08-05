@@ -386,6 +386,12 @@ previous location element is created.
 Utility for recoding fields for loading to the website collection
 at heathrobinsonmuseum.org.
 
+
+strip_csv
+~~~~~~~~~
+Remove leading and trailing whitespace from each cell in a CSV file. Two
+parameters are required, input and output CSV files.
+
 :doc:`update_from_csv`
 ~~~~~~~~~~~~~~~~~~~~~~
 Update an XML file driven by a YAML configuration file with
