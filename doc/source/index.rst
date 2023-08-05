@@ -63,8 +63,8 @@ is the **cmd** statement, which controls the function of the document.
 Commands can be column-related or control command which determine which objects
 are processed. There is also a ``global`` command.
 
-By default, the first column in the output CSV file is the serial number (accession
-number) of the object affected. This can be suppressed using the
+When creating a CSV file, by default the first column is the serial number
+(accession number) of the object affected. This can be suppressed using the
 ``skip_number`` statement under the ``global`` command.
 
 Statements
@@ -178,9 +178,9 @@ These statements are in the document whose ``cmd`` statement is ``global``.
    for the Item elements we are creating. The presence of this statement triggers
    subid mode. The value usually should be ``ItemList``.
    Serial numbers are expected to contain sub-IDs, for example ``JB1024.1``
-   or ``LDHRM.2022.1.12``. The main ID is expected to exist in the XML file. Each
-   row in the CSV file will create an Item entry in the main ID's object under an
-   ItemList element. The sub-ID
+   or ``LDHRM.2022.1.12``. The main ID, for example ``JB1024``, is expected to
+   exist in the XML file. Each row in the CSV file will create an Item entry in
+   the main ID's object under an ItemList element. The sub-ID
    will become the ListNumber entry. If the number already exists, the record will be
    overwritten, otherwise a new one will be created. The columns in the CSV file will
    become sub-elements under the Item.
@@ -649,6 +649,11 @@ statement.
 
 Inserting Sub-IDs
 ~~~~~~~~~~~~~~~~~
+
+.. note::
+   This feature is separate from the **item** command used in ``csv2xml.py``.
+   That command is used to extract a list of items from a single cell in a
+   row while this process creates one item from each row.
 
 This is a special mode in ``update_from_csv.py`` wherein all of the rows in the
 input CSV file contain serial numbers which specify sub-IDs. Examples are::
