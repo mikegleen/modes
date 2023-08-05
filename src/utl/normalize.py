@@ -85,12 +85,14 @@ def datefrombritishdate(indate: str) -> tuple[datetime.date, int, str]:
             or "d month yyyy"
             or "mmm yyyy"
             or "month yyyy"
+            or "dd/mm/yyyy"
+            or "yyyy-mm-dd" (ISO 8601)
             It can also be yyyy but this is treated as Modes format.
         If day or month aren't given, the default values are returned.
     :param indate:
     :return: A tuple containing datetime.date and a part count followed by a
-             date type indicator if a valid date exists otherwise a
-             ValueError is raised.
+             date type indicator if a valid date exists otherwise an exception
+             is raised.
              A TypeError is raised if indate is None.
              A ValueError if the date format is not parseable.
              The date type indicator contains 'modestype' if the date is Modes
@@ -102,8 +104,18 @@ def datefrombritishdate(indate: str) -> tuple[datetime.date, int, str]:
         return d, nparts, MODESTYPE
     except ValueError:
         pass
+    try:  # ISO 8601
+        d = datetime.datetime.strptime("%Y-%m-%d").date()
+        return d, 3, BRITISHTYPE
+    except ValueError:
+        pass
     try:  # 3 Mar 1917
         d = datetime.datetime.strptime(indate, '%d %b %Y').date()
+        return d, 3, BRITISHTYPE
+    except ValueError:
+        pass
+    try:  # 13/5/1917
+        d = datetime.datetime.strptime(indate, '%d/%m/%Y').date()
         return d, 3, BRITISHTYPE
     except ValueError:
         pass
@@ -112,12 +124,12 @@ def datefrombritishdate(indate: str) -> tuple[datetime.date, int, str]:
         return d, 3, BRITISHTYPE
     except ValueError:
         pass
-    try:
+    try:  # Mar 1917
         d = datetime.datetime.strptime(indate, '%b %Y').date()
         return d, 2, BRITISHTYPE
     except ValueError:
         pass
-    try:
+    try: # March 1917
         d = datetime.datetime.strptime(indate, '%B %Y').date()
         return d, 2, BRITISHTYPE
     except ValueError as ve:
