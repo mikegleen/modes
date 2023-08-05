@@ -8,9 +8,9 @@ Also write to a separate file the accession number of the parent object.
 import codecs
 import os
 
-indir = '/Users/mlg/pyprj/hrm/scans/letters_index_csv'
-outcsvname = '/Users/mlg/pyprj/hrm/scans/letters_index_reformed.csv'
-outaccname = '/Users/mlg/pyprj/hrm/scans/letters_accession_numbers.csv'
+indir = '/Users/mlg/pyprj/hrm/letters/letters_index_csv'
+outcsvname = '/Users/mlg/pyprj/hrm/letters/letters_index_reformed.csv'
+outaccname = '/Users/mlg/pyprj/hrm/letters/letters_accession_numbers.csv'
 # outcsvname = 'tmp/letters_index_reformed.csv'
 
 outcsv = codecs.open(outcsvname, 'w', 'utf-8-sig')
