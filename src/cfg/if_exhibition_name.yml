@@ -1,7 +1,11 @@
 cmd: ifeq
-xpath: ./Exhibition/ExhibitionName
-value: "Heath Robinson’s Shakespeare Illustrations"
+xpath: ./Exhibition/Place
+value: "Jersey Arts Centre"
 ---
+#cmd: ifeq
+#xpath: ./Exhibition/ExhibitionName
+#value: "Heath Robinson’s Shakespeare Illustrations"
+#---
 cmd: column
 xpath: ./ObjectLocation[@elementtype='normal location']/Location
 title: Normal Location

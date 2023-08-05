@@ -1,0 +1,31 @@
+#
+# This config is for use in subid mode where the root is the Item element
+#
+cmd: global
+subid_parent: ItemList
+subid_grandparent: .
+template_dir: /Users/mlg/pyprj/hrm/modes/etc/templates/normal
+item_template: 2023-07-22_item_template_pretty.xml
+item_root: Item  # default
+---
+cmd: column
+xpath: ./Date
+date:
+---
+cmd: column
+xpath: ./Attribute[Keyword="Sender"]/Reading
+title: Sender
+---
+cmd: column
+xpath: ./Attribute[Keyword="Recipient"]/Reading
+title: Recipient
+---
+cmd: column
+xpath: ./BriefDescription
+title: Description
+---
+cmd: column
+xpath: ./SummaryText
+title: Comment
+---
+

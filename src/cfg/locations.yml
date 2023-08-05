@@ -1,6 +1,6 @@
-cmd: ifnot
+#cmd: ifnot
 #xpath: ./Description/Measurement[Part="Image"]/Reading
-xpath: ./Description/Measurement/Reading
+#xpath: ./Description/Measurement/Reading
 #cmd: ifeq
 #xpath: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
 #value: '10.6.2022'
@@ -8,10 +8,10 @@ xpath: ./Description/Measurement/Reading
 cmd: column
 xpath: ./ObjectLocation[@elementtype="current location"]/Location
 title: 'Current Location'
----
-cmd: column
-xpath: ./ObjectLocation[@elementtype="current location"]/Reason
-title: 'Reason'
+#---
+#cmd: column
+#xpath: ./ObjectLocation[@elementtype="current location"]/Reason
+#title: 'Reason'
 ---
 cmd: column
 xpath: ./ObjectLocation[@elementtype="normal location"]/Location
@@ -25,13 +25,13 @@ title: 'Normal Location'
 #xpath: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
 #title: 'Date Begin'
 #---
-cmd: column
-xpath: ./Identification/Title
----
-cmd: column
-xpath: ./Identification/BriefDescription
-title: Brief Description
----
-cmd: global
-record_tag: Object
-record_id_xpath: './ObjectIdentity/Number'
+#cmd: column
+#xpath: ./Identification/Title
+#---
+#cmd: column
+#xpath: ./Identification/BriefDescription
+#title: Brief Description
+#---
+#cmd: global
+#record_tag: Object
+#record_id_xpath: './ObjectIdentity/Number'
