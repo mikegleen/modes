@@ -1,7 +1,7 @@
 #!/bin/zsh
 INXML=2023-07-15_medium.xml
 INCSV=../collection/etc/batch021/2023-07-16_batch021_edited.csv
-OUTXML=2023-07-22_batch021_fix.xml
+OUTXML=2023-07-22_letters.xml
 # cat >tmp/update.csv <<EOF
 # EOF
 cp ../collection/etc/batch021/2023-07-16_batch021_edited.csv tmp/update.csv
