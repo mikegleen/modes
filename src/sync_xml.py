@@ -168,12 +168,12 @@ def main():
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-        Examine two folders named normal and pretty which are subfolders of the
-        folder named in the first parameter. If any files in pretty are newer
-        than corresponding files in normal then those files will be normalized
-        into the normal folder with the suffix "_pretty" removed from the
-        filename. Similarly, new files in normal will be prettified into
-        folder pretty.
+        Examine two folders named *normal* and *pretty* which are subfolders of the
+        folder named in the first parameter. If any files in *pretty* are newer
+        than corresponding files in *normal* then those files will be normalized
+        into the *normal* folder with the suffix "_pretty" removed from the
+        filename. Similarly, new files in *normal* will be prettified into
+        folder *pretty*.
         ''')
     parser.add_argument('parent_dir', help='''
         The parent folder containing subfolders "normal" and "pretty" ''')
