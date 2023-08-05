@@ -53,7 +53,9 @@ def loadsubidvals(reader, allow_blanks) -> (dict, dict):
 
     :param reader:
     :param allow_blanks:
-    :return: dict with key of accession number with subid as in the CSV file
+    :return: 2-tuple of:
+             (1) dict of accession numbers
+             dict with key of accession number with subid as in the CSV file
              without added MDA code (if applicable).
     """
     newval_dict = dict()  # dict updated with key of accession # without the subid
@@ -225,6 +227,7 @@ def one_element(objelem, idnum):
                 newtext, _, _ = modesdatefrombritishdate(newtext)
                 # print(type(elt.text))
             except ValueError:
+                trace(2, 'Invalid date in {}: {}', idnum, newtext)
                 newtext = 'unknown'
         elif Stmt.PERSON_NAME in doc:
             newtext = modes_person(newtext)
