@@ -10,6 +10,7 @@ Modes Python Library
    :maxdepth: 3
 
    compare_elts
+   count_values
    csv2xml
    docx2csv
    utility_functions
@@ -187,8 +188,8 @@ These statements are in the document whose ``cmd`` statement is ``global``.
 -  **subid_grandparent** If the element named in **subid_parent** doesn't exist, it
    will be appended under this element.
 -  **template_file** Only in ``csv2xml.py``: This is the file to be used as the template
-   for all of the objects to be created. The --template command-line parameter overrides this.
-   If this statement or the --template command-line parameter is specified, do not specify other
+   for all of the objects to be created. The ``--template`` command-line parameter overrides this.
+   If this statement or the ``--template`` command-line parameter is specified, do not specify other
    tempate-related statements.
 -  **template_title** Only in ``csv2xml.py``: Defines a CSV column containing a key that
    matches one of the keys in the
@@ -564,12 +565,12 @@ date to standard Modes format of dd.mm.yyyy.
 
 The shell command to effect this update is::
 
-    python src/update_from_csv.py\
-    prod_update/normal/2022-10-31_loc_JB010.xml\
-    prod_update/normal/2022-11-01_adopt.xml\
-    -c src/cfg/y010_adopt_a_picture.yml\
-    -m results/csv/sally/pictures_adopted.csv\
-    --serial 'Accn. No.' -a
+    python src/update_from_csv. \
+      prod_update/normal/2022-10-31_loc_JB010.xml \
+      prod_update/normal/2022-11-01_adopt.xml \
+      -c src/cfg/y010_adopt_a_picture.yml \
+      -m results/csv/sally/pictures_adopted.csv \
+      --serial 'Accn. No.' -a
 
 
 Insert an element with Attributes
@@ -685,6 +686,9 @@ A sample YAML configuration file is::
    cmd: column
    xpath: BriefDescription
    title: Description
+
+Note that the XPATH is relative to the subid_parent. The subid_parent is relative
+to the subid_grandparent which must be an absolute path.
 
 The corresponding CSV file is::
 

@@ -18,7 +18,7 @@ The format of the exhibition list is::
 
     Exhibition Number,Date Begin,Date End,Exhibition Name,Place
 
-In the CSV file, the exhibition number is optional and is ignored if the --exhibition
+In the CSV file, the exhibition number is optional and is ignored if the ``--exhibition``
 parameter is given. The accession number in the CSV file or specified as a parameter
 may contain a string
 specifying multiple numbers of the form JB001-003. Note that leading zeroes are

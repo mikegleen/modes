@@ -617,7 +617,7 @@ def add_arguments(parser, command):
     heading_group = parser.add_mutually_exclusive_group()
     heading_group.add_argument('--heading', help=nd.sphinxify('''
         The first row of the map file contains a column title which must match
-        the
+        this
         parameter (case insensitive) in the column designated for the location.
         Do not specify this and --location.
         ''', called_from_sphinx))

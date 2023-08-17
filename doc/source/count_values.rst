@@ -1,8 +1,8 @@
-list_imgs
-=========
+count_values
+============
 
 .. argparse::
-   :filename: ../src/web/list_imgs.py
+   :filename: ../src/utl/count_values.py
    :func: getparser
-   :prog: list_imgs.py
+   :prog: count_values.py
 

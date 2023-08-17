@@ -217,11 +217,11 @@ def getparser():
     parser = argparse.ArgumentParser(description=sphinxify('''
         Read a CSV file containing two or more columns. The first column
         is the accession number and the following columns are the fields
-        defined by the XPATH statement in the config file. The first row in the
+        defined by the XPATH statement(s) in the config file. The first row in the
         CSV file is a heading row. The column titles in the CSV file must match
         the document titles in the config file; case is significant. Columns
         are referred to by name so columns not named in the config file are
-        ignored.
+        ignored. After the first column the columns may be in any order.
         
         Create an XML file with data from the CSV file based on a template of
         the XML structure.
