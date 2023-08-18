@@ -21,7 +21,7 @@ The format of the exhibition list is::
 In the CSV file, the exhibition number is optional and is ignored if the ``--exhibition``
 parameter is given. The accession number in the CSV file or specified as a parameter
 may contain a string
-specifying multiple numbers of the form JB001-003. Note that leading zeroes are
+specifying multiple numbers of the form JB001-003. Note that leading zeros are
 not significant.
 
 Output: updated XML file

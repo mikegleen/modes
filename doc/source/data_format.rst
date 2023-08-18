@@ -9,12 +9,12 @@ Accession Number Formats
 
 The earliest and most common accession numbers were those beginning with "JB".
 These apply to the Joan Brinsmead gift of many objects that still form the core
-of the collection. The numbers bettween 1 and 99 have leading zeroes appended
+of the collection. The numbers bettween 1 and 99 have leading zeros prepended
 to three places, so JB1 is recorded as JB001. Objects with numbers greater than
 999 are left intact. A similar rule apples to long-term loan objects that have
 been accessioned with a format like L001.
 
-You can omit leading zeroes in input data. The numbers will be normalized to
+You can omit leading zeros in input data. The numbers will be normalized to
 be amenable for sorting internally, and when written to an output CSV or XML
 file will be restored to the standard format. Thus if you enter L22 in the
 CSV file used to create a new object element, it will still be written to the
@@ -43,3 +43,23 @@ The following formats are allowed::
     SH1-99
 
 White space in the field is ignored.
+
+
+Date Formats
+------------
+
+The format used in the Modes XML file is d.m.yyyy. Leading zeros are omitted.
+The leading day or day and month may be omitted. If you include the **date**
+statement in a column document, additional formats are recognized and converted
+to Modes format::
+
+            dd mmm yyyy
+            dd month yyyy
+            mmm yyyy
+            month yyyy
+            dd/mm/yyyy
+            yyyy-mm-dd (ISO 8601)
+
+"mmm" indicates a three-letter month abbreviation (Jan, Feb, etc. Case is ignored).
+"month" indicates a full name. Leading zeros may be omitted. Additionally,
+Modes format data is cleaned with any leading zeros removed. 

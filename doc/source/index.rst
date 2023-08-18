@@ -3,6 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+..
+   Format conventions:
+      *Italics*    - XML element names
+      **Bold**     - Statements or commands (without the trailing ":")
+      ``Monotype`` - file names, parameters (like ``--verbose``)
+
 Modes Python Library
 ====================
 
@@ -45,8 +51,9 @@ The Configuration Domain Specific Language (DSL)
 
 A configuration language is defined in YAML syntax that provides
 specification of XML fields and control over whether records are
-selected for processing. The language is used for both CSV → XML and XML → CSV
-processing. Most but not all of the commands and statements are used for both cases.
+selected for processing. The language is used for processing
+of CSV → XML, XML → CSV, and XML → XML (with updates from a CSV file).
+Most but not all of the commands and statements are used for all cases.
 
 The configuration consists of a YAML file broken into multiple
 documents, separated by lines containing ``---`` in the left three columns.
@@ -62,11 +69,11 @@ Each document contains some of the following statements. Statement names are
 case sensitive; all must be lower case. The lead statement in a document
 is the **cmd** statement, which controls the function of the document.
 Commands can be column-related or control command which determine which objects
-are processed. There is also a ``global`` command.
+are processed. There is also a **global** command.
 
 When creating a CSV file, by default the first column is the serial number
 (accession number) of the object affected. This can be suppressed using the
-``skip_number`` statement under the ``global`` command.
+**skip_number** statement under the **global** command.
 
 Statements
 ~~~~~~~~~~
@@ -75,6 +82,8 @@ Introduction
 ++++++++++++
 
 Statements can apply to a single document or globally to the whole configuration.
+Some statements require an argument and others are logical flags that select
+a particular behavior.
 
 Single-document Statements
 ++++++++++++++++++++++++++
@@ -95,9 +104,9 @@ the ``cmd: global`` document.
 -  **child_value** Make this the text of the newly created subelement.
 -  **cmd** Required. See below for a description of the individual
    commands.
--  **date** allowed in ``csv2xml.py``. Indicates that a field may be in British
-   format, dd mmm yyyy, and should be converted to Modes format. If it is already in Modes
-   format, that will be preserved.
+-  **date** If specified, indicates that a field may be in date
+   format and should be converted to Modes format. See the section *Date Formats*
+   in the document page *Data Formats* for the formats supported. Allowed in ``csv2xml.py``.
 -  **element** Referenced when processing the **parent_path** statment for the name
    of the element's tag to be created. If this is omitted the element name will be taken
    from the **title** statment. If both are omitted the name will be taken from the title
@@ -112,7 +121,7 @@ the ``cmd: global`` document.
    values when used with the **multiple** command or the **items** command.
    The statement may appear under the **global** command or a specific command,
    which takes precedence. The default is “|”.
--  **normalize** Adjust this accession number so that it sorts in numeric
+-  **normalize** If specified, adjust this accession number so that it sorts in numeric
    order. The number will be de-normalized before output. The default serial
    number in the first column and the accession number extracted from the XML
    file will always be normalized before use. This may also be used to strip leading
@@ -124,14 +133,14 @@ the ``cmd: global`` document.
    If the **element** statement doesn't exist, the name will be taken from the **title**
    statement in the document. See the **title** statement below. The element named by this
    path must already exist.
--  **person_name** This column contains a name in the form "last, first" or "first last".
-   The name will be converted to the "last, first" form. Used by ``csv2xml.py`` and
-   ``update_from_csv.py``. Restriction: This will not work for a name with a suffix like
-   "Joseph Biden Jr.".
--  **required** If this field is missing or
-   empty issue an error message and discard the row. Valid only with a control
-   command (**if** ...) or with a **column** command in ``csv2xml.py``. In this case it is
-   useful for discarding rubbish rows in the CSV file.
+-  **person_name** If specified, this column contains a name in the form
+   "last, first" or "first last". The name will be converted to the
+   "last, first" form. Used by ``csv2xml.py`` and ``update_from_csv.py``.
+   Restriction: This will not work for a name with a suffix like "Joseph Biden Jr.".
+-  **required** If specified then issue an error message and discard the row if
+   this field is missing or empty. Valid only with a control
+   command (**if** ...) or with a **column** command in ``csv2xml.py``. In this
+   case it is useful for discarding rubbish rows in the CSV file.
 -  **title** Optional. If omitted, a best-guess title will be created
    from the xpath statement, ignoring predicates (expressions within square brackets).
    If in a control document, the title will be shown in diagnostics but is not otherwise
@@ -140,12 +149,13 @@ the ``cmd: global`` document.
 -  **value** Required for **ifeq**, **ifnoteq**, **ifattribeq**, **ifcontains**,
    or **constant** command.
 -  **width** truncate this column to this number of characters when writing to
-   a CSV file. Ignored when writing to an XML file.
+   a CSV file. Ignored when writing to an XML file. The default is to not
+   truncate the data in the column.
 -  **xpath** Required. This describes the XSLT path to a relevant XML
    element. In subid mode this is a simple tag name.
 -  **xpath2** This describes the XSLT path to a relevant XML element in the case where a
    single column must be stored in two places. Used in ``csv2xml.py``. This is only valid
-   for a ``column`` command. You can, for example, create both the ``normal`` and
+   for a **column** command. You can, for example, create both the ``normal`` and
    ``current`` locations from a single column value.
 
 
@@ -168,7 +178,7 @@ These statements are in the document whose ``cmd`` statement is ``global``.
    root tag. The default is ``./ObjectIdentity/Number``. In addition to
    being output as column 1 by default, the ID is used in error
    messages.
--  **skip_number** Do not automatically write the serial number as the
+-  **skip_number** If specified, do not automatically write the serial number as the
    first column. This can be useful when sorting on another column. The
    ID number can be manually inserted as another column.
 -  **sort_numeric** The default is to sort the output alphabetically.
@@ -186,7 +196,7 @@ These statements are in the document whose ``cmd`` statement is ``global``.
    overwritten, otherwise a new one will be created. The columns in the CSV file will
    become sub-elements under the Item.
 -  **subid_grandparent** If the element named in **subid_parent** doesn't exist, it
-   will be appended under this element.
+   will be appended under this element. Required if **subid_parent** is specified.
 -  **template_file** Only in ``csv2xml.py``: This is the file to be used as the template
    for all of the objects to be created. The ``--template`` command-line parameter overrides this.
    If this statement or the ``--template`` command-line parameter is specified, do not specify other
@@ -206,8 +216,8 @@ These statements are in the document whose ``cmd`` statement is ``global``.
          key2: filename2.xml
 
    The keys should be entered in the CSV file specified by ``--incsvfile`` in a column
-   specified by ``template_title``.
-   See commands ``template_title`` and ``template_dir``. Note that the indentation of the
+   specified by **template_title**.
+   See commands **template_title** and **template_dir**. Note that the indentation of the
    "key" rows in the YAML file is mandatory. The keys in the YAML and CSV files are case
    insensitive.
 
@@ -254,7 +264,7 @@ by ``xml2csv.py`` and others that read from the XML file to select which
 records to output. Multiple **if...** commands may be used; these are
 processed in succession and have an **and** relationship, meaning that all of
 the tests must succeed for a record to be selected. Note that tests are
-case insensitive unless a case_sensitive statement is specified in the
+case insensitive unless a **case_sensitive** statement is specified in the
 control command document.
 
 -  **global** This document contains statements that affect the
@@ -317,7 +327,7 @@ There are four accession number formats in use at the Heath Robinson Museum.
 
 When read from a CSV file, the XML file, or the command line, accession numbers are
 normalized so that numeric fields sort correctly. That is, internally, all numbers
-are padded with zeroes. In this way, JB1 and JB001 are treated as the same object.
+are padded with zeros. In this way, JB1 and JB001 are treated as the same object.
 
 When reading from a CSV file, the MDA code may be omitted (see the global command
 ``add_mda_code``). Accession numbers that start with a digit will have the MDA code added
@@ -403,317 +413,3 @@ input data from a CSV file.
 Extract
 fields from an XML file, creating a CSV file with the fields as
 specified in the configuration.
-
-
-Examples
---------
-The following examples illustrate various usages of the library.
-
-Insert ``Entry`` Elements
-~~~~~~~~~~~~~~~~~~~~~~~~~
-Entry numbers are recorded for recent acquisitions. They are recorded in elements such as::
-
-    <Entry>
-        <EntryNumber>53</EntryNumber>
-    </Entry>
-
-Not all of the elementtype's templates include skeleton Entry/EntryNumber elements so it
-may be necessary to create these elements. This may be done with a YAML configuration::
-
-   cmd: global
-   add_mda_code:
-   ---
-   cmd: constant
-   xpath: ./Entry
-   parent_path: .
-   insert_after: Acquisition
-   title: Entry
-   value:
-   ---
-   cmd: column
-   xpath: ./Entry/EntryNumber
-   parent_path: ./Entry
-   normalize:
-
-This is matched with an input CSV detail file::
-
-   Serial,EntryNumber
-   2018.6,008
-   2019.13-43,53
-   2019.44,50
-   2021.25,58
-   2022.23-26,103
-
-The command to effect this update is::
-
-    python src/update_from_csv.py prod_update/normal/2022-08-25_entry.xml \
-    prod_update/normal/2022-08-25_entry2.xml -c src/cfg/entry.yml \
-    -m data/sally/2022-08-20_object_entry.csv
-
-This illustrates several features.
-
-#. Accession numbers are expressed without leading MDA codes. The global statement
-   ``add_mda_code`` forces ``LDHRM.`` to be prepended to the given number.
-#. Accession number expansion is used. See :doc:`data_format`.
-#. The entry number is sometimes given with leading zeros. These are stripped off
-   because of the **normalize** statement in the ``EntryNumber`` column.
-#. The ``EntryNumber`` column does not have an explicit title. This is taken from the trailing
-   tag in the **xpath** statement.
-
-The script will attempt to insert the new value in an existing ``Entry`` element. If it
-doesn't exist, it will search for the parent and create a subelement.
-However, that also does not exist. The
-solution is to create the parent element first. Normally, this will be created as a new
-subelement of *its* parent. This is modified by the **insert_after** statement.
-
-Insert an ``Association`` Element Group
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-When an object is associated with an event or person, it is recorded here. This update
-adds an *Association* group recording a donation linked to individual objects.
-The association is recorded as::
-
-    <Association>
-        <Type>Adopt a Picture</Type>
-        <Person>
-            <Name>Bloggs, Joe</Name>
-        </Person>
-        <SummaryText>
-            <Keyword>dedication</Keyword>
-            <Note>In memory of Jack and Jill Bloggs</Note>
-        </SummaryText>
-        <Date>25.6.2022</Date>
-    </Association>
-
-The data to create this element group is from the CSV file::
-
-    Name,Date,Dedication,Accn. No.
-    Joe Bloggs,25 June 2022,"In memory of Jack and Jill Bloggs",LDHRM.2022.999
-
-This element group is created with the following YAML statements. The numbering has
-been added as comments to assist this discussion::
-
-    # 1
-    cmd: constant
-    xpath: ./Association[Type="Adopt a Picture"]
-    parent_path: .
-    title: Association
-    child: Type
-    child_value: Adopt a Picture
-    value:
-    ---
-    # 2
-    cmd: constant
-    xpath: ./Association[Type="Adopt a Picture"]/Person
-    parent_path: ./Association[Type="Adopt a Picture"]
-    value:
-    ---
-    # 3
-    cmd: column
-    xpath: ./Association[Type="Adopt a Picture"]/Person/PersonName
-    parent_path: ./Association[Type="Adopt a Picture"]/Person
-    title: Name
-    person_name:
-    ---
-    # 4
-    cmd: constant
-    xpath: ./Association[Type="Adopt a Picture"]/SummaryText
-    parent_path: ./Association[Type="Adopt a Picture"]
-    value:
-    ---
-    # 5
-    cmd: constant
-    xpath: ./Association[Type="Adopt a Picture"]/SummaryText/Keyword
-    parent_path: ./Association[Type="Adopt a Picture"]/SummaryText
-    value: dedication
-    ---
-    # 6
-    cmd: column
-    xpath: ./Association[Type="Adopt a Picture"]/SummaryText/Note
-    parent_path: ./Association[Type="Adopt a Picture"]/SummaryText
-    title: Dedication
-    element: Note
-    ---
-    # 7
-    cmd: column
-    xpath: ./Association[Type="Adopt a Picture"]/Date
-    parent_path: ./Association[Type="Adopt a Picture"]
-    date:
-    ---
-
-The first command searches for an *Association* element that has a child *Type* element
-containing text ``Adopt a Picture``. In this case we expect it to not be found so it will
-be created. Because we know that it doesn't already exist, we could have left out the
-``Type=`` clause in the xpath, but it is included to avoid confusion. The **child:** and
-**child_value:** statements in this document will create the subelement with tag *Type*
-and text ``Adopt a Picture``. The **value:** statement is mandatory with a **constant**
-command but is left empty resulting in no text in the ``Association`` element. The text
-will appear in the child element, ``Type``.
-
-Command # 2 creates a *Person* element with no text. Command # 3 creates a *PersonName*
-subelement to the newly created *Person* element containing text from the **Name** column
-in the CSV file. The **person_name:** statement causes the name to be converted to
-"lastname, firstname" format.
-
-Commands # 4, 5, and 6 similarly create *SummaryText/Keyword* and *SummaryText/Note*
-elements. Command # 6 contains the **element:** statement to designate the subelement
-name to be created. If it was not specified, then the element would be *Dedication* taken
-from the **title:** statment. The **title:** is ``Dedication`` because that is the heading
-of the corresponding column in the CSV file.
-
-Command # 7 creates a *Date* subelement. The **date:** statement says to convert the
-date to standard Modes format of dd.mm.yyyy.
-
-The shell command to effect this update is::
-
-    python src/update_from_csv. \
-      prod_update/normal/2022-10-31_loc_JB010.xml \
-      prod_update/normal/2022-11-01_adopt.xml \
-      -c src/cfg/y010_adopt_a_picture.yml \
-      -m results/csv/sally/pictures_adopted.csv \
-      --serial 'Accn. No.' -a
-
-
-Insert an element with Attributes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-We want to create a complete element group under the ``Object`` element with
-an attribute of elementtype. In this case, the template for the Object was
-``reproduction`` which does not include a ``References`` group. The
-resultant element group is like::
-
-       <References>
-           <Reference elementtype="First Published In">
-               <Title>Child’s Arabian Nights: The fisherman</Title>
-               <Page>Frontis</Page>
-           </Reference>
-       </References>
-
-
-The following is an edited copy of ``.../modes/bin/update/2023-06-12_canprints.sh``::
-
-   #!/bin/zsh
-   INXML=2023-05-21_loc.xml
-   OUTXML=2023-06-12_canprints.xml
-   cat >tmp/update.csv <<EOF
-   Serial,Story,Page
-   2022.11,Child’s Arabian Nights: The fisherman,Frontis
-   ...
-   2022.22,Child’s Arabian Nights: The fish bone,p.80
-   EOF
-   cat >tmp/update.yml <<EOF
-   # 1
-   cmd: global
-   add_mda_code:
-   ---
-   # 2
-   cmd: constant
-   xpath: ./References
-   parent_path: .
-   insert_after: Reproduction
-   value:
-   ---
-   # 3
-   cmd: constant
-   xpath: ./References/Reference
-   parent_path: ./References
-   attribute: elementtype
-   attribute_value: "First Published In"
-   value:
-   ---
-   # 4
-   cmd: column
-   xpath: ./References/Reference/Title
-   parent_path: ./References/Reference
-   title: Story
-   element: Title
-   ---
-   # 5
-   cmd: column
-   xpath: ./References/Reference/Page
-   parent_path: ./References/Reference
-   ---
-   EOF
-   python src/update_from_csv.py prod_update/normal/$INXML \
-                                 prod_update/normal/$OUTXML \
-                                 -c tmp/update.yml -m tmp/update.csv -r -a -v 2
-   bin/syncprod.sh
-
-The first command, *global*, contains the *add_mda_code* statement, required because the given
-serial numbers were missing the leading ``LDHRM`` prefix.
-
-Command # 2 creates the initial *References* group. The *value* statement is
-required but is left empty. Note that the *insert_after* statement contains
-a simple tag name, not an XPATH.
-
-Command # 3 creates the *Reference* element with the
-attribute ``elementtype="First Published In"``.
-
-Commands # 4 and 5 create the sub-elements containing the actual data from the
-CSV file. In #4, the *title* statement indicates the CSV file column to fetch
-the data from and the *element* statement indicates the name of the element to
-create. This is required as it would otherwise be "Story", taken from the *title*
-statement.
-
-
-Inserting Sub-IDs
-~~~~~~~~~~~~~~~~~
-
-.. note::
-   This feature is separate from the **item** command used in ``csv2xml.py``.
-   That command is used to extract a list of items from a single cell in a
-   row while this process creates one item from each row.
-
-This is a special mode in ``update_from_csv.py`` wherein all of the rows in the
-input CSV file contain serial numbers which specify sub-IDs. Examples are::
-
-   JB1204.10
-   LDHRM.2022.10.4
-
-In each case there is an extra field at the end of the ID. This field must be
-numeric. This mode is enabled by the global statement **subid_parent** which
-must contain the path to the parent element of the Item elements to be inserted
-for the new subIDs. You must also specify **subid_grandparent** for the case
-of the parent not existing.
-
-A sample YAML configuration file is::
-
-   cmd: global
-   subid_parent: ItemList
-   subid_grandparent: .
-   ---
-   cmd: column
-   xpath: Date
-   ---
-   cmd: column
-   xpath: BriefDescription
-   title: Description
-
-Note that the XPATH is relative to the subid_parent. The subid_parent is relative
-to the subid_grandparent which must be an absolute path.
-
-The corresponding CSV file is::
-
-   Serial,Date,Description
-   L7.1,13.12.1940,"From: Jack Sprat, To: Joe Blow"
-   L7.2,14.12.1940,"From: Jack Sprat, To: Joe Blogs"
-
-This results in the following being inserted in the Object element::
-
-        <ItemList>
-            <Item>
-                <ListNumber>1</ListNumber>
-                <ObjectIdentity>L007.1</ObjectIdentity>
-                <Date>13.12.1940</Date>
-                <BriefDescription>From: Jack Sprat, To: Joe Blow</BriefDescription>
-            </Item>
-            <Item>
-                <ListNumber>2</ListNumber>
-                <ObjectIdentity>L007.2</ObjectIdentity>
-                <Date>14.12.1940</Date>
-                <BriefDescription>From: Jack Sprat, To: Joe Blogs</BriefDescription>
-            </Item>
-                <BriefDescription>From: Jack Sprat, To: Joe Blogssuper</BriefDescription>
-            </Item>
-        </ItemList>
-
-Note that the accession number has been expanded from L7 to L007 in accordance
-with the rule for "JB" and "L" numbers.
