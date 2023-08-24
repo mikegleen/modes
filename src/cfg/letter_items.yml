@@ -5,7 +5,7 @@ cmd: global
 subid_parent: ItemList
 subid_grandparent: .
 template_dir: /Users/mlg/pyprj/hrm/modes/etc/templates/normal
-item_template: 2023-07-22_item_template_pretty.xml
+item_template: 2023-07-22_letter_item_template_pretty.xml
 item_root: Item  # default
 ---
 cmd: column
@@ -13,16 +13,19 @@ xpath: ./Date
 date:
 ---
 cmd: column
-xpath: ./Attribute[Keyword="Sender"]/Reading
-title: Sender
+xpath: ./Aspect[Keyword="from"]/Reading
+title: From
 ---
 cmd: column
-xpath: ./Attribute[Keyword="Recipient"]/Reading
-title: Recipient
+xpath: ./Attribute[Keyword="to"]/Reading
+title: To
 ---
 cmd: column
-xpath: ./BriefDescription
-title: Description
+xpath: ./Type
+---
+cmd: column
+xpath: ./Pages
+title: Multiple Images
 ---
 cmd: column
 xpath: ./SummaryText

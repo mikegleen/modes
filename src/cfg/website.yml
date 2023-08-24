@@ -63,3 +63,5 @@ title: Dimensions
 cmd: column
 xpath: ./Description/Aspect[Keyword="pages"]/Reading
 title: Pages
+---
+cmd: multiple
