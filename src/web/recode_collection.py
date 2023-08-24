@@ -24,12 +24,12 @@ PAGE_FIRST_PUBLISHED = 'PageFirstPublished'
 NEEDS_CLEANING = False
 REPLACE_FROM = ''
 REPLACE_TO = ''
-
+NUM_GALLERY_ITEMS = 20
 WHR_DD = 1949  # Last year of the decade in which WHR died
 
 FIELDS = 'Serial Title Medium Exhibition HumanDate IsoDate Decade'
 FIELDS += ' Description Dimensions'
-# FIELDS += ' Description Height Width'
+FIELDS += ' ' + ' '.join([f'Gallery{n:02}' for n in range(1, NUM_GALLERY_ITEMS + 1)])
 
 
 def trace(level, template, *args):
