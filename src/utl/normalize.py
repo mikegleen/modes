@@ -205,6 +205,18 @@ def split_subid(objid: str, mdacode=DEFAULT_MDA_CODE) -> (str, int | None):
         return objid, None
 
 
+def is_subid(objid: str, mdacode: str=DEFAULT_MDA_CODE) -> bool:
+    """
+    :param objid: like JB001 or JB001.1 or LDHRM.2022.1 or LDHRM.2022.1.1
+                    may be normalized
+    :param mdacode: default like LDHRM
+    :return: true if the objid is a subid
+    """
+
+    nobjid = normalize_id(objid, mdacode)
+    return len(nobjid.split('.')) > 2 + nobjid.startswith(mdacode)
+
+
 def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
     """
     The parameter is a string in the format of one of the types of object
