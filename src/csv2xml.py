@@ -171,7 +171,13 @@ def main():
         if global_object_template:
             template = copy.deepcopy(global_object_template)
         else:
-            template = get_template_from_csv(row)
+            try:
+                template = get_template_from_csv(row)
+            except ValueError as ve:  # template key is missing
+                if _args.nostrict:
+                    trace(1, str(ve), color=Fore.YELLOW)
+                    continue
+                raise ve
         elt = template.find(config.record_id_xpath)
         if _args.acc_num:
             accnum = next(accnumgen)
@@ -252,6 +258,12 @@ def getparser():
         Specify the MDA code, used in normalizing the accession number.''' +
                         if_not_sphinx(f''' The default is "{DEFAULT_MDA_CODE}".
                         ''', calledfromsphinx))
+    parser.add_argument('-n', '--nostrict', action='store_true',
+                        help=sphinxify('''
+        Allow the absence of a template file with a key that matches the
+        corresponding value in the column of the CSV file specified by
+        --template. The row will be skipped. The default behavior is to
+        raise a ValueError exception.''', calledfromsphinx))
     parser.add_argument('-o', '--outfile', required=True, help='''
         The output XML file.''')
     parser.add_argument('-p', '--noprolog', action='store_true', help='''
@@ -294,14 +306,16 @@ def check_cfg(c):
     errs = 0
     for doc in c.col_docs:
         if doc[Stmt.CMD] not in (Cmd.COLUMN, Cmd.CONSTANT, Cmd.ITEMS):
-            print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting')
+            trace(0, 'Command "{}" not allowed, exiting.',
+                  doc[Stmt.CMD], color=Fore.RED)
             errs += 1
     for doc in c.ctrl_docs:
-        print(f'Command "{doc[Stmt.CMD]}" not allowed, exiting.')
+        trace(0, 'Command "{}" not allowed, exiting.',
+              doc[Stmt.CMD], color=Fore.RED)
         errs += 1
     if c.template_file and c.templates:
-        print('Do not specify the template_file statement with other '
-              'template-related statements.')
+        trace(0,'Do not specify the template_file statement with'
+              ' other template-related statements.', color=Fore.RED)
         errs += 1
     return errs
 
