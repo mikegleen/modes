@@ -60,6 +60,46 @@ def object_reader(infilename: str | None, config=None, verbos=1):
             yield idnum, elem
 
 
+def get_heading(filepath: str | None, verbos=1, skiprows=0) -> list:
+    """
+
+    :param filepath: the path to the CSV or XLSX input file
+    :param verbos: level of tracing
+    :param skiprows:
+    :return: a list of the heading row
+    """
+    if not filepath:
+        return None
+    _, suffix = os.path.splitext(filepath)
+    if suffix.lower() == '.csv':
+        with codecs.open(filepath, encoding='utf-8-sig') as mapfile:
+            for _ in range(skiprows):
+                next(mapfile)
+            reader = csv.DictReader(mapfile)
+            return reader.fieldnames
+    elif suffix.lower() == '.xlsx':
+        wb = load_workbook(filename=filepath)
+        ws = wb.active
+        enumrows = enumerate(ws.iter_rows(values_only=True))
+        for _ in range(skiprows):
+            next(enumrows)
+        _, heading = next(enumrows)
+        heading = list(heading)  # tuple -> list so it can be trimmed
+        trimrow(heading, 0)
+        n_input_fields = len(heading)
+        # sys.exit()
+        if verbos >= 1:
+            print(f'------- row_dict_reader:\n{filepath}')
+            print(f'heading length: {n_input_fields}]')
+            print(f'Excel Column Headings: '
+                  f'{", ".join([str(x) for x in heading])}')
+        return heading
+    else:
+        if verbos >= 1:
+            print(f'"{suffix}" is not a valid suffix. Terminating.')
+        sys.exit(1)
+
+
 def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
                     allow_long_rows=False):
     """
@@ -77,7 +117,7 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
         return None
     _, suffix = os.path.splitext(filename)
     if suffix.lower() == '.csv':
-        with codecs.open(filename, 'r', 'utf-8-sig') as mapfile:
+        with codecs.open(filename, encoding='utf-8-sig') as mapfile:
             for _ in range(skiprows):
                 next(mapfile)
             reader = csv.DictReader(mapfile)
@@ -98,10 +138,10 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
         _, heading = next(enumrows)
         heading = list(heading)  # tuple -> list so it can be trimmed
         trimrow(heading, 0)
-        # print(len(heading))
-        # sys.exit()
         n_input_fields = len(heading)
+        # sys.exit()
         if verbos >= 1:
+            print(f'row_dict_reader heading length: {n_input_fields}]')
             print(f'Excel Column Headings: '
                   f'{", ".join([str(x) for x in heading])}')
         for nrow, rawrow in enumrows:
@@ -120,3 +160,7 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
             if not ''.join(row.values()):
                 continue
             yield row
+    else:
+        if verbos >= 1:
+            print(f'"{suffix}" is not a valid suffix. Terminating.')
+        sys.exit(1)
