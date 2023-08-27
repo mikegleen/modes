@@ -3,6 +3,7 @@
 """
 import codecs
 import csv
+import datetime
 import os
 import sys
 from openpyxl import load_workbook
@@ -26,6 +27,7 @@ def trimrow(r: list, maxlen: int):
             break
         r.pop()
         ix -= 1
+    return r
 
 
 def object_reader(infilename: str | None, config=None, verbos=1):
@@ -60,7 +62,7 @@ def object_reader(infilename: str | None, config=None, verbos=1):
             yield idnum, elem
 
 
-def get_heading(filepath: str | None, verbos=1, skiprows=0) -> list:
+def get_heading(filepath: str | None, verbos=1, skiprows=0) -> list | None:
     """
 
     :param filepath: the path to the CSV or XLSX input file
@@ -76,7 +78,7 @@ def get_heading(filepath: str | None, verbos=1, skiprows=0) -> list:
             for _ in range(skiprows):
                 next(mapfile)
             reader = csv.DictReader(mapfile)
-            return reader.fieldnames
+            return list(reader.fieldnames)
     elif suffix.lower() == '.xlsx':
         wb = load_workbook(filename=filepath)
         ws = wb.active
@@ -89,8 +91,7 @@ def get_heading(filepath: str | None, verbos=1, skiprows=0) -> list:
         n_input_fields = len(heading)
         # sys.exit()
         if verbos >= 1:
-            print(f'------- row_dict_reader:\n{filepath}')
-            print(f'heading length: {n_input_fields}]')
+            print(f'------- get_heading: {filepath}, heading length: {n_input_fields}')
             print(f'Excel Column Headings: '
                   f'{", ".join([str(x) for x in heading])}')
         return heading
@@ -122,8 +123,8 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
                 next(mapfile)
             reader = csv.DictReader(mapfile)
             n_input_fields = len(reader.fieldnames)
-            if verbos >= 1:
-                print(f'CSV Column Headings: {", ".join(reader.fieldnames)}')
+            if verbos >= 2:
+                print(f'CSV Column Headings: {", ".join(trimrow(reader.fieldnames, 1))}')
             for nrow, row in enumerate(reader):
                 if not allow_long_rows and len(row) > n_input_fields:
                     print(f"Error: row {nrow + 1} longer than heading: {row}")
@@ -140,8 +141,8 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
         trimrow(heading, 0)
         n_input_fields = len(heading)
         # sys.exit()
-        if verbos >= 1:
-            print(f'row_dict_reader heading length: {n_input_fields}]')
+        if verbos >= 2:
+            print(f'row_dict_reader heading length: {n_input_fields}')
             print(f'Excel Column Headings: '
                   f'{", ".join([str(x) for x in heading])}')
         for nrow, rawrow in enumrows:
@@ -156,6 +157,12 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
             for ncell, cell in enumerate(rawrow):
                 if type(cell) == str:
                     cell = cell.replace('\n', ' ')
+                elif cell is None:
+                    cell = ''
+                elif isinstance(cell, datetime.datetime):
+                    cell = cell.strftime('%Y-%m-%d')
+                else:
+                    cell = str(cell)
                 row[heading[ncell]] = '' if cell is None else str(cell).strip()
             if not ''.join(row.values()):
                 continue
