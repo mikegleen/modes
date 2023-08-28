@@ -124,7 +124,8 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
             reader = csv.DictReader(mapfile)
             n_input_fields = len(reader.fieldnames)
             if verbos >= 2:
-                print(f'CSV Column Headings: {", ".join(trimrow(reader.fieldnames, 1))}')
+                fieldnames = ", ".join(trimrow(list(reader.fieldnames), 1))
+                print(f'CSV Column Headings: {fieldnames}')
             for nrow, row in enumerate(reader):
                 if not allow_long_rows and len(row) > n_input_fields:
                     print(f"Error: row {nrow + 1} longer than heading: {row}")
