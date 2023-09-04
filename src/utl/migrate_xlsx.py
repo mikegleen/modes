@@ -80,9 +80,11 @@ def main():
     infiles = os.listdir(_args.indir)
     for infile in infiles:
         _, suffix = os.path.splitext(infile)
-        if suffix.lower() not in ('.csv', '.xlsx'):
+        if suffix.lower() not in ('.csv', '.xlsx') or infile.startswith('~'):
             print(f'Skipping {infile}')
             continue
+        if _args.verbose >= 2:
+            print('***', infile)
         onefile(infile)
         if _args.short:
             return
