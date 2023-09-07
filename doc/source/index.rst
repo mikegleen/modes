@@ -68,7 +68,7 @@ on the individual programs.
 Each document contains some of the following statements. Statement names are
 case sensitive; all must be lower case. The lead statement in a document
 is the **cmd** statement, which controls the function of the document.
-Commands can be column-related or control command which determine which objects
+Commands can be column-related or control commands which determine which objects
 are processed. There is also a **global** command.
 
 When creating a CSV file, by default the first column is the serial number
