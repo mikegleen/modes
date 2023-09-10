@@ -11,7 +11,6 @@
 import argparse
 import codecs
 import csv
-import os.path
 import sys
 
 import openpyxl.cell.cell
@@ -19,6 +18,7 @@ from openpyxl import Workbook
 
 from utl.normalize import sphinxify
 from utl.readers import row_dict_reader
+from utl.cfgutil import expand_idnum
 
 NEWCOLS = ('Serial,Pages,Date,Person From,Person To,Org From,Org To,Type,'
            'Publ Name,Publ Date,Publ Page,Title,Author,Comment,'
@@ -28,29 +28,47 @@ NEW_TO_OLD_MAP = {'Pages': 'Multiple Images',
                   'Person From': 'From',
                   'Person To': 'To'}
 
+LOCS = """G8 JB1204&6&11&13
+G9 JB1203&8&9&7&28
+G10 JB1202&18&19&20&21&10&12
+G10 JB1205A
+G11 JB1205B"""
+loclist = LOCS.split('\n')
 
-def onefile(filename):
-    is_xlsx = filename.lower().endswith('.xlsx')
-    outpath = os.path.join(_args.outdir, filename)
+
+def make_locdict():
+    locdict = {}
+    for row in loclist:
+        loc, assns = row.split()
+        # print(assns)
+        assnlist = expand_idnum(assns)
+        for assn in assnlist:
+            locdict[assn] = loc
+        print(loc, assnlist)
+    return locdict
+
+
+def main():
+    locdict = make_locdict()
+    infilepath = _args.infile
+    outfilepath = _args.outfile
+    is_xlsx = outfilepath.lower().endswith('.xlsx')
     workbook = ws = outcsv = None  # Stop pycharm whining
     if is_xlsx:
         workbook = Workbook()
-        del workbook[workbook.sheetnames[0]]  # remove the default sheet
-        ws = workbook.create_sheet('Sheet1')
+        ws = workbook.active
         for col_num, col in enumerate(NEWCOLS, start=1):
             cell = ws.cell(row=1, column=col_num, value=col)
             cell.data_type = openpyxl.cell.cell.TYPE_STRING
     else:
         encoding = 'utf-8-sig'  # if _args.bom else 'utf-8'
-        csvfile = codecs.open(outpath, 'w', encoding)
-        outcsv = csv.writer(csvfile, delimiter=',')
+        csvfile = codecs.open(outfilepath, 'w', encoding)
+        outcsv = csv.DictWriter(csvfile, fieldnames=NEWCOLS)
         outcsv.writerow(NEWCOLS)
-    infilepath = os.path.join(_args.indir, filename)
     row_num = 1
-    for inrow in row_dict_reader(infilepath, _args.verbose,
-                                 _args.skip_rows):
+    for inrow in row_dict_reader(infilepath, _args.verbose):
         row_num += 1
-        outrow = []
+        outrow = {}
         for col_num, col in enumerate(NEWCOLS, start=1):
             if col in inrow:
                 value = inrow[col]
@@ -60,56 +78,44 @@ def onefile(filename):
                 value = ''
             if value is None:
                 value = ''
-            outrow.append(value)
-        if not ''.join(outrow[1:]):  # empty row
+            outrow[col] = value
+        if not ''.join(list(outrow.values())[1:]):  # empty row
+            print(f'Skipping empty row {row_num}.')
             continue
         # print(outrow)
+        assns = inrow['Serial'].split('.')  # JB001.1 -> ['JB001', '1']
+        assn = assns[0]
+        if assn in locdict:
+            outrow['Location'] = locdict[assn]
+        else:
+            outrow['Location'] = 'N/A'
         if is_xlsx:
-            for col_num, value in enumerate(outrow, start=1):
-                cell = ws.cell(row=row_num, column=col_num, value=value)
+            for col_num, col_key in enumerate(NEWCOLS, start=1):
+                cell = ws.cell(row=row_num, column=col_num, value=outrow[col_key])
                 cell.data_type = openpyxl.cell.cell.TYPE_STRING
                 cell.number_format = openpyxl.styles.numbers.FORMAT_TEXT
         else:
             outcsv.writerow(outrow)
 
     if is_xlsx:
-        workbook.save(outpath)
+        ws.freeze_panes = 'A2'
+        workbook.save(outfilepath)
     return
-
-
-def main():
-    os.makedirs(_args.outdir, exist_ok=True)
-    infiles = os.listdir(_args.indir)
-    for infile in infiles:
-        _, suffix = os.path.splitext(infile)
-        if suffix.lower() not in ('.csv', '.xlsx') or infile.startswith('~'):
-            print(f'Skipping {infile}')
-            continue
-        if _args.verbose >= 2:
-            print('***', infile)
-        onefile(infile)
-        if _args.short:
-            return
 
 
 def getparser():
     parser = argparse.ArgumentParser(description=sphinxify('''
 
                 ''', calledfromsphinx))
-    parser.add_argument('indir', help='''
-        Input folder with CSV or XLSX files.
+    parser.add_argument('infile', help='''
+        Input file with CSV or XLSX files.
         ''')
-    parser.add_argument('outdir', help='''
-        Output folder to contain newly created files.
+    parser.add_argument('outfile', help='''
+        Output file.
         ''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
-    parser.add_argument('-s', '--short', action='store_true', help='''
-        Only process one object. For debugging.''')
-    parser.add_argument('--skip_rows', type=int, default=0, help='''
-        Skip rows at the beginning of the input file. In the output file,
-        the heading will start at the first row.''')
     return parser
 
 

@@ -42,7 +42,10 @@ The following formats are allowed::
     JB002 - JB004
     SH1-99
 
-White space in the field is ignored.
+White space in the field is ignored. A restriction is that the first number
+must be lower than the following ones when using the "&" operator. For example,
+in the first case shown above, "JB002&4&6&...", "JB007&4&6&..." would be
+illegal.
 
 
 Date Formats

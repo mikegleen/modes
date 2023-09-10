@@ -1,4 +1,5 @@
 """
+    Add location information to the spreadsheet.
 """
 import codecs
 import csv
