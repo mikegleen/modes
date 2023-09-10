@@ -5,7 +5,7 @@
     If the names don’t match exactly, map the new to the old name in
     NEW_TO_OLD_MAP.
 
-    If the output file is .xlsx, all cells are set to type string.
+    If the output file is .xlsx, all cells are set to number type "text".
 
 """
 import argparse
@@ -28,17 +28,21 @@ NEW_TO_OLD_MAP = {'Pages': 'Multiple Images',
                   'Person From': 'From',
                   'Person To': 'To'}
 
-LOCS = """G8 JB1204&6&11&13
+LOCS = """
+G8 JB1204&6&11&13
 G9 JB1203&8&9&7&28
 G10 JB1202&18&19&20&21&10&12
 G10 JB1205A
-G11 JB1205B"""
+G11 JB1205B
+"""
 loclist = LOCS.split('\n')
 
 
 def make_locdict():
     locdict = {}
     for row in loclist:
+        if not row.strip():
+            continue  # skip blank lines
         loc, assns = row.split()
         # print(assns)
         assnlist = expand_idnum(assns)
@@ -57,45 +61,45 @@ def main():
     if is_xlsx:
         workbook = Workbook()
         ws = workbook.active
-        for col_num, col in enumerate(NEWCOLS, start=1):
-            cell = ws.cell(row=1, column=col_num, value=col)
+        for col_num, colname in enumerate(NEWCOLS, start=1):
+            cell = ws.cell(row=1, column=col_num, value=colname)
             cell.data_type = openpyxl.cell.cell.TYPE_STRING
     else:
-        encoding = 'utf-8-sig'  # if _args.bom else 'utf-8'
+        encoding = 'utf-8-sig'
         csvfile = codecs.open(outfilepath, 'w', encoding)
         outcsv = csv.DictWriter(csvfile, fieldnames=NEWCOLS)
-        outcsv.writerow(NEWCOLS)
+        outcsv.writeheader()
     row_num = 1
     for inrow in row_dict_reader(infilepath, _args.verbose):
         row_num += 1
-        outrow = {}
-        for col_num, col in enumerate(NEWCOLS, start=1):
-            if col in inrow:
-                value = inrow[col]
-            elif col in NEW_TO_OLD_MAP:
-                value = inrow[NEW_TO_OLD_MAP[col]]
+        outrowdict = {}
+        for col_num, colname in enumerate(NEWCOLS, start=1):
+            if colname in inrow:
+                value = inrow[colname]
+            elif colname in NEW_TO_OLD_MAP:
+                value = inrow[NEW_TO_OLD_MAP[colname]]
             else:
                 value = ''
             if value is None:
                 value = ''
-            outrow[col] = value
-        if not ''.join(list(outrow.values())[1:]):  # empty row
+            outrowdict[colname] = value
+        if not ''.join(list(outrowdict.values())[1:]):  # empty row
             print(f'Skipping empty row {row_num}.')
             continue
-        # print(outrow)
+        # print(outrowdict)
         assns = inrow['Serial'].split('.')  # JB001.1 -> ['JB001', '1']
         assn = assns[0]
         if assn in locdict:
-            outrow['Location'] = locdict[assn]
+            outrowdict['Location'] = locdict[assn]
         else:
-            outrow['Location'] = 'N/A'
+            outrowdict['Location'] = 'N/A'
         if is_xlsx:
             for col_num, col_key in enumerate(NEWCOLS, start=1):
-                cell = ws.cell(row=row_num, column=col_num, value=outrow[col_key])
+                cell = ws.cell(row=row_num, column=col_num, value=outrowdict[col_key])
                 cell.data_type = openpyxl.cell.cell.TYPE_STRING
                 cell.number_format = openpyxl.styles.numbers.FORMAT_TEXT
         else:
-            outcsv.writerow(outrow)
+            outcsv.writerow(outrowdict)
 
     if is_xlsx:
         ws.freeze_panes = 'A2'
