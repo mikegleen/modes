@@ -105,7 +105,7 @@ def datefrombritishdate(indate: str) -> tuple[datetime.date, int, str]:
     except ValueError:
         pass
     try:  # ISO 8601
-        d = datetime.datetime.strptime("%Y-%m-%d").date()
+        d = datetime.datetime.strptime(indate, "%Y-%m-%d").date()
         return d, 3, BRITISHTYPE
     except ValueError:
         pass
