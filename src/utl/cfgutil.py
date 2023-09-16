@@ -55,6 +55,7 @@ class Cmd:
     ITEMS = 'items'
     # "IF" commands follow:
     IF = 'if'  # if text is present
+    IFCOLUMNEQ = 'ifcolumneq'  # csv2xml only
     IFELT = 'ifelt'  # if the element is present
     IFNOTELT = 'ifnotelt'  # if the element is not present
     IFNOT = 'ifnot'  # if the element doesn't exist or text is not present
@@ -65,12 +66,12 @@ class Cmd:
     IFEQ = 'ifeq'  # if the elt text equals the value statement
     IFNOTEQ = 'ifnoteq'  # if the elt text does not equal the value statement
     # Commands that do not produce a column in the output CSV file
-    _CONTROL_CMDS = (IF, IFNOT, IFEQ, IFNOTEQ, IFATTRIB, GLOBAL,
+    _CONTROL_CMDS = (IF, IFNOT, IFEQ, IFNOTEQ, IFATTRIB, GLOBAL, IFCOLUMNEQ,
                      IFCONTAINS, IFATTRIBEQ, IFATTRIBNOTEQ, IFELT, IFNOTELT)
     _NEEDVALUE_CMDS = (KEYWORD, IFEQ, IFNOTEQ, IFATTRIBEQ, IFATTRIBNOTEQ,
-                       IFCONTAINS, CONSTANT)
-    _NEEDXPATH_CMDS = (ATTRIB, COLUMN, CONSTANT, COUNT, ITEMS, IF, IFNOT, IFELT, IFEQ,
-                       IFNOTEQ, IFCONTAINS, IFATTRIB, IFATTRIBEQ,
+                       IFCOLUMNEQ, IFCONTAINS, CONSTANT)
+    _NEEDXPATH_CMDS = (ATTRIB, COLUMN, CONSTANT, COUNT, ITEMS, IF, IFNOT,
+                       IFELT, IFEQ, IFNOTEQ, IFCONTAINS, IFATTRIB, IFATTRIBEQ,
                        IFATTRIBNOTEQ, KEYWORD, MULTIPLE, IFNOTELT)
 
     @staticmethod
@@ -560,7 +561,7 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
         # construct the title from the trailing element name from the xpath
         # statement. The validate_yaml_cfg function checks that the xpath
         # statement is there if needed.
-        # print('readyaml')
+        #
         if Stmt.TITLE in document:
             if Stmt.ELEMENT not in document:
                 document[Stmt.ELEMENT] = document[Stmt.TITLE]
