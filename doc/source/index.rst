@@ -109,8 +109,7 @@ the ``cmd: global`` document.
    in the document page *Data Formats* for the formats supported. Allowed in ``csv2xml.py``.
 -  **element** Referenced when processing the **parent_path** statment for the name
    of the element's tag to be created. If this is omitted the element name will be taken
-   from the **title** statment. If both are omitted the name will be taken from the title
-   generated from the **xpath** statement.
+   from the **xpath** statment.
 -  **insert_after** If an element doesn't exist, it will be inserted after the
    element who's simple name is given here. You must also specify **parent_path**. If this
    statement is not specified, the new element will be inserted as the parent's last
