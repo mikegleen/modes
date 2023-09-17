@@ -1,8 +1,7 @@
 #!/bin/zsh
 set -e
-INXML=2023-07-31_jersey2store.xml
 INCSV=../letters/2023-09-12_letters.xlsx
-OUTXML=2023-09-13_letters.xml
+OUTXML=2023-09-15_letters.xml
 cat >tmp/update.yml <<EOF
 cmd: global
 template_title: Type
@@ -25,6 +24,7 @@ xpath: ./Production/Date/DateBegin
 parent_path: ./Production/Date
 date:
 title: Date
+#element: DatesBegin
 ---
 cmd: column
 xpath: ./Production/Date/Accuracy
@@ -74,5 +74,5 @@ value: 13.9.2023
 ---
 EOF
 python src/csv2xml.py -o prod_update/normal/$OUTXML \
-                      -c tmp/update.yml -i $INCSV -v 2 -n
+                      -c tmp/update.yml -i $INCSV -v 1 --nostrict
 bin/syncprod.sh
