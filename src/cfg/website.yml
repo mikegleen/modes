@@ -10,7 +10,7 @@ cmd: column
 xpath: ./Description/Material[Part="medium"]/Keyword
 title: Medium
 ---
-# For books, this is the publication date.
+# For books or letters, this is the publication date.
 cmd: column
 xpath: ./Production/Date
 ---
@@ -64,4 +64,19 @@ cmd: column
 xpath: ./Description/Aspect[Keyword="pages"]/Reading
 title: Pages
 ---
-cmd: multiple
+cmd: column
+xpath: ./Production/Person[Role="sender"]/PersonName
+title: Sender
+---
+cmd: column
+xpath: ./Production/Organisation[Role="sender"]/OrganisationName
+title: Sender Org
+---
+cmd: column
+xpath: ./Production/Person[Role="recipient"]/PersonName
+title: Recipient
+---
+cmd: column
+xpath: ./Production/Organisation[Role="recipient"]/OrganisationName
+title: Recipient Org
+---
