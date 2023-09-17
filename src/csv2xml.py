@@ -5,6 +5,7 @@
 import argparse
 from colorama import Fore, Style
 import copy
+from inspect import getframeinfo, stack
 import os.path
 import re
 import sys
@@ -21,10 +22,19 @@ from utl.readers import row_dict_reader
 
 def trace(level, template, *args, color=None):
     if _args.verbose >= level:
+        if _args.verbose > 1:
+            caller = getframeinfo(stack()[1][0])
+            print(f'{os.path.basename(caller.filename)} line {caller.lineno}: ', end='')
         if color:
-            print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
+            if len(args) == 0:
+                print(f'{color}{template}{Style.RESET_ALL}')
+            else:
+                print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
         else:
-            print(template.format(*args))
+            if len(args) == 0:
+                print(template)
+            else:
+                print(template.format(*args))
 
 
 def clean_accnum(accnum: str):
@@ -105,12 +115,21 @@ def get_object_from_file(templatefilepath):
 
 
 def get_template_from_csv(row: dict[str]):
+    """
+    :param row: a row from the CSV file
+    :return: the template as an ElementTree element
+    :raises: ValueError if the key from the CSV file is not in the config.
+    """
     key = row[config.template_title].lower()
     if key not in config.templates:
-        raise ValueError(f'Template key in CSV file: {key} is not in config.'
-                         f' {row=}')
+        msg = (f'Template key in CSV file: "{key}" is not in config.'
+               f' {row=}')
+        if _args.nostrict:
+            trace(2, msg)
+            return None
+        raise ValueError(msg)
     templatefilepath = os.path.join(config.template_dir, config.templates[key])
-    trace(2, 'template file: {}', templatefilepath)
+    trace(3, 'template file: {}', templatefilepath)
     return get_object_from_file(templatefilepath)
 
 
@@ -124,6 +143,7 @@ def store(xpath: str, doc, template, accnum, text):
     :param text: The text from the CSV file to store
     :return: None
     """
+    trace(2, 'serial: {}, xpath: {}, text: {}', accnum, xpath, text)
     elt = template.find(xpath)
     cmd = doc[Stmt.CMD]
     if elt is None:
@@ -163,27 +183,35 @@ def main():
         global_object_template = get_object_from_file(config.template_file)
 
     nrows = 0
-    # PyCharm whines if we don't initialize accnumgen
+    # PyCharm whines if we don't initialize variables
     accnumgen = next_accnum(_args.acc_num)
+    ifcolumneq_doc = ifcolumneq_title = ifcolumneq_value = None
+    for doc in config.ctrl_docs:
+        if doc[Stmt.CMD] == Cmd.IFCOLUMNEQ:
+            ifcolumneq_doc = doc
+    if ifcolumneq_doc:
+        ifcolumneq_title = ifcolumneq_doc[Stmt.TITLE]
+        ifcolumneq_value = ifcolumneq_doc[Stmt.VALUE]
     for row in row_dict_reader(_args.incsvfile, _args.verbose,
                                _args.skip_rows):
+        if ifcolumneq_doc:
+            if row[ifcolumneq_title] != ifcolumneq_value:
+                trace(2, 'skipping {} row: {}',
+                      row[ifcolumneq_title], row[_args.serial])
+                continue
         emit = True
         if global_object_template:
             template = copy.deepcopy(global_object_template)
         else:
-            try:
-                template = get_template_from_csv(row)
-            except ValueError as ve:  # template key is missing
-                if _args.nostrict:
-                    trace(1, str(ve), color=Fore.YELLOW)
-                    continue
-                raise ve
+            template = get_template_from_csv(row)
+        if template is None:  # template not found but nostrict is True
+            continue
         elt = template.find(config.record_id_xpath)
         if _args.acc_num:
             accnum = next(accnumgen)
             trace(2, 'Serial generated: {}', accnum)
         else:
-            trace(2, '{}', row)
+            trace(3, '{}', row)
             accnum = row[_args.serial]
             if not accnum:
                 trace(1, '\n*** Serial number empty, row skipped: {}', ','.
@@ -195,12 +223,13 @@ def main():
         elt.text = accnum
         for doc in config.col_docs:
             cmd = doc[Stmt.CMD]
+            # print(f'cmd: {doc[Stmt.CMD]}')
             title = doc[Stmt.TITLE]
             if cmd == Cmd.CONSTANT:
                 text = doc[Stmt.VALUE]
             else:
                 text = row[title]
-            trace(4, 'text="{}"', text)
+            trace(4, 'column="{}", text="{}"', title, text)
             if cmd != Cmd.CONSTANT and not text:
                 trace(3, '{}: cell empty {}', accnum, title)
                 if Stmt.REQUIRED in doc:
@@ -240,7 +269,7 @@ def getparser():
         "LDHRM.2021.2", "LDHRM.2021.3", etc. This value will be stored in the
         ObjectIdentity/Number element.''')
     parser.add_argument('-c', '--cfgfile', required=True,
-                        type=argparse.FileType('r'), help=sphinxify('''
+                        type=argparse.FileType(), help=sphinxify('''
         The YAML file describing the column path(s) to update.
         The config file may contain only ``column``, ``constant``, or
         ``items`` column-related commands or template-related commands.
@@ -306,15 +335,18 @@ def check_cfg(c):
     errs = 0
     for doc in c.col_docs:
         if doc[Stmt.CMD] not in (Cmd.COLUMN, Cmd.CONSTANT, Cmd.ITEMS):
-            trace(0, 'Command "{}" not allowed, exiting.',
+            trace(0, 'Column-oriented command "{}" not allowed,'
+                     ' exiting.',
                   doc[Stmt.CMD], color=Fore.RED)
             errs += 1
     for doc in c.ctrl_docs:
-        trace(0, 'Command "{}" not allowed, exiting.',
+        if doc[Stmt.CMD] == Cmd.IFCOLUMNEQ:
+            continue
+        trace(0, 'Control command "{}" not allowed, exiting.',
               doc[Stmt.CMD], color=Fore.RED)
         errs += 1
     if c.template_file and c.templates:
-        trace(0,'Do not specify the template_file statement with'
+        trace(0, 'Do not specify the template_file statement with'
               ' other template-related statements.', color=Fore.RED)
         errs += 1
     return errs
@@ -336,7 +368,7 @@ if __name__ == '__main__':
     config: Config = Config(_args.cfgfile, dump=_args.verbose > 1,
                             allow_required=True)
     if errors := check_cfg(config):
-        trace(1, '{} errors found. Aborting.', errors)
+        trace(1, '{} error(s) found. Aborting.', errors)
         sys.exit(1)
     main()
     trace(1, 'End csv2xml. {} object{} written.', nrows,

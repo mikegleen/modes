@@ -557,32 +557,30 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
         cmd = document[Stmt.CMD]
         if cmd in Cmd.get_control_cmds():
             continue
+        if Stmt.XPATH not in document:
+            continue  # error will be caught later
         # Specify the column title. If the title isn't specified in the doc,
         # construct the title from the trailing element name from the xpath
         # statement. The validate_yaml_cfg function checks that the xpath
         # statement is there if needed.
         #
-        if Stmt.TITLE in document:
-            if Stmt.ELEMENT not in document:
-                document[Stmt.ELEMENT] = document[Stmt.TITLE]
-        else:
-            if Stmt.XPATH not in document:
-                continue  # error will be caught later
-            target = document.get(Stmt.XPATH)
+        if Stmt.PARENT_PATH in document and Stmt.ELEMENT not in document:
+            xpath = document[Stmt.XPATH]
+            element = xpath.split('/')[-1]  # trailing element name
+            document[Stmt.ELEMENT] = element
+        if Stmt.TITLE not in document:
+            target = document[Stmt.XPATH]
             # print('target', target)
             attribute = document.get(Stmt.ATTRIBUTE)
             h = target.split('/')[-1]  # trailing element name
             target = h.split('[')[0]  # strip trailing [@xyz='def']
             # Handle the edge case where the element is not specified and the
             # title contains the attribute name.
-            element = target
             if attribute:
                 target += '@' + attribute
             elif cmd == Cmd.COUNT:
                 target = f'{target}(n)'
             document[Stmt.TITLE] = target
-            if Stmt.ELEMENT not in document:
-                document[Stmt.ELEMENT] = element
         if document[Stmt.TITLE] in titles:
             raise ValueError(f'Duplicate title "{document[Stmt.TITLE]}"')
         titles.add(document[Stmt.TITLE])
