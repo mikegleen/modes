@@ -5,15 +5,23 @@
     Merge the 'Exhibition Name' and 'Exhibition Place' columns producing a
     single column of "<name> at <place>".
 
-    Input is the CSV file produced by csv2xml.py using website.yml
-    Output is a reformatted CSV file.
+    Input is the CSV file produced by xml2csv.py using website.yml
+    Also input is a file produced by x051_harvest_letter_jpgs.py containing
+    gallery information.
+
+    Output is a reformatted CSV file to feed to WordPress.
 """
 import argparse
 import codecs
 import csv
+import os
 import re
 import sys
-from utl.normalize import britishdatefrommodes
+from inspect import getframeinfo, stack
+
+from colorama import Fore, Style
+
+from utl.normalize import britishdatefrommodes, normalize_id, denormalize_id
 from utl.normalize import isoformatfrommodesdate
 from utl.normalize import sphinxify
 
@@ -27,14 +35,27 @@ REPLACE_TO = ''
 NUM_GALLERY_ITEMS = 20
 WHR_DD = 1949  # Last year of the decade in which WHR died
 
+GALLERY_LIST = [f'Gallery{n:02}' for n in range(1, NUM_GALLERY_ITEMS + 1)]
 FIELDS = 'Serial Title Medium Exhibition HumanDate IsoDate Decade'
 FIELDS += ' Description Dimensions'
-FIELDS += ' ' + ' '.join([f'Gallery{n:02}' for n in range(1, NUM_GALLERY_ITEMS + 1)])
+FIELDS += ' ' + ' '.join(GALLERY_LIST)
 
 
-def trace(level, template, *args):
+def trace(level, template, *args, color=None):
     if _args.verbose >= level:
-        print(template.format(*args))
+        if _args.verbose > 1:
+            caller = getframeinfo(stack()[1][0])
+            print(f'{os.path.basename(caller.filename)} line {caller.lineno}: ', end='')
+        if color:
+            if len(args) == 0:
+                print(f'{color}{template}{Style.RESET_ALL}')
+            else:
+                print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
+        else:
+            if len(args) == 0:
+                print(template)
+            else:
+                print(template.format(*args))
 
 
 def decade(datebegin, dateend):
@@ -62,9 +83,20 @@ def clean(s):
     return s
 
 
+def read_img_csv_file() -> dict[list]:
+    img_dict = {}
+    with codecs.open(_args.imgcsvfile, encoding='utf-8-sig') as imgcsvfile:
+        reader = csv.reader(imgcsvfile)
+        for row in reader:
+            n_serial = normalize_id(row[0])
+            img_dict[n_serial] = row[1].split('|')
+    return img_dict
+
+
 def onerow(oldrow):
-    newrow = dict()
-    newrow['Serial'] = oldrow['Serial'].upper()  # to be sure to be sure
+    newrow = {}
+    n_serial = normalize_id(oldrow['Serial'])
+    newrow['Serial'] = denormalize_id(n_serial)  # to be sure to be sure
     trace(2, 'Serial = {}', newrow['Serial'])
     newrow['Title'] = clean(oldrow['Title'])
     newrow['Medium'] = oldrow['Medium']
@@ -160,6 +192,26 @@ def onerow(oldrow):
     if oldrow['Pages']:
         nl = '<br/>' if m else ''
         newrow['Dimensions'] += f"{nl}Number of Pages:{oldrow['Pages']}"
+
+    # ------------------------- Gallery -------------------------------------
+
+    if n_serial in imgdict:
+        imglist = imgdict[n_serial]
+        if len(imglist) > len(GALLERY_LIST):
+            trace(1, '{} images exceed available columns.', n_serial,
+                  color=Fore.YELLOW)
+        gallery = zip(GALLERY_LIST, imglist)
+        for key, value in gallery:
+            newrow[key] = value
+        del imgdict[n_serial]
+    else:
+        trace(1, 'Cannot find images for {}, n_serial', color=Fore.YELLOW)
+
+    # ------------------------- Letters -------------------------------------
+
+
+
+
     return newrow
 
 
@@ -205,6 +257,11 @@ def getparser() -> argparse.ArgumentParser:
         ''', called_from_sphinx))
     parser.add_argument('outfile', help='''
         The output CSV file.''')
+    parser.add_argument('-g', '--imgcsvfile', required=True,
+                        help=sphinxify('''
+        This file contains two columns, the Serial number and a vertial bar
+        separated list of image files.        
+        ''', called_from_sphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -228,11 +285,16 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         sys.argv.append('-h')
     _args = getargs(sys.argv)
-    incsvfile = codecs.open(_args.incsvfile, 'r', encoding='utf-8-sig')
+    incsvfile = codecs.open(_args.incsvfile, encoding='utf-8-sig')
     outfile = codecs.open(_args.outfile, 'w', encoding='utf-8-sig')
     trace(1, 'Begin recode_collection.')
     trace(1, '    Input file: {}', _args.incsvfile)
     trace(1, '    Creating file: {}', _args.outfile)
+    imgdict = read_img_csv_file()
     nrows = main()
+    if len(imgdict):
+        trace(1, '{} images discarded', len(imgdict))
+    for serial in imgdict.keys():
+        trace(2, '{}: images not used.')
     trace(1, 'End recode_collection. {} row{} written.', nrows,
           '' if nrows == 1 else 's')
