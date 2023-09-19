@@ -251,7 +251,8 @@ Data-related Commands
    statement.
 -  **keyword** Find the element specified by the xpath statement whose text
    equals the text in the **value** statement and then return the
-   first Keyword sub-element's text.
+   first ``Keyword`` sub-element's text. This for the special (and deprecated) case where
+   an element contains both text and subelements.
 -  **multiple** Used by ``xml2csv.py``. Like the **column** command except it produces a
    delimiter-separated list of values. See the optional **multiple_delimiter** statement.
 
