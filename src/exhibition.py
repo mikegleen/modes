@@ -36,7 +36,7 @@ import sys
 from colorama import Fore, Style
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from cfg.exhibition_list import EXSTR
+from utl.exhibition_list import EXSTR
 from utl.cfgutil import Stmt, expand_idnum
 from utl.excel_cols import col2num
 from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
