@@ -375,12 +375,13 @@ def getparser():
         Write all objects. The default is to only write updated objects.''')
     parser.add_argument('--allow_missing', action='store_true', help='''
         Skip rows with missing exhibition numbers. Otherwise abort.''')
-    parser.add_argument('--col_acc', help='''
+    parser.add_argument('--col_acc', help=sphinxify('''
         The zero-based column containing the accession number of the
         object to be updated. The default is column zero. The column can be a
-        number or a spreadsheet-style letter.''')
+        number or a spreadsheet-style letter. Ignored if --exhibition is specified.''',
+                                                    called_from_sphinx))
     parser.add_argument('-c', '--catalogue', help='''
-        The catalogue number. Only specify this if a single object is specified
+        The catalogue number. Only specify this if a≤ single object is specified
         with the -j option.
         ''')
     parser.add_argument('--col_cat', help='''
@@ -393,10 +394,12 @@ def getparser():
         Do not specify this if --exhibition is specified. It is mandatory
         otherwise. The column can be a number or a spreadsheet-style
         letter.''', called_from_sphinx))
-    parser.add_argument('--delete', action='store_true', help=sphinxify('''
+    parser.add_argument('--delete', action='store_true',
+                        help=sphinxify('''
         Delete this exhibition from all objects selected.
         Requires --exhibition.''', called_from_sphinx))
-    exgroup.add_argument('-e', '--exhibition', type=int, help=sphinxify('''
+    exgroup.add_argument('-e', '--exhibition', type=int,
+                         help=sphinxify('''
         The exhibition number
         to apply to all objects in the CSV file. Do not specify this if
         --col_ex is specified.''', called_from_sphinx))
@@ -486,5 +489,6 @@ if __name__ == '__main__':
     trace(1, 'Creating file: {}', _args.outfile)
     main()
     if (_oldname or _oldplace or _olddate) and not found_old_key:
-        trace(0, "Warning: Old name/place/date specified but no old key found.",
+        trace(0, "Warning: Old name/place/date specified but no"
+                 " old key found.",
               color=Fore.YELLOW)
