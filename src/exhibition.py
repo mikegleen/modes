@@ -290,7 +290,7 @@ def get_csv_dict(csvfile):
         # print(exhibition, cataloguenumber)
         cdict[accnum] = (exhibition, cataloguenumber)
 
-    with codecs.open(csvfile, 'r', 'utf-8-sig') as mapfile:
+    with codecs.open(csvfile, encoding='utf-8-sig') as mapfile:
         cdict = {}
         reader = csv.reader(mapfile)
         for n in range(_args.skiprows):
