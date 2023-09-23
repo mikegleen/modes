@@ -20,6 +20,14 @@ file will be restored to the standard format. Thus if you enter L22 in the
 CSV file used to create a new object element, it will still be written to the
 XML file as L022.
 
+Starting 2018, objects are accessioned using the Collections Trust assigned
+code for the Heath Robinson Museum, “LDHRM”. Numbers are of the format::
+
+    LDHRM.2018.1
+    LDHRM.2018.1.1
+
+The second example is of a sub-number where many similar objects are grouped
+under a single accession number. Leading zeros are not allowed.
 
 Accession Number Expansion
 --------------------------
@@ -44,7 +52,7 @@ The following formats are allowed::
 
 White space in the field is ignored. A restriction is that the first number
 must be lower than the following ones when using the "&" operator. For example,
-in the first case shown above, "JB002&4&6&...", "JB007&4&6&..." would be
+in the first case shown above, "JB002&4&6&..." is legal but "JB007&4&6&..." would be
 illegal.
 
 

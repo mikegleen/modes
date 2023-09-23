@@ -14,7 +14,7 @@ from utl.cfgutil import Config
 from utl.zipmagic import openfile
 
 
-def trimrow(r: list, maxlen: int):
+def _trimrow(r: list, maxlen: int):
     """
 
     :param r:
@@ -32,11 +32,13 @@ def trimrow(r: list, maxlen: int):
 
 def object_reader(infilename: str | None, config=None, verbos=1):
     """
+    Open an XML file and return Object elements.
 
     :param infilename: The XML file in Modes format
-    :param config: A Config object or None in which case an empty one is made
+    :param config: A Config object or None in which case an empty one is made.
+                   The function refers to config members ``record_tag`` and ``record_id_xpath``.
     :param verbos: trace level
-    :return: A tuple of (accession number, element)
+    :return: An iterator that returns tuples of (accession number, element)
     """
     objectlevel = 0
     if config is None:
@@ -65,10 +67,11 @@ def object_reader(infilename: str | None, config=None, verbos=1):
 def get_heading(filepath: str | None, verbos=1, skiprows=0) -> list | None:
     """
 
-    :param filepath: the path to the CSV or XLSX input file
-    :param verbos: level of tracing
-    :param skiprows:
-    :return: a list of the heading row
+    :param filepath: the path to the CSV or XLSX input file or None. If None,
+                     None is returned.
+    :param verbos: level of tracing. If > 1, print column headings.
+    :param skiprows: Rows to skip at the front of the file. Default = 0.
+    :return: a list of the heading row or None
     """
     if not filepath:
         return None
@@ -87,7 +90,7 @@ def get_heading(filepath: str | None, verbos=1, skiprows=0) -> list | None:
             next(enumrows)
         _, heading = next(enumrows)
         heading = list(heading)  # tuple -> list so it can be trimmed
-        trimrow(heading, 0)
+        _trimrow(heading, 0)
         n_input_fields = len(heading)
         # sys.exit()
         if verbos >= 1:
@@ -106,13 +109,17 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
     """
     A generator function to iterate through either a CSV file or XLSX file.
 
+    The input file must contain a heading row.
     We only look at the first sheet of an XLSX file.
 
-    :param filename:
-    :param verbos:
-    :param skiprows:
-    :param allow_long_rows:
-    :return: an iterator that calls this function or None
+    :param filename: The input CSV or XLSX file.
+    :param verbos: Verbosity. If > 1, print column headings
+    :param skiprows: Rows to skip at the front of the file. Default = 0.
+    :param allow_long_rows: Normally, if a data row is longer than the heading
+                            row, the program aborts. If this parameter is set
+                            to True, this check is disabled.
+    :return: an iterator that calls this function or None. Each iteration returns
+             a row.
     """
     if not filename:
         return None
@@ -124,7 +131,7 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
             reader = csv.DictReader(mapfile)
             n_input_fields = len(reader.fieldnames)
             if verbos >= 2:
-                fieldnames = ", ".join(trimrow(list(reader.fieldnames), 1))
+                fieldnames = ", ".join(_trimrow(list(reader.fieldnames), 1))
                 print(f'CSV Column Headings: {fieldnames}')
             for nrow, row in enumerate(reader):
                 if not allow_long_rows and len(row) > n_input_fields:
@@ -139,7 +146,7 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
             next(enumrows)
         _, heading = next(enumrows)
         heading = list(heading)  # tuple -> list so it can be trimmed
-        trimrow(heading, 0)
+        _trimrow(heading, 0)
         n_input_fields = len(heading)
         # sys.exit()
         if verbos >= 2:
@@ -150,7 +157,7 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
             rawrow = list(rawrow)
             row = dict()
             # print(f'before: {rawrow}')
-            trimrow(rawrow, n_input_fields)
+            _trimrow(rawrow, n_input_fields)
             # print(f'after : {rawrow}')
             if not allow_long_rows and len(rawrow) > n_input_fields:
                 print(f"Error: row {nrow + 1} longer than heading: {rawrow}")

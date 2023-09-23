@@ -1,21 +1,31 @@
 """
-    Import exhibition information into a Modes XML file.
+Import exhibition information into a Modes XML file.
 
-    Input: - exhibition list maintained in src/cfg/exhibition_list.py
-           - input XML file.
-           - CSV file of objects in an exhibition. CSV format:
-               accession#,[exhibition#],[catalogue#]
-           The exhibition # is optional and is ignored if the --exhibition
-           parameter is given. The accession number may contain a string
-           specifying multiple numbers of the form JB001-003.
-           The catalogue number is optional and is set if specified. The
-           columns numbers may be specified by progrm arguments; The accession
-           number and exhibition number default to columns zero and one
-           respectively and the catalogue # is only processed if the argument
-           is specified.
-    Output: updated XML file
+Input:
+    - exhibition list maintained in ``src/utl/exhibition_list.py`` (hard-coded
+      Python file name)
+    - input XML file.
+    - CSV file of objects in an exhibition. Optional, see the ``-j`` argument.
 
-    The Exhibition group template is:
+The format of the CSV file follows. The accession number is by default in the
+first column but the other columns must be specified in the program arguments::
+
+      Accession Number,[Exhibition Number],[Catalogue Number]
+
+The format of the exhibition list is::
+
+    Exhibition Number,Date Begin,Date End,Exhibition Name,Place
+
+In the CSV file, the exhibition number is optional and is ignored if the ``--exhibition``
+parameter is given. The accession number in the CSV file or specified as a parameter
+may contain a string
+specifying multiple numbers of the form JB001-003. Note that leading zeros are
+not significant.
+
+Output: updated XML file
+
+The Exhibition group template is::
+
         <Exhibition>
             <ExhibitionName />
             <CatalogueNumber />
@@ -25,6 +35,8 @@
                 <DateEnd />
             </Date>
         </Exhibition>
+
+
 """
 import argparse
 import codecs

@@ -10,7 +10,7 @@ import string
 import sys
 
 
-def col2num(col: str | None):
+def col2num(col: str | None) -> int | None:
     """
     Map a spreadsheet column to a zero-based index.
     If None, return None (useful with optional arguments) or a
@@ -33,9 +33,12 @@ def col2num(col: str | None):
     return num - 1
 
 
-def num2col(num):
+def num2col(num: int) -> str:
     """
     Map a zero-based index to a spreadsheet column.
+
+    :param num: zero-based column number
+    :return: a spreadsheet column letter or letters
     """
     s = ""
     num += 1
