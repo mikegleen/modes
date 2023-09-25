@@ -622,7 +622,7 @@ def add_arguments(parser, command):
         Do not specify this and --location.
         ''', called_from_sphinx))
     if is_update or is_diff or is_select:
-        map_group = parser.add_mutually_exclusive_group()
+        map_group = parser.add_mutually_exclusive_group(required=True)
         map_group.add_argument('-j', '--object', help=nd.sphinxify('''
         Specify a single object to be processed. If specified, do not specify
         the CSV file containing object numbers and locations (--mapfile). You

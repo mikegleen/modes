@@ -377,8 +377,8 @@ def getparser():
         --mapfile argument and specify a single object wth the --object
         argument. See also the --catalogue argument.
         ''', called_from_sphinx))
-    exgroup = parser.add_mutually_exclusive_group()
-    objgroup = parser.add_mutually_exclusive_group()
+    exgroup = parser.add_mutually_exclusive_group(required=True)
+    objgroup = parser.add_mutually_exclusive_group(required=True)
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
     parser.add_argument('outfile', help='''
