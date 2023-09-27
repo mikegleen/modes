@@ -54,19 +54,23 @@ def loadcsv():
     # --location and --heading are mutually exclusive
     loc_arg = _args.location
     need_heading = bool(_args.heading)
-    with codecs.open(_args.mapfile, 'r', 'utf-8-sig') as mapfile:
+    with codecs.open(_args.mapfile, encoding='utf-8-sig') as mapfile:
         reader = csv.reader(mapfile)
         for n in range(_args.skiprows):
             next(reader)
         for row in reader:
             rownum += 1
-            trace(3, 'row: {}', row)
+            if len(row) == 0:
+                trace(2, 'Skipping empty row {}: {}', rownum, row)
+                continue
+            trace(3, 'row {}: {}', rownum, row, color=Fore.YELLOW)
             if need_heading:
                 if (row[_args.col_loc].strip().lower()
                    != _args.heading.lower()):
-                    print(f'Fatal error: Failed heading check. '
-                          f'{row[_args.col_loc].lower()} is not '
-                          f'{_args.heading.lower()}.')
+                    trace(0, 'Fatal error: Failed heading check. '
+                          '{} is not {}.',
+                          row[_args.col_loc].lower(), _args.heading.lower(),
+                          color=Fore.RED)
                     sys.exit(1)
                 need_heading = False
                 continue
@@ -296,8 +300,9 @@ def update_current_location(elem, idnum):
     locationelt = ol.find('./Location')
     if locationelt.text is not None:
         oldlocation = locationelt.text.strip().upper()
+        oldlocationtext = locationelt.text
     else:
-        oldlocation = None
+        oldlocation = oldlocationtext = None
     nidnum = nd.normalize_id(idnum)
     if _args.move_to_normal:
         nl = elem.find('./ObjectLocation[@elementtype="normal location"]')
@@ -389,7 +394,7 @@ def update_current_location(elem, idnum):
                 trace(2, 'Removing previous location from {}.', idnum)
                 elem.remove(elt)
 
-    trace(2, '{}: Updated current location: {} -> {}', idnum, oldlocation,
+    trace(2, '{}: Updated current location: {} -> {}', idnum, oldlocationtext,
           newlocationtext)
     return True
 
