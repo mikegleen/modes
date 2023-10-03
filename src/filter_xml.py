@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    Output selected Object elements based on the YAML configuration file.
+    Output selected Object elements based on the YAML configuration file or
+    command-line parameters.
 
 """
 import argparse
