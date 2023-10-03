@@ -296,6 +296,8 @@ def get_csv_dict(csvfile):
         for n in range(_args.skiprows):
             next(reader)
         for row in reader:
+            if len(row) == 0:
+                continue
             accnumber = row[_args.col_acc]
             if not accnumber:
                 continue  # blank accession number
