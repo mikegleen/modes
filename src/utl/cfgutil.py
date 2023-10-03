@@ -639,7 +639,7 @@ def _expand_one_idnum(idstr: str) -> list[str]:
     indicated by a hyphen or ampersand anywhere in the string, the format of
     the number is:
         idstr ::= idnum | rangestr | liststr
-        idnum ::= string without '-/&'
+        idnum ::= string without '-' or '&'
         rangestr ::= prefix-suffix | prefix/suffix
         liststr ::=  prefix&suffix | liststr&suffix
         prefix ::= text<n digits>
