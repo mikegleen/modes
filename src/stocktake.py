@@ -3,7 +3,8 @@
     Create a report of box contents with columns for the stocktake.
     Parameters:
         1. Input XML file. This is a Modes database.
-        2. Output CSV file.
+        2. Output CSV or XLSX file depending on the file extension of the output
+           file.
 """
 import argparse
 import codecs
@@ -13,24 +14,27 @@ import io
 import re
 import sys
 
-from utl.cfgutil import Config, Stmt
+import openpyxl.cell.cell
+from openpyxl.styles import Font, Alignment
+from openpyxl.workbook import Workbook
+
+from utl.cfgutil import Config, Stmt, Cmd
 from utl.normalize import sphinxify, normalize_id
 from utl.readers import object_reader
 
-
 CFG_STRING = """
----
-# cmd: column
-# xpath: ./ObjectLocation[@elementtype="current location"]/Location
-# title: Current
-# ---
 cmd: column
 xpath: ./ObjectLocation[@elementtype="normal location"]/Location
 title: Normal
 ---
 cmd: column
 xpath: ./Identification/Title
-width: 40
+width: 50
+---
+cmd: constant
+xpath: dummy
+title: Condition
+value:
 """
 
 
@@ -70,6 +74,8 @@ def one_xml_object(elt):
         location = 'unknown'
     row = [num]
     for doc in cfg.col_docs:
+        if doc[Stmt.CMD] != Cmd.COLUMN:
+            continue
         xpath = doc[Stmt.XPATH]
         data = elt.find(xpath)
         if data is not None and data.text:
@@ -86,14 +92,43 @@ def main(config):
     for _, elt in object_reader(_args.infile, config=config):
         one_xml_object(elt)
         elt.clear()
+    nrow = -1
     for box in sorted(boxdict.keys()):
-        writer.writerow([''])
-        # writer.writerow([''])
-        # writer.writerow(['Box', unpad_loc(box)])
-        # writer.writerow(['--------------'])
-        writer.writerow([f'Box {unpad_loc(box)}'] + [doc['title'] for doc in cfg.col_docs])
+        if is_xlsx:
+            nrow += 2
+            cell = ws.cell(row=nrow, column=1, value=unpad_loc(box))
+            cell.data_type = openpyxl.cell.cell.TYPE_STRING
+            cell.font = Font(bold=True)
+            cell.alignment = Alignment(horizontal='center')
+            ncol = 1
+            for doc in cfg.col_docs:
+                ncol += 1
+                cell = ws.cell(row=nrow, column=ncol, value=doc['title'])
+                cell.data_type = openpyxl.cell.cell.TYPE_STRING
+                cell.font = Font(bold=True)
+                cell.alignment = Alignment(horizontal='center')
+        else:
+            writer.writerow([''])
+            writer.writerow([f'Box {unpad_loc(box)}'] + [doc['title'] for doc in cfg.col_docs])
         for row in sorted(boxdict[box], key=lambda x: normalize_id(x[0])):
-            writer.writerow(row)
+            if is_xlsx:
+                nrow += 1
+                for ncol, val in enumerate(row, start=1):
+                    cell = ws.cell(row=nrow, column=ncol, value=val)
+                    cell.data_type = openpyxl.cell.cell.TYPE_STRING
+            else:
+                writer.writerow(row)
+    if is_xlsx:
+        ws.column_dimensions["A"].width = 15  # Serial
+        ws.column_dimensions["B"].width = 8  # Normal location
+        ws.column_dimensions["C"].width = 50  # Title
+        ws.column_dimensions["D"].width = 40  # Condition
+        ws.page_setup.orientation = ws.ORIENTATION_LANDSCAPE
+        ws.oddHeader.center.text = _args.header
+        ws.evenHeader.center.text = _args.header
+        ws.oddFooter.left.text = "Page &P of &N"
+        ws.evenFooter.left.text = "Page &P of &N"
+        wb.save(_args.outfile)
 
 
 def getparser() -> argparse.ArgumentParser:
@@ -105,10 +140,12 @@ def getparser() -> argparse.ArgumentParser:
         Create a report of box contents with columns for the stocktake. The
         script uses a configuration file embedded in the Python code.''')
     parser.add_argument('infile', help=sphinxify('''
-        Modes XML database file or CSV file.
+        Modes XML database file.
         ''', called_from_sphinx))
-    parser.add_argument('outcsv', help='''
-        The output CSV file.''')
+    parser.add_argument('outfile', help='''
+        The output CSV or XLSX file.''')
+    parser.add_argument('--header', default='', help='''
+        Set the page heading.''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -127,14 +164,23 @@ called_from_sphinx = True
 
 
 if __name__ == '__main__':
-    assert sys.version_info >= (3, 9)
+    assert sys.version_info >= (3, 11)
     called_from_sphinx = False
     if len(sys.argv) == 1:
         sys.argv.append('-h')
     _args = getargs(sys.argv)
     cfg_file = io.StringIO(CFG_STRING)
     cfg = Config(cfg_file, dump=_args.verbose > 1)
-    outcsv = codecs.open(_args.outcsv, 'w', 'utf-8-sig')
-    writer = csv.writer(outcsv)
+    is_xlsx = _args.outfile.lower().endswith('.xlsx')
+    if is_xlsx:
+        wb = Workbook()
+        del wb[wb.sheetnames[0]]  # remove the default sheet
+        ws = wb.create_sheet('Sheet1')
+    else:
+        encoding = 'utf-8-sig'
+        csvfile = codecs.open(_args.outfile, 'w', encoding)
+        outcsv = csv.writer(csvfile, delimiter=',')
+        writer = csv.writer(outcsv)
+
     boxdict = defaultdict(list)
     main(cfg)
