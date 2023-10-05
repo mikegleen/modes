@@ -129,8 +129,8 @@ the ``cmd: global`` document.
    exist, in which case a new one will be created as a child of this path.
    Implemented in ``csv2xml.py`` and ``update_from_csv.py`` only. The element
    name to be created will be taken from the **element** statement in the document.
-   If the **element** statement doesn't exist, the name will be taken from the **title**
-   statement in the document. See the **title** statement below. The element named by this
+   If the **element** statement doesn't exist, the name will be taken from the **xpath**
+   statement in the document. The element named by this
    path must already exist.
 -  **person_name** If specified, this column contains a name in the form
    "last, first" or "first last". The name will be converted to the
@@ -140,7 +140,9 @@ the ``cmd: global`` document.
    this field is missing or empty. Valid only with a control
    command (**if** ...) or with a **column** command in ``csv2xml.py``. In this
    case it is useful for discarding rubbish rows in the CSV file.
--  **title** Optional. If omitted, a best-guess title will be created
+-  **title** Optional. Specify the column title in the first row of the column,
+   but see the ``--skip_rows`` command line parameter.
+   If omitted, a best-guess title will be created
    from the xpath statement, ignoring predicates (expressions within square brackets).
    If in a control document, the title will be shown in diagnostics but is not otherwise
    used. The titles of data-related documents must be unique as this title corresponds to
