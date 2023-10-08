@@ -7,7 +7,6 @@
     Each subdirectory contains scans of letters. The format of the filenames
     is documented in the file *Scanning Notes rev.4.docx* in the ../letters
     directory.
-
 """
 import argparse
 import codecs
@@ -35,7 +34,10 @@ def _onedir(ld, subdirname: str):
         if m:
             an = m.group(1)  # accession #
             seq = m.group(2)
-            ld[(an, seq)].append(fn)
+            if fn in ld[(an, seq)]:
+                trace(1, 'Duplicate filename {}', fn,
+                      color=Fore.RED)
+            ld[(an, seq)].add(fn)
         elif fn != '.DS_Store':
             trace(1, 'Ignored: {}/{}', subdirname, fn)
 
@@ -47,7 +49,7 @@ def get_letters_dict(indirname):
     :return: dictionary mapping item number to its list of jpg files containing
              scans of the document's pages
     """
-    ld = defaultdict(list)
+    ld = defaultdict(set)
     for subdirname in os.listdir(indirname):
         subdirpath = os.path.join(indirname, subdirname)
         if os.path.isdir(subdirpath):
