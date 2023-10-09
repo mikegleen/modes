@@ -726,7 +726,7 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
     if os.path.splitext(includes_file)[1].lower() != '.csv':
         raise ValueError('--include file must be a CSV file.')
     includedict: dict = dict()
-    includereader = csv.reader(codecs.open(includes_file, 'r', 'utf-8-sig'))
+    includereader = csv.reader(codecs.open(includes_file, encoding='utf-8-sig'))
     for n in range(include_skip):  # default in xml2csv = 0
         skipped = next(includereader)  # skip header
         if verbos >= 1:
