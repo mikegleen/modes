@@ -1,7 +1,7 @@
 #!/bin/zsh
 INXML=2023-09-30d_SH100.xml
-INCSV=../collection/etc/batch021/2023-10-04_batch021_edited.xlsx
-OUTXML=2023-10-04_batch021_fix.xml
+INCSV=../collection/etc/batch021/2023-10-07_batch021_edited.xlsx
+OUTXML=2023-10-07_batch021_fix.xml
 # cat >tmp/update.csv <<EOF
 # EOF
 cat >tmp/update.yml <<EOF
@@ -40,6 +40,16 @@ cmd: column
 xpath: ./References/Reference[@elementtype="First Published In"]/Page
 parent_path: ./References/Reference[@elementtype="First Published In"]
 title: First Published Page
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="Reproduced In"]/Title
+parent_path: ./References/Reference[@elementtype="Reproduced In"]
+title: Reproduced In
+---
+cmd: column
+xpath: ./References/Reference[@elementtype="Reproduced In"]/Page
+parent_path: ./References/Reference[@elementtype="Reproduced In"]
+title: Reproduced In Page
 ---
 EOF
 python src/update_from_csv.py prod_update/normal/$INXML \
