@@ -1,1 +1,0 @@
-python src/update_from_csv.py prod_update/pretty/2022-01-27_nd_pretty.xml prod_update/pretty/2022-01-27_batch1_pretty.xml -c src/cfg/y002_update_batch001.yml -f --heading -m data/csv/batch001.03_edit3-mlg.csv -a
