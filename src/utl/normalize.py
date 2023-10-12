@@ -129,7 +129,7 @@ def datefrombritishdate(indate: str) -> tuple[datetime.date, int, str]:
         return d, 2, BRITISHTYPE
     except ValueError:
         pass
-    try: # March 1917
+    try:  # March 1917
         d = datetime.datetime.strptime(indate, '%B %Y').date()
         return d, 2, BRITISHTYPE
     except ValueError as ve:
@@ -205,7 +205,7 @@ def split_subid(objid: str, mdacode=DEFAULT_MDA_CODE) -> (str, int | None):
         return objid, None
 
 
-def is_subid(objid: str, mdacode: str=DEFAULT_MDA_CODE) -> bool:
+def is_subid(objid: str, mdacode=DEFAULT_MDA_CODE) -> bool:
     """
     :param objid: like JB001 or JB001.1 or LDHRM.2022.1 or LDHRM.2022.1.1
                     may be normalized
@@ -255,6 +255,7 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
     if objidu[0].isnumeric():
         objidu = mdacode + '.' + objidu
     if objidu.startswith(mdacode):
+        objidu = objidu.replace(':', '.')  # accept LDHRM:...
         idlist = re.split(r'[/.]', objidu)  # split on either "/" or "."
         if len(idlist) not in (3, 4):
             raise ValueError(f'Bad accession ID: {objid}')
