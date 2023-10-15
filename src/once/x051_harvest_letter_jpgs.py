@@ -1,5 +1,10 @@
 """
+    Create a CSV file where the first column is the accession number including
+    a sub-number and the second column is a list of filenames of images of
+    the object. For example, the images could be of pages of a letter. The list
+    is separated by a "|" character.
 
+    Input is a folder containing sub-folders, each of which contains images.
 """
 import os
 import re
@@ -43,7 +48,7 @@ def denormalize_filename(filename):
         return filename
 
 
-def one_subdir(subdir, subdirpath):
+def one_subdir(subdirpath):
     global num_failed_match
     for filename in os.listdir(subdirpath):
         prefix, suffix = os.path.splitext(filename)
@@ -65,9 +70,10 @@ def main():
     for subdir in os.listdir(indir):
         subdirpath = os.path.join(indir, subdir)
         if not os.path.isdir(subdirpath):
-            print(f'Skipping not folder: {subdir}')
+            if subdir != '.DS_Store':
+                print(f'Skipping not folder: {subdir}')
             continue
-        one_subdir(subdir, subdirpath)
+        one_subdir(subdirpath)
     listlen = 0
     longest = None
     for accn, filelist in sorted(accndict.items()):
