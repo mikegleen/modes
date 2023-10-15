@@ -1,12 +1,13 @@
 """
-    Deprecated. Use x053 instead.
-
     Create a CSV file where the first column is the accession number including
     a sub-number and the second column is a list of filenames of images of
     the object. For example, the images could be of pages of a letter. The list
     is separated by a "|" character.
 
     Input is a folder containing sub-folders, each of which contains images.
+
+    This script s copied from x051 and handles a folder with files and/or
+    subfolders (to any level).
 """
 import os
 import re
@@ -21,6 +22,8 @@ FILENAMEPAT = r'(.+?)-(\d{3})[AB]?(-(\d+)([AB])?)?$'
 'JB2-003-2B'
 ('JB2', '003', '-2B', '2', 'B')
 """
+
+IMGFILES = ('.jpg', '.jpeg', '.png')
 
 
 def normalize_filename(filename: str, suffix: str, m: re.Match):
@@ -50,32 +53,38 @@ def denormalize_filename(filename):
         return filename
 
 
-def one_subdir(subdirpath):
+def one_file(filename):
+    """
+    Extract the accession number from the filename and update the global dict
+    with the key as the accession number of an object and the value the list of
+    its files.
+    :param filename: filename in the format of FILENAMEPAT
+    :return: None
+    """
+
     global num_failed_match
-    for filename in os.listdir(subdirpath):
-        prefix, suffix = os.path.splitext(filename)
-        if suffix.lower() not in ('.jpg', '.jpeg'):
-            if filename != '.DS_Store':
-                print(f'Skipping not image: {filename}')
-            continue
-        m = re.match(FILENAMEPAT, prefix)
-        if not m:
-            print(f'Filename failed match: {filename}')
-            num_failed_match += 1
-            continue
-        accn = f'{m.group(1)}.{int(m.group(2))}'
-        accndict[normalize_id(accn)].append(normalize_filename(filename, suffix, m))
+    prefix, suffix = os.path.splitext(filename)
+    if suffix.lower() not in IMGFILES:
+        if filename != '.DS_Store':
+            print(f'Skipping not image: {filename}')
+        return
+    m = re.match(FILENAMEPAT, prefix)
+    if not m:
+        print(f'Filename failed match: {filename}')
+        num_failed_match += 1
+        return
+    accn = f'{m.group(1)}.{int(m.group(2))}'
+    accndict[normalize_id(accn)].append(normalize_filename(filename, suffix, m))
 
 
-def main():
-    indir = sys.argv[1]
-    for subdir in os.listdir(indir):
-        subdirpath = os.path.join(indir, subdir)
-        if not os.path.isdir(subdirpath):
-            if subdir != '.DS_Store':
-                print(f'Skipping not folder: {subdir}')
-            continue
-        one_subdir(subdirpath)
+def main(indir):
+    for file in os.listdir(indir):
+        filepath = os.path.join(indir, file)
+        if os.path.isdir(filepath):
+            main(filepath)
+        else:
+            one_file(file)
+
     listlen = 0
     longest = None
     for accn, filelist in sorted(accndict.items()):
@@ -94,5 +103,6 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
     num_failed_match = 0
     accndict = defaultdict(list)
+    inputdir = sys.argv[1]
     outfile = open(sys.argv[2], 'w')
-    main()
+    main(inputdir)

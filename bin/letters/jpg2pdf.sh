@@ -1,9 +1,20 @@
 pushd ..
-for subdir in letters/letters_edited/*
-# do
-#     bn=$(basename $subdir)
-#     mkdir -p letters/letters_pdf/$bn
-#     python src/web/trans2pdf.py letters/letters_edited/$bn letters/letters_pdf/$bn
-# done
-filterfile=../letters/2023-09-12_letters.xlsx
-python src/web/merge_letters.py ../letters/letters_pdf  ../letters/letters_merged  -f $filterfile
+INDIR=letters/letters_edited
+PDFDIR=letters/letters_pdf
+MRGDIR=letters/letters_merged
+#
+INDIR=tmp/test_img
+PDFDIR=tmp/test_pdf
+MRGDIR=tmp/test_mrg
+start=$(date +%s)
+for subdir in $INDIR/*
+do
+    bn=$(basename $subdir)
+    mkdir -p $PDFDIR/$bn
+    python src/web/img2pdf.py $INDIR/$bn $PDFDIR/$bn
+done
+end=`date +%s`
+echo Execution time was `expr $end - $start` seconds.
+# mkdir -p $MRGDIR
+# filterfile=../letters/2023-09-12_letters.xlsx
+# python src/web/merge_letters.py $PDFDIR  $MRGDIR  -f $filterfile
