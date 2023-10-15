@@ -6,6 +6,10 @@
 cmd: column
 xpath: ./Identification/Title
 ---
+# For Original Artwork can be "rough sketch"
+cmd: column
+xpath: ./Identification/Type
+---
 cmd: column
 xpath: ./Description/Material[Part="medium"]/Keyword
 title: Medium
