@@ -6,8 +6,10 @@
 
     Input is a folder containing sub-folders, each of which contains images.
 
-    This script s copied from x051 and handles a folder with files and/or
-    subfolders (to any level).
+    This script is copied from x051 and handles a folder containing image files
+    and/or subfolders (to any level).
+
+    The output of this script is input to recode_collection.py.
 """
 import os
 import re
