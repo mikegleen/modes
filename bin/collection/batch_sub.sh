@@ -36,6 +36,10 @@ python src/dir2csv.py $IMGDIR tmp/${BR}_list.csv --heading
 #
 python src/xml2csv.py $MODESFILE $DESTDIR/${BR}_step1.csv -c src/cfg/website.yml --include tmp/${BR}_list.csv --include_skip 1 --heading -b -l results/reports/${BR}_website.log -v 2
 #
+# Create the list of image files associated with each object.
+#
+python src/web/x053_list_pages.py $IMGDIR tmp/images.csv
+#
 # Modify the CSV file to included new and adjusted columns.
 #
-python src/web/recode_collection.py $DESTDIR/${BR}_step1.csv $DESTDIR/${BR}.csv -v $VERBOS
+python src/web/recode_collection.py $DESTDIR/${BR}_step1.csv $DESTDIR/${BR}.csv -g tmp/images.csv -v $VERBOS

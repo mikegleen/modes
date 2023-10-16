@@ -298,7 +298,7 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
         if verbose > 3:
             print(f'normalize: {objid} -> {newobjid}')
         return newobjid
-    if verbose >= 1:
+    if verbose > 1:
         print(f'normalize_id: Unsupported accession ID format: "{objid}"')
     if strict:
         raise ValueError(f'Unsupported accession ID format: "{objid}"')
