@@ -205,7 +205,8 @@ def onerow(oldrow):
             newrow[key] = value
         del imgdict[n_serial]
     else:
-        trace(1, 'Cannot find images for {}, n_serial', color=Fore.YELLOW)
+        trace(1, 'Cannot find images for {}', n_serial,
+              color=Fore.YELLOW)
 
     # ------------------------- Letters -------------------------------------
 
