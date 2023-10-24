@@ -34,10 +34,12 @@ FILENAMEPAT = r'(.+?)-(\d{3})([AB]?)(-(\d+)([AB])?)?$'
 
 """
 'JB2-003-2B'
-('JB2', '003', '-2B', '2', 'B')
+Groups:   1      2     3    4     5    6
+       ('JB2', '003', '', '-2B', '2', 'B'
 """
 
 IMGFILES = ('.jpg', '.jpeg', '.png')
+COLLECTION_PREFIX = 'collection_'
 
 
 def normalize_filename(filename: str, suffix: str, m: re.Match):
@@ -92,7 +94,7 @@ def one_file(filename):
         return
     try:
         # fails if the name contains a page number
-        naccn = normalize_id(prefix)
+        naccn = normalize_id(prefix.removeprefix(COLLECTION_PREFIX))
     except ValueError:
         m = re.match(FILENAMEPAT, prefix)
         if not m:
@@ -103,7 +105,7 @@ def one_file(filename):
             raise ValueError(f'Illegal filename format: {filename}, cannot'
                              f' have A/B token before the page number.')
         accn = f'{m.group(1)}.{int(m.group(2))}'
-        naccn = normalize_id(accn)
+        naccn = normalize_id(accn.removeprefix(COLLECTION_PREFIX))
     accndict[naccn].append(normalize_filename(filename, suffix, m))
 
 
