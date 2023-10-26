@@ -707,6 +707,7 @@ def expand_idnum(idnumstr: str) -> list[str]:
     idstrlist = idnumstr.split(',')
     rtnlist = []
     for idstr in idstrlist:
+        # _expand_one_idnum returns a list. Append the members of that list.
         rtnlist += _expand_one_idnum(idstr)
     return rtnlist
 
