@@ -11,7 +11,7 @@ import ruamel.yaml.constructor
 
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from utl.normalize import normalize_id
+from utl.normalize import normalize_id, DEFAULT_MDA_CODE
 yaml = YAML(typ='safe')   # default, if not specfied, is 'rt' (round-trip)
 
 # The difference between the 'attrib' command and the attribute statement:
@@ -171,6 +171,12 @@ class Config:
         return Config.__instance
 
     @staticmethod
+    def get_or_init_config():
+        if Config.__instance is None:
+            Config.__instance = Config()
+        return Config.__instance
+
+    @staticmethod
     def reset_config():
         """
         This is necessary when called by test_xml2csv
@@ -179,7 +185,8 @@ class Config:
         Config.__instance = None
 
     def __init__(self, yamlcfgfile=None, dump: bool = False,
-                 allow_required: bool = False, logfile=sys.stdout, verbos=1):
+                 allow_required: bool = False, logfile=sys.stdout, verbos=1,
+                 mdacode=DEFAULT_MDA_CODE):
         """
 
         :param yamlcfgfile: If None then only the default global values will
@@ -252,6 +259,7 @@ class Config:
         self.record_id_xpath = Stmt.get_default_record_id_xpath()
         self.delimiter = ','
         self.multiple_delimiter = '|'
+        self.mdacode = mdacode
         cfglist = _read_yaml_cfg(yamlcfgfile, dump=dump, logfile=logfile)
         valid = validate_yaml_cfg(cfglist, allow_required)
         if not valid:
@@ -605,7 +613,6 @@ def yaml_fieldnames(config):
 def _splitid(idstr: str, m: re.Match) -> (str, int, int, int):
     """
     Subroutine to expand_one_idnum.
-    Do the common processing for the "-" and "&" cases.
 
     Consider the case of JB121-24.
 
@@ -666,6 +673,9 @@ def _expand_one_idnum(idstr: str) -> list[str]:
     jlist = []
     idstr = ''.join(idstr.split())  # remove all whitespace
     if '-' in idstr or '/' in idstr:  # if ID is actually a range like JB021-23
+        if '&' in idstr:
+            print(f'Bad accession number list: cannot contain both "-" and "&": "{idstr}"')
+            return jlist
         if m := re.match(r'(.+?)(\d+)[-/](\d+)$', idstr):
             prefix, num1, num2, lenvariablepart = _splitid(idstr, m)
             try:
@@ -681,16 +691,13 @@ def _expand_one_idnum(idstr: str) -> list[str]:
         parts = idstr.split('&')
         head = parts[0]
         jlist.append(head)
+        m = re.match(r'(.+?)(\d+)$', head)
+        # prefix will be everything up to the trailing number. So for:
+        #   JB001 -> JB
+        #   LDHRM.2023.1 -> LDHRM.2023.
+        prefix = m[1]
         for tail in parts[1:]:
-            # Really don't have to do this. Better to extract prefix and num1
-            # from the head once and tail becomes num2. But this is good enough.
-            partstr = f'{head}&{tail}'
-            if m := re.match(r'(.+?)(\d+)&(\d+)$', partstr):
-                prefix, num1, num2, lenvariablepart = _splitid(idstr, m)
-                newidnum = f'{prefix}{num2:0{lenvariablepart}}'
-                jlist.append(newidnum)
-            else:
-                print('Bad accession number, failed pattern match:', idstr)
+            jlist.append(prefix + tail)
 
     else:
         jlist.append(idstr)
@@ -713,7 +720,7 @@ def expand_idnum(idnumstr: str) -> list[str]:
 
 
 def read_include_dict(includes_file, include_column, include_skip, verbos=1,
-                      logfile=sys.stdout, allow_blanks=False, mdacode=''):
+                      logfile=sys.stdout, allow_blanks=False):
     """
     Read the optional CSV file from the --include argument. Build a dict
     of normalized accession IDs for use by cfgutil.select. The value
@@ -745,9 +752,6 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
             else:
                 raise ValueError('Blank accession number in include file;'
                                  ' --allow_blank not selected.')
-        # idnumlist: list[str] = expand_idnum(idnum)
-        if mdacode:
-            idnum = mdacode + '.' + idnum
         idnumlist: list[str] = [normalize_id(i) for i in expand_idnum(idnum)]
         if verbos >= 1:
             for num in idnumlist:

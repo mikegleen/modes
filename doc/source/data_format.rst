@@ -41,7 +41,7 @@ The following format allows this.
 Accession numbers can be given with trailing
 expansion syntax. For example, JB001-002 will expand to JB001, JB002. The
 syntax is flexible in that you can also specify JB001-2 for the same effect.
-JB998-1023 also works.
+JB998-1023 also works. White space in the field is ignored.
 
 The following formats are allowed::
 
@@ -50,10 +50,16 @@ The following formats are allowed::
     JB002 - JB004
     SH1-99
 
-White space in the field is ignored. A restriction is that the first number
-must be lower than the following ones when using the "&" operator. For example,
-in the first case shown above, "JB002&4&6&..." is legal but "JB007&4&6&..." would be
-illegal.
+You cannot mix the "-" form with the "&"
+form in the same range. So::
+
+    JB002-3&5
+
+is illegal but::
+
+    JB002-3,JB005
+
+is legal.
 
 
 Date Formats
