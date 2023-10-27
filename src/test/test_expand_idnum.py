@@ -96,6 +96,26 @@ class TestExpandIDnum(unittest.TestCase):
         idnums = expand_idnum('SH104/5')
         self.assertEqual(idnums, ['SH104', 'SH105'])
 
+    def test_23(self):
+        idnums = expand_idnum('SH104/6')
+        self.assertEqual(idnums, ['SH104', 'SH105', 'SH106'])
+
+    def test_24(self):
+        idnums = expand_idnum('SH2&3&1')
+        self.assertEqual(idnums, ['SH2', 'SH3', 'SH1'])
+
+    def test_25(self):
+        idnums = expand_idnum('SH2-3&1')
+        self.assertEqual(idnums, [])
+
+    def test_26(self):
+        idnums = expand_idnum('SH2&30&1')
+        self.assertEqual(idnums, ['SH2', 'SH30', 'SH1'])
+
+    def test_27(self):
+        idnums = expand_idnum('SH10&3')
+        self.assertEqual(idnums, ['SH10', 'SH3'])
+
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
