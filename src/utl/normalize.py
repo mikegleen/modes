@@ -313,7 +313,7 @@ def denormalize_id(objid: str, mdacode=DEFAULT_MDA_CODE):
              fields.
     """
     if objid.startswith(mdacode):
-        idlist = re.split(r'[/.]', objid)  # split on either "/" or "."
+        idlist = objid.split('.')
         assert len(idlist) in (3, 4)
         assert len(idlist[2]) <= 6
         idlist[2] = f'{int(idlist[2])}'  # remove leading zeroes
