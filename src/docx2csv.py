@@ -66,7 +66,7 @@ def main():
                     continue
             if not _args.inhibit_upper and len(row):
                 uc = 1 if prepend_index else 0
-                row[uc] = row[uc].strip().upper()
+                row[uc] = row[uc].strip().upper().replace(' ', '')
             if upcol is not None and len(row) > upcol:
                 row[upcol] = row[upcol].strip().upper()
             if data_in_row or _args.include_blank:
