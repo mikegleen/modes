@@ -149,9 +149,9 @@ def store(xpath: str, doc, template, accnum, text):
     if elt is None:
         elt = new_subelt(doc, template, accnum, _args.verbose)
     if elt is None:
-        trace(1, '{}({}): Cannot create new {}: {}\n'
+        trace(1, '{}, column "{}", value: "{}": Cannot create new element: {}\n'
                  'Check parent_path statement.',
-              accnum, text, doc[Stmt.TITLE], doc[Stmt.XPATH])
+              accnum, doc[Stmt.TITLE], text, doc[Stmt.XPATH])
         return
     if cmd == Cmd.CONSTANT:
         elt.text = doc[Stmt.VALUE]
