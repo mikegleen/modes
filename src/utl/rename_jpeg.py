@@ -16,7 +16,7 @@ def main():
             ext = '.jpg'
             src = os.path.join(indir, fn)
             dst = os.path.join(indir, prefix + ext)
-            print(f'\n{src} -> {dst}')
+            print(f'{src} -> {dst}')
             os.rename(src, dst)
 
 
