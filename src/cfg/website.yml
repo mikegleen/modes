@@ -84,3 +84,8 @@ cmd: column
 xpath: ./Production/Organisation[Role="recipient"]/OrganisationName
 title: Recipient Org
 ---
+# for cuttings
+cmd: column
+xpath: ./Production/Organisation[Role="publication name"]/OrganisationName
+title: Publ Name
+---
