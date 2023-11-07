@@ -232,7 +232,8 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
 
     Input can be of the form JB001 or JB0001 or JB001a or SH1 or with a leading
     MDA code: LDHRM/2018/1 or LDHRM.2018.1. or LDHRM.2018.1.2. Input can also
-    be a simple integer.
+    be a simple integer. The "/" character is allowed as an alternative because
+    some input files contain these. It is never used in the Modes data.
 
     For IDs with the MDA code, the one or two trailing numbers are expanded to
     six digits with leading zeroes if necessary. If an id contains a larger
@@ -243,6 +244,7 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
     LDHRM.2018.1.2 -> LDHRM.2018.000001.000002
     JB001 -> JB000001
     JB001a -> JB000001A
+    L001 -> L000001  # long term loan objects
 
     For IDs that are simple integers, these are expanded to eight digits.
     """
@@ -293,11 +295,6 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
         if verbose > 3:
             print(f'normalize: {objid} -> {newobjid}')
         return newobjid
-    elif objid.isnumeric() and len(objid) <= 6:
-        newobjid = f'{int(objid):06d}'
-        if verbose > 3:
-            print(f'normalize: {objid} -> {newobjid}')
-        return newobjid
     if verbose > 1:
         print(f'normalize_id: Unsupported accession ID format: "{objid}"')
     if strict:
@@ -330,19 +327,18 @@ def denormalize_id(objid: str, mdacode=DEFAULT_MDA_CODE):
     # 5. nnnnnn - same as group 4 without leading period
     m = re.match(r'(\D+)(\d+)([A-Za-z]?)(\.(\d+))?$', objid)
     if m:
-        if m.group(1).upper() in ('JB', 'L'):
+        if m[1].upper() in ('JB', 'L'):
             # pad with leading zeroes to 3 columns
-            newobjid = m.group(1) + f'{int(m.group(2)):03d}' + m.group(3)
+            newobjid = m[1] + f'{int(m[2]):03d}' + m[3]
         else:
-            newobjid = m.group(1) + f'{int(m.group(2))}' + m.group(3)
+            newobjid = m[1] + f'{int(m[2])}' + m[3]
         if m.group(5):
             # denormalize sub-number
-            newobjid += '.' + f'{int(m.group(5))}'
+            newobjid += '.' + f'{int(m[5])}'
         return newobjid
-    elif objid.isnumeric():
-        return objid.lstrip('0')
     else:
-        return objid
+        fields = objid.split('.')
+        return '.'.join([field.lstrip('0') for field in fields])
 
 
 def if_not_sphinx(txt: str, calledfromsphinx: bool) -> str:

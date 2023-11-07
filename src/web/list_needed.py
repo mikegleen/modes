@@ -6,10 +6,12 @@ corresponding image is not in a folder.
 import argparse
 import csv
 import os.path
+import re
 import sys
 from utl.excel_cols import col2num
 from utl.list_objects import list_objects
 from utl.normalize import normalize_id, denormalize_id
+from utl.readers import row_dict_reader, row_list_reader
 
 
 def trace(level, template, *args):
@@ -39,6 +41,10 @@ def getparser():
         File to search for valid accession numbers.''')
     parser.add_argument('-r', '--reportfile', help='''
         File to contain a list of the images that we have.''')
+    parser.add_argument('--subnumber', action='store_true', help='''
+        The filenames include a 3-digit subnumber following a '-', possibly
+        followed by a page number. The page number is discarded and the output
+        accession number will include the subnumber with leading zeroes removed.''')
     parser.add_argument('-o', '--outfile', help='''
         Output file. Default is sys.stdout''')
     parser.add_argument('-s', '--skip_rows', type=int, default=0, help='''
@@ -67,17 +73,22 @@ def build_img_dict(img_ids: dict, imgdir: str):
     def onefile(imgf: str):
         imgf2 = imgf.removeprefix('collection_')
         prefix, suffix = os.path.splitext(imgf2)
-        if suffix.lower() not in ('.jpg', '.png'):
+        if suffix.lower() not in ('.jpg', '.jpeg', '.png'):
             if _args.verbose > 1 and not imgf.startswith('.'):  # ignore .DS_Store
                 trace(1, 'not image: {}', imgf)
             return
+        if _args.subnumber:
+            fnpat = r'(collection_)?(\w+)-(\d{3}).*'
+            m = re.match(fnpat, prefix)
+            if m:
+                prefix = f'{m.group(2)}.{m.group(3).lstrip("0")}'
         try:
             nid = normalize_id(prefix)
         except ValueError as ve:
             print(f'Skipping {imgf}: {ve}')
             return
         if nid in img_ids:
-            trace(2, f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
+            trace(3, f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
                   f' original in {img_ids[nid][1].removeprefix(_args.imgdir)}')
         else:
             img_ids[nid] = (imgf2, dirpath)
@@ -131,7 +142,8 @@ def build_candidate_set(valid_idnums):
         for c in candidates:
             add_one_id(c)
     else:
-        reader = csv.reader(open(_args.candidatefile))
+        # reader = csv.reader(open(_args.candidatefile))
+        reader = row_list_reader(_args.candidatefile)
         for n in range(_args.skip_rows):  # default = 0
             skipped = next(reader)  # skip header
             trace(1, 'Skipping row in CSV file: {}', skipped)
@@ -166,7 +178,7 @@ def main():
                 continue
         else:
             if nid in img_dict:
-                trace(2, 'In image folder: {}', denid)
+                trace(3, 'In image folder: {}', denid)
                 if reportfile:
                     print(denid, img_dict[nid][1], file=reportfile)
                 continue

@@ -108,6 +108,7 @@ class Stmt:
     excluding those beginning with '_'.
     """
     ADD_MDA_CODE = 'add_mda_code'
+    ASPECT = 'aspect'
     ATTRIBUTE = 'attribute'
     ATTRIBUTE_VALUE = 'attribute_value'
     CASE_SENSITIVE = 'case_sensitive'
@@ -263,7 +264,8 @@ class Config:
         cfglist = _read_yaml_cfg(yamlcfgfile, dump=dump, logfile=logfile)
         valid = validate_yaml_cfg(cfglist, allow_required)
         if not valid:
-            sys.tracebacklimit = 0
+            if verbos < 2:
+                sys.tracebacklimit = 0
             raise ValueError(red('Config failed validation.'))
         for document in cfglist:
             cmd = document[Stmt.CMD]
@@ -505,11 +507,13 @@ def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
                 valid_doc = False
         else:
             if Stmt.VALUE in document:
-                print(red(f'ERROR: "value" statement is not allowed for {command} command.'), file=logfile)
+                print(red(f'ERROR: "value" statement is not allowed for '
+                          f'{command} command.'), file=logfile)
                 valid_doc = False
         if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ, Cmd.IFATTRIBNOTEQ):
             if Stmt.ATTRIBUTE not in document:
-                print(red(f'ERROR: "attribute" statement is required for {command} command.'), file=logfile)
+                print(red(f'ERROR: "attribute" statement is required for '
+                          f'{command} command.'), file=logfile)
                 valid_doc = False
         if command not in Cmd.get_control_cmds():
             # for csv2xml.py allow required on a column command

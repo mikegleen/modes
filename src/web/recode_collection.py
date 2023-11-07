@@ -100,7 +100,7 @@ def onerow(oldrow):
     trace(2, 'Serial = {}', newrow['Serial'])
     newrow['Title'] = clean(oldrow['Title'])
     newrow['Medium'] = oldrow['Medium']
-    newrow['Description'] = clean(oldrow['Description'])
+    description = clean(oldrow['Description'])
     # Append the Production/SummaryText field to the end of the
     # Description field unless it just repeats the same text.
     # If Production/SummaryText is empty, use the First Published In title.
@@ -118,14 +118,14 @@ def onerow(oldrow):
             pg = 'page' if page_text.isdigit() else ''
             prod_text += f', {pg} {page_text}'
     if prod_text:
-        if newrow['Description']:
-            if prod_text.lower() not in newrow['Description'].lower():
-                newrow['Description'] += f' ({prod_text})'
+        if description:
+            if prod_text.lower() not in description.lower():
+                description += f' ({prod_text})'
         else:
-            newrow['Description'] = prod_text
+            description = prod_text
     # if from_tfp and page_text:
     #     pg = ' page' if page_text.isdigit() else ''
-    #     newrow['Description'] += f',{pg} {page_text}'
+    #     description += f',{pg} {page_text}'
 
     # ------------------------- Dates ----------------------------------
 
@@ -171,13 +171,6 @@ def onerow(oldrow):
                 exhibitions.append(f"{clean(name)} at {clean(place)}")
     newrow['Exhibition'] = '|'.join(exhibitions)
 
-    # ------------------------- ObjectType ----------------------------------
-
-    if oldrow['ObjectType'] == 'books':
-        newrow['Medium'] = 'book'
-    elif oldrow['ObjectType'] != 'Original Artwork' and not newrow['Medium']:
-        newrow['Medium'] = oldrow['ObjectType']
-
     # ------------------------- Dimensions ----------------------------------
 
     # The field is like "300 x 500" as height x width in mm.
@@ -208,11 +201,32 @@ def onerow(oldrow):
         trace(1, 'Cannot find images for {}', n_serial,
               color=Fore.YELLOW)
 
-    # ------------------------- Letters -------------------------------------
+    # ------------------------- ObjectType ----------------------------------
 
+    description = [description] if description else []
+    if oldrow['ObjectType'] == 'letter':
+        newrow['Medium'] = 'letter'
+        if oldrow['Sender']:
+            description.append(f'Sender: {oldrow["Sender"]}')
+        if oldrow['Sender Org']:
+            description.append(f'Sender Organisation: {oldrow["Sender Org"]}')
+        if oldrow['Recipient']:
+            description.append(f'Recipient: {oldrow["Recipient"]}')
+        if oldrow['Recipient Org']:
+            description.append(f'Recipient Organisation: {oldrow["Recipient Org"]}')
 
+    elif oldrow['ObjectType'] == 'cutting':
+        newrow['Medium'] = 'cutting'
+        if oldrow['Publ Name']:
+            description.append(f'Publication: {oldrow["Publ Name"]}')
 
+    elif oldrow['ObjectType'] == 'ephemera':
+        newrow['Medium'] = 'ephemera'
 
+    elif oldrow['ObjectType'] != 'Original Artwork' and not newrow['Medium']:
+        newrow['Medium'] = oldrow['ObjectType']
+
+    newrow['Description'] = '<br />'.join(description)
     return newrow
 
 

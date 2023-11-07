@@ -154,6 +154,82 @@ def add_item(elt, subid: int, nmainid: str) -> ET.Element:
     raise ValueError('Could not find where to insert the new element')
 
 
+def one_doc_aspect(objelem, idnum, doc):
+    """
+    Find all of the Aspect subelements under the xpath (the parent).
+    If one has our Keyword, update the Reading.
+    else if one has an empty Keyword, use that
+    else create a new Aspect group. Add it to the end of the parent.
+    """
+    global nupdated, nunchanged, nequal
+    parent = objelem.find(doc[Stmt.XPATH])
+    title = doc[Stmt.TITLE]
+    keyword_text = doc[Stmt.ASPECT]
+    command = doc[Stmt.CMD]
+    if command == Cmd.CONSTANT:
+        reading_text = doc[Stmt.VALUE]  # we checked this in validate_yaml_cfg
+    else:
+        title = doc[Stmt.TITLE]
+        reading_text = newvals[idnum][title]
+        if not reading_text and not _args.empty:
+            trace(3, '{}: empty Aspect field in CSV ignored. '
+                     '--empty not specified', idnum)
+            return
+        if reading_text == '{{clear}}':
+            reading_text = ''
+        elif reading_text == '{{today}}':
+            reading_text = _args.date
+    aspects = list(parent.findall('Aspect'))  # make a list to use it twice
+    found_aspect = False
+    aspect = reading_elt = None
+    for aspect in aspects:
+        keyword_elt = aspect.find('Keyword')
+        reading_elt = aspect.find('Reading')
+        if keyword_elt is None or reading_elt is None:
+            trace(2, '{}: Aspect element is missing a Keyword or Reading '
+                  f'subelement. Ignored.', idnum)
+            continue
+        if keyword_elt.text == keyword_text:
+            found_aspect = True
+            break
+    if not found_aspect:  # Search for empty Aspect groups
+        for aspect in aspects:
+            keyword_elt = aspect.find('Keyword')
+            reading_elt = aspect.find('Reading')
+            if keyword_elt is None or reading_elt is None:
+                continue
+            if not keyword_elt.text:
+                keyword_elt.text = keyword_text
+                found_aspect = True
+                break
+    if not found_aspect:
+        aspect = ET.Element('Aspect')
+        keyword_elt = ET.SubElement(aspect, 'Keyword')
+        reading_elt = ET.SubElement(aspect, 'Reading')
+        keyword_elt.text = keyword_text
+        parent.append(aspect)
+
+    old_reading_text = reading_elt.text
+    if old_reading_text and not _args.replace:
+        if old_reading_text != reading_text:
+            trace(1, '{} "{}" Aspect unchanged, old text: "{}",'
+                     ' new text: "{}"\nSet --replace to force update.',
+                  denormalize_id(idnum), title, old_reading_text,
+                  reading_text, color=Fore.YELLOW)
+        nunchanged += 1
+        return False
+    if old_reading_text and old_reading_text == reading_text:
+        nequal += 1
+        trace(2, '{} {}: Aspect unchanged: "{}" == "{}"',
+              idnum, title, old_reading_text, reading_text)
+        return False
+
+    reading_elt.text = reading_text
+    trace(3, '{} {}: Aspect Updated: "{}" -> "{}"', idnum,
+          title, old_reading_text, reading_text)
+    return True
+
+
 def one_element(objelem, idnum):
     """
     Update the fields specified by "column" configuration documents.
@@ -168,6 +244,11 @@ def one_element(objelem, idnum):
     global nupdated, nunchanged, nequal
     updated = False
     for doc in cfg.col_docs:
+        if Stmt.ASPECT in doc:
+            updated = one_doc_aspect(objelem, idnum, doc)
+            if updated:
+                nupdated += 1
+            continue
         command = doc[Stmt.CMD]
         xpath = doc[Stmt.XPATH]
         title = doc[Stmt.TITLE]
@@ -184,15 +265,6 @@ def one_element(objelem, idnum):
                 for target in targets:
                     objelem.remove(target)
             continue
-        if command == Cmd.CONSTANT:
-            newtext = doc[Stmt.VALUE]
-        else:  # command is COLUMN
-            # get the text from the CSV column for this row
-            newtext = newvals[idnum][doc[Stmt.TITLE]]
-        if not newtext and not (_args.empty or command == Cmd.CONSTANT):
-            trace(3, '{}: empty field in CSV ignored. --empty not specified',
-                  idnum)
-            continue
         target = objelem.find(xpath)
         if target is None:
             target = new_subelt(doc, objelem, idnum, _args.verbose)
@@ -200,12 +272,26 @@ def one_element(objelem, idnum):
                 trace(1, '{}: Cannot find target "{}", document "{}"', idnum,
                       xpath, title)
                 continue
+        if command == Cmd.CONSTANT:
+            newtext = doc[Stmt.VALUE]
+            target.text = newtext
+            updated = True
+            nupdated += 1
+            continue
+        # command is COLUMN
+        # get the text from the CSV column for this row
+        newtext = newvals[idnum][title]
+        if not newtext and not _args.empty:
+            trace(3, '{}: empty field in CSV ignored. --empty not specified',
+                  idnum)
+            continue
         oldtext = target.text
         if oldtext and not _args.replace:
             if oldtext != newtext:
                 trace(1, '{} {} Unchanged, old text: "{}",'
                          ' new text: "{}"\nSet --replace to force update.',
-                      denormalize_id(idnum), title, oldtext, newtext)
+                      denormalize_id(idnum), title, oldtext, newtext,
+                      color=Fore.YELLOW)
             nunchanged += 1
             continue
         if oldtext and oldtext == newtext:
@@ -340,7 +426,11 @@ def getparser():
         configuration
         file. If a row in the CSV file has fewer fields than defined in the
         configuration file, zero-length strings will be assumed. See
-        --empty.''', called_from_sphinx))
+        --empty. To do: make this optional in which case all objects will
+        be selected. This is useful to add a constant value to all objects.
+        In the meantime, use ``xml2csv.py`` with no configuration
+        file which will generate a CSV file will all accession numbers.
+        ''', called_from_sphinx))
     parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE,
                         help=sphinxify(f'''
         Specify the MDA code, used if the accession number in the CSV file
@@ -425,6 +515,7 @@ if __name__ == '__main__':
         sys.argv.append('-h')
     _args = getargs(sys.argv)
     nupdated = nunchanged = nwritten = nequal = 0
+    trace(1, 'Begin update_from_csv.', color=Fore.GREEN)
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Input file: {}\nCreating file: {}', _args.infile, _args.outfile)
@@ -439,7 +530,7 @@ if __name__ == '__main__':
         newvals, subvals = loadsubidvals(csvreader, allow_blanks=_args.allow_blanks)
     else:
         newvals = loadnewvals(csvreader, allow_blanks=_args.allow_blanks)
-    nnewvals = len(newvals)
+    nnewvals = len(newvals) if newvals else 0
     main()
     trace(1, '{} element{} in {} object{} updated.\n'
           '{} existing element{} unchanged.\n'

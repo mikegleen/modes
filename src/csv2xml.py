@@ -123,9 +123,9 @@ def get_template_from_csv(row: dict[str]):
     key = row[config.template_title].lower()
     if key not in config.templates:
         msg = (f'Template key in CSV file: "{key}" is not in config.'
-               f' {row=}')
+               f' row: {list(row.values())}')
         if _args.nostrict:
-            trace(2, msg)
+            trace(1, msg)
             return None
         raise ValueError(msg)
     templatefilepath = os.path.join(config.template_dir, config.templates[key])

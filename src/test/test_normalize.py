@@ -77,6 +77,18 @@ class TestNormalizeId(unittest.TestCase):
         nid = split_subid('JB001')
         self.assertEqual(nid, ('JB001', None))
 
+    # def test_14(self):
+    #     nid = normalize_id('2018.1')
+    #     self.assertEqual(nid, '002018.000001')
+    #
+    # def test_15(self):
+    #     nid = normalize_id('2018')
+    #     self.assertEqual(nid, '002018')
+    #
+    # def test_16(self):
+    #     nid = normalize_id('1.2')
+    #     self.assertEqual(nid, '000001.000002')
+
 
 class TestDenormalizeId(unittest.TestCase):
     def test_01(self):
@@ -98,6 +110,14 @@ class TestDenormalizeId(unittest.TestCase):
     def test_05(self):
         nid = denormalize_id('L000001')
         self.assertEqual(nid, 'L001')
+
+    def test_06(self):
+        nid = denormalize_id('000001')
+        self.assertEqual(nid, '1')
+
+    # def test_07(self):
+    #     nid = denormalize_id('000001.000002')
+    #     self.assertEqual(nid, '1.2')
 
 
 class TestBritishDateFromModes(unittest.TestCase):

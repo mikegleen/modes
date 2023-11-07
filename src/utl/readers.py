@@ -179,3 +179,79 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
         if verbos >= 1:
             print(f'"{suffix}" is not a valid suffix. Terminating.')
         sys.exit(1)
+
+
+def row_list_reader(filename: str | None, verbos=1, skiprows=0,
+                    allow_long_rows=False):
+    """
+    A generator function to iterate through either a CSV file or XLSX file.
+
+    We only look at the first sheet of an XLSX file.
+
+    :param filename: The input CSV or XLSX file.
+    :param verbos: Verbosity. If > 1, print column headings
+    :param skiprows: Rows to skip at the front of the file. Default = 0.
+    :param allow_long_rows: Normally, if a data row is longer than the heading
+                            row, the program aborts. If this parameter is set
+                            to True, this check is disabled.
+    :return: an iterator that calls this function or None. Each iteration returns
+             a row.
+    """
+    if not filename:
+        return None
+    _, suffix = os.path.splitext(filename)
+    if suffix.lower() == '.csv':
+        with codecs.open(filename, encoding='utf-8-sig') as mapfile:
+            reader = csv.reader(mapfile)
+            for _ in range(skiprows):
+                next(reader)
+            header = next(reader)
+            n_input_fields = len(header)
+            if verbos >= 2:
+                fieldnames = ", ".join(_trimrow(header, 1))
+                print(f'CSV Column Headings: {fieldnames}')
+            for nrow, row in enumerate(reader):
+                if not allow_long_rows and len(row) > n_input_fields:
+                    print(f"Error: row {nrow + 1} longer than heading: {row}")
+                    sys.exit(1)
+                yield row
+    elif suffix.lower() == '.xlsx':
+        wb = load_workbook(filename=filename)
+        ws = wb.active
+        enumrows = enumerate(ws.iter_rows(values_only=True))
+        for _ in range(skiprows):
+            next(enumrows)
+        _, heading = next(enumrows)
+        heading = list(heading)  # tuple -> list so it can be trimmed
+        _trimrow(heading, 0)
+        n_input_fields = len(heading)
+        # sys.exit()
+        if verbos >= 2:
+            print(f'row_dict_reader heading length: {n_input_fields}')
+            print(f'Excel Column Headings: '
+                  f'{", ".join([str(x) for x in heading])}')
+        for nrow, rawrow in enumrows:
+            rawrow = list(rawrow)
+            # print(f'before: {rawrow}')
+            _trimrow(rawrow, n_input_fields)
+            rawrow = [cell if cell else '' for cell in rawrow]
+            # print(f'after : {rawrow}')
+            if not allow_long_rows and len(rawrow) > n_input_fields:
+                print(f"Error: row {nrow + 1} longer than heading: {rawrow}")
+                sys.exit(1)
+            for ncell, cell in enumerate(rawrow):
+                if type(cell) == str:
+                    cell = cell.replace('\n', ' ')
+                elif cell is None:
+                    cell = ''
+                elif isinstance(cell, datetime.datetime):
+                    cell = cell.strftime('%Y-%m-%d')
+                else:
+                    cell = str(cell)
+            if not ''.join(rawrow):
+                continue
+            yield rawrow
+    else:
+        if verbos >= 1:
+            print(f'"{suffix}" is not a valid suffix. Terminating.')
+        sys.exit(1)

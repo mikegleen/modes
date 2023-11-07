@@ -62,10 +62,10 @@ def main():
         outfile.write(b'</Interchange>')
 
 
-def getargs():
+def getparser():
     parser = argparse.ArgumentParser(description=sphinxify('''
         Copy a selected set of objects to a new XML file based on the config
-        and/or a CSV file giving explicit accessions numbers to include or
+        and/or a CSV/XLSX file giving explicit accessions numbers to include or
         exclude. Alternatively, one or more accession numbers may be specified
         with the --object parameter. If none of the parameters is given, the
         entire file is copied, possibly reformatting the text and converting
@@ -126,6 +126,12 @@ def getargs():
     return args
 
 
+def getargs(argv):
+    parser = getparser()
+    args = parser.parse_args(args=argv[1:])
+    return args
+
+
 calledfromsphinx = True
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
@@ -148,15 +154,14 @@ if __name__ == '__main__':
         cfgfile = open(_args.cfgfile)
     else:
         cfgfile = None
-    config = Config(cfgfile, dump=_args.verbose >= 2)
+    config = Config(cfgfile, mdacode=_args.mdacode, dump=_args.verbose >= 2)
     if _args.object:
         expanded = [normalize_id(obj) for obj in expand_idnum(_args.object)]
         includeset = set(expanded)  # JB001-002 -> JB001, JB002
         includes = dict.fromkeys(includeset)
     else:
         includes = read_include_dict(_args.include, _args.include_column,
-                                     _args.include_skip, _args.verbose,
-                                     mdacode=_args.mdacode)
+                                     _args.include_skip, _args.verbose)
     main()
     basename = os.path.basename(sys.argv[0])
     print(f'{selcount} object{"" if selcount == 1 else "s"} selected from {objcount}.')
