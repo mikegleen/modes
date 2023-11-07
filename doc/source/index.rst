@@ -18,6 +18,7 @@ Modes Python Library
    compare_elts
    count_values
    csv2xml
+   dir2csv
    docx2csv
    utility_functions
    exhibition

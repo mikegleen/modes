@@ -1,8 +1,8 @@
-docx2csv
-========
+dir2csv
+=======
 
 .. argparse::
-   :filename: ../src/docx2csv.py
+   :filename: ../src/dir2csv.py
    :func: getparser
-   :prog: docx2csv.py
+   :prog: dir2csv.py
 
