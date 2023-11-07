@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -e
-INCSV=../letters/etc/2023-10-30_letters.xlsx
-OUTXML=2023-10-30_letters.xml
+INCSV=../letters/etc/2023-10-31_letters.xlsx
+OUTXML=2023-11-02_letters.xml
 cat >tmp/update.yml <<EOF
 cmd: global
 template_title: Type
