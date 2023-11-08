@@ -1,7 +1,7 @@
 #!/bin/zsh
 #
 INXML=prod_update/normal/2023-10-14_batch021_type.xml
-OUTXML=prod_update/normal/2023-11-06_display_order.xml
+OUTXML=prod_update/normal/2023-11-07_display_order.xml
 cat >tmp/update.yml <<EOF
 cmd: constant
 aspect: display order

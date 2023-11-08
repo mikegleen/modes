@@ -10,6 +10,11 @@ INXML=`basename $1`
 echo INXML = $INXML
 INDIR=`dirname $1`
 echo INDIR = $INDIR
+BASE=`basename $INDIR`
+if [[ "$BASE" != "pretty" ]]; then
+    echo XML file must be in folder named "pretty". Exiting
+    exit 1
+fi
 OUTDIR=`dirname $INDIR`/normal
 echo OUTDIR = $OUTDIR
 BASENAME=`python3 -c "print('$INXML'.split('.')[0].removesuffix('_pretty'))"`
