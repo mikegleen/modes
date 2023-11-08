@@ -182,6 +182,7 @@ def one_doc_aspect(objelem, idnum, doc):
     aspects = list(parent.findall('Aspect'))  # make a list to use it twice
     found_aspect = False
     aspect = reading_elt = None
+    # Look for an Aspect with our keyword
     for aspect in aspects:
         keyword_elt = aspect.find('Keyword')
         reading_elt = aspect.find('Reading')
@@ -203,12 +204,26 @@ def one_doc_aspect(objelem, idnum, doc):
                 found_aspect = True
                 break
     if not found_aspect:
+        # if there are existing Aspect elements, but not one suitable for
+        # this keyword, create a new element group and insert it after the
+        # existing Aspect(s). Otherwise append it to the parent.
         aspect = ET.Element('Aspect')
         keyword_elt = ET.SubElement(aspect, 'Keyword')
         reading_elt = ET.SubElement(aspect, 'Reading')
         keyword_elt.text = keyword_text
-        parent.append(aspect)
-
+        if len(aspects) == 0:
+            parent.append(aspect)
+        else:
+            insert_ix = None
+            elts = list(parent)
+            for n, e in enumerate(elts):
+                if e.tag == 'Aspect':
+                    insert_ix = n + 1
+            if insert_ix is None:
+                trace(0, '{}: Cannot find insert_after Aspect, ',
+                      idnum, color=Fore.RED)
+                raise ValueError('Internal error.')
+            parent.insert(insert_ix, aspect)
     old_reading_text = reading_elt.text
     if old_reading_text and not _args.replace:
         if old_reading_text != reading_text:
