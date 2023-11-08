@@ -1,4 +1,4 @@
-CONDAENV=py11
+CONDAENV=py311
 set -e
 if [[ "$CONDA_DEFAULT_ENV" != $CONDAENV ]]; then
     echo Activating $CONDAENV...
