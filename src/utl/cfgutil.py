@@ -117,6 +117,7 @@ class Stmt:
     CMD = 'cmd'
     DATE = 'date'
     DELIMITER = 'delimiter'
+    DENORMALIZE = 'denormalize'
     ELEMENT = 'element'
     INSERT_AFTER = 'insert_after'
     MULTIPLE_DELIMITER = 'multiple_delimiter'
@@ -275,16 +276,17 @@ class Config:
                 self.ctrl_docs.append(document)
             else:  # not control command
                 self.col_docs.append(document)
-        self.norm = []  # True if this column needs to be normalized/unnormalized
-        # Do this as a separate step because we didn't know whether we need
-        # to include the serial number until all the documents were read.
-        if not self.skip_number:
-            self.norm.append(True)  # for the Serial number
-        for doc in self.col_docs:
-            self.norm.append(Stmt.NORMALIZE in doc)
-            if Stmt.MULTIPLE_DELIMITER not in doc:
-                doc[Stmt.MULTIPLE_DELIMITER] = self.multiple_delimiter
-        self.lennorm = len(self.norm)
+        # tentatively remove this and see if it causes problems.
+        # self.norm = []  # True if this column needs to be normalized/unnormalized
+        # # Do this as a separate step because we didn't know whether we need
+        # # to include the serial number until all the documents were read.
+        # if not self.skip_number:
+        #     self.norm.append(True)  # for the Serial number
+        # for doc in self.col_docs:
+        #     self.norm.append(Stmt.NORMALIZE in doc)
+        #     if Stmt.MULTIPLE_DELIMITER not in doc:
+        #         doc[Stmt.MULTIPLE_DELIMITER] = self.multiple_delimiter
+        # self.lennorm = len(self.norm)
         if len(self.ctrl_docs) and verbos:
             print("Config contains filtering commands.")
 
