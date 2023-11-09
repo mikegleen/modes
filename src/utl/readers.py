@@ -119,7 +119,8 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
                             row, the program aborts. If this parameter is set
                             to True, this check is disabled.
     :return: an iterator that calls this function or None. Each iteration returns
-             a row.
+             a dict where the keys are the column titles and the values are the
+             column contents for each row.
     """
     if not filename:
         return None
@@ -195,7 +196,7 @@ def row_list_reader(filename: str | None, verbos=1, skiprows=0,
                             row, the program aborts. If this parameter is set
                             to True, this check is disabled.
     :return: an iterator that calls this function or None. Each iteration returns
-             a row.
+             a row as a list.
     """
     if not filename:
         return None
