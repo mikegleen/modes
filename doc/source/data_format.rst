@@ -80,3 +80,37 @@ to Modes format::
 "mmm" indicates a three-letter month abbreviation (Jan, Feb, etc. Case is ignored).
 "month" indicates a full name. Leading zeros may be omitted. Additionally,
 Modes format data is cleaned with any leading zeros removed. 
+
+
+Output CSV File Formats
+-----------------------
+
+In general, the Python CSV software is tolerant of varying input CSV formats.
+However, if the CSV file created by, for example, ``xml2csv.py`` is fed to another
+program, you must be aware of certain details.
+
+The output file includes line terminators of "\r\n", meaning carriage-return
+and line-feed. This is the normal line terminator for Windows systems but not
+for Unix-like systems (like MacOs) that expect a single character "\n". If the
+output file is being read by Excel, this is ok but if it is being read by
+another Unix program like sed or awk then this will cause some bizarre results.
+
+An example awk script that removes the offending "\r" character before adding
+a column to the end of the row is::
+
+    awk '{sub("\r$", ""); print $1 ",6"}' tmp/not_dulwich.csv >tmp/not_dulwich2.csv
+
+
+A version of awk, called goawk, is available that silently handles the different
+line endings properly.
+
+A separate issue arises when processing the output CSV file in Excel. The file
+is created in UTF-8 format but by default Excel assumes a different format which
+varies depending on the platform (Windows or MacOs). To avoid this, a Byte Order
+Mark (BOM) can be included at the front of the file using the ``-b`` option in programs
+that produce CSV output. This will force Excel to process the CSV file as UTF-8
+data. This BOM is recognized by most Windows programs but not Unix-like systems.
+So if you are processing the output with a program (other than Excel) on a MacOs
+system, do not include the BOM.
+
+

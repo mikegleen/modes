@@ -13,7 +13,7 @@ Modes Python Library
 ====================
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
 
    compare_elts
    count_values
@@ -163,6 +163,13 @@ the ``cmd: global`` document.
    If specified, indicates that a field may be in date
    format and should be converted to Modes format. See the section *Date Formats*
    in the document page *Data Formats* for the formats supported. Allowed in ``csv2xml.py``.
+-  **denormalize**
+
+   See **normalize**. If a value has been normalized, it will be output as
+   normalized. Include this statement to force denormalization of the field on
+   output. Note that normalizing then denormalizing does not necessarily return
+   the field to its original form. For example, a number like ``2018.2`` will
+   be output with an MDA code prepended.
 -  **element**
 
    Referenced when processing the **parent_path** statment for the name
@@ -184,10 +191,11 @@ the ``cmd: global`` document.
 -  **normalize**
 
    If specified, adjust this accession number so that it sorts in numeric
-   order. The number will be de-normalized before output. The default serial
+   order. The number will be normalized in the output. The default serial
    number in the first column and the accession number extracted from the XML
-   file will always be normalized before use. This may also be used to strip leading
-   zeros from another numeric field such as entry numbers.
+   file will always be normalized before use and denormalized before output.
+   This may also be used to strip leading zeros from another numeric field such
+   as entry numbers. See **denormalize**.
 -  **parent_path**
 
    Include this statement if the **xpath** may not

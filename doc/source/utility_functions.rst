@@ -19,5 +19,9 @@ Utility Functions
 
 |
 
+.. autofunction:: utl.readers.row_list_reader
+
+|
+
 .. autofunction:: utl.readers.get_heading
 
