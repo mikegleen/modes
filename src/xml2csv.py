@@ -183,17 +183,15 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         outlist.sort()
     # Create a list of flags indicating whether the value needs to be
     # de-normalized.
-    norm = []
+    denorm = []
     if not config.skip_number:
-        norm.append(True)  # for the Serial number
+        denorm.append(True)  # for the Serial number
     for doc in config.col_docs:
-        if doc[Stmt.CMD] in Cmd.get_control_cmds():
-            continue
-        norm.append(Stmt.NORMALIZE in doc)
-    lennorm = len(norm)
+        denorm.append(Stmt.DENORMALIZE in doc)
+    lennorm = len(denorm)
     for row in outlist:
         for n, cell in enumerate(row[:lennorm]):
-            if norm[n]:
+            if denorm[n]:
                 row[n] = denormalize_id(cell, _args.mdacode)
         outcsv.writerow(row)
     infile.close()
