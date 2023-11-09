@@ -108,6 +108,7 @@ dev_backup/
 etc/
 out/
 prod_backup/
+prod_delta/
 prod_make/
 prod_save/
 prod_update/
