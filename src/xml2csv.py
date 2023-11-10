@@ -9,6 +9,7 @@
     a description of the YAML file.
 """
 import argparse
+from colorama import Fore, Style
 import codecs
 import csv
 import sys
@@ -24,9 +25,12 @@ from utl.normalize import if_not_sphinx
 from utl.zipmagic import openfile
 
 
-def trace(level, template, *args):
+def trace(level, template, *args, color=None):
     if _args.verbose >= level:
-        print(template.format(*args), file=_logfile)
+        if color:
+            print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
+        else:
+            print(template.format(*args), file=_logfile)
 
 
 def opencsvwriter(filename, delimiter):
@@ -81,6 +85,7 @@ def one_document(document, parent):
 def main(argv):  # can be called either by __main__ or test_xml2csv
     global _args, _logfile
     _args = getargs(argv)
+    trace(1, 'Begin xml2csv.', color=Fore.GREEN)
     infilename = _args.infile
     outfilename = _args.outfile
     cfgfilename = _args.cfgfile
@@ -297,8 +302,8 @@ if __name__ == '__main__':
     elapsed = time.perf_counter() - t1
     if not_found:
         trace(1, 'Warning: {} elements not found in XML.', not_found)
-    print('End xml2csv. {}/{} lines written to {}. Elapsed: {:5.2f} seconds.'
-          .format(n_written, n_lines, _args.outfile, elapsed), file=_logfile)
+    trace(1, 'End xml2csv. {}/{} lines written to {}. Elapsed: {:5.2f} seconds.',
+          n_written, n_lines, _args.outfile, elapsed, color=Fore.GREEN)
     if _args.logfile:
         print('End xml2csv. '
               '{}/{} lines written to {}. Elapsed: {:5.2f} seconds.'
