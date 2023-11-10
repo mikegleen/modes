@@ -181,7 +181,7 @@ def one_doc_aspect(objelem, idnum, doc):
             reading_text = _args.date
     aspects = list(parent.findall('Aspect'))  # make a list to use it twice
     found_aspect = False
-    aspect = reading_elt = None
+    reading_elt = None
     # Look for an Aspect with our keyword
     for aspect in aspects:
         keyword_elt = aspect.find('Keyword')
@@ -416,7 +416,7 @@ def getparser():
         Skip rows in the include CSV file with blank accession numbers. If not
         set, this will cause an abort. ''')
     parser.add_argument('-c', '--cfgfile', required=True,
-                        type=argparse.FileType('r'), help='''
+                        type=argparse.FileType(), help='''
         Required. The YAML configuration file describing the column path(s) to
          update''')
     parser.add_argument('-d', '--date', help='''
