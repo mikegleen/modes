@@ -89,3 +89,6 @@ cmd: column
 xpath: ./Production/Organisation[Role="publication name"]/OrganisationName
 title: Publ Name
 ---
+cmd: column
+xpath: ./Description/Aspect[Keyword="display order"]/Reading
+title: Order
