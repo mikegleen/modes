@@ -52,9 +52,27 @@ def main():
 
     accns = set()
     nline = 0
+    # for line in infile:
+    #     nline += 1
+    #     if m := re.search(r'<guid.*collection_(.*)\.jpg', line):
+    #         try:
+    #             naccn = normalize_id(m.group(1))
+    #         except (ValueError, AssertionError) as err:
+    #             print(f'Line {nline}:', str(err))
+    #             continue
+    #         if naccn in accns:
+    #             print(f'Duplicate: {m.group(1)}')
+    #         accns.add(naccn)
+    # for naccn in sorted(accns):
+    #     print(denormalize_id(naccn), file=outfile)
+    # print(f'{len(accns)} files in collection')
     for line in infile:
-        nline += 1
-        if m := re.search(r'<guid.*collection_(.*)\.jpg', line):
+        if '[CDATA[serial_no]]' in line:
+            sline = next(infile)
+            m = re.search(r'CDATA\[(.*)\]\]', sline)
+            if not m:
+                print(sline, 'fails pattern match')
+                continue
             try:
                 naccn = normalize_id(m.group(1))
             except (ValueError, AssertionError) as err:
