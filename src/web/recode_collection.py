@@ -37,7 +37,7 @@ WHR_DD = 1949  # Last year of the decade in which WHR died
 
 GALLERY_LIST = [f'Gallery{n:02}' for n in range(1, NUM_GALLERY_ITEMS + 1)]
 FIELDS = 'Serial Title Medium Exhibition HumanDate IsoDate Decade'
-FIELDS += ' Description Dimensions'
+FIELDS += ' Description Dimensions Order'
 FIELDS += ' ' + ' '.join(GALLERY_LIST)
 
 
@@ -85,6 +85,9 @@ def clean(s):
 
 def read_img_csv_file() -> dict[list]:
     img_dict = {}
+    if not _args.imgcsvfile:
+        trace(1, 'Warning: no images loaded.', color=Fore.YELLOW)
+        return img_dict
     with codecs.open(_args.imgcsvfile, encoding='utf-8-sig') as imgcsvfile:
         reader = csv.reader(imgcsvfile)
         for row in reader:
@@ -100,6 +103,7 @@ def onerow(oldrow):
     trace(2, 'Serial = {}', newrow['Serial'])
     newrow['Title'] = clean(oldrow['Title'])
     newrow['Medium'] = oldrow['Medium']
+    newrow['Order'] = oldrow['Order']
     description = clean(oldrow['Description'])
     # Append the Production/SummaryText field to the end of the
     # Description field unless it just repeats the same text.
@@ -197,7 +201,7 @@ def onerow(oldrow):
         for key, value in gallery:
             newrow[key] = value
         del imgdict[n_serial]
-    else:
+    elif _args.imgcsvfile:
         trace(1, 'Cannot find images for {}', n_serial,
               color=Fore.YELLOW)
 
@@ -272,7 +276,7 @@ def getparser() -> argparse.ArgumentParser:
         ''', called_from_sphinx))
     parser.add_argument('outfile', help='''
         The output CSV file.''')
-    parser.add_argument('-g', '--imgcsvfile', required=True,
+    parser.add_argument('-g', '--imgcsvfile', required=False,
                         help=sphinxify('''
         This file contains two columns, the Serial number and a vertial bar
         separated list of image files.        
@@ -302,7 +306,7 @@ if __name__ == '__main__':
     _args = getargs(sys.argv)
     incsvfile = codecs.open(_args.incsvfile, encoding='utf-8-sig')
     outfile = codecs.open(_args.outfile, 'w', encoding='utf-8-sig')
-    trace(1, 'Begin recode_collection.')
+    trace(1, 'Begin recode_collection.', color=Fore.GREEN)
     trace(1, '    Input file: {}', _args.incsvfile)
     trace(1, '    Creating file: {}', _args.outfile)
     imgdict = read_img_csv_file()
@@ -312,4 +316,4 @@ if __name__ == '__main__':
     for serial in imgdict.keys():
         trace(2, '{}: images not used.')
     trace(1, 'End recode_collection. {} row{} written.', nrows,
-          '' if nrows == 1 else 's')
+          '' if nrows == 1 else 's', color=Fore.GREEN)
