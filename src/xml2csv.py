@@ -304,8 +304,3 @@ if __name__ == '__main__':
         trace(1, 'Warning: {} elements not found in XML.', not_found)
     trace(1, 'End xml2csv. {}/{} lines written to {}. Elapsed: {:5.2f} seconds.',
           n_written, n_lines, _args.outfile, elapsed, color=Fore.GREEN)
-    if _args.logfile:
-        print('End xml2csv. '
-              '{}/{} lines written to {}. Elapsed: {:5.2f} seconds.'
-              .format(n_written, n_lines, _args.outfile, elapsed),
-              file=sys.stderr)
