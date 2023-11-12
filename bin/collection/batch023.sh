@@ -11,7 +11,7 @@ pushd ~/pyprj/hrm/modes
 export BATCH=${0:t:r}
 export REVISION=
 export VERBOS=1
-export MODESFILE=prod_update/normal/2023-11-01_letters.xml
-export IMGDIR=../collection/aawebimgs/batch021
+export MODESFILE=prod_update/normal/
+export IMGDIR=../collection/aawebimgs/batch023
 #
 bin/collection/batch_sub.sh

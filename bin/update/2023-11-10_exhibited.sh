@@ -1,5 +1,13 @@
 #!/bin/zsh
 #
+# Update the "display order" aspect of pictures that have been exhibited.
+#
+# Pictures exhibited in Dulwich are given priority 3.
+# Pictures exhibited elsewhere are given priority 6.
+#
+# Priory 1 pictures are displayed first; priority 9 is the lowest (and default).
+#
+set -e
 cat >tmp/cfg.yml <<EOF
 cmd: if
 xpath: ./Exhibition/ExhibitionName
@@ -35,4 +43,4 @@ aspect: display order
 xpath: ./Description
 title: Order
 EOF
-python src/update_from_csv.py prod_update/normal/2023-11-07_display_order.xml prod_delta/normal/2023-11-09_display_order.xml -m tmp/update_order.csv -c tmp/cfg3.yml -r
+python src/update_from_csv.py prod_update/normal/2023-11-07_display_order.xml prod_update/normal/2023-11-10_display_order.xml -m tmp/update_order.csv -c tmp/cfg3.yml -r -a
