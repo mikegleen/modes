@@ -287,6 +287,9 @@ class Config:
         #     if Stmt.MULTIPLE_DELIMITER not in doc:
         #         doc[Stmt.MULTIPLE_DELIMITER] = self.multiple_delimiter
         # self.lennorm = len(self.norm)
+        for doc in self.col_docs:
+            if Stmt.MULTIPLE_DELIMITER not in doc:
+                doc[Stmt.MULTIPLE_DELIMITER] = self.multiple_delimiter
         if len(self.ctrl_docs) and verbos:
             print("Config contains filtering commands.")
 
