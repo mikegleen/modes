@@ -27,6 +27,7 @@ Modes Python Library
    list_needed
    location
    recode_collection
+   x053_list_pages
    update_from_csv
    xml2csv
    genindex
