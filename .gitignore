@@ -107,6 +107,7 @@ data/
 dev_backup/
 etc/
 out/
+play/
 prod_backup/
 prod_delta/
 prod_make/
