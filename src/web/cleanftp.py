@@ -1,5 +1,6 @@
 """
-    Delete JPEG files from the website collection database.
+    Delete JPEG files from the website collection database. No parameters
+    are required.
 """
 from ftplib import FTP
 
