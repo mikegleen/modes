@@ -20,7 +20,7 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-def getargs():
+def getparser():
     parser = argparse.ArgumentParser(description='''
         For every JPG file in a directory, copy it to the output directory or, if
         it is large, copy a shrunken version of it.''')
@@ -41,6 +41,11 @@ def getargs():
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
+    return parser
+
+
+def getargs():
+    parser = getparser()
     args = parser.parse_args()
     if args.dryrun:
         args.verbose = 2
