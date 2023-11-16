@@ -26,20 +26,18 @@ IMGDIR=../collection/aawebimgs/${BATCH}
 DESTDIR=../collection/etc/$BATCH
 mkdir -p $DESTDIR
 #
-# Create a file with the accession numbers from the names of the JPG files in the batch.
 # Insert a heading in the CSV file even though it will be skipped by xml2csv (useful for debugging).
 # Although it is called a CSV file, there is only one column, the accession number.
 #
-python src/dir2csv.py $IMGDIR tmp/${BR}_list.csv --heading
+# Create a file with the accession numbers in column 1 and a "|" delimited list of filenames
+# in column 2. There is no heading row.
+#
+python src/web/x053_list_pages.py ../collection/aawebimgs/$BR ../collection/etc/batch023/${BR}_list.csv
 #
 # Pull the relevant fields from the Modes XML file for the objects in the batch.
 #
-python src/xml2csv.py $MODESFILE $DESTDIR/${BR}_step1.csv -c src/cfg/website.yml --include tmp/${BR}_list.csv --include_skip 1 --heading -b -l results/reports/${BR}_website.log -v 2
-#
-# Create the list of image files associated with each object.
-#
-python src/web/x053_list_pages.py $IMGDIR tmp/images.csv
+python src/xml2csv.py $MODESFILE $DESTDIR/${BR}_step1.csv -c src/cfg/website.yml --include ../collection/etc/batch023/${BR}_list.csv --include_skip 1 --heading -b -l results/reports/${BR}_website.log -v 2
 #
 # Modify the CSV file to included new and adjusted columns.
 #
-python src/web/recode_collection.py $DESTDIR/${BR}_step1.csv $DESTDIR/${BR}.csv -g tmp/images.csv -v $VERBOS
+python src/web/recode_collection.py $DESTDIR/${BR}_step1.csv $DESTDIR/${BR}.csv --imgcsvfile ../collection/etc/batch023/${BR}_list.csv -v $VERBOS
