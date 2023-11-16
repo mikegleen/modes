@@ -4,7 +4,8 @@
     One parameter is required, the directory holding the new images.
 
     The files in the sending directory are of the form: <accession #>.jpg
-    This program will:
+    This program will::
+
         Add a prefix of "collection_" to each file, if needed.
         Send the file to the host.
 
