@@ -25,3 +25,20 @@ Utility Functions
 
 .. autofunction:: utl.readers.get_heading
 
+FTP Utilities
+-------------
+
+|
+
+uploadftp
+~~~~~~~~~
+
+.. automodule:: web.uploadftp
+
+|
+
+cleanftp
+~~~~~~~~
+
+.. automodule:: web.cleanftp
+
