@@ -4,12 +4,7 @@
     the object. For example, the images could be of pages of a letter. The list
     is separated by a "|" character.
 
-    Input is a folder containing sub-folders, each of which contains images.
-
-    This script is copied from x051 and handles a folder containing image files
-    and/or subfolders (to any level).
-
-    The output of this script is input to recode_collection.py.
+    Input is a folder containing image files and/or subfolders (to any level).
 
     You can have single file for an object with a name corresponding to its
     accession number or you can have one or more files in the format of
@@ -17,11 +12,14 @@
     Here we keep track of files with the simple name so if we try to add
     a long-named file to the list it's an error. We also check when adding
     a simple-name file that there aren't already long-name files in the list.
+
+    The output of this script is input to recode_collection.py.
 """
 import os
 import re
 import sys
 from collections import defaultdict
+from colorama import Fore, Style
 
 from utl.normalize import normalize_id, denormalize_id
 
@@ -60,20 +58,21 @@ def normalize_filename(filename: str, suffix: str, m: re.Match):
         return filename
 
 
-def denormalize_filename(filename):
+def denormalize_filename(filename: str):
     # Remove the padding from the page number.
+    filename = filename.removeprefix(COLLECTION_PREFIX)
     prefix, suffix = os.path.splitext(filename)
     m = re.match(FILENAMEPAT, prefix)
     if m is None:
-        return denormalize_id(prefix) + suffix
+        return COLLECTION_PREFIX + denormalize_id(prefix) + suffix
     if m.group(5):
         parta = f'{m.group(1)}-{m.group(2)}'
         page = f'{int(m.group(5))}'
         if m.group(6):
-            page += m.group(6)
-        return f'{parta}-{page}{suffix}'
+            page += m.group(6)  # A or B
+        return COLLECTION_PREFIX + f'{parta}-{page}{suffix}'
     else:
-        return filename
+        return COLLECTION_PREFIX + filename  # simple accession number
 
 
 def one_file(filename):
@@ -91,6 +90,9 @@ def one_file(filename):
     if suffix.lower() not in IMGFILES:
         if filename != '.DS_Store':
             print(f'Skipping not image: {filename}')
+        return
+    if not prefix.startswith(COLLECTION_PREFIX):
+        print(f'File "{filename}" doesn’t strt with {COLLECTION_PREFIX}. Ignored.')
         return
     try:
         # fails if the name contains a page number
@@ -133,9 +135,10 @@ def main(indir):
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
+    print(Fore.GREEN + 'Begin x053_list_pages.' + Style.RESET_ALL)
     num_failed_match = 0
     accndict = defaultdict(list)
-    # singlefile = set()
     inputdir = sys.argv[1]
     outfile = open(sys.argv[2], 'w')
     main(inputdir)
+    print(Fore.GREEN + 'End x053_list_pages.' + Style.RESET_ALL)
