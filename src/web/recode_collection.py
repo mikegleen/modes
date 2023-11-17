@@ -103,7 +103,13 @@ def onerow(oldrow):
     trace(2, 'Serial = {}', newrow['Serial'])
     newrow['Title'] = clean(oldrow['Title'])
     newrow['Medium'] = oldrow['Medium']
-    newrow['Order'] = oldrow['Order']
+    order = oldrow['Order']
+    if not order.isnumeric() or not (1 <= int(order) <= 9):
+        trace(1, 'Serial = {}, order is not in range 1-9: {}, '
+                 '"9" assigned.', newrow['Serial'], order, color=Fore.YELLOW)
+        order = '9'
+    newrow['Order'] = f'{order}_{n_serial}'
+
     description = clean(oldrow['Description'])
     # Append the Production/SummaryText field to the end of the
     # Description field unless it just repeats the same text.
@@ -325,6 +331,6 @@ if __name__ == '__main__':
     if len(imgdict):
         trace(1, '{} images discarded', len(imgdict))
     for serial in imgdict.keys():
-        trace(2, '{}: images not used.')
+        trace(2, '{}: images not used.', serial)
     trace(1, 'End recode_collection. {} row{} written.', nrows,
           '' if nrows == 1 else 's', color=Fore.GREEN)
