@@ -14,6 +14,7 @@ from utl.normalize import sphinxify, normalize_id
 
 def onefile(filename, ws, prefix):
     global out_row_num, sheet
+    # print(f'{filename=}')
     infilepath = os.path.join(_args.indir, filename)
     wb1 = openpyxl.load_workbook(infilepath)
     ws1 = wb1.active
@@ -27,7 +28,10 @@ def onefile(filename, ws, prefix):
             continue
         out_row_num += 1
         # row = [cell.value for cell in row]
+        if not row[0].value:
+            continue
         row[0].value = f'{prefix}.{row[0].value}'
+        # print(f'{row[0].value=}')
         sheet.append((normalize_id(row[0].value), row))
 
     return
@@ -38,7 +42,7 @@ def put_ws(wb, ws):
     for row_num, row in enumerate(sheet, start=2):
         for col_num, c in enumerate(row[1], start=1):
             cell = ws.cell(row=row_num, column=col_num, value=c.value)
-            cell.data_type = openpyxl.cell.cell.TYPE_STRING
+            # cell.data_type = openpyxl.cell.cell.TYPE_STRING
             cell.number_format = openpyxl.styles.numbers.FORMAT_TEXT
 
     # for row in sheet:
@@ -53,7 +57,10 @@ def main():
     worksheet = workbook.active
     for infile in infiles:
         prefix, suffix = os.path.splitext(infile)
-        if suffix.lower() != '.xlsx':
+        if prefix.startswith('~'):
+            print('Warning: skipping open file:', infile)
+            continue
+        if suffix.lower() != '.xlsx' or prefix.lower() == 'template':
             print(f'Skipping {infile}')
             continue
         onefile(infile, worksheet, prefix)
