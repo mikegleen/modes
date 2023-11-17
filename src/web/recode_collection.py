@@ -179,6 +179,7 @@ def onerow(oldrow):
 
     # The field is like "300 x 500" as height x width in mm.
     m = re.search(r'(\d+)\D+(\d+)', oldrow['Dimensions'])
+    newrow['Dimensions'] = ''
     if m:
         height = m.group(1) + 'mm'
         width = m.group(2) + 'mm'
@@ -211,14 +212,24 @@ def onerow(oldrow):
     if oldrow['ObjectType'] == 'letter':
         newrow['Medium'] = 'letter'
         if oldrow['Sender']:
+            # if description:
+            #     description.append('<br/>')
             description.append(f'Sender: {oldrow["Sender"]}')
         if oldrow['Sender Org']:
+            # print(f'{n_serial=} "{oldrow["Sender Org"]=}", {description=}')
+            # if description:
+            #     description.append('<br/>')
             description.append(f'Sender Organisation: {oldrow["Sender Org"]}')
+            # print(f'after append {description=}')
         if oldrow['Recipient']:
+            # if description:
+            #     description.append('<br/>')
             description.append(f'Recipient: {oldrow["Recipient"]}')
         if oldrow['Recipient Org']:
+            # if description:
+            #     description.append('<br/>')
             description.append(f'Recipient Organisation: {oldrow["Recipient Org"]}')
-
+        # print(f'done {description=}')
     elif oldrow['ObjectType'] == 'cutting':
         newrow['Medium'] = 'cutting'
         if oldrow['Publ Name']:
@@ -279,7 +290,7 @@ def getparser() -> argparse.ArgumentParser:
     parser.add_argument('-g', '--imgcsvfile', required=False,
                         help=sphinxify('''
         This file contains two columns, the Serial number and a vertial bar
-        separated list of image files.        
+        separated list of image files. This file is created by ``x053_list_pages.py``.       
         ''', called_from_sphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
