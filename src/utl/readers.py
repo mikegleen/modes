@@ -104,6 +104,18 @@ def get_heading(filepath: str | None, verbos=1, skiprows=0) -> list | None:
         sys.exit(1)
 
 
+def cleancell(cell) -> str:
+    if type(cell) == str:
+        cell = cell.replace('\n', ' ')
+    elif cell is None:
+        cell = ''
+    elif isinstance(cell, datetime.datetime):
+        cell = cell.strftime('%Y-%m-%d')
+    else:
+        cell = str(cell)
+    return cell
+
+
 def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
                     allow_long_rows=False):
     """
@@ -164,15 +176,8 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
                 print(f"Error: row {nrow + 1} longer than heading: {rawrow}")
                 sys.exit(1)
             for ncell, cell in enumerate(rawrow):
-                if type(cell) == str:
-                    cell = cell.replace('\n', ' ')
-                elif cell is None:
-                    cell = ''
-                elif isinstance(cell, datetime.datetime):
-                    cell = cell.strftime('%Y-%m-%d')
-                else:
-                    cell = str(cell)
-                row[heading[ncell]] = '' if cell is None else str(cell).strip()
+                ccell = cleancell(cell)
+                row[heading[ncell]] = ccell
             if not ''.join(row.values()):
                 continue
             yield row
@@ -228,27 +233,16 @@ def row_list_reader(filename: str | None, verbos=1, skiprows=0,
         n_input_fields = len(heading)
         # sys.exit()
         if verbos >= 2:
-            print(f'row_dict_reader heading length: {n_input_fields}')
+            print(f'row_list_reader heading length: {n_input_fields}')
             print(f'Excel Column Headings: '
                   f'{", ".join([str(x) for x in heading])}')
         for nrow, rawrow in enumrows:
             rawrow = list(rawrow)
-            # print(f'before: {rawrow}')
             _trimrow(rawrow, n_input_fields)
-            rawrow = [cell if cell else '' for cell in rawrow]
-            # print(f'after : {rawrow}')
+            rawrow = [cleancell(c) for c in rawrow]
             if not allow_long_rows and len(rawrow) > n_input_fields:
                 print(f"Error: row {nrow + 1} longer than heading: {rawrow}")
                 sys.exit(1)
-            for ncell, cell in enumerate(rawrow):
-                if type(cell) == str:
-                    cell = cell.replace('\n', ' ')
-                elif cell is None:
-                    cell = ''
-                elif isinstance(cell, datetime.datetime):
-                    cell = cell.strftime('%Y-%m-%d')
-                else:
-                    cell = str(cell)
             if not ''.join(rawrow):
                 continue
             yield rawrow
