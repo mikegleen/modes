@@ -33,6 +33,7 @@ def trace(level, template, *args, color=None):
 def _onedir(ld, fd, subdirname: str, subdirpath: str):
     fnpat = r'(\w+)-(\d{3}).*\.pdf'
     for fn in os.listdir(subdirpath):
+        trace(2, '    filename {}', fn)
         m = re.match(fnpat, fn)
         if m:
             an = m.group(1)  # accession #
@@ -42,7 +43,8 @@ def _onedir(ld, fd, subdirname: str, subdirpath: str):
                       color=Fore.RED)
             ld[(an, seq)].add(fn)
             fd[(an, seq)] = subdirpath
-        elif fn != '.DS_Store':
+        # elif fn != '.DS_Store':
+        else:
             trace(1, 'Ignored: {}/{}', subdirname, fn)
 
 
@@ -60,6 +62,7 @@ def get_letters_dict(indirname):
     ld = defaultdict(set)
     fd = {}  # map accession number to its folder path
     for subdirname in os.listdir(indirname):
+        trace(2, 'Subdirname: {}', subdirname)
         subdirpath = os.path.join(indirname, subdirname)
         if os.path.isdir(subdirpath):
             _onedir(ld, fd, subdirname, subdirpath)
@@ -89,9 +92,10 @@ def skey(s):
 def main():
     ld, fd = get_letters_dict(_args.indir)
     for anum_tuple, pages in sorted(ld.items()):
+        trace(2, 'tuple = {}, pages = {}', anum_tuple, pages)
         anum = f'{anum_tuple[0]}.{int(anum_tuple[1])}'
         nanum = normalize_id(anum)
-        if nanum not in letterset:
+        if filterset and nanum not in filterset:
             continue
         pages = sorted(pages, key=skey)
         output = PdfFileMerger()
@@ -112,8 +116,9 @@ def get_filterset():
     """
     filterset = set()
     csvreader = row_dict_reader(_args.filter, _args.verbose, _args.skip_rows)
+    typefilter = _args.filter
     for row in csvreader:
-        if row['Type'] == 'letter':
+        if row['Type'] == typefilter:
             filterset.add(normalize_id(row['Serial']))
     return filterset
 
@@ -156,5 +161,5 @@ if __name__ == '__main__':
         raise ValueError(f'{_args.indir} is not a directory.')
     if _args.verbose < 2:
         sys.tracebacklimit = 0
-    letterset = get_filterset()
+    filterset = get_filterset() if _args.filter else None
     main()
