@@ -7,6 +7,7 @@
 
     If the output file is .xlsx, all cells are set to type string.
 
+    Modified 2023-11-14 for batch 24.
 """
 import argparse
 import codecs
@@ -20,13 +21,14 @@ from openpyxl import Workbook
 from utl.normalize import sphinxify
 from utl.readers import row_dict_reader
 
-NEWCOLS = ('Serial,Pages,Date,Person From,Person To,Org From,Org To,Type,'
+NEWCOLS = ('Serial,Pages,Date,Accuracy,Person From,Person To,Org From,Org To,Type,'
            'Publ Name,Publ Date,Publ Page,Title,Author,Comment,'
-           'Description,Location').split(',')
+           'Description,Location,Keyword').split(',')
 
 NEW_TO_OLD_MAP = {'Pages': 'Multiple Images',
                   'Person From': 'From',
                   'Person To': 'To'}
+
 
 
 def onefile(filename):
