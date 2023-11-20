@@ -1,7 +1,0 @@
-cmd: if
-xpath: ObjectLocation[Location="Haslemere"]/
----
-cmd: column
-xpath: ./Identification/Title
-width: 75
----

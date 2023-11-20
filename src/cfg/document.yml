@@ -1,4 +1,0 @@
-cmd: ifattribeq
-xpath: .
-attribute: elementtype
-value: document
