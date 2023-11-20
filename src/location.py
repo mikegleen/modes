@@ -387,13 +387,6 @@ def update_current_location(elem, idnum):
     # now a previous location.
     elem.insert(clix - 1, newobjloc)
 
-    if _args.reset_current:
-        subelts = elem.findall('./ObjectLocation')
-        for elt in subelts:
-            if elt.get(ELEMENTTYPE) == PREVIOUS_LOCATION:
-                trace(2, 'Removing previous location from {}.', idnum)
-                elem.remove(elt)
-
     trace(2, '{}: Updated current location: {} -> {}', idnum, oldlocationtext,
           newlocationtext)
     return True
@@ -402,6 +395,14 @@ def update_current_location(elem, idnum):
 def update_previous_location(elem, idnum):
     print(f'Update of previous location not implemented. {elem=} {idnum=}')
     sys.exit(1)
+
+
+def delete_previous(elem, idnum):
+    subelts = elem.findall('./ObjectLocation')
+    for elt in subelts:
+        if elt.get(ELEMENTTYPE) == PREVIOUS_LOCATION:
+            trace(2, 'Removing previous location from {}.', idnum)
+            elem.remove(elt)
 
 
 def loc_types(idnum, nidnum, args, rows):
@@ -466,6 +467,8 @@ def handle_update(idnum, elem):
             updated |= update_current_location(elem, idnum)
         if is_previous:
             updated |= update_previous_location(elem, idnum)
+        if _args.delete_previous:
+            delete_previous(elem, idnum)
         del newlocs[nidnum]
     else:
         if _args.warn:
@@ -607,6 +610,10 @@ def add_arguments(parser, command):
         store in the new previous ObjectLocation
         date. The format must be in Modes format (d.m.yyyy).
         ''', called_from_sphinx))
+        parser.add_argument('--delete_previous', action='store_true', help='''
+        Only output the most recent current location element for each object,
+        deleting all previous locations.
+        ''')
     parser.add_argument('--encoding', default='utf-8', help='''
         Set the input encoding. Default is utf-8. Output is always utf-8.
         ''')
@@ -681,10 +688,6 @@ def add_arguments(parser, command):
         you must specify --datebegin and --dateend. Do not specify
         this and --col_loc_type.
         ''', called_from_sphinx))
-        parser.add_argument('--reset_current', action='store_true', help='''
-        Only output the most recent current location element for each object,
-        deleting all previous locations.
-        ''')
         reason_group.add_argument('-r', '--reason', default='',
                                   help=nd.sphinxify('''
         Insert this text as the reason for the move to the new current location
