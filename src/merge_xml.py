@@ -38,12 +38,15 @@ def onefile(infile):
             print('Empty accession ID; aborting. Check output file for last'
                   ' good record.')
             sys.exit(1)
+        des = oldobject.find('Identification/BriefDescription')
+        des = des.text if des else "***Missing BriefDescription***"
         nidnum = normalize_id(idnum)
         if nidnum in iddict:
-            print(f'Duplicate ID: original: {iddict[nidnum]}, new: idnum')
+            print(f'Duplicate ID: original: iddict[{nidnum}] = {idnum}, {des=}')
             print('Aborting.')
             sys.exit(1)
         iddict[nidnum] = idnum
+        trace(2, 'Creating iddict[{}] = {}, des = {}', nidnum, idnum, des)
         outfile.write(ET.tostring(oldobject, encoding=_args.encoding))
         written += 1
         oldobject.clear()
@@ -58,10 +61,10 @@ def main():
     infile = open(_args.infile)
     count1 = onefile(infile)
     infile.close()
+    print(f'{count1} objects from file 1')
     infile = open(_args.mergefile)
     count2 = onefile(infile)
     outfile.write(b'</Interchange>')
-    print(f'{count1} objects from file 1')
     print(f'{count2} objects from file 2')
     elapsed = time.perf_counter() - t1
     print(f'{count1 + count2} objects written in {elapsed:.3f} seconds.')
@@ -92,6 +95,7 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
     if len(sys.argv) == 1:
         sys.argv.append('-h')
+    print("Beginning merge_xml.py")
     object_number = ''
     _args = getargs()
     iddict = {}
