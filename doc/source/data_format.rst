@@ -6,13 +6,33 @@ Data Formats
 
 Accession Number Formats
 ------------------------
+There are four accession number formats in use at the Heath Robinson Museum.
 
-The earliest and most common accession numbers were those beginning with "JB".
-These apply to the Joan Brinsmead gift of many objects that still form the core
-of the collection. The numbers bettween 1 and 99 have leading zeros prepended
-to three places, so JB1 is recorded as JB001. Objects with numbers greater than
-999 are left intact. A similar rule apples to long-term loan objects that have
-been accessioned with a format like L001.
+-  The first
+   is for objects that are part of the Joan Brinsmead family gift. This is the bulk of the
+   collection. Numbers start with "JB" and are followed by a decimal number. Numbers less
+   than 100 are zero padded. For example, "JB001". Objects with numbers greater than
+   999 are left intact.
+-  The second is for items from the Simon Heneage estate. These numbers start with "SH"
+   followed by decimal numbers without any zero padding. For example, "SH1"
+-  The third format follows the Collections Trust standard. This is the MDA code,
+   by default "LDHRM", followed by a full stop, followed by the year, followed by a full
+   stop, followed by a serial number, optionally followed by another full stop and item
+   number, all without leading zeros. For example, "LDHRM.2020.1". Utility
+   programs provide an option for overriding the default MDA code. Input data may have a colon
+   (“:”) character instead of the full stop following the MDA code but accession numbers
+   are written to the XML file with the full stop. If input accession numbers start with the
+   four-digit year followed by a full stop, the MDA code is prepended.
+-  The fourth format is for long-term loans to the museum. These are handled like the JB
+   numbers and are padded to three columns of digits, like "L001".
+
+When read from a CSV file, the XML file, or the command line, accession numbers are
+normalized so that numeric fields sort correctly. That is, internally, all numbers
+are padded with zeros. In this way, JB1 and JB001 are treated as the same object.
+
+When reading from a CSV file, the MDA code may be omitted (see the global command
+``add_mda_code``). Accession numbers that start with a digit will have the MDA code added
+as a prefix.
 
 You can omit leading zeros in input data. The numbers will be normalized to
 be amenable for sorting internally, and when written to an output CSV or XML
@@ -28,6 +48,12 @@ code for the Heath Robinson Museum, “LDHRM”. Numbers are of the format::
 
 The second example is of a sub-number where many similar objects are grouped
 under a single accession number. Leading zeros are not allowed.
+
+
+.. note::
+    In Modes, objects with sub-numbers may be stored as *Object* elements or as
+    *Item* elements within a main *Object*.
+
 
 Accession Number Expansion
 --------------------------
