@@ -76,3 +76,5 @@ EOF
 python src/csv2xml.py -o prod_make/normal/$OUTXML \
                       -c tmp/update.yml -i $INCSV -v 1 --nostrict
 bin/syncmake.sh
+python src/merge_xml.py prod_update/normal/2023-11-14_merged.xml prod_make/normal/$OUTXML prod_update/normal/2023-11-20_merged.xml
+bin/syncprod.sh
