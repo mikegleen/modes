@@ -5,6 +5,7 @@ The Configuration Domain Specific Language (DSL)
 ------------------------------------------------
 
    Format conventions:
+
 -   *Italics*    - XML element names
 -    **Bold**     - Statements or commands (without the trailing ":")
 -    ``Monotype`` - file names, parameters (like ``--verbose``)
