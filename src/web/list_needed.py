@@ -142,11 +142,8 @@ def build_candidate_set(valid_idnums):
         for c in candidates:
             add_one_id(c)
     else:
-        # reader = csv.reader(open(_args.candidatefile))
-        reader = row_list_reader(_args.candidatefile)
-        for n in range(_args.skip_rows):  # default = 0
-            skipped = next(reader)  # skip header
-            trace(1, 'Skipping row in CSV file: {}', skipped)
+        # row_list_reader will skip the header row after any skipped.
+        reader = row_list_reader(_args.candidatefile, skiprows=_args.skip_rows)
         col_acc = _args.col_acc
         for row in reader:
             idnum = row[col_acc]
