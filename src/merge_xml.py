@@ -39,7 +39,7 @@ def onefile(infile):
                   ' good record.')
             sys.exit(1)
         des = oldobject.find('Identification/BriefDescription')
-        des = des.text if des else "***Missing BriefDescription***"
+        des = des.text if des is not None else "***Missing BriefDescription***"
         nidnum = normalize_id(idnum)
         if nidnum in iddict:
             print(f'Duplicate ID: original: iddict[{nidnum}] = {idnum}, {des=}')
