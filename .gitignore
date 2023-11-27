@@ -120,6 +120,7 @@ rotated/
 stocktake/
 temp/
 doc/docs/
+doc/source/_*
 documentation
 history/
 .DS_Store
