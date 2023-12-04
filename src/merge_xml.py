@@ -3,19 +3,34 @@
     Merge two XML files.
 """
 import argparse
+from inspect import getframeinfo, stack
 import os.path
 import sys
 import time
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
+from colorama import Fore, Style
+
 from utl.cfgutil import Config
 from utl.normalize import normalize_id
 
 
-def trace(level, template, *args):
+def trace(level, template, *args, color=None):
     if _args.verbose >= level:
-        print(template.format(*args))
+        if _args.verbose > 1:
+            caller = getframeinfo(stack()[1][0])
+            print(f'{os.path.basename(caller.filename)} line {caller.lineno}: ', end='')
+        if color:
+            if len(args) == 0:
+                print(f'{color}{template}{Style.RESET_ALL}')
+            else:
+                print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
+        else:
+            if len(args) == 0:
+                print(template)
+            else:
+                print(template.format(*args))
 
 
 def onefile(infile):
@@ -65,7 +80,7 @@ def main():
     infile = open(_args.mergefile)
     count2 = onefile(infile)
     outfile.write(b'</Interchange>')
-    print(f'{count2} objects from file 2')
+    print(f'{count2} object{"" if count2 == 1 else "s"} from file 2')
     elapsed = time.perf_counter() - t1
     print(f'{count1 + count2} objects written in {elapsed:.3f} seconds.')
 
@@ -95,13 +110,11 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
     if len(sys.argv) == 1:
         sys.argv.append('-h')
-    print("Beginning merge_xml.py")
+    trace(1, "Begin merge_xml.", color=Fore.GREEN)
     object_number = ''
     _args = getargs()
     iddict = {}
     cfg = Config()
     outfile = open(_args.outfile, 'wb')
     main()
-    basename = os.path.basename(sys.argv[0])
-    print(f'End {basename.split(".")[0]}')
-
+    trace(1, f'End xml2csv', color=Fore.GREEN)
