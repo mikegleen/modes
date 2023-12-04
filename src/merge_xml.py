@@ -110,11 +110,11 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
     if len(sys.argv) == 1:
         sys.argv.append('-h')
+    _args = getargs()
     trace(1, "Begin merge_xml.", color=Fore.GREEN)
     object_number = ''
-    _args = getargs()
     iddict = {}
     cfg = Config()
     outfile = open(_args.outfile, 'wb')
     main()
-    trace(1, f'End xml2csv', color=Fore.GREEN)
+    trace(1, f'End merge_xml', color=Fore.GREEN)
