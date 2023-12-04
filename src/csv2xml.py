@@ -149,9 +149,9 @@ def store(xpath: str, doc, template, accnum, text):
     if elt is None:
         elt = new_subelt(doc, template, accnum, _args.verbose)
     if elt is None:
-        trace(1, '{}, column "{}", value: "{}": Cannot create new element: {}\n'
+        trace(1, 'Cannot create new element for {}, column "{}", value: "{}", element: {}\n'
                  'Check parent_path statement.',
-              accnum, doc[Stmt.TITLE], text, doc[Stmt.XPATH])
+              accnum, doc[Stmt.TITLE], text, doc[Stmt.XPATH], color=Fore.RED)
         return
     if cmd == Cmd.CONSTANT:
         elt.text = doc[Stmt.VALUE]
@@ -370,6 +370,7 @@ if __name__ == '__main__':
     if errors := check_cfg(config):
         trace(1, '{} error(s) found. Aborting.', errors)
         sys.exit(1)
+    trace(1, 'Begin csv2xml.', color=Fore.GREEN)
     main()
     trace(1, 'End csv2xml. {} object{} written.', nrows,
-          '' if nrows == 1 else 's')
+          '' if nrows == 1 else 's', color=Fore.GREEN)
