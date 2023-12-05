@@ -3,9 +3,8 @@
 
 """
 import argparse
-from colorama import Fore, Style
+from colorama import Fore
 import copy
-from inspect import getframeinfo, stack
 import os.path
 import re
 import sys
@@ -18,23 +17,11 @@ from utl.normalize import modesdatefrombritishdate, sphinxify, if_not_sphinx
 from utl.normalize import DEFAULT_MDA_CODE, normalize_id, denormalize_id
 from utl.normalize import modes_person
 from utl.readers import row_dict_reader
+from utl.trace import trace_sub
 
 
 def trace(level, template, *args, color=None):
-    if _args.verbose >= level:
-        if _args.verbose > 1:
-            caller = getframeinfo(stack()[1][0])
-            print(f'{os.path.basename(caller.filename)} line {caller.lineno}: ', end='')
-        if color:
-            if len(args) == 0:
-                print(f'{color}{template}{Style.RESET_ALL}')
-            else:
-                print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
-        else:
-            if len(args) == 0:
-                print(template)
-            else:
-                print(template.format(*args))
+    trace_sub(level, _args.verbose, template, color, args)
 
 
 def clean_accnum(accnum: str):
