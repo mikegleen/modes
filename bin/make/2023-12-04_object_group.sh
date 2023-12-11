@@ -1,4 +1,5 @@
 #!/bin/zsh
+# 2023-12-11 Update to add normal location
 set -e
 INCSV=../letters/from_geoffrey/LETTERS1.csv
 INXML=2023-12-04_renumber.xml
@@ -11,6 +12,7 @@ title: Description
 ---
 cmd: column
 xpath: ./ObjectLocation[@elementtype="current location"]/Location
+xpath2: ./ObjectLocation[@elementtype="normal location"]/Location
 title: Location
 ---
 cmd: constant
@@ -20,7 +22,7 @@ value: 24.11.2023
 ---
 EOF
 python src/csv2xml.py -o prod_make/normal/$OUTXML \
-                      -c tmp/update.yml -i $INCSV -v 1 -t etc/templates/normal/2023-11-24_object_group_template.xml
+                      -c tmp/update.yml -i $INCSV -v 1 -t etc/templates/normal/2023-12-11_object_group_template.xml
 bin/syncmake.sh
 python src/merge_xml.py prod_update/normal/$INXML prod_make/normal/$OUTXML tmp/merged.xml -v 1
 python src/sort_xml.py tmp/merged.xml prod_update/normal/$MERGEDXML -v 1
