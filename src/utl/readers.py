@@ -105,7 +105,7 @@ def get_heading(filepath: str | None, verbos=1, skiprows=0) -> list | None:
 
 
 def cleancell(cell) -> str:
-    if type(cell) == str:
+    if type(cell) is str:
         cell = cell.replace('\n', ' ')
     elif cell is None:
         cell = ''
