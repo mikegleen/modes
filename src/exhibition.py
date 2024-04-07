@@ -392,10 +392,10 @@ def getparser():
     parser.add_argument('--col_acc', help=sphinxify('''
         The zero-based column containing the accession number of the
         object to be updated. The default is column zero. The column can be a
-        number or a spreadsheet-style letter. Ignored if --exhibition is specified.''',
+        number or a spreadsheet-style letter.''',
                                                     called_from_sphinx))
     parser.add_argument('-c', '--catalogue', help='''
-        The catalogue number. Only specify this if a≤ single object is specified
+        The catalogue number. Only specify this if a single object is specified
         with the -j option.
         ''')
     parser.add_argument('--col_cat', help='''
