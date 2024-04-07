@@ -103,6 +103,12 @@ def get_object_from_file(templatefilepath):
 
 def get_template_from_csv(row: dict[str]):
     """
+    The YAML configuration file defines tags and filenames for templates such as:
+        book: 2022-10-17_books_template.xml
+    See the doc for the complete template_***: syntax.
+    The CSV file contains a column with values such as "book" indicating which
+    template should be used to create an object.
+
     :param row: a row from the CSV file
     :return: the template as an ElementTree element
     :raises: ValueError if the key from the CSV file is not in the config.
