@@ -42,6 +42,8 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 31,2023-06-12,2023-07-15,Heath Robinson’s Watercolours,Jersey Arts Centre
 32,2023-06-24,2023-09-17,Happily Ever After?
 33,2023-09-23,2024-01-07,Illustrating the Grotesque
+34,2024-01-20,2024-04-14,Heath Robinson at War,Mottisfont Abbey
+35,2024-03-30,2024-06-23,Modernist Magazine Illustration
 '''
 # data for testing
 '''
