@@ -265,8 +265,8 @@ These statements are in the document whose ``cmd`` statement is ``global``.
    types of object, see the other template related statements below.
 
    The ``--template`` command-line parameter overrides this statement.
-   If this statement or the ``--template`` command-line parameter is specified, do not specify other
-   tempate-related statements.
+   If this statement or the ``--template`` command-line parameter is specified,
+   do not specify other tempate-related statements.
 -  **template_title**
 
    Only in ``csv2xml.py``: Defines a CSV column containing a key that
@@ -280,8 +280,8 @@ These statements are in the document whose ``cmd`` statement is ``global``.
    containing the files named in the ``templates`` statement.
 -  **templates**
 
-   Only in ``CSV2XML.py``: This is a complex statement used to map a key
-   to a filename. The format of the statement is::
+   Only in ``CSV2XML.py``: This is a complex statement used to map keys
+   to filenames. The format of the statement is::
 
       templates:
          key1: filename1.xml
@@ -291,7 +291,7 @@ These statements are in the document whose ``cmd`` statement is ``global``.
    specified by **template_title**.
    See commands **template_title** and **template_dir**. Note that the indentation of the
    "key" rows in the YAML file is mandatory. The keys in the YAML and CSV files are case
-   insensitive.
+   insensitive. Do not use this statement and also the **template_file** statement.
 
 Commands
 ~~~~~~~~
@@ -315,7 +315,8 @@ Data-related Commands
    By default, values are only inserted into an XML field if that field is
    unpopulated. Specify ``--replace`` to override this. By default, if a field
    in the CSV file is empty, no action takes place. Specify ``--empty`` to
-   override this. See the section :ref:`Reserved Words` for other actions.
+   override this. Note ``--empty`` implies ``--replace``. See the section
+   :ref:`Reserved Words` for other actions.
 -  **constant**
 
    For ``csv2xml.py`` and ``update_from_csv.py``, create an element
