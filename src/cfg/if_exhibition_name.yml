@@ -1,6 +1,6 @@
 cmd: ifeq
-xpath: ./Exhibition/Place
-value: "Jersey Arts Centre"
+xpath: ./Exhibition/ExhibitionName
+value: "Illustrating the Grotesque"
 ---
 #cmd: ifeq
 #xpath: ./Exhibition/ExhibitionName
