@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Synchronize the normal and pretty XML folders. This assumes a folder structure
 as:
@@ -6,6 +5,20 @@ as:
          |
          |-normal
          |-pretty
+
+Alternatively, there can be a folder under each of the normal and pretty
+folders:
+    Parent
+         |
+         |-normal
+                |
+                current
+         |-pretty
+                |
+                current
+
+The names "pretty" and "normal" are hard-coded but the subpath name, shown
+above as "current" is specified by the command line argument --subdir.
 
     The files in the normal folder are in the form:
         2022-01-01_title.xml
@@ -110,7 +123,7 @@ def get_mtime(subpath: str) -> (dict[str, float], str):
     :param subpath: either 'normal' or 'pretty'
     :return: dictionary of file basenames -> mtime, joined parent/subpath
     """
-    path = op.join(_args.parent_dir, subpath)
+    path = op.join(_args.parent_dir, subpath, _args.subdir)
     mtime = {}
     for fn in sorted(os.listdir(path)):
         fn = str(fn)  # might be bytes. PyCharm whines.
@@ -185,6 +198,10 @@ def getargs():
     parser.add_argument('-g', '--output_encoding', default=None, help='''
         Set the output encoding. The encoding defaults to UTF-8. If set, you
         must also set --input_encoding.
+        ''')
+    parser.add_argument('--subdir', default='', help='''
+        If present, this directory is a sub-directory under both the normal and
+        pretty directories. 
         ''')
     parser.add_argument('-d', '--dryrun', action='store_true', help='''
         Print logs but do not process files.''')
