@@ -11,6 +11,8 @@
         Serial,Current,Normal,Title,Description,Condition
 """
 import argparse
+from colorama import Fore, Style
+import time
 from collections import defaultdict, namedtuple
 import csv
 import re
@@ -28,6 +30,14 @@ OUTPUT_WIDTHS = '1.0,2.0,1.0,10.0,5.0'
 OUTPUT_WIDTHS = [Cm(float(x)) for x in OUTPUT_WIDTHS.split(',')]
 # The "title" field will contain the "description" field if the "title" is empty.
 RowTuple = namedtuple('RowTuple', 'current serial normal title condition')
+
+
+def trace(level, template, *args, color=None):
+    if _args.verbose >= level:
+        if color:
+            print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
+        else:
+            print(template.format(*args))
 
 
 def make_rows_bold(*rows):
@@ -163,11 +173,16 @@ called_from_sphinx = True
 if __name__ == '__main__':
     assert sys.version_info >= (3, 11)
     called_from_sphinx = False
+    t1 = time.perf_counter()
     if len(sys.argv) == 1:
         sys.argv.append('-h')
     _args = getargs(sys.argv)
+    trace(1, 'Begin stocktake2docx.', color=Fore.GREEN)
     csvfile = open(_args.infile)
     csvreader = csv.DictReader(csvfile)
     boxdict = defaultdict(list)
     doc = docx.Document(_args.template)
     main()
+    elapsed = time.perf_counter() - t1
+    trace(1, 'End stocktake2docx. Output: {}, Elapsed: {:5.2f} seconds.',
+          _args.outfile, elapsed, color=Fore.GREEN)
