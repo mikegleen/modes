@@ -28,7 +28,7 @@ NORMAL_LOCATION = 'normal location'
 CURRENT_LOCATION = 'current location'
 PREVIOUS_LOCATION = 'previous location'
 ELEMENTTYPE = 'elementtype'
-
+FORCE_PATCH = False  # Set True to inhibit creating previous locations.
 verbose = 1  # overwritten by _args.verbose; set here for unittest
 
 
@@ -328,7 +328,7 @@ def update_current_location(elem, idnum):
             return False
 
     must_patch = False
-    if _args.patch:
+    if _args.patch or FORCE_PATCH:
         must_patch = True
     elif _args.col_patch is not None:
         try:
@@ -344,12 +344,22 @@ def update_current_location(elem, idnum):
         oldlocationtext = oldlocation.text
         oldlocation.text = newlocationtext
         oldreason = ol.find('./Reason')
-        reasontext = _args.reason if _args.reason else 'Patched'
+        reasontext = _args.reason if _args.reason else ''
         if newreasons[nidnum]:
-            reasontext = f'{newreasons[nidnum]} (Patched)'
+            # The specific reason overrides the general one from the cmd line.
+            reasontext = newreasons[nidnum]
+        # Add the reason text "Patched" unless patching because of FORCEDPATCH
+        if _args.patch:
+            if reasontext:
+                reasontext += ' (Patched)'
+            else:
+                reasontext = 'Patched'
         if oldreason is not None:
-            oldreason.text = reasontext
-        else:
+            if reasontext:
+                oldreason.text = reasontext
+            else:
+                ol.remove(oldreason)
+        elif reasontext:
             ET.SubElement(ol, 'Reason').text = reasontext
 
         trace(2, '{}: Patched current location {} -> {}', idnum,
