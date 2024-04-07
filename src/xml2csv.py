@@ -36,7 +36,7 @@ def trace(level, template, *args, color=None):
 def opencsvwriter(filename, delimiter):
     encoding = 'utf-8-sig' if _args.bom else 'utf-8'
     csvfile = codecs.open(filename, 'w', encoding)
-    outcsv = csv.writer(csvfile, delimiter=delimiter)
+    outcsv = csv.writer(csvfile, delimiter=delimiter, lineterminator=_args.lineterminator)
     trace(1, 'Output: {}', filename)
     return outcsv, csvfile
 
@@ -271,6 +271,9 @@ def getparser():  # called either by getargs or sphinx
                                       calledfromsphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
+    parser.add_argument('-t', '--lineterminator', help=r'''
+    Set the line terminator. The default is "\\r\\n". If the output is to be processed on a Unix-like
+    system by a program like sed or awk you may wish to set this to "\\n".''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -286,6 +289,9 @@ def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
     args.include_column = col2num(args.include_column)
+    # Set the default here because Sphinx can't display \r\n.
+    if args.lineterminator is None:
+        args.lineterminator = '\r\n'
     return args
 
 
