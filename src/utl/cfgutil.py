@@ -673,7 +673,7 @@ def _expand_one_idnum(idstr: str) -> list[str]:
     range is given, specified by an "&", then two accession numbers are returned.
 
     Examples:
-        JB021-024 or JB021-24. These produce identical results:
+        JB021-024 or JB021-24 or JB021/24. These produce identical results:
             ['JB021', 'JB022', 'JB023', 'JB024']
         JB021&026&033 returns:
             ['JB021', 'JB026', 'JB033']
