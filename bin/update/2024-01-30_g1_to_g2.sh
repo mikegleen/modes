@@ -1,0 +1,1 @@
+python src/location.py update -i prod_update/normal/2024-01-30_mottisfontloc.xml -o prod_update/normal/2024-01-30a_G1_to_G2.xml -l G2 -j 'JB273&306&308&310&302&266&295&297&303&296&307&300&267&268&294&275&311&252' -a -c -n
