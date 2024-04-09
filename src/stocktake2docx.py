@@ -17,12 +17,12 @@ from collections import defaultdict, namedtuple
 import csv
 import re
 import sys
-from docx.shared import Cm
+from docx.shared import Cm, Pt
 import docx
 from docx.enum.style import WD_STYLE
 
 
-from utl.normalize import sphinxify, normalize_id, if_not_sphinx
+from utl.normalize import sphinxify, normalize_id, if_not_sphinx, denormalize_id
 
 DEFAULT_TEMPLATE = 'etc/templates/docx/stocktake.docx'
 OUTPUT_COLUMNS = 'OK,Serial,NL,Title,Condition'.split(',')
@@ -46,6 +46,15 @@ def make_rows_bold(*rows):
             for paragraph in cell.paragraphs:
                 for run in paragraph.runs:
                     run.font.bold = True
+                    run.font.size = Pt(11)
+
+
+def set_rows_size(*rows):
+    for row in rows:
+        for cell in row.cells:
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    run.font.size = Pt(11)
 
 
 def pad_loc(loc):
@@ -90,7 +99,7 @@ def one_row(row):
     if not title:
         title = description
     condition = row['Condition']
-    rowtuple = RowTuple(location, serial, normal, title, condition)
+    rowtuple = RowTuple(location, normalize_id(serial), normal, title, condition)
     boxdict[location].append(rowtuple)
 
 
@@ -109,15 +118,16 @@ def emit_one_box(box):
         # print(f'{coln=}')
         cells[coln].text = coltitle
     make_rows_bold(table.rows[0])
-    for ln, rowtuple in enumerate(sorted(boxlist, key=lambda r: normalize_id(r.serial)), start=1):
+    for ln, rowtuple in enumerate(sorted(boxlist, key=lambda r: r.serial), start=1):
         # print(f'{rowtuple=}')
         cells = table.rows[ln].cells
         # print(f'{len(cells)=}')
         cells[0].text = ''
-        cells[1].text = rowtuple.serial
+        cells[1].text = denormalize_id(rowtuple.serial).removeprefix('LDHRM.')
         cells[2].text = rowtuple.normal
         cells[3].text = rowtuple.title
         cells[4].text = rowtuple.condition
+        # set_rows_size(table.rows[ln])
     doc.add_page_break()
 
 
