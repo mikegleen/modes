@@ -1,6 +1,7 @@
 """
     For each serial number in a CSV file, move the corresponding file from
-    the source directory to the destination directory or delete it.
+    the source directory to the destination directory or delete it if the
+    --delete argument is specified.
 """
 import argparse
 import os.path
@@ -8,6 +9,8 @@ import re
 import shutil
 import subprocess
 import sys
+
+from utl.normalize import sphinxify
 
 SIPSCMD = 'sips -s format jpeg "{}" -o "{}"'
 
@@ -24,10 +27,11 @@ def sipscopy(sourcepath, outdir):
 
 
 def getargs():
-    parser = argparse.ArgumentParser(description='''
+    parser = argparse.ArgumentParser(description=sphinxify('''
     For each serial number in a CSV file, copy or move the corresponding file
-    from the source directory to the destination directory or just delete it.
-        ''')
+    from the source directory to the destination directory or just delete it
+    if the --delete argument is specified.
+        ''', called_from_sphinx))
     exgroup = parser.add_mutually_exclusive_group(required=True)
     parser.add_argument('source', help='''
         Source directory from which we will copy, move, or delete files.
@@ -108,8 +112,11 @@ def main():
     trace(1, '{} copied of {} candidates', nmoved, len(sourcefiles))
 
 
+called_from_sphinx = True
+
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
+    called_from_sphinx = False
     _args = getargs()
     verbose = _args.verbose
     main()

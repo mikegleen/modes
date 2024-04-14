@@ -256,7 +256,7 @@ def one_element(objelem, idnum):
     :param idnum: the ObjectIdentity/Number text
     :return: True if updated, False otherwise
     """
-    global nupdated, nunchanged, nequal
+    global nupdated, nunchanged, nequal, ndeleted
     updated = False
     for doc in cfg.col_docs:
         if Stmt.ASPECT in doc:
@@ -271,14 +271,17 @@ def one_element(objelem, idnum):
             parent = objelem.find(doc[Stmt.PARENT_PATH])
             target = objelem.find(xpath)
             if target is not None:
-                trace(2, 'Removing {}', xpath)
+                trace(2, '{}: Removing {}', idnum, xpath)
                 parent.remove(target)
+                ndeleted += 1
             continue
         elif command == Cmd.DELETE_ALL:
             targets = objelem.findall(xpath)
             if targets is not None:
                 for target in targets:
+                    trace(2, '{}: Removing {}', idnum, xpath)
                     objelem.remove(target)
+                    ndeleted += 1
             continue
         target = objelem.find(xpath)
         if target is None:
@@ -529,7 +532,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         sys.argv.append('-h')
     _args = getargs(sys.argv)
-    nupdated = nunchanged = nwritten = nequal = 0
+    nupdated = nunchanged = nwritten = nequal = ndeleted = 0
     trace(1, 'Begin update_from_csv.', color=Fore.GREEN)
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
@@ -549,10 +552,12 @@ if __name__ == '__main__':
     main()
     trace(1, '{} element{} in {} object{} updated.\n'
           '{} existing element{} unchanged.\n'
-          '{} element{} updated where new == old.',
+          '{} element{} updated where new == old.\n'
+          '{} element{} deleted.',
           nupdated, sq(nupdated),
           nnewvals, sq(nnewvals),
           nunchanged, sq(nunchanged),
-          nequal, sq(nequal))
+          nequal, sq(nequal),
+          ndeleted, sq(ndeleted))
     trace(1, 'End update_from_csv. {} objects written.', nwritten,
           color=Fore.GREEN)
