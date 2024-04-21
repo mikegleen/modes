@@ -11,4 +11,7 @@ xpath: ./References[Filename]
 parent_path: .
 EOF
 python src/xml2csv.py prod_update/normal/$INXML results/reports/$SCRIPT.csv --heading
-python src/update_from_csv.py prod_update/normal/$INXML prod_update/normal/$OUTXML -m results/reports/$SCRIPT.csv -c tmp/$SCRIPT.yml -a
+python src/update_from_csv.py prod_update/normal/$INXML \
+                              prod_update/normal/$OUTXML \
+                              -m results/reports/$SCRIPT.csv \
+                              -c tmp/$SCRIPT.yml -a
