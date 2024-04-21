@@ -65,14 +65,18 @@ class Cmd:
     IFCONTAINS = 'ifcontains'  # requires value statement
     IFEQ = 'ifeq'  # if the elt text equals the value statement
     IFNOTEQ = 'ifnoteq'  # if the elt text does not equal the value statement
+    IFANYEQ = 'ifanyeq'  # for elements that occur more than once like previous locations
+    IFNOTANYEQ = 'ifnotanyeq'
+    IFEXHIB = 'ifexhib'
     # Commands that do not produce a column in the output CSV file
     _CONTROL_CMDS = (IF, IFNOT, IFEQ, IFNOTEQ, IFATTRIB, GLOBAL, IFCOLUMNEQ,
-                     IFCONTAINS, IFATTRIBEQ, IFATTRIBNOTEQ, IFELT, IFNOTELT)
+                     IFCONTAINS, IFATTRIBEQ, IFATTRIBNOTEQ, IFELT, IFNOTELT,
+                     IFANYEQ, IFNOTANYEQ, IFEXHIB)
     _NEEDVALUE_CMDS = (KEYWORD, IFEQ, IFNOTEQ, IFATTRIBEQ, IFATTRIBNOTEQ,
-                       IFCOLUMNEQ, IFCONTAINS, CONSTANT)
+                       IFCOLUMNEQ, IFCONTAINS, CONSTANT, IFEXHIB, IFANYEQ, IFNOTANYEQ)
     _NEEDXPATH_CMDS = (ATTRIB, COLUMN, CONSTANT, COUNT, ITEMS, IF, IFNOT,
                        IFELT, IFEQ, IFNOTEQ, IFCONTAINS, IFATTRIB, IFATTRIBEQ,
-                       IFATTRIBNOTEQ, KEYWORD, MULTIPLE, IFNOTELT)
+                       IFATTRIBNOTEQ, KEYWORD, MULTIPLE, IFNOTELT, IFANYEQ, IFNOTANYEQ)
 
     @staticmethod
     def get_needxpath_cmds():
@@ -199,10 +203,14 @@ class Config:
                                csv2xml.py.
         :returns: the Config instance or None if the YAML file is not given
         """
+
+        def set_exhibition_set():
+            pass
+
         def set_globals():
             for stmt in document:
                 if stmt == Stmt.CMD:
-                    continue
+                    pass
                 elif stmt == Stmt.SKIP_NUMBER:
                     self.skip_number = True
                 elif stmt == Stmt.SORT_NUMERIC:
@@ -262,6 +270,7 @@ class Config:
         self.delimiter = ','
         self.multiple_delimiter = '|'
         self.mdacode = mdacode
+        self.exhibition_set = None
         cfglist = _read_yaml_cfg(yamlcfgfile, dump=dump, logfile=logfile)
         valid = validate_yaml_cfg(cfglist, allow_required)
         if not valid:
@@ -276,6 +285,8 @@ class Config:
                 self.ctrl_docs.append(document)
             else:  # not control command
                 self.col_docs.append(document)
+            if cmd == Cmd.IFEXHIB:
+                set_exhibition_set()
         # tentatively remove this and see if it causes problems.
         # self.norm = []  # True if this column needs to be normalized/unnormalized
         # # Do this as a separate step because we didn't know whether we need
@@ -461,6 +472,26 @@ def select(cfg: Config, elem, includes=None, exclude=False):
             case Cmd.IFNOTELT:
                 if element is not None:
                     selected = False
+            case Cmd.IFANYEQ:
+                elements = elem.findall(eltstr)
+                found = False
+                for element in elements:
+                    ymlvalue, textvalue = getvalues()
+                    if ymlvalue == textvalue:
+                        found = True
+                        break
+                selected = found
+            case Cmd.IFNOTANYEQ:
+                elements = elem.findall(eltstr)
+                found = False
+                for element in elements:
+                    ymlvalue, textvalue = getvalues()
+                    if ymlvalue == textvalue:
+                        found = True
+                        break
+                selected = not found
+            case Cmd.IFEXHIB:
+                pass
             case _:
                 print(f'Unrecognized command: {command}.')
         # print(f'{selected=}')

@@ -41,21 +41,16 @@ The Exhibition group template is::
 import argparse
 import codecs
 import os
-from collections import namedtuple
 import csv
-from datetime import date
 import sys
 from colorama import Fore, Style
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from utl.exhibition_list import EXSTR
+from utl.exhibition_list import get_exhibition_dict, ExhibitionTuple
 from utl.cfgutil import Stmt, expand_idnum
 from utl.excel_cols import col2num
 from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
 from utl.normalize import sphinxify, vdate, isoformatfrommodesdate
-
-ExhibitionTuple = namedtuple('ExhibitionTuple',
-                             'ExNum DateBegin DateEnd ExhibitionName Place')
 
 
 def trace(level, template, *args, color=None):
@@ -227,38 +222,6 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
     # Insert the Exhibition elements with the most recent one first
     for _edate, exhib in sorted(exhibs_to_insert, key=lambda x: x[0]):
         objelt.insert(firstexix, exhib)
-
-
-def get_exhibition_dict():
-    """
-    EXSTR is imported from exhibition_list.py and contains a CSV formatted
-    multi-line string. The heading line contains:
-        ExNum,DateBegin,DateEnd,ExhibitionName[,Place]
-
-    :return: A dictionary mapping the exhibition number to the Exhibition
-             namedtuple.
-    """
-    exhibition_list = EXSTR.split('\n')
-    reader = csv.reader(exhibition_list, delimiter=',')
-    next(reader)  # skip heading
-
-    exdic = {}
-    for row in reader:
-        if not row:
-            continue
-        exdic[int(row[0])] = ExhibitionTuple(ExNum=row[0],
-                                             DateBegin=date.fromisoformat(row[1]),
-                                             DateEnd=date.fromisoformat(row[2]),
-                                             ExhibitionName=row[3],
-                                             Place=row[4] if len(row) >= 5 else 'HRM'
-                                             )
-        if exdic[int(row[0])].DateBegin > exdic[int(row[0])].DateEnd:
-            raise ValueError(f"In exhibition_list.py, Begin Date > End Date: {row}")
-    if _args.exhibition:
-        exnum = _args.exhibition
-        trace(1, 'Processing exhibition {}: "{}"', exnum,
-              exdic[exnum].ExhibitionName)
-    return exdic
 
 
 def get_csv_dict(csvfile):
@@ -459,8 +422,8 @@ def getargs(argv):
     if (args.exhibition is None) == (args.col_ex is None):
         raise ValueError('You must specify one of --exhibition and --col_ex')
     if (args.object or args.old_name) and not args.exhibition:
-        raise(ValueError('You specified the object id or old name. You must'
-                         ' also specify the exhibition.'))
+        raise (ValueError('You specified the object id or old name. You must'
+                          ' also specify the exhibition.'))
     if args.delete and not args.exhibition:  # Modes format?
         raise ValueError('You specified --delete. You must also specify the'
                          ' exhibition.')
