@@ -1,4 +1,6 @@
 import codecs
+from datetime import date
+
 from colorama import Fore, Style
 import csv
 import os
@@ -11,7 +13,9 @@ import ruamel.yaml.constructor
 
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from utl.normalize import normalize_id, DEFAULT_MDA_CODE
+from utl.normalize import normalize_id, datefrommodes, DEFAULT_MDA_CODE
+from utl.exhibition_list import get_inverted_exhibition_dict, ExhibitionTuple
+
 yaml = YAML(typ='safe')   # default, if not specfied, is 'rt' (round-trip)
 
 # The difference between the 'attrib' command and the attribute statement:
@@ -204,9 +208,6 @@ class Config:
         :returns: the Config instance or None if the YAML file is not given
         """
 
-        def set_exhibition_set():
-            pass
-
         def set_globals():
             for stmt in document:
                 if stmt == Stmt.CMD:
@@ -270,7 +271,7 @@ class Config:
         self.delimiter = ','
         self.multiple_delimiter = '|'
         self.mdacode = mdacode
-        self.exhibition_set = None
+        self.exhibition_inv_dict = None  # will map exhibition tuple to exhib #
         cfglist = _read_yaml_cfg(yamlcfgfile, dump=dump, logfile=logfile)
         valid = validate_yaml_cfg(cfglist, allow_required)
         if not valid:
@@ -286,7 +287,7 @@ class Config:
             else:  # not control command
                 self.col_docs.append(document)
             if cmd == Cmd.IFEXHIB:
-                set_exhibition_set()
+                self.exhibition_inv_dict = get_inverted_exhibition_dict()
         # tentatively remove this and see if it causes problems.
         # self.norm = []  # True if this column needs to be normalized/unnormalized
         # # Do this as a separate step because we didn't know whether we need
@@ -367,17 +368,15 @@ def new_subelt(doc, obj, idnum, verbos=1):
     return newelt
 
 
-def select(cfg: Config, elem, includes=None, exclude=False):
+def select(cfg: Config, objelem, includes=None, exclude=False):
     """
     :param cfg: the Config instance
-    :param elem: the Object element
+    :param objelem: the Object element
     :param includes: A set or dict of id numbers of objects to be included
                      in the output CSV file. The list must be all uppercase.
     :param exclude: Treat the includes list as an excludes list.
     :return: selected is true if the Object element should be written out
     """
-    # _CONTROL_CMDS = (IF, IFNOT, IFEQ, IFNOTEQ, IFATTRIB, GLOBAL,
-    #                  IFCONTAINS, IFATTRIBEQ, IFATTRIBNOTEQ, IFELT)
     # print('select')
 
     def striptext(txt):
@@ -389,7 +388,7 @@ def select(cfg: Config, elem, includes=None, exclude=False):
         docvalue = document[Stmt.VALUE]  # we have tested that this exists
         if element is None:
             return docvalue, ''
-        elttext = element.text
+        elttext = element.text  # element is from this document's xpath statement
         if elttext is None:
             return docvalue, ''
         if Stmt.CASE_SENSITIVE not in document:
@@ -398,7 +397,7 @@ def select(cfg: Config, elem, includes=None, exclude=False):
         return docvalue, elttext
 
     selected = True
-    idelem = elem.find(cfg.record_id_xpath)
+    idelem = objelem.find(cfg.record_id_xpath)
     idnum = normalize_id(idelem.text) if idelem is not None else None
     # print(f'{idnum=}')
     if idnum and exclude and includes:
@@ -412,7 +411,7 @@ def select(cfg: Config, elem, includes=None, exclude=False):
         command = document[Stmt.CMD]
         eltstr = document.get(Stmt.XPATH)
         if eltstr:
-            element = elem.find(eltstr)
+            element = objelem.find(eltstr)
         else:
             element = None
         # print(f'{command=}')
@@ -473,25 +472,58 @@ def select(cfg: Config, elem, includes=None, exclude=False):
                 if element is not None:
                     selected = False
             case Cmd.IFANYEQ:
-                elements = elem.findall(eltstr)
-                found = False
-                for element in elements:
-                    ymlvalue, textvalue = getvalues()
-                    if ymlvalue == textvalue:
-                        found = True
-                        break
-                selected = found
+                elements = objelem.findall(eltstr)
+                selected = False
+                if elements is not None:
+                    for element in elements:
+                        ymlvalue, textvalue = getvalues()
+                        if ymlvalue == textvalue:
+                            selected = True
+                            break
             case Cmd.IFNOTANYEQ:
-                elements = elem.findall(eltstr)
-                found = False
-                for element in elements:
-                    ymlvalue, textvalue = getvalues()
-                    if ymlvalue == textvalue:
-                        found = True
-                        break
-                selected = not found
+                elements = objelem.findall(eltstr)
+                if elements is not None:
+                    for element in elements:
+                        ymlvalue, textvalue = getvalues()
+                        if ymlvalue == textvalue:
+                            selected = False
+                            break
             case Cmd.IFEXHIB:
-                pass
+                ymlvalue = document[Stmt.VALUE]  # we have tested that this exists
+                elements = objelem.findall('./Exhibition')
+                # print(f'{elements=}')
+                selected = False
+                if elements is None:
+                    continue
+                for element in elements:
+                    datebegin = element.find('./Date/DateBegin')
+                    if datebegin is None or not datebegin.text:
+                        continue
+                    else:
+                        datebegin, _ = datefrommodes(datebegin.text)
+                    dateend = element.find('./Date/DateEnd')
+                    if dateend is not None:
+                        dateend, _ = datefrommodes(dateend.text)
+                    exhibname = element.find('./ExhibitionName')
+                    if exhibname is not None:
+                        exhibname = exhibname.text
+                    place = element.find('./Place')
+                    if place is not None:
+                        place = place.text
+                    # print(f'{idnum=}:{datebegin=}')
+                    exhibition = ExhibitionTuple(DateBegin=datebegin,
+                                                 DateEnd=dateend,
+                                                 ExhibitionName=exhibname,
+                                                 Place=place
+                                                 )
+                    # print(cfg.exhibition_inv_dict)
+                    # print(f'{exhibition=}')
+                    exhibnum = cfg.exhibition_inv_dict.get(exhibition)
+                    # print(f'{exhibnum=} {ymlvalue=}')
+                    if exhibnum == int(ymlvalue):
+                        selected = True
+                        break
+                    # sys.exit()
             case _:
                 print(f'Unrecognized command: {command}.')
         # print(f'{selected=}')

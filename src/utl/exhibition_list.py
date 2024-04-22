@@ -13,7 +13,7 @@ import csv
 from datetime import date
 
 ExhibitionTuple = namedtuple('ExhibitionTuple',
-                             'ExNum DateBegin DateEnd ExhibitionName Place')
+                             'DateBegin DateEnd ExhibitionName Place')
 
 EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 1,2016-10-15,2017-01-08,Heath Robinson at War
@@ -79,8 +79,7 @@ def get_exhibition_dict():
         exhib_num = int(row[0])
         if exhib_num in exdic:
             raise ValueError(f"Exhibition number duplicated: {exhib_num}.")
-        exdic[exhib_num] = ExhibitionTuple(ExNum=row[0],
-                                           DateBegin=date.fromisoformat(row[1]),
+        exdic[exhib_num] = ExhibitionTuple(DateBegin=date.fromisoformat(row[1]),
                                            DateEnd=date.fromisoformat(row[2]),
                                            ExhibitionName=row[3],
                                            Place=row[4] if len(row) >= 5 else 'HRM'
@@ -90,12 +89,12 @@ def get_exhibition_dict():
     return exdic
 
 
-def get_exhibition_set(exhibition_dict=None):
-    if exhibition_dict is None:
-        exhibition_dict = get_exhibition_dict()
-    # print(f'{type(exhibition_dict)=}')
-    # print(f'{type(exhibition_dict.values())=}')
-    return set(exhibition_dict.values())
+def get_inverted_exhibition_dict():
+    exhibition_dict = get_exhibition_dict()
+    inv_dict = {}
+    for key, val in exhibition_dict.items():
+        inv_dict[val] = key
+    return inv_dict
 
 
 if __name__ == '__main__':
