@@ -288,17 +288,6 @@ class Config:
                 self.col_docs.append(document)
             if cmd == Cmd.IFEXHIB:
                 self.exhibition_inv_dict = get_inverted_exhibition_dict()
-        # tentatively remove this and see if it causes problems.
-        # self.norm = []  # True if this column needs to be normalized/unnormalized
-        # # Do this as a separate step because we didn't know whether we need
-        # # to include the serial number until all the documents were read.
-        # if not self.skip_number:
-        #     self.norm.append(True)  # for the Serial number
-        # for doc in self.col_docs:
-        #     self.norm.append(Stmt.NORMALIZE in doc)
-        #     if Stmt.MULTIPLE_DELIMITER not in doc:
-        #         doc[Stmt.MULTIPLE_DELIMITER] = self.multiple_delimiter
-        # self.lennorm = len(self.norm)
         for doc in self.col_docs:
             if Stmt.MULTIPLE_DELIMITER not in doc:
                 doc[Stmt.MULTIPLE_DELIMITER] = self.multiple_delimiter
