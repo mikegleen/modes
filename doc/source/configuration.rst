@@ -18,8 +18,10 @@ of CSV → XML, XML → CSV, and XML → XML (with updates from a CSV file).
 Most but not all of the commands and statements are used for all cases.
 
 The configuration consists of a YAML file broken into multiple
-documents, separated by lines containing ``---`` in the left three columns.
-Each document roughly corresponds to a column in the associated CSV file.
+documents separated by lines containing ``---`` in the left three columns.
+Documents are control documents or column documents.
+Each column document corresponds to a column in the associated CSV file. The “control”
+document directs the selection of records (the if... commands) or is a global command.
 The various programs use the CSV file for slightly different purposes. For example,
 ``csv2xml.py`` uses it to contain multiple columns each of which defines a value to
 go into a corresponding field in the XML file. On the other hand, ``xml2csv.py`` uses
@@ -106,6 +108,7 @@ the ``cmd: global`` document.
 
    Used by ``update_from_csv.py`` when ``parent_path`` is specified to force
    creation of a new element. When that element is created, a subelement is also created.
+   The tag of the new subelement is the value of this statement.
 -  **child_value**
 
    Make this the text of the newly created subelement.
@@ -183,8 +186,8 @@ the ``cmd: global`` document.
    a CSV column heading.
 -  **value**
 
-   Required for **ifeq**, **ifnoteq**, **ifattribeq**, **ifcontains**,
-   or **constant** command.
+   Required for **ifeq**, **ifnoteq**, **ifattribeq**, **ifcontains**, **ifanyeq**,
+   **ifnotanyeq**, or **constant** command.
 -  **width**
 
    truncate this column to this number of characters when writing to
@@ -413,6 +416,32 @@ control command document.
 
    Select an object if the element text does not equal the
    **value** statement text.
+-  **ifanyeq**
+
+   This is for elements that can occur more than once but is otherwise like
+   **ifeq**.
+-  **ifnotanyeq**
+
+   This is for elements that can occur more than once but is otherwise like
+   **ifnoteq**. The object is selected if none of the instances of this element
+   equals the contents of the **value** statement.
+-  **ifexhib**
+
+   A special purpose command that selects an object if it was displayed at a
+   particular exhibition. The exhibition number (from ``exhibition_list.py``)
+   must be specified in the **value** statement.  This assumes that Exhibition
+   elements exist as follows, with subelement text exactly matching the values
+   in ``exhibition_list.py``::
+
+      <Exhibition>
+         <ExhibitionName>The Art of William Heath Robinson</ExhibitionName>
+         <CatalogueNumber>115</CatalogueNumber>
+         <Place>Dulwich Picture Gallery</Place>
+         <Date>
+            <DateBegin>3.11.2003</DateBegin>
+            <DateEnd>18.1.2004</DateEnd>
+         </Date>
+      </Exhibition>
 
 The **global** Command
 ++++++++++++++++++++++
