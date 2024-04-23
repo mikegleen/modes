@@ -305,7 +305,7 @@ def new_subelt(doc, obj, idnum, verbos=1):
     :param obj: The Object element
     :param idnum: Used for debugging
     :param verbos:
-    :return:
+    :return: the new subelement we've created
     """
     # print(f'new_subelt: {doc[Stmt.TITLE]=}: {obj.tag=}')
     if Stmt.PARENT_PATH not in doc:
@@ -355,6 +355,44 @@ def new_subelt(doc, obj, idnum, verbos=1):
             value = doc.get(Stmt.ATTRIBUTE_VALUE, '')
             newelt.set(doc[Stmt.ATTRIBUTE], value)
     return newelt
+
+
+def select_ifexhib(cfg: Config, objelem, document, idnum):
+    ymlvalue = document[Stmt.VALUE]  # we have tested that this exists
+    elements = objelem.findall('./Exhibition')
+    # print(f'{elements=}')
+    selected = False
+    if elements is None:
+        return selected
+    for element in elements:
+        datebegin = element.find('./Date/DateBegin')
+        if datebegin is None or not datebegin.text:
+            continue
+        else:
+            datebegin, _ = datefrommodes(datebegin.text)
+        dateend = element.find('./Date/DateEnd')
+        if dateend is not None:
+            dateend, _ = datefrommodes(dateend.text)
+        exhibname = element.find('./ExhibitionName')
+        if exhibname is not None:
+            exhibname = exhibname.text
+        place = element.find('./Place')
+        if place is not None:
+            place = place.text
+        # print(f'{idnum=}:{datebegin=}')
+        exhibition = ExhibitionTuple(DateBegin=datebegin,
+                                     DateEnd=dateend,
+                                     ExhibitionName=exhibname,
+                                     Place=place
+                                     )
+        # print(cfg.exhibition_inv_dict)
+        # print('ifexhib: {idnum}: {exhibition}')
+        exhibnum = cfg.exhibition_inv_dict.get(exhibition)
+        # print(f'{exhibnum=} {ymlvalue=}')
+        if exhibnum == int(ymlvalue):
+            selected = True
+            break
+    return selected
 
 
 def select(cfg: Config, objelem, includes=None, exclude=False):
@@ -478,41 +516,42 @@ def select(cfg: Config, objelem, includes=None, exclude=False):
                             selected = False
                             break
             case Cmd.IFEXHIB:
-                ymlvalue = document[Stmt.VALUE]  # we have tested that this exists
-                elements = objelem.findall('./Exhibition')
-                # print(f'{elements=}')
-                selected = False
-                if elements is None:
-                    continue
-                for element in elements:
-                    datebegin = element.find('./Date/DateBegin')
-                    if datebegin is None or not datebegin.text:
-                        continue
-                    else:
-                        datebegin, _ = datefrommodes(datebegin.text)
-                    dateend = element.find('./Date/DateEnd')
-                    if dateend is not None:
-                        dateend, _ = datefrommodes(dateend.text)
-                    exhibname = element.find('./ExhibitionName')
-                    if exhibname is not None:
-                        exhibname = exhibname.text
-                    place = element.find('./Place')
-                    if place is not None:
-                        place = place.text
-                    # print(f'{idnum=}:{datebegin=}')
-                    exhibition = ExhibitionTuple(DateBegin=datebegin,
-                                                 DateEnd=dateend,
-                                                 ExhibitionName=exhibname,
-                                                 Place=place
-                                                 )
-                    # print(cfg.exhibition_inv_dict)
-                    # print(f'{exhibition=}')
-                    exhibnum = cfg.exhibition_inv_dict.get(exhibition)
-                    # print(f'{exhibnum=} {ymlvalue=}')
-                    if exhibnum == int(ymlvalue):
-                        selected = True
-                        break
-                    # sys.exit()
+                selected = select_ifexhib(cfg, objelem, document, idnum)
+                # ymlvalue = document[Stmt.VALUE]  # we have tested that this exists
+                # elements = objelem.findall('./Exhibition')
+                # # print(f'{elements=}')
+                # selected = False
+                # if elements is None:
+                #     continue
+                # for element in elements:
+                #     datebegin = element.find('./Date/DateBegin')
+                #     if datebegin is None or not datebegin.text:
+                #         continue
+                #     else:
+                #         datebegin, _ = datefrommodes(datebegin.text)
+                #     dateend = element.find('./Date/DateEnd')
+                #     if dateend is not None:
+                #         dateend, _ = datefrommodes(dateend.text)
+                #     exhibname = element.find('./ExhibitionName')
+                #     if exhibname is not None:
+                #         exhibname = exhibname.text
+                #     place = element.find('./Place')
+                #     if place is not None:
+                #         place = place.text
+                #     # print(f'{idnum=}:{datebegin=}')
+                #     exhibition = ExhibitionTuple(DateBegin=datebegin,
+                #                                  DateEnd=dateend,
+                #                                  ExhibitionName=exhibname,
+                #                                  Place=place
+                #                                  )
+                #     # print(cfg.exhibition_inv_dict)
+                #     # print(f'{exhibition=}')
+                #     exhibnum = cfg.exhibition_inv_dict.get(exhibition)
+                #     # print(f'{exhibnum=} {ymlvalue=}')
+                #     if exhibnum == int(ymlvalue):
+                #         selected = True
+                #         break
+                #     # sys.exit()
             case _:
                 print(f'Unrecognized command: {command}.')
         # print(f'{selected=}')
