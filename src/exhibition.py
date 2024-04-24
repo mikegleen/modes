@@ -46,7 +46,8 @@ import sys
 from colorama import Fore, Style
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from utl.exhibition_list import get_exhibition_dict, ExhibitionTuple
+from utl.exhibition_list import (get_exhibition_dict,
+                                 get_inverted_exhibition_dict, ExhibitionTuple)
 from utl.cfgutil import Stmt, expand_idnum
 from utl.excel_cols import col2num
 from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
@@ -286,6 +287,50 @@ def get_csv_dict(csvfile):
     return cdict
 
 
+def verify():
+    exhibition_inv_dict = get_inverted_exhibition_dict()
+    for event, elem in ET.iterparse(infile):
+        if elem.tag != 'Object':
+            continue
+        idelem = elem.find(Stmt.get_default_record_id_xpath())
+        idnum = idelem.text if idelem is not None else None
+        idnum = normalize_id(idnum)
+        elements = elem.findall('./Exhibition')
+        # print(f'{elements=}')
+        selected = False
+        if elements is None:
+            return selected
+        for element in elements:
+            datebegin = element.find('./Date/DateBegin')
+            if datebegin is None or not datebegin.text:
+                datebegin = None
+            else:
+                datebegin, _ = datefrommodes(datebegin.text)
+            dateend = element.find('./Date/DateEnd')
+            if dateend is not None:
+                dateend, _ = datefrommodes(dateend.text)
+            exhibname = element.find('./ExhibitionName')
+            if exhibname is not None:
+                exhibname = exhibname.text
+            place = element.find('./Place')
+            if place is not None:
+                place = place.text
+            # print(f'{idnum=}:{datebegin=}')
+            if not datebegin and not dateend and not exhibname and not place:
+                # it's an empty Exhibition
+                continue
+            exhibition = ExhibitionTuple(DateBegin=datebegin,
+                                         DateEnd=dateend,
+                                         ExhibitionName=exhibname,
+                                         Place=place
+                                         )
+            # print(cfg.exhibition_inv_dict)
+            # print('ifexhib: {idnum}: {exhibition}')
+            exhibnum = exhibition_inv_dict.get(exhibition)
+            if exhibnum is None:
+                print(f'{idnum}: invalid exhibition: {exhibition}')
+
+
 def main():
     outfile.write(b'<?xml version="1.0"?><Interchange>\n')
     if _args.object:
@@ -346,8 +391,8 @@ def getparser():
     objgroup = parser.add_mutually_exclusive_group(required=True)
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
-    parser.add_argument('outfile', help='''
-        The output XML file.''')
+    parser.add_argument('-o', '--outfile', help='''
+        The output XML file. Specify this except for --verify.''')
     parser.add_argument('-a', '--all', action='store_true', help='''
         Write all objects. The default is to only write updated objects.''')
     parser.add_argument('--allow_missing', action='store_true', help='''
@@ -408,6 +453,9 @@ def getparser():
         Number of lines to skip at the start of the CSV file''')
     parser.add_argument('--short', action='store_true', help='''
         Only process one object. For debugging.''')
+    parser.add_argument('--verify', action='store_true', help='''
+        Compare the exhibition values in the XML file the values in exhibition_list.py.
+        ''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -417,6 +465,10 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    if args.verify:
+        return args  # ignore all other options
+    if args.outfile is None:
+        raise ValueError('You must specify --outfile.')
     if (args.mapfile is None) == (args.object is None):
         raise ValueError('You must specify one of --mapfile and --object')
     if (args.exhibition is None) == (args.col_ex is None):
@@ -439,11 +491,9 @@ def getargs(argv):
         args.col_cat = col2num(str(args.col_cat))
     if args.col_ex is not None:
         args.col_ex = col2num(str(args.col_ex))
-
     if args.old_date:
         if not vdate(args.old_date):  # Modes format?
             raise ValueError('Parameter --old_date must be Modes format, d.m.yyyy')
-
     return args
 
 
@@ -453,19 +503,22 @@ called_from_sphinx = True
 if __name__ == '__main__':
     assert sys.version_info >= (3, 6)
     called_from_sphinx = False
-    found_old_key = False
     if len(sys.argv) == 1:
         sys.argv.append('-h')
+    found_old_key = False
     _args = getargs(sys.argv)
     _oldname = _args.old_name
     _oldplace = _args.old_place
     _olddate = _args.old_date
     infile = open(_args.infile)
-    outfile = open(_args.outfile, 'wb')
     trace(1, 'Input file: {}', _args.infile)
-    trace(1, 'Creating file: {}', _args.outfile)
-    main()
-    if (_oldname or _oldplace or _olddate) and not found_old_key:
-        trace(0, "Warning: Old name/place/date specified but no"
-                 " old key found.",
-              color=Fore.YELLOW)
+    if _args.verify:
+        verify()
+    else:
+        outfile = open(_args.outfile, 'wb')
+        trace(1, 'Creating file: {}', _args.outfile)
+        main()
+        if (_oldname or _oldplace or _olddate) and not found_old_key:
+            trace(0, "Warning: Old name/place/date specified but no"
+                     " old key found.",
+                  color=Fore.YELLOW)
