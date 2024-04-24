@@ -442,6 +442,10 @@ control command document.
             <DateEnd>18.1.2004</DateEnd>
          </Date>
       </Exhibition>
+- **ifnoexhib**
+
+   Select objects that have never been exhibited. No **xpath** or other statement
+   is required. This assumes the normal format as described above.
 
 The **global** Command
 ++++++++++++++++++++++
