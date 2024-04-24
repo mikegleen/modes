@@ -72,10 +72,11 @@ class Cmd:
     IFANYEQ = 'ifanyeq'  # for elements that occur more than once like previous locations
     IFNOTANYEQ = 'ifnotanyeq'
     IFEXHIB = 'ifexhib'
+    IFNOEXHIB = 'ifnoexhib'
     # Commands that do not produce a column in the output CSV file
     _CONTROL_CMDS = (IF, IFNOT, IFEQ, IFNOTEQ, IFATTRIB, GLOBAL, IFCOLUMNEQ,
                      IFCONTAINS, IFATTRIBEQ, IFATTRIBNOTEQ, IFELT, IFNOTELT,
-                     IFANYEQ, IFNOTANYEQ, IFEXHIB)
+                     IFANYEQ, IFNOTANYEQ, IFEXHIB, IFNOEXHIB)
     _NEEDVALUE_CMDS = (KEYWORD, IFEQ, IFNOTEQ, IFATTRIBEQ, IFATTRIBNOTEQ,
                        IFCOLUMNEQ, IFCONTAINS, CONSTANT, IFEXHIB, IFANYEQ, IFNOTANYEQ)
     _NEEDXPATH_CMDS = (ATTRIB, COLUMN, CONSTANT, COUNT, ITEMS, IF, IFNOT,
@@ -357,6 +358,32 @@ def new_subelt(doc, obj, idnum, verbos=1):
     return newelt
 
 
+def select_ifnoexhib(cfg: Config, objelem, document):
+    """
+    Select if this object has never been in an exhibition.
+    :param cfg:
+    :param objelem:
+    :param document:
+    :return:
+    """
+    elements = objelem.findall('./Exhibition')
+    # print(f'{elements=}')
+    if elements is None:
+        return True
+    for element in elements:
+        datebegin = element.find('./Date/DateBegin')
+        if datebegin is None or not datebegin.text:
+            # We are assuming valid data. There are some Exhibition element
+            # groups with empty subelements. Just ignore these. This doesn't
+            # catch invalid groups where the DateBegin field is not populated
+            # but for some reason there is data in the other fields. The
+            # --verify function will catch these.
+            continue
+        else:
+            return False
+    return True
+
+
 def select_ifexhib(cfg: Config, objelem, document, idnum):
     ymlvalue = document[Stmt.VALUE]  # we have tested that this exists
     elements = objelem.findall('./Exhibition')
@@ -367,6 +394,11 @@ def select_ifexhib(cfg: Config, objelem, document, idnum):
     for element in elements:
         datebegin = element.find('./Date/DateBegin')
         if datebegin is None or not datebegin.text:
+            # We are assuming valid data. There are some Exhibition element
+            # groups with empty subelements. Just ignore these. This doesn't
+            # catch invalid groups where the DateBegin field is not populated
+            # but for some reason there is data in the other fields. The
+            # --verify function will catch these.
             continue
         else:
             datebegin, _ = datefrommodes(datebegin.text)
@@ -517,41 +549,8 @@ def select(cfg: Config, objelem, includes=None, exclude=False):
                             break
             case Cmd.IFEXHIB:
                 selected = select_ifexhib(cfg, objelem, document, idnum)
-                # ymlvalue = document[Stmt.VALUE]  # we have tested that this exists
-                # elements = objelem.findall('./Exhibition')
-                # # print(f'{elements=}')
-                # selected = False
-                # if elements is None:
-                #     continue
-                # for element in elements:
-                #     datebegin = element.find('./Date/DateBegin')
-                #     if datebegin is None or not datebegin.text:
-                #         continue
-                #     else:
-                #         datebegin, _ = datefrommodes(datebegin.text)
-                #     dateend = element.find('./Date/DateEnd')
-                #     if dateend is not None:
-                #         dateend, _ = datefrommodes(dateend.text)
-                #     exhibname = element.find('./ExhibitionName')
-                #     if exhibname is not None:
-                #         exhibname = exhibname.text
-                #     place = element.find('./Place')
-                #     if place is not None:
-                #         place = place.text
-                #     # print(f'{idnum=}:{datebegin=}')
-                #     exhibition = ExhibitionTuple(DateBegin=datebegin,
-                #                                  DateEnd=dateend,
-                #                                  ExhibitionName=exhibname,
-                #                                  Place=place
-                #                                  )
-                #     # print(cfg.exhibition_inv_dict)
-                #     # print(f'{exhibition=}')
-                #     exhibnum = cfg.exhibition_inv_dict.get(exhibition)
-                #     # print(f'{exhibnum=} {ymlvalue=}')
-                #     if exhibnum == int(ymlvalue):
-                #         selected = True
-                #         break
-                #     # sys.exit()
+            case Cmd.IFNOEXHIB:
+                selected = select_ifnoexhib(cfg, objelem, document)
             case _:
                 print(f'Unrecognized command: {command}.')
         # print(f'{selected=}')
