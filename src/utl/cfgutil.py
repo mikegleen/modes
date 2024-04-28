@@ -711,9 +711,9 @@ def yaml_fieldnames(config):
 
 def _splitid(idstr: str, m: re.Match) -> (str, int, int, int):
     """
-    Subroutine to expand_one_idnum.
+    Subroutine to function expand_one_idnum.
 
-    Consider the case of JB121-24.
+    Handle the case of JB121-24.
 
     :return: prefix = "JB1"
              variablepart: int = 21
@@ -723,7 +723,7 @@ def _splitid(idstr: str, m: re.Match) -> (str, int, int, int):
     prefix = m[1]  # will be updated later if 2nd # is shorter than 1st #
     lenprefix = len(prefix)
     firstidnum = m[2]
-    intsecondidnum = int(m[3])  # the numbers after the '-' or '&'
+    intsecondidnum = int(m[3])  # the numbers after the '-'
     # lenfirstid will change if the second # is shorter than the first
     lenfirstid = len(firstidnum)
     lenlastid = len(m[3])
@@ -773,8 +773,8 @@ def _expand_one_idnum(idstr: str) -> list[str]:
     idstr = ''.join(idstr.split())  # remove all whitespace
     if '-' in idstr or '/' in idstr:  # if ID is actually a range like JB021-23
         if '&' in idstr:
-            print(f'Bad accession number list: cannot contain both "-" and "&": "{idstr}"')
-            return jlist
+            raise ValueError(f'Bad accession number list: cannot contain both'
+                             f' "-" and "&": "{idstr}"')
         if m := re.match(r'(.+?)(\d+)[-/](\d+)$', idstr):
             prefix, num1, num2, lenvariablepart = _splitid(idstr, m)
             try:
@@ -782,10 +782,10 @@ def _expand_one_idnum(idstr: str) -> list[str]:
                     newidnum = f'{prefix}{suffix:0{lenvariablepart}}'
                     jlist.append(newidnum)
             except ValueError:
-                print(f'Bad accession number, contains "-" but not well'
-                      f' formed: {m.groups()}')
+                raise ValueError(f'Bad accession number, contains "-" but not'
+                                 f'well formed: {m.groups()}')
         else:
-            print('Bad accession number, failed pattern match:', idstr)
+            raise ValueError('Bad accession number, failed pattern match:', idstr)
     elif '&' in idstr:
         parts = idstr.split('&')
         head = parts[0]
@@ -796,6 +796,8 @@ def _expand_one_idnum(idstr: str) -> list[str]:
         #   LDHRM.2023.1 -> LDHRM.2023.
         prefix = m[1]
         for tail in parts[1:]:
+            if not tail.isnumeric():
+                raise ValueError(f'Extension numbers must be numeric: "{idstr}"')
             jlist.append(prefix + tail)
 
     else:
