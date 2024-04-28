@@ -234,6 +234,7 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
     MDA code: LDHRM/2018/1 or LDHRM.2018.1. or LDHRM.2018.1.2. Input can also
     be a simple integer. The "/" character is allowed as an alternative because
     some input files contain these. It is never used in the Modes data.
+    Also allowed is LDHRM:2018.1 in the input data.
 
     For IDs with the MDA code, the one or two trailing numbers are expanded to
     six digits with leading zeroes if necessary. If an id contains a larger
