@@ -800,8 +800,10 @@ if __name__ == '__main__':
     is_validate = sys.argv[1] == 'validate'
     _args = getargs(sys.argv)
     verbose = _args.verbose
+    trace(1, 'Begin location {}.', _args.subp,
+          color=Fore.GREEN)
     if is_update and _args.object:
-        if not _args.location:
+        if not _args.location and not _args.move_to_normal:
             raise(ValueError('You specified the object id. You must also '
                              'specify the location.'))
         objectlist = expand_idnum(_args.object)
