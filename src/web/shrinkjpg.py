@@ -29,7 +29,7 @@ def getparser():
     parser.add_argument('outdir', help='''
         Output directory''')
     parser.add_argument('--dryrun', action='store_true', help=sphinxify('''
-        Print messages but don't do processing. Implies  --verbose=2''',
+        Print messages but don't do processing. Implies  --verbose = 2''',
                         calledfromsphinx))
     parser.add_argument('-m', '--maxpixels', type=int,
                         default=DEFAULT_MAXPIXELS, help='''
