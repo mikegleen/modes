@@ -666,13 +666,13 @@ def add_arguments(parser, command):
     if is_update:
         parser.add_argument('-q', '--move_to_normal', action='store_true',
                             help=nd.sphinxify('''
-        Requires -c. Updates the current location. 
-        Do not specify this and --col_loc_type. If you select --move_to_normal 
-        you may not select --normal or --previous''', called_from_sphinx))
+            Implies -c. Updates the current location. Do not specify this
+            and --col_loc_type. If you select --move_to_normal 
+            you may not select --normal or --previous''', called_from_sphinx))
         parser.add_argument('-n', '--normal', action='store_true',
                             help=nd.sphinxify('''
-        Update the normal location. See the description for "-c" and "-p".
-        Do not specify this and --col_loc_type.''', called_from_sphinx))
+            Update the normal location. See the description for "-c" and "-p".
+            Do not specify this and --col_loc_type.''', called_from_sphinx))
     if is_diff:
         diff_group.add_argument('-n', '--normal', action='store_true', help='''
         Compare the location in the CSV file to the normal location in the
@@ -765,22 +765,21 @@ def getargs(argv):
             args.col_patch = col2num(args.col_patch)
         if args.col_loc_type:
             if args.current or args.normal:
-                print('You may not specify both --col_loc_type and -c or -n.')
+                trace(0, 'You may not specify both --col_loc_type and -c or -n.',
+                      color=Fore.RED)
                 sys.exit(1)
         if args.move_to_normal:
-            if not args.current:
-                print('If you select --move_to_normal you must also select '
-                      '--current')
-                sys.exit(1)
             if args.normal or args.previous:
-                print('If you select --move_to_normal you may not select '
-                      '--normal or --previous.')
+                trace(0, 'If you select --move_to_normal you may not select '
+                      '--normal or --previous.', color=Fore.RED)
                 sys.exit(1)
+            args.current = True
         if not nd.vdate(args.date):
             print('--date must be complete Modes format: d.m.yyyy')
             sys.exit(1)
     if (is_update or is_select) and args.infile == args.outfile:
-        print('Fatal error: Input and output files must be different.')
+        trace(0, 'Fatal error: Input and output files must be different.',
+              color=Fore.RED)
         sys.exit(1)
     return args
 
@@ -804,8 +803,8 @@ if __name__ == '__main__':
           color=Fore.GREEN)
     if is_update and _args.object:
         if not _args.location and not _args.move_to_normal:
-            raise(ValueError('You specified the object id. You must also '
-                             'specify the location.'))
+            trace(0, 'You specified the object id. You must also '
+                     'specify the location.', color=Fore.RED)
         objectlist = expand_idnum(_args.object)
         newlocs = {nd.normalize_id(obj): _args.location for obj in objectlist}
         newreasons = {nd.normalize_id(obj): _args.reason for obj in objectlist}
