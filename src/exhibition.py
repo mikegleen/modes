@@ -307,7 +307,7 @@ def verify():
             else:
                 datebegin, _ = datefrommodes(datebegin.text)
             dateend = element.find('./Date/DateEnd')
-            if dateend is not None:
+            if dateend is not None and dateend.text:
                 dateend, _ = datefrommodes(dateend.text)
             exhibname = element.find('./ExhibitionName')
             if exhibname is not None:
@@ -387,8 +387,8 @@ def getparser():
         --mapfile argument and specify a single object wth the --object
         argument. See also the --catalogue argument.
         ''', called_from_sphinx))
-    exgroup = parser.add_mutually_exclusive_group(required=True)
-    objgroup = parser.add_mutually_exclusive_group(required=True)
+    exgroup = parser.add_mutually_exclusive_group(required=False)
+    objgroup = parser.add_mutually_exclusive_group(required=False)
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
     parser.add_argument('-o', '--outfile', help='''
@@ -507,6 +507,7 @@ if __name__ == '__main__':
         sys.argv.append('-h')
     found_old_key = False
     _args = getargs(sys.argv)
+    trace(1, f'Begin exhibition.py.', color=Fore.GREEN)
     _oldname = _args.old_name
     _oldplace = _args.old_place
     _olddate = _args.old_date
