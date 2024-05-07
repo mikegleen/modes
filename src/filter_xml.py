@@ -140,7 +140,7 @@ if __name__ == '__main__':
     object_number = ''
     if len(sys.argv) == 1:
         sys.argv.append('-h')
-    _args = getargs()
+    _args = getargs(sys.argv)
     infile = open(_args.infile)
     if _args.directory:
         outfile = _args.outfile
