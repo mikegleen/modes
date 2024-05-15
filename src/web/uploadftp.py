@@ -4,14 +4,11 @@
     One parameter is required, the directory holding the new images.
 
     The files in the sending directory are of the form: <accession #>.jpg
-    This program will::
+    This program will:
 
-        Add a prefix of "collection_" to each file, if needed.
-        Send the file to the host.
+      - Add a prefix of ``collection_`` to each file, if needed.
+      - Send the file to the host.
 
-    This script is like collectionftp.py except that instead of a hard-coded
-    SENDING folder, a folder is named as a parameter. The sent files remain in
-    the named folder.
 """
 from ftplib import FTP
 import os.path
