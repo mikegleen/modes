@@ -9,7 +9,7 @@ if you need to update multiple types, you must prepare separate input CSV files
 and run this program more than once.
 
 Exception: When updating a current location, a previous location element is
-created (unless the --patch option is selected).
+created (unless the ``--patch`` option is selected).
 """
 import argparse
 import codecs
