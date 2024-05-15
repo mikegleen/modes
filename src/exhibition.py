@@ -8,13 +8,16 @@ Input:
     - CSV file of objects in an exhibition. Optional, see the ``-j`` argument.
 
 The format of the CSV file follows. The accession number is by default in the
-first column but the other columns must be specified in the program arguments::
+first column but the other columns must be specified in the program arguments,
+``--col_ex`` and ``--col_cat`` respectively::
 
       Accession Number,[Exhibition Number],[Catalogue Number]
 
 The format of the exhibition list is::
 
-    Exhibition Number,Date Begin,Date End,Exhibition Name,Place
+    Exhibition Number,Date Begin,Date End,Exhibition Name[,Place]
+
+If ``Place`` is omitted, it is taken to be "HRM"
 
 In the CSV file, the exhibition number is optional and is ignored if the ``--exhibition``
 parameter is given. The accession number in the CSV file or specified as a parameter
@@ -418,7 +421,7 @@ def getparser():
         letter.''', called_from_sphinx))
     parser.add_argument('--delete', action='store_true',
                         help=sphinxify('''
-        Delete this exhibition from all objects selected.
+        Delete the exhibition specified by --exhibition from all objects selected.
         Requires --exhibition.''', called_from_sphinx))
     exgroup.add_argument('-e', '--exhibition', type=int,
                          help=sphinxify('''
