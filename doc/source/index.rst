@@ -23,6 +23,7 @@ Modes Python Library
    x053_list_pages
    update_from_csv
    utility_programs
+   xmldiff
    xml2csv
    genindex
    data_format

@@ -1,10 +1,22 @@
 # -*- coding: utf-8 -*-
 """
-    Compare two Modes XML Object files and output only the Object elements that have changed.
+    Compare two Modes XML Object files and output only the Object elements that
+    have changed or been added. These "diff" file can then be used to update
+    Modes without having to update all objects. This preserves the change
+    history metadata.
+
+    It is required that input files are in order according to normalized
+    accession numbers.
+
+    Note that this script has been tested against a "normal" Modes XML Object
+    file. It is explicitly not guaranteed to work with arbitrary XML files.
+    For example, multiple attributes are allowed on elements and they can be
+    in any order. This script may issue false "changed" output in those cases.
 """
 import argparse
 import os.path
 import sys
+from colorama import Fore, Style
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 from utl.cfgutil import Config, DEFAULT_MDA_CODE
@@ -12,9 +24,12 @@ from utl.normalize import normalize_id, sphinxify
 from utl.normalize import if_not_sphinx
 
 
-def trace(level, template, *args):
+def trace(level, template, *args, color=None):
     if _args.verbose >= level:
-        print(template.format(*args))
+        if color:
+            print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
+        else:
+            print(template.format(*args))
 
 
 def nextobj(pnum: int, iterparser):
@@ -40,7 +55,13 @@ def nextobj(pnum: int, iterparser):
         nidnum = normalize_id(idnum)
         objstr = ET.tostring(obj)
         trace(2, 'File {} {}', pnum, nidnum)
+        if nidnum <= oldid[pnum]:
+            trace(0, "Objects out of order in file {}. Old ID = {}, "
+                     "New ID = {}", pnum, oldid[pnum], nidnum,
+                  color=Fore.RED)
+            sys.exit(-1)
         objcount[pnum] += 1
+        oldid[pnum] = nidnum
         return obj, nidnum, objstr
 
 
@@ -65,6 +86,7 @@ def main():
             if obj1 is None:
                 break
             obj1.clear()
+            trace(2, "Deleting object at end: {}", nid1)
             obj1, nid1, objstr1 = nextobj(1, ip1)
             deleted += 1
             continue
@@ -93,6 +115,7 @@ def main():
             continue
         if nid1 < nid2:
             # The old object has been deleted
+            trace(2, "Deleting object: {}", nid1)
             deleted += 1
             obj1.clear()
             obj1, nid1, objstr1 = nextobj(1, ip1)
@@ -142,15 +165,25 @@ def getargs(argv):
     return args
 
 
+def s(i: int):
+    return '' if i == 1 else 's'
+
+
 calledfromsphinx = True
 if __name__ == '__main__':
     assert sys.version_info >= (3, 11)
     calledfromsphinx = False
-    objcount = [0, 0, 0]
+    #
+    # Global variables
+    #
+    objcount = [None, 0, 0]
     deleted = added = replaced = written = skipped = 0
+    oldid = [None, '', '']
     if len(sys.argv) == 1:
         sys.argv.append('-h')
     _args = getargs(sys.argv)
+    basename = os.path.basename(sys.argv[0])
+    trace(1, 'Begin {}', basename.split(".")[0], color=Fore.GREEN)
     infile1 = open(_args.infile1)
     infile2 = open(_args.infile2)
     outfile = open(_args.outfile, 'wb')
@@ -158,6 +191,10 @@ if __name__ == '__main__':
     record_tag = config.record_tag
     record_id_xpath = config.record_id_xpath
     main()
-    basename = os.path.basename(sys.argv[0])
-    print(f'{selcount} object{"" if selcount == 1 else "s"} selected from {objcount}.')
-    print(f'End {basename.split(".")[0]}')
+    trace(1, '{} objects in old file.', objcount[1])
+    trace(1, '{} objects in new file.', objcount[2])
+    trace(1, '{} object{} deleted.', deleted, s(deleted))
+    trace(1, '{} object{} added.', added, s(added))
+    trace(1, '{} object{} replaced.', replaced, s(replaced))
+    trace(1, '{} object{} written to diff file.', written, s(written))
+    trace(1, 'End {}', basename.split(".")[0], color=Fore.GREEN)
