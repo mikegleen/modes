@@ -121,9 +121,7 @@ def getparser():
         ''')
     parser.add_argument('-x', '--exclude', action='store_true', help='''
         Treat the include list as an exclude list.''')
-    args = parser.parse_args()
-    args.include_column = col2num(args.include_column)
-    return args
+    return parser
 
 
 def getargs(argv):
