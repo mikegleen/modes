@@ -16,6 +16,7 @@
 import argparse
 import os.path
 import sys
+import time
 from colorama import Fore, Style
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
@@ -33,6 +34,14 @@ def trace(level, template, *args, color=None):
 
 
 def nextobj(pnum: int, iterparser):
+    """
+
+    :param pnum: Either 1 or 2 indicating which iterparser has ben passed
+    :param iterparser: Either file 1 or file 2 iterparser
+    :return: a tuple of:
+        (the object parsed, the normalized accession number, the output of
+            ET.tostring(obj)
+    """
     objectlevel = 0
     while True:
         try:
@@ -41,16 +50,16 @@ def nextobj(pnum: int, iterparser):
             trace(2, 'End of file {}', pnum)
             return None, None, None
         if event == 'start':
-            if obj.tag == record_tag:
+            if obj.tag == config.record_tag:
                 objectlevel += 1
             continue
         # It's an "end" event.
-        if obj.tag != record_tag:
+        if obj.tag != config.record_tag:
             continue
         objectlevel -= 1
         if objectlevel:
             continue  # It's not a top level Object.
-        idelem = obj.find(record_id_xpath)
+        idelem = obj.find(config.record_id_xpath)
         idnum = idelem.text if idelem is not None else None
         nidnum = normalize_id(idnum)
         objstr = ET.tostring(obj)
@@ -172,6 +181,7 @@ def s(i: int):
 calledfromsphinx = True
 if __name__ == '__main__':
     assert sys.version_info >= (3, 11)
+    t1 = time.perf_counter()
     calledfromsphinx = False
     #
     # Global variables
@@ -188,8 +198,6 @@ if __name__ == '__main__':
     infile2 = open(_args.infile2)
     outfile = open(_args.outfile, 'wb')
     config = Config(mdacode=_args.mdacode, dump=_args.verbose >= 2)
-    record_tag = config.record_tag
-    record_id_xpath = config.record_id_xpath
     main()
     trace(1, '{} objects in old file.', objcount[1])
     trace(1, '{} objects in new file.', objcount[2])
@@ -197,4 +205,6 @@ if __name__ == '__main__':
     trace(1, '{} object{} added.', added, s(added))
     trace(1, '{} object{} replaced.', replaced, s(replaced))
     trace(1, '{} object{} written to diff file.', written, s(written))
-    trace(1, 'End {}', basename.split(".")[0], color=Fore.GREEN)
+    elapsed = time.perf_counter() - t1
+    trace(1, 'End {}. Elapsed: {:5.3f} seconds.', basename.split(".")[0],
+          elapsed, color=Fore.GREEN)
