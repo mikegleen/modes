@@ -283,6 +283,11 @@ def one_element(objelem, idnum):
                     objelem.remove(target)
                     ndeleted += 1
             continue
+        newtext = newvals[idnum][title]
+        if not newtext and not _args.empty:
+            trace(3, '{}: empty field in CSV ignored. --empty not specified',
+                  idnum)
+            continue
         target = objelem.find(xpath)
         if target is None:
             target = new_subelt(doc, objelem, idnum, _args.verbose)
@@ -298,11 +303,6 @@ def one_element(objelem, idnum):
             continue
         # command is COLUMN
         # get the text from the CSV column for this row
-        newtext = newvals[idnum][title]
-        if not newtext and not _args.empty:
-            trace(3, '{}: empty field in CSV ignored. --empty not specified',
-                  idnum)
-            continue
         oldtext = target.text
         if oldtext and not _args.replace:
             if oldtext != newtext:
@@ -378,7 +378,7 @@ def main():
         idelem = elem.find(cfg.record_id_xpath)
         idnum = idelem.text if idelem is not None else None
         nidnum = normalize_id(idnum)
-        trace(3, 'idnum: {}', idnum)
+        trace(4, 'idnum: {}', idnum)
         if nidnum and nidnum in newvals:
             if cfg.subid_parent is not None:
                 one_element_subid_mode(nidnum, elem)
