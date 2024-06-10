@@ -183,15 +183,15 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 11)
     t1 = time.perf_counter()
     calledfromsphinx = False
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
+    _args = getargs(sys.argv)
     #
     # Global variables
     #
     objcount = [None, 0, 0]
     deleted = added = replaced = written = skipped = 0
     oldid = [None, '', '']
-    if len(sys.argv) == 1:
-        sys.argv.append('-h')
-    _args = getargs(sys.argv)
     basename = os.path.basename(sys.argv[0])
     trace(1, 'Begin {}', basename.split(".")[0], color=Fore.GREEN)
     infile1 = open(_args.infile1)
