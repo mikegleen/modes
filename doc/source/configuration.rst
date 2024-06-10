@@ -177,13 +177,12 @@ the ``cmd: global`` document.
    case it is useful for discarding rubbish rows in the CSV file.
 -  **title**
 
-   Optional. Specify the column title in the first row of the column,
+   Optional. Specify the column title in the first row of the CSV file,
    but see the ``--skip_rows`` command line parameter.
    If omitted, a best-guess title will be created
-   from the xpath statement, ignoring predicates (expressions within square brackets).
+   from the **xpath** statement, which see for an example.
    If in a control document, the title will be shown in diagnostics but is not otherwise
-   used. The titles of data-related documents must be unique as this title corresponds to
-   a CSV column heading.
+   used. The titles of documents must be unique and are case sensitive.
 -  **value**
 
    Required for **ifeq**, **ifnoteq**, **ifattribeq**, **ifcontains**, **ifanyeq**,
@@ -197,6 +196,13 @@ the ``cmd: global`` document.
 
    Required. This describes the XSLT path to a relevant XML
    element. In subid mode this is a simple tag name.
+
+   If no **title** statement is specified, the title of the CSV column associated
+   with this document is generated from the **xpath** statement. For example::
+
+      xpath: ./Description/Measurement[Part="Image"]/Reading
+
+   will generate a title of ``Reading``.
 -  **xpath2**
 
    This describes the XSLT path to a relevant XML element in the case where a
@@ -208,13 +214,14 @@ the ``cmd: global`` document.
 Global-command Statements
 +++++++++++++++++++++++++
 
-These statements are in the document whose ``cmd`` statement is ``global``.
+These statements are in the document whose ``cmd`` is ``global``.
 
 -  **add_mda_code**
 
    If the serial number does not begin with the MDA code (default LDHRM)
    then insert it as a prefix. This is used only in ``csv2xml.py``
-   and ``update_from_csv.py``.
+   and ``update_from_csv.py``. You can specify an MDA code on the command line
+   using the --mdacode argument.
 -  **delimiter**
 
    The character to use for the CSV file field
@@ -244,7 +251,7 @@ These statements are in the document whose ``cmd`` statement is ``global``.
    The default is to sort the output alphabetically.
    This statement directs the sort to be numeric based on the first
    column of the output row. Note that accession numbers are normally normalized before
-   sorting.
+   sorting and should be sorted alphabetically.
 -  **subid_parent**
 
    This statement contains the path to the containing element
@@ -320,6 +327,9 @@ Data-related Commands
    in the CSV file is empty, no action takes place. Specify ``--empty`` to
    override this. Note ``--empty`` implies ``--replace``. See the section
    :ref:`Reserved Words` for other actions.
+
+   You must specify a title explicitly with the ``title`` statement or implicitly
+   with the ``xpath`` statement.
 -  **constant**
 
    For ``csv2xml.py`` and ``update_from_csv.py``, create an element
