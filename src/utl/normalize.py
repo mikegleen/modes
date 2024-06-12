@@ -223,6 +223,7 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
     identifiers (i.e. accession numbers) in our Modes file.
 
     Return a string normalized for sorting.
+    Raises ValueError if the input is invalid.
 
     If a field that is expected to be an integer is not, a ValueError is
     raised or if strict == False, return the input object ID.
