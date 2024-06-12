@@ -3,7 +3,8 @@ set -e
 INXML=2024-04-27d_mottisfont.xml
 OUTXML=2024-06-01_measure.xml
 INXML=prod_update/normal/$INXML
-OUTXML=prod_delta/normal/$OUTXML
+OUTDELTA=prod_delta/normal/$OUTXML
+OUTFULL=prod_update /normal/$OUTXML
 SCRIPT=$(python -c "print('$ZSH_ARGZERO'.split('.')[0].split('/')[-1])")
 echo SCRIPT: $SCRIPT
 green () {
@@ -16,10 +17,10 @@ yellow () {
 # Update deferred:
 # 2023.10,266x191,measured in frame
 # 2023.11,175x243,measured in frame
-# 2023.12,143x173,Measured in frame
-# 2023.13,153x88,Measured in frame
-# 2023.14,195x336,Measured in frame
-# 2023.15,343x173,Measured in frame
+# 2023.12,143x173,measured in frame
+# 2023.13,153x88,measured in frame
+# 2023.14,195x336,measured in frame
+# 2023.15,343x173,measured in frame
 # 2023.16,297x240,measured in frame
 # 2023.17,440x272,measured in frame
 # 2023.18,352x250,measured in frame
@@ -60,4 +61,5 @@ cmd: column
 xpath: ./Description/Measurement[Part="Image"]/Note
 parent_path:  ./Description/Measurement[Part="Image"]
 EOF
-python src/update_from_csv.py $INXML $OUTXML -c tmp/${SCRIPT}.yml -m tmp/${SCRIPT}.csv -v 3
+python src/update_from_csv.py $INXML $OUTDELTA -c tmp/${SCRIPT}.yml -m tmp/${SCRIPT}.csv -v 1
+python src/update_from_csv.py $INXML $OUTFULL -c tmp/${SCRIPT}.yml -m tmp/${SCRIPT}.csv -a -v 1
