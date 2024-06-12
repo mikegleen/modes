@@ -48,7 +48,7 @@ def nextobj(pnum: int, iterparser):
             event, obj = next(iterparser)
         except StopIteration:
             trace(2, 'End of file {}', pnum)
-            return None, None, None
+            return None, None, None, None
         if event == 'start':
             if obj.tag == config.record_tag:
                 objectlevel += 1
@@ -71,15 +71,15 @@ def nextobj(pnum: int, iterparser):
             sys.exit(-1)
         objcount[pnum] += 1
         oldid[pnum] = nidnum
-        return obj, nidnum, objstr
+        return obj, idnum, nidnum, objstr
 
 
 def main():
     global objcount, deleted, added, replaced, written, skipped
     ip1 = ET.iterparse(infile1, events=('start', 'end'))
     ip2 = ET.iterparse(infile2, events=('start', 'end'))
-    obj1, nid1, objstr1 = nextobj(1, ip1)
-    obj2, nid2, objstr2 = nextobj(2, ip2)
+    obj1, id1, nid1, objstr1 = nextobj(1, ip1)
+    obj2, id2, nid2, objstr2 = nextobj(2, ip2)
     #
     #   Write output head
     #
@@ -95,48 +95,48 @@ def main():
             if obj1 is None:
                 break
             obj1.clear()
-            trace(2, "Deleting object at end: {}", nid1)
-            obj1, nid1, objstr1 = nextobj(1, ip1)
+            trace(2, "Deleting object at end: {}", id1)
+            obj1, id1, nid1, objstr1 = nextobj(1, ip1)
             deleted += 1
             continue
         if nid1 is None:
             # The objects in infile2 are new. Write them all
             written += 1
             added += 1
-            trace(2, "Write new element at end {}", nid2)
+            trace(2, "Write new element at end {}", id2)
             outfile.write(objstr2)
             obj2.clear()
-            obj2, nid2, objstr2 = nextobj(2, ip2)
+            obj2, id2, nid2, objstr2 = nextobj(2, ip2)
             continue
         if nid1 == nid2:
             if objstr1 != objstr2:
-                trace(2, "Write changed element {}", nid2)
+                trace(2, "Write changed element {}", id2)
                 written += 1
                 replaced += 1
                 outfile.write(objstr2)
             else:
                 skipped += 1
-                trace(2, "Skip unchanged {}", nid1)
+                trace(2, "Skip unchanged {}", id1)
             obj1.clear()
-            obj1, nid1, objstr1 = nextobj(1, ip1)
+            obj1, id1, nid1, objstr1 = nextobj(1, ip1)
             obj2.clear()
-            obj2, nid2, objstr2 = nextobj(2, ip2)
+            obj2, id2, nid2, objstr2 = nextobj(2, ip2)
             continue
         if nid1 < nid2:
             # The old object has been deleted
-            trace(2, "Deleting object: {}", nid1)
+            trace(2, "Deleting object: {}", id1)
             deleted += 1
             obj1.clear()
-            obj1, nid1, objstr1 = nextobj(1, ip1)
+            obj1, id1, nid1, objstr1 = nextobj(1, ip1)
             continue
         # nid2 < nid1
         # A new object has been inserted.
-        trace(2, "Write new element {}", nid2)
+        trace(2, "Write new element {}", id2)
         added += 1
         written += 1
         outfile.write(objstr2)
         obj2.clear()
-        obj2, nid2, objstr2 = nextobj(2, ip2)
+        obj2, id2, nid2, objstr2 = nextobj(2, ip2)
 
     outfile.write(b'</Interchange>')
 
