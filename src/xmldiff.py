@@ -12,6 +12,14 @@
     file. It is explicitly not guaranteed to work with arbitrary XML files.
     For example, multiple attributes are allowed on elements and they can be
     in any order. This script may issue false "changed" output in those cases.
+
+    Trace levels:
+
+    #. Summary info
+    #. Inserted and deleted objects
+    #. Changed objects
+    #. Unchanged objects
+    #. Details for debugging
 """
 import argparse
 import os.path
@@ -39,15 +47,17 @@ def nextobj(pnum: int, iterparser):
     :param pnum: Either 1 or 2 indicating which iterparser has ben passed
     :param iterparser: Either file 1 or file 2 iterparser
     :return: a tuple of:
-        (the object parsed, the normalized accession number, the output of
-            ET.tostring(obj)
+        the object parsed,
+        the accession number,
+        the normalized accession number,
+        the output of ET.tostring(obj)
     """
     objectlevel = 0
     while True:
         try:
             event, obj = next(iterparser)
         except StopIteration:
-            trace(2, 'End of file {}', pnum)
+            trace(5, 'End of file {}', pnum)
             return None, None, None, None
         if event == 'start':
             if obj.tag == config.record_tag:
@@ -63,7 +73,7 @@ def nextobj(pnum: int, iterparser):
         idnum = idelem.text if idelem is not None else None
         nidnum = normalize_id(idnum)
         objstr = ET.tostring(obj)
-        trace(2, 'File {} {}', pnum, nidnum)
+        trace(5, 'File {} {}', pnum, nidnum)
         if nidnum <= oldid[pnum]:
             trace(0, "Objects out of order in file {}. Old ID = {}, "
                      "New ID = {}", pnum, oldid[pnum], nidnum,
@@ -84,8 +94,12 @@ def main():
     #   Write output head
     #
     declaration = f'<?xml version="1.0" encoding="{_args.encoding}"?>\n'
-    outfile.write(bytes(declaration, encoding=_args.encoding))
-    outfile.write(b'<Interchange>\n')
+    if _args.outfile:
+        outfile.write(bytes(declaration, encoding=_args.encoding))
+        outfile.write(b'<Interchange>\n')
+    if _args.outorig:
+        outorig.write(bytes(declaration, encoding=_args.encoding))
+        outorig.write(b'<Interchange>\n')
     #
     #   Main Loop
     #
@@ -110,13 +124,16 @@ def main():
             continue
         if nid1 == nid2:
             if objstr1 != objstr2:
-                trace(2, "Write changed element {}", id2)
+                trace(3, "Write changed element {}", id2)
                 written += 1
                 replaced += 1
-                outfile.write(objstr2)
+                if _args.outfile:
+                    outfile.write(objstr2)
+                if _args.outorig:
+                    outorig.write(objstr1)
             else:
                 skipped += 1
-                trace(2, "Skip unchanged {}", id1)
+                trace(4, "Skip unchanged {}", id1)
             obj1.clear()
             obj1, id1, nid1, objstr1 = nextobj(1, ip1)
             obj2.clear()
@@ -134,11 +151,15 @@ def main():
         trace(2, "Write new element {}", id2)
         added += 1
         written += 1
-        outfile.write(objstr2)
+        if _args.outfile:
+            outfile.write(objstr2)
         obj2.clear()
         obj2, id2, nid2, objstr2 = nextobj(2, ip2)
 
-    outfile.write(b'</Interchange>')
+    if _args.outfile:
+        outfile.write(b'</Interchange>')
+    if _args.outorig:
+        outorig.write(b'</Interchange>')
 
 
 def getparser():
@@ -151,15 +172,24 @@ def getparser():
         The old XML file''')
     parser.add_argument('infile2', help='''
         The updated XML file.''')
-    parser.add_argument('outfile', help='''
-        The XML file containing the changed or added Object elements.''')
-    parser.add_argument('-e', '--encoding', default='utf-8', help='''
-        Set the output encoding. The default is "utf-8".
-        ''')
+    parser.add_argument('-c', '--config', help='''
+        Optionally specify a YAML configuration file to allow specification
+        of record_tag and record_id_xpath statements.''')
+    parser.add_argument('-e', '--encoding', default='utf-8', help=
+                        '''Set the output encoding.''' +
+                        if_not_sphinx(''' The default is "utf-8".
+                        ''', calledfromsphinx))
     parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.''' +
                         if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".
                         ''', calledfromsphinx))
+    parser.add_argument('-o', '--outfile', help=sphinxify('''
+        The XML file containing the changed or added Object elements.
+        If this parameter is not specified, only messages will be displayed
+        and no output will be written. But see --outorig.''', calledfromsphinx))
+    parser.add_argument('--outorig', help='''
+        The XML file containing the Object elements from the old XML file
+        if the element in the new file is different.''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -171,6 +201,8 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    if not args.output:
+        trace(1, 'Dry run. No output written', color=Fore.YELLOW)
     return args
 
 
@@ -196,8 +228,11 @@ if __name__ == '__main__':
     trace(1, 'Begin {}', basename.split(".")[0], color=Fore.GREEN)
     infile1 = open(_args.infile1)
     infile2 = open(_args.infile2)
-    outfile = open(_args.outfile, 'wb')
-    config = Config(mdacode=_args.mdacode, dump=_args.verbose >= 2)
+    if _args.outfile:
+        outfile = open(_args.outfile, 'wb')
+    if _args.outorig:
+        outorig = open(_args.outorig, 'wb')
+    config = Config(_args.config, mdacode=_args.mdacode, dump=_args.verbose >= 2)
     main()
     trace(1, '{} objects in old file.', objcount[1])
     trace(1, '{} objects in new file.', objcount[2])
