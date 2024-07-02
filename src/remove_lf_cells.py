@@ -34,7 +34,7 @@ if __name__ == '__main__':
     for nrow, row in enumerate(ws.iter_rows()):
         for ncol, col in enumerate(row):
             value = col.value
-            if type(value) == str:
+            if type(value) is str:
                 col.value = value.replace('\n', ' ')
             if col.value != value:
                 print(f'row: {nrow + 1}, col: {ncol + 1}', col.value)
