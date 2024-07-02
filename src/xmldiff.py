@@ -172,9 +172,9 @@ def getparser():
         The old XML file''')
     parser.add_argument('infile2', help='''
         The updated XML file.''')
-    parser.add_argument('-c', '--config', help='''
+    parser.add_argument('-c', '--config', help=sphinxify('''
         Optionally specify a YAML configuration file to allow specification
-        of record_tag and record_id_xpath statements.''')
+        of ``record_tag`` and ``record_id_xpath`` statements.''', calledfromsphinx))
     parser.add_argument('-e', '--encoding', default='utf-8', help=
                         '''Set the output encoding.''' +
                         if_not_sphinx(''' The default is "utf-8".
