@@ -67,6 +67,10 @@ def onefile(infile):
     return written
 
 
+def s(i: int):
+    return '' if i == 1 else 's'
+
+
 def main():
     t1 = time.perf_counter()
     declaration = f'<?xml version="1.0" encoding="{_args.encoding}"?>\n'
@@ -77,12 +81,12 @@ def main():
         infile = open(filename)
         count = onefile(infile)
         infile.close()
-        print(f'{count} objects from file {nfile}')
+        print(f'{count} object{s(count)} from file {nfile}: {filename}')
         total += count
 
     outfile.write(b'</Interchange>')
     elapsed = time.perf_counter() - t1
-    print(f'{total} objects written in {elapsed:.3f} seconds.')
+    print(f'{total} objects written in {elapsed:.3f} seconds to {_args.outfile}.')
 
 
 def getargs():

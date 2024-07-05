@@ -234,12 +234,12 @@ if __name__ == '__main__':
         outorig = open(_args.outorig, 'wb')
     config = Config(_args.config, mdacode=_args.mdacode, dump=_args.verbose >= 2)
     main()
-    trace(1, '{} objects in old file.', objcount[1])
-    trace(1, '{} objects in new file.', objcount[2])
+    trace(1, '{} object{} in old file: {}', objcount[1], s(objcount[1]), _args.infile1)
+    trace(1, '{} object{} in new file: {}', objcount[2], s(objcount[2]), _args.infile2)
     trace(1, '{} object{} deleted.', deleted, s(deleted))
     trace(1, '{} object{} added.', added, s(added))
     trace(1, '{} object{} replaced.', replaced, s(replaced))
-    trace(1, '{} object{} written to diff file.', written, s(written))
+    trace(1, '{} object{} written to {}.', written, s(written), _args.outfile)
     elapsed = time.perf_counter() - t1
     trace(1, 'End {}. Elapsed: {:5.3f} seconds.', basename.split(".")[0],
           elapsed, color=Fore.GREEN)
