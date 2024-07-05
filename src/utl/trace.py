@@ -8,9 +8,19 @@ from os.path import basename
 
 
 def trace_sub(level: int, verbose: int, template, color, args):
+    """
+    This function is intended to be called by a trace() function within another
+    file. This is because we look at the 2nd level on the stack.
+    :param level:
+    :param verbose:
+    :param template:
+    :param color:
+    :param args: list of arguments
+    :return: None
+    """
     if verbose >= level:
         if verbose > 1:
-            caller = getframeinfo(stack()[1][0])
+            caller = getframeinfo(stack()[2][0])
             print(f'{basename(caller.filename)} line {caller.lineno}: ', end='')
         if color:
             if len(args) == 0:

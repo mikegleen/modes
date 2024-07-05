@@ -127,9 +127,12 @@ def add_item(elt, subid: int, nmainid: str) -> ET.Element:
     newitem = ET.Element('Item')
     list_number = ET.SubElement(newitem, 'ListNumber')
     list_number.text = str(subid)
-    object_identity = ET.SubElement(newitem, 'ObjectIdentity')
-    mainid = denormalize_id(nmainid)
-    object_identity.text = f'{mainid}.{subid}'
+    # We don't need the ObjectIdentity element as it can be inferred from
+    # the main id and the list number.
+    # object_identity = ET.SubElement(newitem, 'ObjectIdentity')
+    # object_identity_number = ET.SubElement(object_identity, 'Number')
+    # mainid = denormalize_id(nmainid)
+    # object_identity_number.text = f'{mainid}.{subid}'
     if len(items) == 0:
         elt.append(newitem)
         return newitem
@@ -175,10 +178,10 @@ def one_doc_aspect(objelem, idnum, doc):
             trace(3, '{}: empty Aspect field in CSV ignored. '
                      '--empty not specified', idnum)
             return
-        if reading_text == '{{clear}}':
-            reading_text = ''
-        elif reading_text == '{{today}}':
-            reading_text = _args.date
+    if reading_text == '{{clear}}':
+        reading_text = ''
+    elif reading_text == '{{today}}':
+        reading_text = _args.date
     aspects = list(parent.findall('Aspect'))  # make a list to use it twice
     found_aspect = False
     reading_elt = None
@@ -348,6 +351,7 @@ def one_element_subid_mode(nidnum: str, objelem: ET.Element):
     :param objelem:
     :return:
     """
+    trace(4, 'nidnum = {}', nidnum, color=Fore.GREEN)
     grandparent = objelem.find(cfg.subid_grandparent)
     if grandparent is None:
         raise ValueError(f'Cannot find grandparent path: '
@@ -380,6 +384,7 @@ def main():
         nidnum = normalize_id(idnum)
         trace(4, 'idnum: {}', idnum)
         if nidnum and nidnum in newvals:
+            trace(4, 'nidnum: {}', nidnum, color=Fore.GREEN)
             if cfg.subid_parent is not None:
                 one_element_subid_mode(nidnum, elem)
                 updated = True
@@ -390,6 +395,7 @@ def main():
             updated = False
             if _args.missing:
                 trace(2, 'Not in CSV file: "{}"', idnum)
+        trace(4, 'updated....... {}', updated)
         if updated or _args.all:
             outfile.write(ET.tostring(elem, encoding='utf-8'))
             nwritten += 1
@@ -487,7 +493,7 @@ def getargs(argv):
     if os.path.splitext(args.mapfile)[1].lower() not in ('.csv', '.xlsx'):
         raise ValueError('mapfile must be a CSV or Excel file.')
     if args.date:
-        args.date, _, _ = nd.modesdatefrombritishdate(args.date)
+        args.date, _, _ = modesdatefrombritishdate(args.date)
     else:
         args.date = nd.modesdate(date.today())
     return args
@@ -548,6 +554,8 @@ if __name__ == '__main__':
         newvals, subvals = loadsubidvals(csvreader, allow_blanks=_args.allow_blanks)
     else:
         newvals = loadnewvals(csvreader, allow_blanks=_args.allow_blanks)
+        subvals = None  # for trace
+    trace(4, 'newvals = {}\nsubvals = {}', newvals, subvals, color=Fore.YELLOW)
     nnewvals = len(newvals) if newvals else 0
     main()
     trace(1, '{} element{} in {} object{} updated.\n'

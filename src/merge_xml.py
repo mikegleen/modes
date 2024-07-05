@@ -50,9 +50,8 @@ def onefile(infile):
         idelem = oldobject.find(cfg.record_id_xpath)
         idnum = idelem.text if idelem is not None else None
         if not idnum:
-            print('Empty accession ID; aborting. Check output file for last'
-                  ' good record.')
-            sys.exit(1)
+            raise ValueError('Empty accession ID; aborting. Check output file for last'
+                             ' good record.')
         des = oldobject.find('Identification/BriefDescription')
         des = des.text if des is not None else "***Missing BriefDescription***"
         nidnum = normalize_id(idnum)
@@ -73,16 +72,17 @@ def main():
     declaration = f'<?xml version="1.0" encoding="{_args.encoding}"?>\n'
     outfile.write(bytes(declaration, encoding=_args.encoding))
     outfile.write(b'<Interchange>\n')
-    infile = open(_args.infile)
-    count1 = onefile(infile)
-    infile.close()
-    print(f'{count1} objects from file 1')
-    infile = open(_args.mergefile)
-    count2 = onefile(infile)
+    total = 0
+    for nfile, filename in enumerate(_args.infile, start=1):
+        infile = open(filename)
+        count = onefile(infile)
+        infile.close()
+        print(f'{count} objects from file {nfile}')
+        total += count
+
     outfile.write(b'</Interchange>')
-    print(f'{count2} object{"" if count2 == 1 else "s"} from file 2')
     elapsed = time.perf_counter() - t1
-    print(f'{count1 + count2} objects written in {elapsed:.3f} seconds.')
+    print(f'{total} objects written in {elapsed:.3f} seconds.')
 
 
 def getargs():
@@ -90,11 +90,9 @@ def getargs():
         Merge two XML Object files. Append the second file to the end of the
         first.
         ''')
-    parser.add_argument('infile', help='''
-        The input XML file''')
-    parser.add_argument('mergefile', help='''
-        The second input XML file.''')
-    parser.add_argument('outfile', help='''
+    parser.add_argument('-i', '--infile', action='append', help='''
+        The input XML files''')
+    parser.add_argument('-o', '--outfile', help='''
         The output XML file.''')
     parser.add_argument('-e', '--encoding', default='utf-8', help='''
         Set the output encoding. The default is "utf-8".

@@ -4,6 +4,9 @@
 Data Formats
 ============
 
+.. contents:: Table of Contents
+    :depth: 3
+
 Accession Number Formats
 ------------------------
 There are four accession number formats in use at the Heath Robinson Museum.
@@ -115,13 +118,13 @@ In general, the Python CSV software is tolerant of varying input CSV formats.
 However, if the CSV file created by, for example, ``xml2csv.py`` is fed to another
 program, you must be aware of certain details.
 
-The output file includes line terminators of "\r\n", meaning carriage-return
+The output file includes line terminators of "``\r\n``", meaning carriage-return
 and line-feed. This is the normal line terminator for Windows systems but not
-for Unix-like systems (like MacOs) that expect a single character "\n". If the
+for Unix-like systems (like MacOs) that expect a single character "``\n``". If the
 output file is being read by Excel, this is ok but if it is being read by
 another Unix program like sed or awk then this will cause some bizarre results.
 
-An example awk script that removes the offending "\r" character before adding
+An example awk script that removes the offending "``\r``" character before adding
 a column to the end of the row is::
 
     awk '{sub("\r$", ""); print $1 ",6"}' tmp/not_dulwich.csv >tmp/not_dulwich2.csv
@@ -140,3 +143,18 @@ So if you are processing the output with a program (other than Excel) on a MacOs
 system, do not include the BOM.
 
 
+.. _Reserved Words:
+
+Reserved Words
+--------------
+
+The following words are reserved in the CSV file or in **constant** commands used
+as input to ``updatefromcsv.py`` or ``csv2xml.py``:
+
+-  **{{clear}}** If this appears in a field in the input CSV
+   file or **constant** command, then the field in the XML file is cleared.
+   An empty field in the CSV file
+   causes no action unless the ``--empty`` or ``--replace`` option is specified.
+-  **{{today}}** If this appears in a field in the input CSV
+   file or **constant** command, then the field is set to the value of ``--date``.
+   The default is today’s date if the parameter is not set.

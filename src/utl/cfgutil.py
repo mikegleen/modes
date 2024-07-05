@@ -290,6 +290,14 @@ class Config:
             if cmd == Cmd.IFEXHIB:
                 self.exhibition_inv_dict = get_inverted_exhibition_dict()
         for doc in self.col_docs:
+            if self.subid_parent:
+                xpath = doc[Stmt.XPATH]
+                # print(f'{xpath=}')
+                if not xpath.isalnum():
+                    valid_doc = False
+                    msg =red(f'ERROR: xpath in subid must be a simple tag name, not an '
+                             f'xpath. title: {doc[Stmt.TITLE]}')
+                    raise ValueError(msg)
             if Stmt.MULTIPLE_DELIMITER not in doc:
                 doc[Stmt.MULTIPLE_DELIMITER] = self.multiple_delimiter
         if len(self.ctrl_docs) and verbos:
@@ -624,7 +632,6 @@ def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
         if not valid_doc:
             valid = False
             dump_document(document, logfile=logfile)
-
     return valid
 
 

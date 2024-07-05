@@ -4,6 +4,7 @@
 """
 import argparse
 from colorama import Fore
+from datetime import date
 import copy
 import os.path
 import re
@@ -15,7 +16,7 @@ import xml.etree.ElementTree as ET
 from utl.cfgutil import Config, Stmt, Cmd, new_subelt
 from utl.normalize import modesdatefrombritishdate, sphinxify, if_not_sphinx
 from utl.normalize import DEFAULT_MDA_CODE, normalize_id, denormalize_id
-from utl.normalize import modes_person
+from utl.normalize import modes_person, modesdate
 from utl.readers import row_dict_reader
 from utl.trace import trace_sub
 
@@ -147,7 +148,7 @@ def store(xpath: str, doc, template, accnum, text):
               accnum, doc[Stmt.TITLE], text, doc[Stmt.XPATH], color=Fore.RED)
         return
     if cmd == Cmd.CONSTANT:
-        elt.text = doc[Stmt.VALUE]
+        elt.text = text
         return
     if cmd == Cmd.ITEMS:
         create_items(doc, elt, template, text)
@@ -193,7 +194,7 @@ def main():
                       row[ifcolumneq_title], row[_args.serial])
                 continue
         emit = True
-        if global_object_template:
+        if global_object_template is not None:
             template = copy.deepcopy(global_object_template)
         else:
             template = get_template_from_csv(row)
@@ -230,6 +231,10 @@ def main():
                           f' {accnum}. Object excluded.')
                     emit = False
                 continue
+            if text == '{{clear}}':
+                text = ''
+            elif text == '{{today}}':
+                text = _args.date
             xpath = doc[Stmt.XPATH]
             store(xpath, doc, template, accnum, text)
             if Stmt.XPATH2 in doc:
@@ -267,6 +272,10 @@ def getparser():
         The config file may contain only ``column``, ``constant``, or
         ``items`` column-related commands or template-related commands.
     ''', calledfromsphinx))
+    parser.add_argument('-d', '--date', help='''
+        If a column in the CSV file contains '{{today}}', use this value for
+        the field text. The default is today’s date.
+        ''')
     parser.add_argument('-i', '--incsvfile', required=True, help=sphinxify('''
         The file containing data to be inserted into the XML template.
         The file must have a heading, but see option --skip_rows.
@@ -316,6 +325,10 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    if args.date:
+        args.date, _, _ = modesdatefrombritishdate(args.date)
+    else:
+        args.date = modesdate(date.today())
     return args
 
 
