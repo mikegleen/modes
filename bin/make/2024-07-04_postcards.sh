@@ -4,7 +4,7 @@ INXML=2024-07-05_itemlist.xml
 OUTXML=2024-07-05_postcards.xml
 DELTAXML=2024-07-05_delta.xml
 #
-#   Step 1 - Create the Object element group for the postcards
+#   Step 1. Create the Object element group for the postcards
 #
 cat >tmp/in.csv <<EOF
 Serial
@@ -66,7 +66,7 @@ python src/csv2xml.py -o tmp/normal/step1.xml \
                       -i tmp/in.csv -t etc/templates/current_templates/normal/2024-07-04_ephemera_template.xml \
                       -v 1
 #
-# Step2 - Add the six postcards as Item elements
+# Step 2. Add the six postcards as Item elements
 #
 cat >tmp/in2.csv <<EOF
 Serial,Title
@@ -101,7 +101,7 @@ python src/csv2xml.py -o tmp/normal/step3.xml \
                       -i tmp/in3.csv -t etc/templates/current_templates/normal/2024-07-04_placeholder.xml \
                       -v 1
 #
-#
+# Step 4.
 #
 python src/xmldiff.py prod_update/normal/2024-06-01_measure.xml prod_update/normal/2024-07-05_itemlist.xml -o tmp/diff.xml
 # step2 2024.24 (postcards)
