@@ -7,21 +7,34 @@
     The format of the CSV file is that the first column contains a serial
     number and subsequent columns contain the values to be inserted into the
     corresponding elements. Note that there is no entry in the YAML file
-    for the serial number in the CSV file.
+    for the serial number column in the CSV file.
 
     The YAML file contains multiple documents, separated by lines containing
     "---"; each document corresponds to an element to be updated. The following
-    example is of a single element to be updated.
+    example is of a single element to be updated::
 
         ---
         cmd: column
         xpath: ./ObjectLocation/Reason
 
-    The documents may contain "title" statements. If one document contains a
-    title statement, they all must. If title statements are included,
-    then the first row of the CSV file contains column titles that must
-    correspond to the titles in the YAML file. The test is case-insensitive.
-    This feature is invoked by the --heading option.
+    The documents may contain "title" statements.  If a title statement is
+    not included a best-guess will be made from the final part of the **xpath**
+    statement. In the above example, the column title in the CSV file is “Reason”.
+    See the description of the **Title** statement in the configuration section.
+
+    Subid Mode
+    ----------
+
+    Subid mode is selected by the presence of the **subid_parent** and
+    **subid_grandparent** statements in the **global** document.
+    The data in the CSV file will be inserted in
+    ``Item`` elements under an ``ItemList`` element group. The subid
+    will be enterd as
+    ``ListNumber`` elements for the items. The serial numbers
+    in the CSV file must contain subid numbers.
+
+    See the commands **subid_parent** and **subid_grandparent** in the
+    :ref:`configuration` document.
 
 """
 import argparse
