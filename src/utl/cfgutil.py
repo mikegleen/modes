@@ -1,5 +1,4 @@
 import codecs
-from datetime import date
 
 from colorama import Fore, Style
 import csv
@@ -294,9 +293,8 @@ class Config:
                 xpath = doc[Stmt.XPATH]
                 # print(f'{xpath=}')
                 if not xpath.isalnum():
-                    valid_doc = False
-                    msg =red(f'ERROR: xpath in subid must be a simple tag name, not an '
-                             f'xpath. title: {doc[Stmt.TITLE]}')
+                    msg = red(f'ERROR: xpath in subid must be a simple tag name, not an '
+                              f'xpath. title: {doc[Stmt.TITLE]}')
                     raise ValueError(msg)
             if Stmt.MULTIPLE_DELIMITER not in doc:
                 doc[Stmt.MULTIPLE_DELIMITER] = self.multiple_delimiter
@@ -366,12 +364,10 @@ def new_subelt(doc, obj, idnum, verbos=1):
     return newelt
 
 
-def select_ifnoexhib(cfg: Config, objelem, document):
+def select_ifnoexhib(objelem):
     """
     Select if this object has never been in an exhibition.
-    :param cfg:
     :param objelem:
-    :param document:
     :return:
     """
     elements = objelem.findall('./Exhibition')
@@ -392,7 +388,7 @@ def select_ifnoexhib(cfg: Config, objelem, document):
     return True
 
 
-def select_ifexhib(cfg: Config, objelem, document, idnum):
+def select_ifexhib(cfg: Config, objelem, document):
     ymlvalue = document[Stmt.VALUE]  # we have tested that this exists
     elements = objelem.findall('./Exhibition')
     # print(f'{elements=}')
@@ -556,9 +552,9 @@ def select(cfg: Config, objelem, includes=None, exclude=False):
                             selected = False
                             break
             case Cmd.IFEXHIB:
-                selected = select_ifexhib(cfg, objelem, document, idnum)
+                selected = select_ifexhib(cfg, objelem, document)
             case Cmd.IFNOEXHIB:
-                selected = select_ifnoexhib(cfg, objelem, document)
+                selected = select_ifnoexhib(objelem)
             case _:
                 print(f'Unrecognized command: {command}.')
         # print(f'{selected=}')
