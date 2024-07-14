@@ -1,6 +1,11 @@
 update_from_csv
 ===============
 
+.. automodule:: update_from_csv
+
+*The help text when executing the program with the ``-h`` option follows:*
+
+
 .. argparse::
    :filename: ../src/update_from_csv.py
    :func: getparser
@@ -302,13 +307,11 @@ This results in the following being inserted in the Object element::
         <ItemList>
             <Item>
                 <ListNumber>1</ListNumber>
-                <ObjectIdentity>L007.1</ObjectIdentity>
                 <Date>13.12.1940</Date>
                 <BriefDescription>From: Jack Sprat, To: Joe Blow</BriefDescription>
             </Item>
             <Item>
                 <ListNumber>2</ListNumber>
-                <ObjectIdentity>L007.2</ObjectIdentity>
                 <Date>14.12.1940</Date>
                 <BriefDescription>From: Jack Sprat, To: Joe Blogs</BriefDescription>
             </Item>
