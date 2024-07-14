@@ -202,7 +202,7 @@ def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
     if not args.outfile:
-        trace(1, 'Dry run. No output written', color=Fore.YELLOW)
+        print('Dry run. No output written')
     return args
 
 
