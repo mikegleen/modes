@@ -791,7 +791,7 @@ if __name__ == '__main__':
     called_from_sphinx = False
     assert sys.version_info >= (3, 6)
     t1 = time.perf_counter()
-    if len(sys.argv) == 1:
+    if len(sys.argv) <= 2:
         sys.argv.append('-h')
     is_diff = sys.argv[1] == 'diff'
     is_select = sys.argv[1] == 'select'
