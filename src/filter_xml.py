@@ -127,6 +127,7 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    args.include_column = col2num(args.include_column)
     return args
 
 
