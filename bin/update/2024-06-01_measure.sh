@@ -4,9 +4,9 @@ INXML=2024-04-27d_mottisfont.xml
 OUTXML=2024-06-01_measure.xml
 INXML=prod_update/normal/$INXML
 OUTDELTA=prod_delta/normal/$OUTXML
-OUTFULL=prod_update /normal/$OUTXML
-SCRIPT=$(python -c "print('$ZSH_ARGZERO'.split('.')[0].split('/')[-1])")
-echo SCRIPT: $SCRIPT
+OUTFULL=prod_update/normal/$OUTXML
+SCRIPT=$(python -c "print('$ZSH_ARGZERO'.split('/')[-1].split('.')[0])")
+# echo SCRIPT: $SCRIPT
 green () {
     print -P "%F{green}$*%f"
 }
