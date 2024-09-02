@@ -117,7 +117,7 @@ def loadnewvals(reader, allow_blanks=False):
         if cfg.add_mda_code and accnum[0].isnumeric():
             accnum = _args.mdacode + '.' + accnum
         accnums = expand_idnum(accnum)
-        trace(2, 'loadnewvals: accnums = {}', accnums)
+        trace(3, 'loadnewvals: accnums = {}', accnums)
         for accnum in accnums:
             newval_dict[normalize_id(accnum)] = row
     return newval_dict
@@ -301,7 +301,7 @@ def one_element(objelem, idnum):
             continue
         newtext = newvals[idnum][title]
         if not newtext and not _args.empty:
-            trace(3, '{}: empty field in CSV ignored. --empty not specified',
+            trace(2, '{}: empty field in CSV ignored. --empty not specified',
                   idnum)
             continue
         target = objelem.find(xpath)
