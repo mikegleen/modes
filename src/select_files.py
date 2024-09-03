@@ -16,14 +16,6 @@ IMGFILES = ('.jpg', '.jpeg', '.png')
 COLLECTION_PREFIX = 'collection_'
 
 
-def getargs(argv):
-    parser = getparser()
-    args = parser.parse_args(args=argv[1:])
-    if not args.outdir:
-        print('Dry run. No output written')
-    return args
-
-
 def s(i: int):
     return '' if i == 1 else 's'
 
@@ -34,9 +26,9 @@ def getparser():
         File names in the folder may have a preamble of "collection_"
         ''', called_from_sphinx))
     parser.add_argument('-i', '--indir', help='''
-        The input directory''')
+        The input folder''')
     parser.add_argument('-o', '--outdir', help='''
-        The updated XML file.''')
+        The output folder.''')
     parser.add_argument('-m', '--mapfile', required=True, help=sphinxify('''
             Required. The CSV file containing the list of accession numbers
             corresponding to the files in the directory to copy.
@@ -49,6 +41,14 @@ def getparser():
         Set the verbosity. The default is 1 which prints summary information.
         ''')
     return parser
+
+
+def getargs(argv):
+    parser = getparser()
+    args = parser.parse_args(args=argv[1:])
+    if not args.outdir:
+        print('Dry run. No output written')
+    return args
 
 
 def main():
