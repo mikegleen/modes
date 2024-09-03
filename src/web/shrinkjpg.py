@@ -45,14 +45,16 @@ def getparser():
         Print messages but don't do processing. Implies  --verbose = 2''',
                         calledfromsphinx))
     parser.add_argument('-m', '--maxpixels', type=int,
-                        default=DEFAULT_MAXPIXELS, help='''
-        Maximum number of pixels in either dimension.'''
-                        + if_not_sphinx(f''' The
+                        default=DEFAULT_MAXPIXELS, help=sphinxify('''
+        Maximum number of pixels in either dimension. This parameter is ignored
+        if parameter --inxml is specified.'''
+                         + if_not_sphinx(f''' The
                          default is {DEFAULT_MAXPIXELS} pixels.''',
                                         calledfromsphinx
-                                        ))
+                                        ), calledfromsphinx))
     parser.add_argument('-i', '--inxml',
-                        help=sphinxify('''If specified, reduce the size
+                        help=sphinxify('''
+                  If specified, reduce the size
                   of the image so that it is 72 pixels per inch.
                   This parameter names the Modes XML file from which to extract
                   the height and width of images. The target pixels per inch
