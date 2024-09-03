@@ -16,3 +16,7 @@ title: H x W
 EOF
 python src/update_from_csv.py $INXML $OUTDELTAXML -c tmp/${SCRIPT}.yml -m $INCSV -v 1
 python src/update_from_csv.py $INXML $OUTFULLXML -c tmp/${SCRIPT}.yml -m $INCSV -a -v 2
+#
+#
+#
+python src/once/x055_part.py prod_update/normal/2024-09-01_cutting_size.xml prod_update/normal/2024-09-01a_part.xml -a
