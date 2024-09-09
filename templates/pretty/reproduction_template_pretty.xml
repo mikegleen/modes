@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Interchange>
+<Object elementtype="reproduction">
+	<ObjectIdentity>
+		<Number />
+	</ObjectIdentity>
+	<Identification>
+		<Title />
+		<Classification />
+		<BriefDescription />
+	</Identification>
+	<ObjectLocation elementtype="current location">
+		<Location />
+		<Date>
+			<DateBegin />
+			<DateEnd />
+		</Date>
+	</ObjectLocation>
+	<ObjectLocation elementtype="normal location">
+		<Location />
+	</ObjectLocation>
+	<Production>
+		<Organisation>
+			<Role>reproducer</Role>
+			<OrganisationName />
+		</Organisation>
+		<Date />
+		<Note />
+	</Production>
+	<Description>
+		<SummaryText />
+		<Measurement>
+			<Part />
+			<Dimension>height x width</Dimension>
+			<Reading />
+		</Measurement>
+		<Condition>
+			<Note />
+		</Condition>
+		<Aspect>
+			<Keyword>display order</Keyword>
+			<Reading>9</Reading>
+		</Aspect>
+	</Description>
+	<Acquisition>
+		<Method />
+		<Person>
+			<Role>acquired from</Role>
+			<PersonName />
+		</Person>
+		<Date />
+	</Acquisition>
+	<Reproduction>
+		<Filename />
+	</Reproduction>
+	<Notes />
+</Object>
+</Interchange>

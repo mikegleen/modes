@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Interchange>
+<Object elementtype="cutting">
+	<ObjectIdentity>
+		<Number />
+	</ObjectIdentity>
+	<NumberOfItems />
+	<Identification>
+		<Title />
+		<Classification>
+			<Keyword />
+		</Classification>
+		<BriefDescription />
+	</Identification>
+	<ObjectLocation elementtype="current location">
+		<Location />
+		<Date>
+			<DateBegin />
+			<DateEnd />
+		</Date>
+	</ObjectLocation>
+	<ObjectLocation elementtype="normal location">
+		<Location />
+	</ObjectLocation>
+	<Production>
+		<Person>
+			<Role>author</Role>
+			<PersonName />
+		</Person>
+		<Organisation>
+			<Role>publication name</Role>
+			<OrganisationName />
+		</Organisation>
+		<Date />
+	</Production>
+	<Content>
+		<SummaryText />
+	</Content>
+	<Description>
+		<SummaryText />
+		<Measurement>
+			<Part />
+			<Dimension>height x width</Dimension>
+			<Reading />
+		</Measurement>
+		<Aspect>
+			<Keyword>pages</Keyword>
+			<Reading />
+		</Aspect>
+		<Aspect>
+            <Keyword>display order</Keyword>
+			<Reading>9</Reading>
+		</Aspect>
+        <Condition>
+            <Note />
+        </Condition>
+	</Description>
+	<Acquisition>
+		<Method />
+		<Person>
+			<Role>acquired from</Role>
+			<PersonName />
+		</Person>
+		<Date />
+	</Acquisition>
+	<Reproduction>
+		<Filename />
+	</Reproduction>
+	<References>
+		<Filename />
+	</References>
+	<Notes />
+</Object>
+</Interchange>

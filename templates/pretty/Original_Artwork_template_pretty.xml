@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Interchange>
+<Object elementtype="Original Artwork">
+	<ObjectIdentity>
+		<Number />
+	</ObjectIdentity>
+	<NumberOfItems />
+	<Identification>
+		<Title />
+		<BriefDescription />
+	</Identification>
+	<Production>
+		<SummaryText />
+		<Person>
+			<Role>Artist</Role>
+			<PersonName>Robinson, William Heath</PersonName>
+			<Note />
+		</Person>
+		<Date>
+			<DateBegin />
+			<DateEnd />
+		</Date>
+	</Production>
+	<Description>
+		<SummaryText />
+		<Inscription>
+			<SummaryText />
+		</Inscription>
+		<Material>
+			<Part>medium</Part>
+			<Keyword />
+		</Material>
+		<Material>
+			<Part>support</Part>
+			<Keyword />
+		</Material>
+		<Measurement>
+			<Part>Image</Part>
+			<Dimension>height x width</Dimension>
+			<Reading />
+		</Measurement>
+		<Measurement>
+			<Part>Mount</Part>
+			<Dimension>height x width</Dimension>
+			<Reading />
+		</Measurement>
+		<Measurement>
+			<Part>Frame</Part>
+			<Dimension>height x width</Dimension>
+			<Reading />
+		</Measurement>
+		<Condition>
+			<Note />
+		</Condition>
+		<Completeness>
+			<Note />
+		</Completeness>
+		<Note />
+		<Aspect>
+			<Keyword>display order</Keyword>
+			<Reading>9</Reading>
+		</Aspect>
+	</Description>
+	<ObjectLocation elementtype="normal location">
+		<Location />
+	</ObjectLocation>
+	<ObjectLocation elementtype="current location">
+		<Location />
+		<Date>
+			<DateBegin />
+		</Date>
+		<Reason />
+	</ObjectLocation>
+	<Conservation>
+		<Type />
+		<Person />
+		<Date />
+	</Conservation>
+	<Exhibition>
+		<Place />
+		<Date>
+			<DateBegin />
+			<DateEnd />
+		</Date>
+	</Exhibition>
+	<Reproduction>
+		<Filename />
+		<SummaryText />
+	</Reproduction>
+	<Acquisition>
+		<Method />
+		<Person>
+			<Role>acquired from</Role>
+			<PersonName />
+		</Person>
+		<Organisation>
+			<Role>acquired from</Role>
+			<OrganisationName />
+		</Organisation>
+		<Date />
+		<Funding elementtype="Sponsorship" />
+		<SummaryText elementtype="Acquisition text" />
+		<SummaryText elementtype="Conservation text" />
+	</Acquisition>
+	<Entry>
+		<EntryNumber />
+	</Entry>
+	<References>
+		<Reference elementtype="AE Johnson Number" />
+		<Reference elementtype="Drawn For">
+			<Title />
+			<Date />
+		</Reference>
+		<Reference elementtype="First Published In">
+			<Title />
+			<Date />
+		</Reference>
+		<Reference elementtype="Reproduced In">
+			<Title />
+			<Date />
+		</Reference>
+	</References>
+	<RelatedObject elementtype="Mounted With">
+		<ObjectIdentity>
+			<Number />
+		</ObjectIdentity>
+		<Note />
+	</RelatedObject>
+</Object>
+</Interchange>

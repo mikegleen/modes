@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Interchange>
+<Object elementtype="books">
+	<ObjectIdentity>
+		<Number />
+	</ObjectIdentity>
+	<NumberOfItems />
+	<Identification>
+		<Title />
+		<ObjectName elementtype="simple name">
+			<Keyword>book</Keyword>
+		</ObjectName>
+		<ObjectName elementtype="other name">
+			<Keyword />
+		</ObjectName>
+		<Classification>
+			<Keyword />
+			<System />
+		</Classification>
+		<BriefDescription />
+	</Identification>
+	<ObjectLocation elementtype="current location">
+		<Location />
+		<Date>
+			<DateBegin />
+		</Date>
+	</ObjectLocation>
+	<ObjectLocation elementtype="normal location">
+		<Location />
+	</ObjectLocation>
+	<Production>
+		<Person>
+			<Role>author</Role>
+			<PersonName />
+		</Person>
+		<Organisation>
+			<Role>publisher</Role>
+			<OrganisationName />
+		</Organisation>
+		<Organisation>
+			<Role>printer</Role>
+			<OrganisationName />
+		</Organisation>
+		<Date elementtype="publication date" />
+		<Note elementtype="imprint/edition" />
+		<Place>
+			<PlaceName />
+			<Country />
+		</Place>
+		<ReferenceNumber elementtype="ISBN" />
+	</Production>
+	<Content />
+	<Description>
+		<SummaryText />
+		<Measurement>
+			<Part />
+			<Dimension>height x width</Dimension>
+			<Reading />
+		</Measurement>
+		<Aspect>
+			<Keyword>pages</Keyword>
+            <Reading />
+		</Aspect>
+		<Inscription>
+			<Method />
+			<Position />
+			<Transcription />
+		</Inscription>
+		<Condition>
+			<Note />
+		</Condition>
+		<Completeness>
+			<Note />
+		</Completeness>
+		<Aspect>
+			<Keyword>display order</Keyword>
+			<Reading>9</Reading>
+		</Aspect>
+	</Description>
+	<Acquisition>
+		<Method />
+		<Person>
+			<Role>acquired from</Role>
+			<PersonName />
+		</Person>
+		<Organisation>
+			<Role>acquired from</Role>
+			<OrganisationName />
+		</Organisation>
+		<Date />
+		<Price />
+		<Conditions />
+	</Acquisition>
+	<Entry>
+		<EntryNumber />
+	</Entry>
+	<Reproduction>
+		<Filename />
+		<SummaryText />
+	</Reproduction>
+	<Notes />
+</Object>
+</Interchange>

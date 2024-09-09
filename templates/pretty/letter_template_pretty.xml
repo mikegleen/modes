@@ -1,0 +1,68 @@
+<templates application="Object">
+    <template filename="SYSTEM" name="hrm letter template">
+        <Object elementtype="letter">
+            <ObjectIdentity>
+                <Number/>
+            </ObjectIdentity>
+            <Identification>
+                <Title/>
+                <BriefDescription/>
+                <Classification/>
+            </Identification>
+            <ObjectLocation elementtype="current location">
+                <Location/>
+                <Date>
+                    <DateBegin/>
+                </Date>
+            </ObjectLocation>
+            <ObjectLocation elementtype="normal location">
+                <Location/>
+            </ObjectLocation>
+            <Production>
+                <Person>
+                    <Role>sender</Role>
+                    <PersonName/>
+                </Person>
+                <Person>
+                    <Role>recipient</Role>
+                    <PersonName/>
+                </Person>
+                <Organisation>
+                    <Role>sender</Role>
+                    <OrganisationName/>
+                </Organisation>
+                <Organisation>
+                    <Role>recipient</Role>
+                    <OrganisationName/>
+                </Organisation>
+                <Date />
+            </Production>
+            <Description>
+                <SummaryText/>
+                <Aspect>
+                    <Keyword>pages</Keyword>
+                    <Reading />
+                </Aspect>
+                <Condition>
+                    <Note/>
+                </Condition>
+                <Completeness>
+                    <Note/>
+                </Completeness>
+                <Aspect>
+                    <Keyword>display order</Keyword>
+                    <Reading>9</Reading>
+                </Aspect>
+                    </Description>
+            <Acquisition>
+                <Method/>
+                <Person>
+                    <Role>acquired from</Role>
+                    <PersonName/>
+                </Person>
+                <Date/>
+            </Acquisition>
+            <Notes/>
+        </Object>
+    </template>
+</templates>
