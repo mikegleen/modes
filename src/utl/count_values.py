@@ -26,25 +26,25 @@ def main(inf):
     trace(2, 'xpath: {}', xpath)
     nonepathcount = 0
 
-    for value, elem in object_reader(inf):
+    for accnum, elem in object_reader(inf):
         path = elem.find(xpath)
         if path is None:
             nonepathcount += 1
-        else:
-            value = path.text
-            if value is None:
-                value = 'None'
-            elif normalize:
-                # disable accession number checks - could be, for example,
-                # location
-                value = normalize_id(value, strict=False, verbose=0)
-            counts[value] += 1
-            accn_nums[value].append(value)
-            if _args.type and value in _args.type:
-                v = value[:_args.width]
-                if normalize:
-                    v = denormalize_id(v)
-                print(value, v)
+            continue
+        value = path.text
+        if value is None:
+            value = 'None'
+        elif normalize:
+            # disable accession number checks - could be, for example,
+            # location
+            value = normalize_id(value, strict=False, verbose=0)
+        counts[value] += 1
+        accn_nums[value].append(accnum)
+        if _args.type and value in _args.type:
+            v = value[:_args.width]
+            if normalize:
+                v = denormalize_id(v)
+            print(v, accnum)
 
     if not _args.type:
         # for e, c in values.items():

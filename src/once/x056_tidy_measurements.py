@@ -1,47 +1,31 @@
 """
-    Add location information to the spreadsheet.
+    Reformat size information from '123x456' to '123mm x 456mm'
 """
 import codecs
 import csv
+import re
 import sys
 
-from utl.cfgutil import expand_idnum
 
 inmaster = codecs.open(sys.argv[1], encoding='utf-8-sig')
 outmaster = codecs.open(sys.argv[2], 'w', encoding='utf-8-sig')
 
-OLDFIELDS = ('Serial,Pages,Date,Person From,Person To,Org From,Org To,'
-             'Type,Comment,Description'.split(','))
-NEWFIELDS = ('Serial,Pages,Date,Person From,Person To,Org From,Org To,'
-             'Type,Comment,Location,Description'.split(','))
-print(f'{OLDFIELDS=}')
-print(f'{NEWFIELDS=}')
-
-locs = """G8 JB1204&6&11&13
-G9 JB1203&8&9&7&28
-G10 JB1202&18&19&20&21&10&12
-G10 JB1205A
-G11 JB1205B"""
-loclist = locs.split('\n')
-
-locdict = {}
-
-for row in loclist:
-    loc, assns = row.split()
-    # print(assns)
-    assnlist = expand_idnum(assns)
-    for assn in assnlist:
-        locdict[assn] = loc
-    print(loc, assnlist)
-
-outwriter = csv.DictWriter(outmaster, NEWFIELDS)
+NEWFIELDS = ('Serial,H x W,Location'.split(','))
+SIZEKEY = 'Size mm HxW'
+skiprow = next(inmaster)
+# outmaster.write(skiprow)
+reader = csv.DictReader(inmaster)
+outwriter = csv.DictWriter(outmaster, reader.fieldnames)
 outwriter.writeheader()
-for row in csv.DictReader(inmaster):
-    assns = row['Serial'].split('.')  # JB001.1 -> ['JB001', '1']
-    assn = assns[0]
-    if assn in locdict:
-        row['Location'] = locdict[assn]
-    else:
-        row['Location'] = 'N/A'
-    # print(row)
+for row in reader:
+    for key, cell in row.items():
+        row[key] = row[key].replace('\n', ' ').strip()
+    hxw = row[SIZEKEY]
+    print(f'{hxw=}')
+    if hxw:
+        m = re.match(r'([\d.]+)\s*[Xx]\s*([\d.]+)', hxw)
+        if m:
+            row[SIZEKEY] = f'{m[1]}mm x {m[2]}mm'
+        else:
+            print('nomatch', hxw)
     outwriter.writerow(row)

@@ -96,9 +96,9 @@ the ``cmd: global`` document.
 -  **attribute**
 
    Required by the **attrib** and **ifattrib** commands when used by
-   ``xml2csv.py``. If used by ``update_from_csv.py`` and you are creating an element
-   using the **parent_path** statement, this will create an attribute and requires a
-   **attribute_value** statement.
+   ``xml2csv.py``. If used by ``csv2xml.py`` or ``update_from_csv.py`` and you
+   are creating an element using the **parent_path** statement, this will create
+   an attribute and requires an **attribute_value** statement.
 -  **attribute_value**
 
    The value to insert in an attribute created with the **attribute**

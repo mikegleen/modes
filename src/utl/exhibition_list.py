@@ -51,6 +51,8 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 33,2023-09-23,2024-01-07,Illustrating the Grotesque
 34,2024-01-20,2024-04-14,Heath Robinson at War,Mottisfont Abbey
 35,2024-03-30,2024-06-23,Modernist Magazine Illustration
+36,1992-02-15,1992-03-20,"The Brothers Robinson:Charles, Thomas Heath and William Heath Robinson",Chris Beatles Gallery
+37,2024-01-13,2024-03-24,"Mary V. Wheelhouse: suffragette, illustrator and toymaker"
 '''
 # data for testing
 '''
