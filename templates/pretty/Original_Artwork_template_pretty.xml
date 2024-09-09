@@ -12,7 +12,7 @@
 	<Production>
 		<SummaryText />
 		<Person>
-			<Role>Artist</Role>
+			<Role>artist</Role>
 			<PersonName>Robinson, William Heath</PersonName>
 			<Note />
 		</Person>
