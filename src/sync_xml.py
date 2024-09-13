@@ -216,6 +216,8 @@ def getargs():
             'Both input and output encoding must be specified.')
     elif not e:
         args.input_encoding = args.output_encoding = 'UTF-8'
+    if args.dryrun:
+        args.verbose = max(2, args.verbose)
     return args
 
 
