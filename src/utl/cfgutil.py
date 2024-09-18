@@ -56,6 +56,7 @@ class Cmd:
     GLOBAL = 'global'
     KEYWORD = 'keyword'
     ITEMS = 'items'
+    REPRODUCTION = 'reproduction'
     # "IF" commands follow:
     IF = 'if'  # if text is present
     IFCOLUMNEQ = 'ifcolumneq'  # csv2xml only
@@ -123,10 +124,13 @@ class Stmt:
     CHILD = 'child'
     CHILD_VALUE = 'child_value'
     CMD = 'cmd'
+    COLUMN_TITLE = 'column_title'
     DATE = 'date'
     DELIMITER = 'delimiter'
     DENORMALIZE = 'denormalize'
     ELEMENT = 'element'
+    IF_OTHER_COLUMN = 'if_other_column'
+    IF_OTHER_COLUMN_VALUE = 'if_other_column_value'
     INSERT_AFTER = 'insert_after'
     MULTIPLE_DELIMITER = 'multiple_delimiter'
     NORMALIZE = 'normalize'
@@ -166,7 +170,7 @@ class Stmt:
         valid = True
         for stmt in document:
             if stmt not in validlist:
-                print(f'"{stmt}" is not a valid statement.')
+                print(red(f'"{stmt}" is not a valid statement.'))
                 valid = False
         return valid
 
