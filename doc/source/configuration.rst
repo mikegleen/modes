@@ -9,7 +9,8 @@ The Configuration Domain Specific Language (DSL)
    Format conventions:
 
 -   *Italics*    - XML element names
--    **Bold**     - Statements or commands (without the trailing ":")
+-    **Bold**     - Commands
+-    **Bold:**    - Statements
 -    ``Monotype`` - file names, parameters (like ``--verbose``)
 
 
@@ -33,13 +34,13 @@ on the individual programs.
 
 Each document contains some of the following statements. Statement names are
 case sensitive; all must be lower case. The lead statement in a document
-is the **cmd** statement, which controls the function of the document.
+is the **cmd:** statement, which controls the function of the document.
 Commands can be column-related or control commands which determine which objects
 are processed. There is also a **global** command.
 
 When creating a CSV file, by default the first column is the serial number
 (accession number) of the object affected. This can be suppressed using the
-**skip_number** statement under the **global** command.
+**skip_number:** statement under the **global** command.
 
 Statements
 ~~~~~~~~~~
@@ -58,18 +59,18 @@ These are statements that affect a single column-related or control document. Th
 other class of statements are those that affect the entire process and are under
 the ``cmd: global`` document.
 
--  **aspect**
+-  **aspect:**
 
-   Used by ``update_from_csv.py``. The argument of the **aspect** statement
-   is the text of a ``Keyword`` subelement. If an ``Aspect`` element group exists
-   whose subelement ``Keyword`` text equals the argument, the subelement ``Reading``
+   Used by ``update_from_csv.py``. The argument of the **aspect:** statement
+   is the text of a *Keyword* subelement. If an *Aspect* element group exists
+   whose subelement *Keyword* text equals the argument, the subelement *Reading*
    text is updated with the **column** command's column value or with the **constant**
-   command's **value**
-   statement's argument. If no matching ``Aspect`` element group exists, then
-   an ``Aspect`` with an empty ``Keyword`` subelement is overwritten or a new ``Aspect``
+   command's **value:**
+   statement's argument. If no matching *Aspect* element group exists, then
+   an *Aspect* with an empty *Keyword* subelement is overwritten or a new *Aspect*
    element group is created.
 
-   Note that the document’s **xpath** points to the parent of the ``Aspect`` being updated.
+   Note that the document’s **xpath:** points to the parent of the *Aspect* being updated.
 
    For example, given a configuration::
 
@@ -78,7 +79,7 @@ the ``cmd: global`` document.
       xpath: ./Description
       value: 9
 
-   This will create an ``Aspect`` element group of::
+   This will create an *Aspect* element group of::
 
       <Object>
          ...
@@ -93,79 +94,104 @@ the ``cmd: global`` document.
          </Description>
       </Object>
 
--  **attribute**
+-  **attribute:**
 
    Required by the **attrib** and **ifattrib** commands when used by
    ``xml2csv.py``. If used by ``csv2xml.py`` or ``update_from_csv.py`` and you
-   are creating an element using the **parent_path** statement, this will create
-   an attribute and requires an **attribute_value** statement.
--  **attribute_value**
+   are creating an element using the **parent_path:** statement, this will create
+   an attribute and requires an **attribute_value:** statement.
+-  **attribute_value:**
 
-   The value to insert in an attribute created with the **attribute**
+   The value to insert in an attribute created with the **attribute:**
    statement.
--  **case_sensitive**
+-  **case_sensitive:**
 
    By default, comparisons are case insensitive.
--  **child**
+-  **child:**
 
-   Used by ``update_from_csv.py`` when ``parent_path`` is specified to force
+   Used by ``update_from_csv.py`` when **parent_path:** is specified to force
    creation of a new element. When that element is created, a subelement is also created.
    The tag of the new subelement is the value of this statement.
--  **child_value**
+-  **child_value:**
 
    Make this the text of the newly created subelement.
--  **cmd**
+-  **cmd:**
 
    Required. See below for a description of the individual
    commands.
--  **date**
+-  **column_title:**
+
+   Normally, the column title is taken from the **title:** statement, which must be unique.
+   However,
+   if you want the same column to behave differently depending upon **if_other_column:**
+   and **if_other_column_value:** values, then specify the column title with this statement.
+-  **date:**
 
    If specified, indicates that a field may be in date
    format and should be converted to Modes format. See the section *Date Formats*
    in the document page *Data Formats* for the formats supported. Allowed in ``csv2xml.py``.
--  **denormalize**
+-  **denormalize:**
 
-   See **normalize**. If a value has been normalized, it will be output as
+   See **normalize:**. If a value has been normalized, it will be output as
    normalized. Include this statement to force denormalization of the field on
    output. Note that normalizing then denormalizing does not necessarily return
    the field to its original form. For example, a number like ``2018.2`` will
    be output with an MDA code prepended.
--  **element**
+-  **element:**
 
-   Referenced when processing the **parent_path** statment for the name
+   Referenced when processing the **parent_path:** statement for the name
    of the element's tag to be created. If this is omitted the element name will be taken
-   from the **xpath** statment.
--  **insert_after**
+   from the **xpath:** statment.
+- **if_other_column:**
+
+   Used by ``csv2xml.py``. Process this column if one of the values in the
+   **if_other_column_value:** statement matches the value in the column named in the
+   **if_other_column:** statement. The values are separated by a "|" character. Leading
+   and trailing spaces are ignored. If the **if_other_column_value:** statement
+   is omitted, then process this column if the other column is populated in this
+   row. For example::
+
+      cmd: column
+      title: Artist
+      if_column: Template
+      if_column_value: Artwork | Reproduction
+      xpath: ...
+      ---
+
+-  **if_other_column_value:**
+
+   Used in conjunction with the **if_other_column:** statement. See above.
+-  **insert_after:**
 
    If an element doesn't exist, it will be inserted after the
-   element who's simple name is given here. You must also specify **parent_path**. If this
+   element who's simple name is given here. You must also specify **parent_path:**. If this
    statement is not specified, the new element will be inserted as the parent's last
    subelement. If the statement is specified but the element name parameter is
    left blank, the new element will be inserted as the first subelement.
--  **multiple_delimiter**
+-  **multiple_delimiter:**
 
    The character or characters to use within a column to separate the
-   values when used with the **multiple** command or the **items** command.
+   values when used with the **multiple:** command or the **items:** command.
    The statement may appear under the **global** command or a specific command,
    which takes precedence. The default is “|”.
--  **normalize**
+-  **normalize:**
 
    If specified, adjust this accession number so that it sorts in numeric
    order. The number will be normalized in the output. The default serial
    number in the first column and the accession number extracted from the XML
    file will always be normalized before use and denormalized before output.
    This may also be used to strip leading zeros from another numeric field such
-   as entry numbers. See **denormalize**.
--  **parent_path**
+   as entry numbers. See **denormalize:**.
+-  **parent_path:**
 
-   Include this statement if the **xpath** may not
+   Include this statement if the **xpath:** may not
    exist, in which case a new one will be created as a child of this path.
    Implemented in ``csv2xml.py`` and ``update_from_csv.py`` only. The element
-   name to be created will be taken from the **element** statement in the document.
-   If the **element** statement doesn't exist, the name will be taken from the **xpath**
+   name to be created will be taken from the **element:** statement in the document.
+   If the **element:** statement doesn't exist, the name will be taken from the **xpath:**
    statement in the document. The element named by this
    path must already exist.
--  **person_name**
+-  **person_name:**
 
    If specified, this column contains a name in the form
    "last, first" or "first last". The name will be converted to the
@@ -177,7 +203,7 @@ the ``cmd: global`` document.
    this field is missing or empty. Valid only with a control
    command (**if** ...) or with a **column** command in ``csv2xml.py``. In this
    case it is useful for discarding rubbish rows in the CSV file.
--  **title**
+-  **title:**
 
    Optional. Specify the column title in the first row of the CSV file,
    but see the ``--skip_rows`` command line parameter.
@@ -185,16 +211,16 @@ the ``cmd: global`` document.
    from the **xpath** statement, which see for an example.
    If in a control document, the title will be shown in diagnostics but is not otherwise
    used. The titles of documents must be unique and are case sensitive.
--  **value**
+-  **value:**
 
    Required for **ifeq**, **ifnoteq**, **ifattribeq**, **ifcontains**, **ifanyeq**,
    **ifnotanyeq**, or **constant** command.
--  **width**
+-  **width:**
 
    truncate this column to this number of characters when writing to
    a CSV file. Ignored when writing to an XML file. The default is to not
    truncate the data in the column.
--  **xpath**
+-  **xpath:**
 
    Required. This describes the XSLT path to a relevant XML
    element. In subid mode this is a simple tag name.
@@ -205,7 +231,7 @@ the ``cmd: global`` document.
       xpath: ./Description/Measurement[Part="Image"]/Reading
 
    will generate a title of ``Reading``.
--  **xpath2**
+-  **xpath2:**
 
    This describes the XSLT path to a relevant XML element in the case where a
    single column must be stored in two places. Used in ``csv2xml.py``. This is only valid
@@ -216,34 +242,34 @@ the ``cmd: global`` document.
 Global-command Statements
 +++++++++++++++++++++++++
 
-These statements are in the document whose ``cmd`` is ``global``.
+These statements are in the document whose **cmd:** is **global**.
 
--  **add_mda_code**
+-  **add_mda_code:**
 
    If the serial number does not begin with the MDA code (default LDHRM)
    then insert it as a prefix. This is used only in ``csv2xml.py``
    and ``update_from_csv.py``. You can specify an MDA code on the command line
    using the --mdacode argument.
--  **delimiter**
+-  **delimiter:**
 
    The character to use for the CSV file field
    separator. The default is “,”.
--  **multiple_delimiter**
+-  **multiple_delimiter:**
 
    See the description of this command in the
    *Single-command Statements* section.
--  **record_tag**
+-  **record_tag:**
 
    This is the tag (of which there are usually many)
    that will be the root for extracting columns. The default is
    ``Object``.
--  **record_id_xpath**
+-  **record_id_xpath:**
 
    This is where the ID is found based on the
    root tag. The default is ``./ObjectIdentity/Number``. In addition to
    being output as column 1 by default, the ID is used in error
    messages.
--  **skip_number**
+-  **skip_number:**
 
    If specified, do not automatically write the serial number as the
    first column. This can be useful when sorting on another column. The
@@ -254,7 +280,7 @@ These statements are in the document whose ``cmd`` is ``global``.
    This statement directs the sort to be numeric based on the first
    column of the output row. Note that accession numbers are normally normalized before
    sorting and should be sorted alphabetically.
--  **subid_parent**
+-  **subid_parent:**
 
    This statement contains the path to the containing element
    for the Item elements we are creating. The presence of this statement triggers
@@ -266,11 +292,11 @@ These statements are in the document whose ``cmd`` is ``global``.
    will become the ListNumber entry. If the number already exists, the record will be
    overwritten, otherwise a new one will be created. The columns in the CSV file will
    become sub-elements under the Item.
--  **subid_grandparent**
+-  **subid_grandparent:**
 
-   If the element named in **subid_parent** doesn't exist, it
-   will be appended under this element. Required if **subid_parent** is specified.
--  **template_file**
+   If the element named in **subid_parent:** doesn't exist, it
+   will be appended under this element. Required if **subid_parent:** is specified.
+-  **template_file:**
 
    Only in ``csv2xml.py``: This is the file to be used as the template
    for all of the objects to be created. To specify different template files for different
@@ -279,18 +305,18 @@ These statements are in the document whose ``cmd`` is ``global``.
    The ``--template`` command-line parameter overrides this statement.
    If this statement or the ``--template`` command-line parameter is specified,
    do not specify other tempate-related statements.
--  **template_title**
+-  **template_title:**
 
    Only in ``csv2xml.py``: Defines a CSV column containing a key that
    matches one of the keys in the
-   global **templates** statement. For each row in the CSV file, this specifies which
+   global **templates:** statement. For each row in the CSV file, this specifies which
    template should be used to create the XML Object element. The default title of the
    column in the CSV file is ``template``. Note that this is case-sensitive.
--  **template_dir**
+-  **template_dir:**
 
    Only in ``csv2xml.py``: This names the path to the directory
    containing the files named in the ``templates`` statement.
--  **templates**
+-  **templates:**
 
    Only in ``CSV2XML.py``: This is a complex statement used to map keys
    to filenames. The format of the statement is::
@@ -300,15 +326,15 @@ These statements are in the document whose ``cmd`` is ``global``.
          key2: filename2.xml
 
    The keys should be entered in the CSV file specified by ``--incsvfile`` in a column
-   specified by **template_title**.
-   See commands **template_title** and **template_dir**. Note that the indentation of the
+   specified by **template_title:**.
+   See commands **template_title:** and **template_dir:**. Note that the indentation of the
    "key" rows in the YAML file is mandatory. The keys in the YAML and CSV files are case
-   insensitive. Do not use this statement and also the **template_file** statement.
+   insensitive. Do not use this statement and also the **template_file:** statement.
 
 Commands
 ~~~~~~~~
 
-Each document has one **cmd** statement, which is customarily the first
+Each document has one **cmd:** statement, which is customarily the first
 statement in the document. Data-related commands are those that map
 the elements in the XML document to a corresponding column in the associated CSV file
 (but see the **constant** and **delete** commands for exceptions).
@@ -319,7 +345,7 @@ Data-related Commands
 -  **attrib**
 
    Like **column** except displays the value of the attribute
-   named in the **attribute** statement.
+   named in the **attribute:** statement.
 -  **column**
 
    This is the basic command to display or update the text of an
@@ -330,14 +356,14 @@ Data-related Commands
    override this. Note ``--empty`` implies ``--replace``. See the section
    :ref:`Reserved Words` for other actions.
 
-   You must specify a title explicitly with the ``title`` statement or implicitly
+   You must specify a title explicitly with the **title:** statement or implicitly
    with the ``xpath`` statement.
 -  **constant**
 
    For ``csv2xml.py`` and ``update_from_csv.py``, create an element
-   from the **value** statement of this document without reference to the CSV file.
-   You may also use **constant** in ``xml2csv.py`` but you must include an **xpath**
-   statement with a value that is used for the heading if no **title** statement
+   from the **value:** statement of this document without reference to the CSV file.
+   You may also use **constant** in ``xml2csv.py`` but you must include an **xpath:**
+   statement with a value that is used for the heading if no **title:** statement
    is specified. The value is inserted unconditionally into the xpath’s text.
 -  **count**
 
@@ -347,24 +373,32 @@ Data-related Commands
 
    For ``update_from_csv.py``. Delete the first element specified by the
    **xpath** statement. If the **delete** command is
-   specified, only the **xpath** statement is allowed.
+   specified, only the **xpath:** statement is allowed.
 -  **delete_all**
 
    Like **delete** except all occurrences of the element are deleted.
 -  **items**
-   Used by ``csv2xml.py`` to create ``<Item>`` elements for the multiple
-   text strings delimited by the delimiter specified by the **multiple_delimiter**
+   Used by ``csv2xml.py`` to create *Item* elements for the multiple
+   text strings delimited by the delimiter specified by the **multiple_delimiter:**
    statement.
 -  **keyword**
 
    Used by ``xml2csv.py`` Find the element specified by the xpath statement
    whose text equals the text in the **value** statement and then return the
-   first ``Keyword`` sub-element's text. This for the special (and deprecated) case where
+   first *Keyword* sub-element's text. This for the special (and deprecated) case where
    an element contains both text and subelements.
 -  **multiple**
 
    Used by ``xml2csv.py``. Like the **column** command except it produces a
-   delimiter-separated list of values. See the optional **multiple_delimiter** statement.
+   delimiter-separated list of values. See the optional **multiple_delimiter:** statement.
+-  **reproduction**
+
+   Used by ``csv2xml.py``. A special-purpose command to create a ``Reproduction``
+   element group with the accession number followed by ".jpg" as filename::
+
+      <Reproduction>
+         <Filename>LDHRM.2023.20.jpg</Filename>
+      </Reproduction>
 
 Control Commands
 ++++++++++++++++
@@ -392,7 +426,7 @@ control command document.
 -  **ifattrib**
 
    Selects an object if the attribute is present and the value is
-   populated. Requires an **attribute** statement.
+   populated. Requires an **attribute:** statement.
 -  **ifattribeq**
 
    Like **ifeq** except compares the value against an
@@ -404,30 +438,30 @@ control command document.
        value: fine art
        ---
 
-   This examines the ``elementtype`` attribute on the ``Object`` element.
+   This examines the ``elementtype`` attribute on the *Object* element.
 -  **ifattribnoteq**
 
    Like **ifnoteq** except compares the value against an
    attribute.
 -  **ifcontains**
 
-   Select an object if the value in the **value**
+   Select an object if the value in the **value:**
    statement is contained in the element text.
 -  **ifelt**
 
    Select an object if the element exists, even if the text is empty.
-   If the **required** statement is included, a warning message is issued.
+   If the **required:** statement is included, a warning message is issued.
 -  **ifnotelt**
 
    Select an object if the element doesn’t exist.
 -  **ifeq**
 
-   Select an object if the element text equals the **value**
+   Select an object if the element text equals the **value:**
    statement text. Returns false if the element doesn’t exist.
 -  **ifnoteq**
 
    Select an object if the element text does not equal the
-   **value** statement text.
+   **value:** statement text.
 -  **ifanyeq**
 
    This is for elements that can occur more than once but is otherwise like
@@ -436,7 +470,7 @@ control command document.
 
    This is for elements that can occur more than once but is otherwise like
    **ifnoteq**. The object is selected if none of the instances of this element
-   equals the contents of the **value** statement.
+   equals the contents of the **value:** statement.
 -  **ifexhib**
 
    A special purpose command that selects an object if it was displayed at a
@@ -457,8 +491,13 @@ control command document.
 
 - **ifnoexhib**
 
-   Select objects that have never been exhibited. No **xpath** or other statement
+   Select objects that have never been exhibited. No **xpath:** or other statement
    is required. This assumes the normal format as described above.
+-  **ifcolumneq**
+
+   Used in ``csv2xml.py``. Process this row in the CSV file if the value in the
+   column named in this document’s **title** statement is equal the value named
+   in this document’s **value:** statement.
 
 The **global** Command
 ++++++++++++++++++++++
@@ -467,7 +506,7 @@ The **global** Command
 
    This document contains statements that affect the
    overall processing, not just a specific column. See the section above *Global-command
-   Statements*. Some of the statements affect the entire process, like **delimiter**.
+   Statements*. Some of the statements affect the entire process, like **delimiter:**.
    Some of the statements affect the individual columns in the associated CSV file and
    may be overriden by the same named statement in individual documents.
 
