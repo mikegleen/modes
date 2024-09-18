@@ -219,11 +219,27 @@ def main():
             cmd = doc[Stmt.CMD]
             # print(f'cmd: {doc[Stmt.CMD]}')
             title = doc[Stmt.TITLE]
-            if cmd == Cmd.CONSTANT:
+            column_title = doc[Stmt.COLUMN_TITLE] if Stmt.COLUMN_TITLE in doc else title
+            if cmd == Cmd.REPRODUCTION:
+                text = accnum + '.jpg'
+            elif cmd == Cmd.CONSTANT:
                 text = doc[Stmt.VALUE]
             else:
-                text = row[title]
+                text = row[column_title]
             trace(4, 'column="{}", text="{}"', title, text)
+            if Stmt.IF_OTHER_COLUMN in doc:
+                key_title = doc[Stmt.IF_OTHER_COLUMN]
+                # If the IF_OTHER_COLUMN_VALUE statement is present, then process this
+                # column if the values are equal. Otherwise, process this column if
+                # the value exists.
+                if Stmt.IF_OTHER_COLUMN_VALUE in doc:
+                    if_values = [val.strip() for val in doc[Stmt.IF_OTHER_COLUMN_VALUE].split("|")]
+                    if row[key_title] not in if_values:
+                        trace(3, 'Skipping col {} because {} not in {}', title, key_title, if_values)
+                        continue
+                else:
+                    if not row[key_title]:
+                        continue
             if cmd != Cmd.CONSTANT and not text:
                 trace(3, '{}: cell empty {}', accnum, title)
                 if Stmt.REQUIRED in doc:
@@ -244,6 +260,7 @@ def main():
             outfile.write(ET.tostring(template))
     if not _args.noprolog:
         outfile.write(b'</Interchange>')
+        trace(2, 'Writing </Interchange>')
 
 
 def getparser():
@@ -340,7 +357,7 @@ def check_cfg(c):
     """
     errs = 0
     for doc in c.col_docs:
-        if doc[Stmt.CMD] not in (Cmd.COLUMN, Cmd.CONSTANT, Cmd.ITEMS):
+        if doc[Stmt.CMD] not in (Cmd.COLUMN, Cmd.CONSTANT, Cmd.ITEMS, Cmd.REPRODUCTION):
             trace(0, 'Column-oriented command "{}" not allowed,'
                      ' exiting.',
                   doc[Stmt.CMD], color=Fore.RED)
