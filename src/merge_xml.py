@@ -95,7 +95,7 @@ def getargs():
         first.
         ''')
     parser.add_argument('-i', '--infile', action='append', help='''
-        The input XML files''')
+        The input XML files. You may specify multiple ``-i`` parameters. ''')
     parser.add_argument('-o', '--outfile', help='''
         The output XML file.''')
     parser.add_argument('-e', '--encoding', default='utf-8', help='''
