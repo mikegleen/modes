@@ -32,7 +32,9 @@
 			<Role>printer</Role>
 			<OrganisationName />
 		</Organisation>
-		<Date elementtype="publication date" />
+		<Date elementtype="publication date">
+            <DateBegin />
+        </Date>
 		<Note elementtype="imprint/edition" />
 	</Production>
 	<Content>
@@ -68,9 +70,11 @@
 		<Person>
 			<Role>acquired from</Role>
 			<PersonName />
-			<Address />
-			<Phone />
 		</Person>
+		<Organisation>
+			<Role>acquired from</Role>
+			<OrganisationName />
+		</Organisation>
 		<Date />
 	</Acquisition>
 	<Entry>

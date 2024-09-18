@@ -35,7 +35,7 @@
 			<Keyword />
 		</Material>
 		<Measurement>
-			<Part>Image</Part>
+			<Part>image</Part>
 			<Dimension>height x width</Dimension>
 			<Reading />
 		</Measurement>
@@ -126,5 +126,6 @@
 		</ObjectIdentity>
 		<Note />
 	</RelatedObject>
+    <Notes  />
 </Object>
 </Interchange>

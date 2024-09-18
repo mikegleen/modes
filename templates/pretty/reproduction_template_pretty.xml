@@ -20,17 +20,23 @@
 		<Location />
 	</ObjectLocation>
 	<Production>
+		<Person>
+			<Role>artist</Role>
+			<PersonName />
+		</Person>
 		<Organisation>
 			<Role>reproducer</Role>
 			<OrganisationName />
 		</Organisation>
-		<Date />
+		<Date>
+			<DateBegin />
+		</Date>
 		<Note />
 	</Production>
 	<Description>
 		<SummaryText />
 		<Measurement>
-			<Part />
+			<Part>image</Part>
 			<Dimension>height x width</Dimension>
 			<Reading />
 		</Measurement>
@@ -48,6 +54,10 @@
 			<Role>acquired from</Role>
 			<PersonName />
 		</Person>
+		<Organisation>
+			<Role>acquired from</Role>
+			<OrganisationName />
+		</Organisation>
 		<Date />
 	</Acquisition>
 	<Reproduction>
