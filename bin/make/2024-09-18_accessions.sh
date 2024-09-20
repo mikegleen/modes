@@ -3,13 +3,13 @@ set -e
 INCSV=data/acquisitions/2024-09-06/2024-09-18_MergedAccessions.xlsx
 #
 # Input XML file containing the full database in prod_update/normal/
-INXML=2024-09-09_author.xml
+INXML=2024-09-20_author_fix_Image.xml
 #
 # Output XML file containing the new Object records in prod_make/normal/
-OUTXML=2024-09-18_accessions.xml
+OUTXML=2024-09-20_accessions.xml
 #
 # Output XML file containing the merged and sorted new full database in prod_update/normal
-MERGEDXML=2024-09-18_merged_accessions.xml
+MERGEDXML=2024-09-20_merged_accessions.xml
 cat >tmp/update.yml <<EOF
 cmd: global
 template_title: Template
@@ -24,22 +24,19 @@ cmd: column
 title: OE Number
 xpath: ./Entry/EntryNumber
 ---
-cmd: column
+column: Title
 xpath: ./Identification/Title
 ---
-cmd: column
-title: Description
+column: Description
 xpath: ./Identification/BriefDescription
 ---
-cmd: column
-title: Created by
+column: Created by
 xpath: ./Production/Person[Role="artist"]/PersonName
 person_name:
 if_other_column: Template
 if_other_column_value: Artwork | Reproduction
 ---
-cmd: column
-title: Created by 2
+column: Created by 2
 xpath: ./Production/Person[Role="author"]/PersonName
 person_name:
 column_title: Created by
@@ -83,12 +80,10 @@ date:
 if_other_column: Template
 if_other_column_value: Artwork
 ---
-cmd: column
-title: First published in
+column: First published in
 xpath: ./References/Reference[@elementtype="First Published In"]/Title
 ---
-cmd: column
-title: Date acquired
+column: Date acquired
 xpath: ./Acquisition/Date
 date:
 ---
@@ -148,8 +143,7 @@ cmd: column
 title: Publisher
 xpath: ./Production/Organisation[Role="publisher"]/OrganisationName
 ---
-cmd: column
-title: ISBN
+column: ISBN
 xpath: ./Production/ReferenceNumber[@elementtype="ISBN"]
 ---
 # cmd: column
