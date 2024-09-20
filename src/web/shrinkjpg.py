@@ -164,11 +164,12 @@ def main():
 def get_readings():
     for idnum, elem in object_reader(_args.inxml):
         # print('nxt', idnum)
-        reading = elem.find('./Description/Measurement[Part="Image"]/Reading')
+        reading = elem.find('./Description/Measurement[Part="image"]/Reading')
         if reading is not None:
             nidnum = normalize_id(idnum)
             rtext = reading.text.replace(' ', '') if reading.text else ''
-            m = re.match(r'(\d+)[Xx](\d+)', rtext)
+            trace(2, 'get_readings: idnum = {}, rtext = {}', idnum, rtext, color=Fore.YELLOW)
+            m = re.match(r'(\d+)m?m?[Xx]m?m?(\d+)', rtext)
             if m:
                 readings[nidnum] = Reading(int(m[1]), int(m[2]))
                 # print(idnum, readings[nidnum])
