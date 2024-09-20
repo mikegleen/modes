@@ -123,6 +123,7 @@ class Stmt:
     CASE_SENSITIVE = 'case_sensitive'
     CHILD = 'child'
     CHILD_VALUE = 'child_value'
+    COLUMN = 'column'
     CMD = 'cmd'
     COLUMN_TITLE = 'column_title'
     DATE = 'date'
@@ -635,6 +636,21 @@ def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
     return valid
 
 
+def yaml_error(document, logfile, dump, text):
+    """
+
+    :param document:
+    :param logfile:
+    :param dump: True if we already dumped the document because verbose was set
+    :param text:
+    :return:
+    """
+    if not dump:
+        dump_document(document, logfile=logfile)
+    print(red(text))
+    sys.exit(-1)
+
+
 def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
     """
     Called by the Config constructor. Return the YAML documents with minor
@@ -663,11 +679,21 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
             document[key] = str(document[key])
         if dump:
             dump_document(document, logfile=logfile)
-        if Stmt.CMD not in document:
-            if not dump:
-                dump_document(document, logfile=logfile)
-            print('"cmd" statement missing from document.')
-            sys.exit()
+        if Stmt.CMD in document:
+            if Stmt.COLUMN in document:
+                yaml_error(document, logfile, dump,
+                           'A document cannot have both "cmd:" and "column:" statements.')
+        elif Stmt.COLUMN in document:
+            document[Stmt.CMD] = Cmd.COLUMN  # Fake the "cmd: column" statement
+            if document[Stmt.COLUMN]:  # if the column statement has a parameter
+                if Stmt.TITLE not in document:
+                    document[Stmt.TITLE] = document[Stmt.COLUMN]
+                else:
+                    yaml_error(document, logfile, dump,
+                               'A document cannot have a title in the "column:" statement '
+                               'and a "title:" statement.')
+        else:
+            yaml_error(document, logfile, dump, '"cmd" statement missing from document.')
         cmd = document[Stmt.CMD]
         if cmd in Cmd.get_control_cmds():
             continue
@@ -699,6 +725,8 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
             raise ValueError(f'Duplicate title "{document[Stmt.TITLE]}"')
         titles.add(document[Stmt.TITLE])
         # dump_document(document, logfile=logfile)
+        if Stmt.COLUMN_TITLE not in document:
+            document[Stmt.COLUMN_TITLE] = document[Stmt.TITLE]
     return cfg
 
 

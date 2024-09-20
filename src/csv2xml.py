@@ -219,14 +219,14 @@ def main():
             cmd = doc[Stmt.CMD]
             # print(f'cmd: {doc[Stmt.CMD]}')
             title = doc[Stmt.TITLE]
-            column_title = doc[Stmt.COLUMN_TITLE] if Stmt.COLUMN_TITLE in doc else title
+            column_title = doc[Stmt.COLUMN_TITLE]
             if cmd == Cmd.REPRODUCTION:
                 text = accnum + '.jpg'
             elif cmd == Cmd.CONSTANT:
                 text = doc[Stmt.VALUE]
             else:
                 text = row[column_title]
-            trace(4, 'column="{}", text="{}"', title, text)
+            trace(4, 'column="{}", text="{}"', column_title, text)
             if Stmt.IF_OTHER_COLUMN in doc:
                 key_title = doc[Stmt.IF_OTHER_COLUMN]
                 # If the IF_OTHER_COLUMN_VALUE statement is present, then process this
