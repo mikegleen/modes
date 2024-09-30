@@ -55,6 +55,7 @@ from utl.cfgutil import Stmt, expand_idnum
 from utl.excel_cols import col2num
 from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
 from utl.normalize import sphinxify, vdate, isoformatfrommodesdate
+from utl.readers import row_list_reader
 
 
 def trace(level, template, *args, color=None):
@@ -239,12 +240,12 @@ def get_csv_dict(csvfile):
     def one_accession_number(accno):
         # print(f'{row=}')
         try:
-            accnum = normalize_id(accno)
+            norm_accno = normalize_id(accno)
         except ValueError:
             print(f"Skipping badly formed accession # in csv: {accno}")
             return
-        if accnum in cdict:
-            raise KeyError(f'Duplicate accession number: {accnum}')
+        if norm_accno in cdict:
+            raise KeyError(f'Duplicate accession number: {norm_accno}')
         cataloguenumber = None
         if _args.col_cat is not None:
             cataloguenumber = row[_args.col_cat]
@@ -255,37 +256,31 @@ def get_csv_dict(csvfile):
                 pass  # ok, doesn't have to be an integer
         # print(row)
         # print(exhibition, cataloguenumber)
-        cdict[accnum] = (exhibition, cataloguenumber)
+        cdict[norm_accno] = (exhibition, cataloguenumber)
 
-    with codecs.open(csvfile, encoding='utf-8-sig') as mapfile:
-        cdict = {}
-        reader = csv.reader(mapfile)
-        for n in range(_args.skiprows):
-            next(reader)
-        for row in reader:
-            if len(row) == 0:
-                continue
-            accnumber = row[_args.col_acc]
-            if not accnumber:
-                continue  # blank accession number
-            if _args.exhibition:
-                exhibition = _args.exhibition
-            else:
-                col_ex = _args.col_ex
-                try:
-                    exhibition = int(row[col_ex])
-                except (IndexError, ValueError) as e:
-                    if _args.allow_missing:
-                        trace(2, 'Missing exhibition number, skipping {}',
-                              accnumber)
-                        continue
-                    print(f'Missing column {col_ex}, accession #: {accnumber}')
-                    raise e
-            # The "accnumber" might actually be a range of accession numbers
-            # in the form JB001-002:
-            accnumlist = expand_idnum(accnumber)
-            for accn in accnumlist:
-                one_accession_number(accn)
+    cdict = {}
+    for row in row_list_reader(csvfile, skiprows=_args.skiprows):
+        accnumber = row[_args.col_acc]
+        if not accnumber:
+            continue  # blank accession number
+        if _args.exhibition:
+            exhibition = _args.exhibition
+        else:
+            col_ex = _args.col_ex
+            try:
+                exhibition = int(row[col_ex])
+            except (IndexError, ValueError) as e:
+                if _args.allow_missing:
+                    trace(2, 'Missing exhibition number, skipping {}',
+                          accnumber)
+                    continue
+                print(f'Missing column {col_ex}, accession #: {accnumber}')
+                raise e
+        # The "accnumber" might actually be a range of accession numbers
+        # in the form JB001-002:
+        accnumlist = expand_idnum(accnumber)
+        for accn in accnumlist:
+            one_accession_number(accn)
     trace(3, 'get_csv_dict: {}', cdict)
     return cdict
 
@@ -429,9 +424,9 @@ def getparser():
         to apply to all objects in the CSV file. Do not specify this if
         --col_ex is specified.''', called_from_sphinx))
     objgroup.add_argument('-m', '--mapfile', help=sphinxify('''
-        The CSV file mapping the accession number to the catalog number and
-        exhibition number. (but see --exhibition). There is no heading row
-        (but see --skiprows).''', called_from_sphinx))
+        The CSV  or XLSX file mapping the accession number to the catalog number and
+        exhibition number. (but see --exhibition). There must be a heading row.
+        ''', called_from_sphinx))
     objgroup.add_argument('-j', '--object', help=sphinxify('''
     Specify a single object to be processed. If specified, do not specify
     the CSV file containing object numbers, exhibitions and catalogue numbers
