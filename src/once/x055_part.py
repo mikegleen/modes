@@ -29,31 +29,27 @@ def one_elt(elt, objnum) -> bool:
     des = elt.find('Description')
     if des is None:
         return rtn
-    aspects = des.findall('Aspect')
-    for aspect in aspects:
-        keys = aspect.findall('Keyword')
-        if len(keys) != 2:
-            continue
-        if keys[0].text == 'pages':
-            keys[1].tag = 'Reading'
-            rtn = True
+    # aspects = des.findall('Aspect')
+    # for aspect in aspects:
+    #     keys = aspect.findall('Keyword')
+    #     if len(keys) != 2:
+    #         continue
+    #     if keys[0].text == 'pages':
+    #         keys[1].tag = 'Reading'
+    #         rtn = True
 
     measlist = des.findall('Measurement')
     if len(measlist) == 3:
         return rtn
-    if etype == 'ephemera':
+    if etype in ['cutting', 'ephemera']:
         meas = measlist[0]
         part = meas.find('Part')
         if part is None:
             part = ET.Element('Part')
             meas.insert(0, part)
-        part.text = 'Image'
-        rtn = True
-    elif etype == 'cutting':
-        meas = measlist[0]
-        part = meas.find('Part')
-        part.text = 'Image'
-        rtn = True
+        if part.text != 'image':
+            part.text = 'image'
+            rtn = True
     return rtn
 
 
@@ -63,7 +59,7 @@ def one_object(oldobj):
     :param oldobj: the Object from the old file
     :return: None. The updated object is written to the output XML file.
     """
-    global object_number, nwritten
+    global object_number, nwritten, nupdated
     numelt = oldobj.find('./ObjectIdentity/Number')
     if numelt is not None:
         object_number = numelt.text
@@ -71,7 +67,8 @@ def one_object(oldobj):
         object_number = 'Missing'
     trace(2, '**** {}', object_number)
     rtn = one_elt(oldobj, object_number)
-    encoding = 'us-ascii' if _args.ascii else 'utf-8'
+    if rtn:
+        nupdated += 1
     if rtn or _args.all:
         nwritten += 1
         outfile.write(ET.tostring(oldobj, encoding=encoding))
@@ -117,10 +114,11 @@ if __name__ == '__main__':
     if sys.version_info.major < 3:
         raise ImportError('requires Python 3')
     object_number = ''
-    nwritten = 0
+    nwritten = nupdated = 0
     _args = getargs()
     infile = open(_args.infile)
     outfile = open(_args.outfile, 'wb')
+    encoding = 'us-ascii' if _args.ascii else 'utf-8'
     main()
-    print(f'{nwritten} objects written.')
+    print(f'End x055_part. {nupdated} objects updated. {nwritten} objects written.')
 
