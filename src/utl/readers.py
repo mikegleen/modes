@@ -11,6 +11,7 @@ from openpyxl import load_workbook
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Config
+from utl.normalize import normalize_id
 from utl.zipmagic import openfile
 
 
@@ -30,15 +31,19 @@ def _trimrow(r: list, maxlen: int):
     return r
 
 
-def object_reader(infilename: str | None, config=None, verbos=1):
+def object_reader(infilename: str | None, config=None, normalize=False, verbos=1):
     """
     Open an XML file and return Object elements.
 
     :param infilename: The XML file in Modes format
     :param config: A Config object or None in which case an empty one is made.
                    The function refers to config members ``record_tag`` and ``record_id_xpath``.
+    :param normalize: return a modified tuple (see below)
     :param verbos: trace level
-    :return: An iterator that returns tuples of (accession number, element)
+    :return: An iterator that returns tuples of:
+                (accession number, element)
+             If normalize==True, return tuples of:
+                (accession number, normalized accession number, element)
     """
     objectlevel = 0
     if config is None:
@@ -61,7 +66,10 @@ def object_reader(infilename: str | None, config=None, verbos=1):
             idnum = idelem.text if idelem is not None else ''
             if verbos >= 3:
                 print('idnum: {}', idnum)
-            yield idnum, elem
+            if normalize:
+                yield idnum, normalize_id(idnum), elem
+            else:
+                yield idnum, elem
 
 
 def get_heading(filepath: str | None, verbos=1, skiprows=0) -> list | None:
@@ -146,9 +154,9 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
             if verbos >= 2:
                 fieldnames = ", ".join(_trimrow(list(reader.fieldnames), 1))
                 print(f'CSV Column Headings: {fieldnames}')
-            for nrow, row in enumerate(reader):
+            for nrow, row in enumerate(reader, start=1):
                 if not allow_long_rows and len(row) > n_input_fields:
-                    print(f"Error: row {nrow + 1} longer than heading: {row}")
+                    print(f"Error: row {nrow} longer than heading: {row}")
                     sys.exit(1)
                 yield row
     elif suffix.lower() == '.xlsx':
@@ -191,8 +199,8 @@ def row_list_reader(filename: str | None, verbos=1, skiprows=0,
                     allow_long_rows=False):
     """
     A generator function to iterate through either a CSV file or XLSX file.
-
     We only look at the first sheet of an XLSX file.
+    The first row is taken as the header.
 
     :param filename: The input CSV or XLSX file.
     :param verbos: Verbosity. If > 1, print column headings
