@@ -55,7 +55,7 @@ from utl.cfgutil import Stmt, expand_idnum
 from utl.excel_cols import col2num
 from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
 from utl.normalize import sphinxify, vdate, isoformatfrommodesdate
-from utl.readers import row_list_reader
+from utl.readers import row_list_reader, object_reader
 
 
 def trace(level, template, *args, color=None):
@@ -229,9 +229,9 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
         objelt.insert(firstexix, exhib)
 
 
-def get_csv_dict(csvfile):
+def get_mapfile_dict(mapfile):
     """
-    :param: csvfile: contains the accession number specified by --col_acc,
+    :param: csvfile: A CSV or XLSX file containing the accession number specified by --col_acc,
     optionally the exhibition number in the column specified by  and --col_ex,
     and optionally the catalog number specified by --col_cat.
     :return: A dict with the key of the accession number and the value being
@@ -244,7 +244,7 @@ def get_csv_dict(csvfile):
         except ValueError:
             print(f"Skipping badly formed accession # in csv: {accno}")
             return
-        if norm_accno in cdict:
+        if norm_accno in mapdict:
             raise KeyError(f'Duplicate accession number: {norm_accno}')
         cataloguenumber = None
         if _args.col_cat is not None:
@@ -256,10 +256,10 @@ def get_csv_dict(csvfile):
                 pass  # ok, doesn't have to be an integer
         # print(row)
         # print(exhibition, cataloguenumber)
-        cdict[norm_accno] = (exhibition, cataloguenumber)
+        mapdict[norm_accno] = (exhibition, cataloguenumber)
 
-    cdict = {}
-    for row in row_list_reader(csvfile, skiprows=_args.skiprows):
+    mapdict = {}
+    for row in row_list_reader(mapfile, skiprows=_args.skiprows):
         accnumber = row[_args.col_acc]
         if not accnumber:
             continue  # blank accession number
@@ -281,8 +281,8 @@ def get_csv_dict(csvfile):
         accnumlist = expand_idnum(accnumber)
         for accn in accnumlist:
             one_accession_number(accn)
-    trace(3, 'get_csv_dict: {}', cdict)
-    return cdict
+    trace(3, 'get_mapfile_dict: {}', mapdict)
+    return mapdict
 
 
 def verify():
@@ -305,7 +305,9 @@ def verify():
             else:
                 datebegin, _ = datefrommodes(datebegin.text)
             dateend = element.find('./Date/DateEnd')
-            if dateend is not None and dateend.text:
+            if dateend is None or not dateend.text:
+                dateend = None
+            else:
                 dateend, _ = datefrommodes(dateend.text)
             exhibname = element.find('./ExhibitionName')
             if exhibname is not None:
@@ -314,7 +316,7 @@ def verify():
             if place is not None:
                 place = place.text
             # print(f'{idnum=}:{datebegin=}')
-            if not datebegin and not dateend and not exhibname and not place:
+            if datebegin is None and dateend is None and exhibname is None and place is None:
                 # it's an empty Exhibition
                 continue
             exhibition = ExhibitionTuple(DateBegin=datebegin,
@@ -336,7 +338,7 @@ def main():
         exmap = {normalize_id(obj):  # JB001 -> JB00000001
                  (_args.exhibition, _args.catalogue) for obj in objlist}
     else:
-        exmap = get_csv_dict(_args.mapfile)  # acc # -> (exhibition #, catalog #)
+        exmap = get_mapfile_dict(_args.mapfile)  # acc # -> (exhibition #, catalog #)
     exdict = get_exhibition_dict()  # exhibition # -> Exhibition tuple
     written = 0
     numupdated = 0
