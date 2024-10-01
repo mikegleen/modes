@@ -287,12 +287,7 @@ def get_mapfile_dict(mapfile):
 
 def verify():
     exhibition_inv_dict = get_inverted_exhibition_dict()
-    for event, elem in ET.iterparse(infile):
-        if elem.tag != 'Object':
-            continue
-        idelem = elem.find(Stmt.get_default_record_id_xpath())
-        idnum = idelem.text if idelem is not None else None
-        idnum = normalize_id(idnum)
+    for idnum, elem in object_reader(_args.infile, verbos=_args.verbose):
         elements = elem.findall('./Exhibition')
         # print(f'{elements=}')
         selected = False
@@ -342,17 +337,13 @@ def main():
     exdict = get_exhibition_dict()  # exhibition # -> Exhibition tuple
     written = 0
     numupdated = 0
-    for event, elem in ET.iterparse(infile):
-        if elem.tag != 'Object':
-            continue
-        idelem = elem.find(Stmt.get_default_record_id_xpath())
-        idnum = idelem.text if idelem is not None else None
-        idnum = normalize_id(idnum)
+
+    for idnum, nidnum, elem in object_reader(_args.infile, normalize=True, verbos=_args.verbose):
         trace(3, 'idnum: {}', idnum)
-        if idnum and idnum in exmap:
-            exnum, cataloguenumber = exmap[idnum]
-            one_object(elem, idnum, exdict[exnum], cataloguenumber)
-            del exmap[idnum]
+        if nidnum and nidnum in exmap:
+            exnum, cataloguenumber = exmap[nidnum]
+            one_object(elem, nidnum, exdict[exnum], cataloguenumber)
+            del exmap[nidnum]
             updated = True
             numupdated += 1
         else:
@@ -363,8 +354,8 @@ def main():
         if updated and _args.short:
             break
     outfile.write(b'</Interchange>')
-    for idnum in exmap:
-        trace(1, 'In CSV but not XML: "{}"', denormalize_id(idnum))
+    for nidnum in exmap:
+        trace(1, 'In CSV but not XML: "{}"', denormalize_id(nidnum))
     trace(1, f'End exhibition.py. {written} object'
              f'{"s" if written != 1 else ""} written '
              f'of which {numupdated} updated.', color=Fore.GREEN)
@@ -373,8 +364,8 @@ def main():
 def getparser():
     parser = argparse.ArgumentParser(description=sphinxify('''
         Import exhibition information into a Modes XML file.
-        Read a CSV file using the --mapfile argument containing one, two, or
-        three columns containing 
+        Read a CSV or XLSX file using the --mapfile argument containing one,
+        two, or three columns containing 
         the accession number whose record should be updated, the
         optional exhibition number, and the optional catalogue number. The
         exhibition number corresponds to the data in exhibition_list.py and
@@ -511,7 +502,6 @@ if __name__ == '__main__':
     _oldname = _args.old_name
     _oldplace = _args.old_place
     _olddate = _args.old_date
-    infile = open(_args.infile)
     trace(1, 'Input file: {}', _args.infile)
     if _args.verify:
         verify()
