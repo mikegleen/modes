@@ -42,16 +42,14 @@ The Exhibition group template is::
 
 """
 import argparse
-import codecs
 import os
-import csv
 import sys
 from colorama import Fore, Style
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 from utl.exhibition_list import (get_exhibition_dict,
                                  get_inverted_exhibition_dict, ExhibitionTuple)
-from utl.cfgutil import Stmt, expand_idnum
+from utl.cfgutil import expand_idnum
 from utl.excel_cols import col2num
 from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
 from utl.normalize import sphinxify, vdate, isoformatfrommodesdate
