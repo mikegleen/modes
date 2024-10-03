@@ -229,8 +229,8 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
 
 def get_mapfile_dict(mapfile):
     """
-    :param: csvfile: A CSV or XLSX file containing the accession number specified by --col_acc,
-    optionally the exhibition number in the column specified by  and --col_ex,
+    :param: mapfile: A CSV or XLSX file containing the accession number specified by --col_acc,
+    optionally the exhibition number in the column specified by --col_ex,
     and optionally the catalog number specified by --col_cat.
     :return: A dict with the key of the accession number and the value being
              a tuple of (exhibition number, catalogue number).
