@@ -131,7 +131,7 @@ def add_item(elt, subid: int, nmainid: str) -> ET.Element:
     :param elt:
     :param subid:
     :param nmainid: normalized ID without the subid
-    :return: the exist or new Item element
+    :return: the existing or new Item element
     """
     olditem = elt.find(f'./Item[ListNumber="{subid}"]')
     if olditem is not None:
