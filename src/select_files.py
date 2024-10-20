@@ -22,21 +22,23 @@ def s(i: int):
 
 def getparser():
     parser = argparse.ArgumentParser(description=sphinxify('''
-        Extract files from a folder that match the list in the CSV file.
+        Extract files from a folder that match the list in the mapfile.
         File names in the folder may have a preamble of "collection_"
         ''', called_from_sphinx))
-    parser.add_argument('-i', '--indir', help='''
+    parser.add_argument('-i', '--indir', required=True, help='''
         The input folder''')
     parser.add_argument('-o', '--outdir', help='''
         The output folder.''')
     parser.add_argument('-m', '--mapfile', required=True, help=sphinxify('''
-            Required. The CSV file containing the list of accession numbers
-            corresponding to the files in the directory to copy.
+            Required. The CSV or XLSX file containing the list of accession
+            numbers corresponding to the files in the directory to copy.
             ''', called_from_sphinx))
     parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.''' +
                         if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".
                         ''', called_from_sphinx))
+    parser.add_argument('-s', '--skiprows', type=int, default=0, help='''
+        Number of lines to skip at the start of the mapfile''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -75,7 +77,7 @@ def main():
 
 def getfileset():
     fs = set()
-    csvreader = row_list_reader(_args.mapfile, skiprows=1)
+    csvreader = row_list_reader(_args.mapfile, skiprows=_args.skiprows)
     for row in csvreader:
         anum = row[0]
         # print(anum)
