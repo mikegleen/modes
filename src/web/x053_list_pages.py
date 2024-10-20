@@ -28,59 +28,118 @@ from utl.normalize import normalize_id, denormalize_id
 #   The 'A|B' can either follow the subnumber or the page number (or neither)
 #   but not both. This is not enforced by the pattern.
 #
-FILENAMEPAT = r'(.+?)-(\d{3})([AB]?)(-(\d+)([AB])?)?$'
+# FILENAMEPAT = (r'(?P<accn>.+?)'
+#                r'(-(?P<subn>\d{3})?(?P<subnAB>[AB])?)?'
+#                r'(-(?P<page>\d+)(?P<pageAB>[AB])?)?$')
 
+# FILENAMEPAT = (r'^(?P<accn>[^\-]*)'
+#                r'(-((?P<subn>\d{3})(?P<subnAB>[AB])?(-(?P<page>\d+)((?P<pageAB>[AB])?)?)?))?')
+#                1 23             33              3 3 4           445              5 4 3 21
+FILENAMEPAT = (r'^(?P<accn>[^\-]*)'
+               r'(-((?P<subn>\d{3})(?P<subnAB>[A-Z])?(-(?P<page>\d+)(?P<pageAB>[A-Z])?)?))?')
+#                1 23             33              3 3 4           44              4 3 21
 """
-'JB2-003-2B'
-Groups:   1      2     3    4     5    6
-       ('JB2', '003', '', '-2B', '2', 'B'
+'JB001-001-3A'
+Groups:   1        2       3     4      5     6    7
+       ('JB001', '-001', '001', None, '-3A', '3', 'A')
 """
+
+FILENAMEPAT2 = (r'^(?P<accn>[^\-]*)'
+                r'--((?P<page>\d+)(?P<pageAB>[A-Z])?)')
+#                   12           22              2 1
 
 IMGFILES = ('.jpg', '.jpeg', '.png')
 COLLECTION_PREFIX = 'collection_'
 
 
-def normalize_filename(filename: str, suffix: str, m: re.Match):
+def pad_page_number(prefix, suffix, accn, subnum, subnum_ab, pagenum, pagenum_ab):
     # Pad the page number to three digits
     # print(f'{filename=}')
-    if m is None:
-        return filename
-    parta = f'{m.group(1)}-{m.group(2)}'
 
-    if m.group(5):  # if a page number exists
-        page = f'{int(m.group(5)):03}'
-        if m.group(6):
-            page += m.group(6)
+    if pagenum:  # if a page number exists
+        parta = f'{accn}-{subnum}{subnum_ab}'
+        page = f'{int(pagenum):03}{pagenum_ab}'
         nfilename = f'{parta}-{page}{suffix}'
         # print(f'{filename=}, {nfilename=}')
         return nfilename
     else:
-        return filename
+        return prefix + suffix
 
 
-def denormalize_filename(filename: str):
+def parse_prefix(prefix):
+    if '--' in prefix:
+        # There is no subnum but there is a page number.
+        m = re.match(FILENAMEPAT2, prefix)
+        if not m:
+            raise ValueError(f'File prefix failed match (FILENAMEPAT2): {prefix}')
+        accn = m['accn']
+        subn = subn_ab = ''
+        page = m['page']
+        page_ab = m['pageAB'] if m['pageAB'] else ''
+        modes_key1 = accn
+        modes_key2 = None
+    else:
+        m = re.match(FILENAMEPAT, prefix)
+        if not m:
+            raise ValueError(f'File prefix failed match (FILENAMEPAT): {prefix}')
+        accn = m['accn']
+        modes_key1 = f'{accn}'
+        if m['subn']:
+            subn = f'{m["subn"]}'  # remove leading zeros
+            subn_ab = m['subnAB'] if m['subnAB'] else ''
+            modes_key2 = f'{accn}.{int(subn)}'
+            page = m['page'] if m['page'] else ''
+            page_ab = m['pageAB'] if m['pageAB'] else ''
+        else:
+            subn = subn_ab = page = page_ab = ''
+            modes_key2 = None
+    return accn, subn, subn_ab, page, page_ab, modes_key1, modes_key2
+
+
+def unpad_page_number(filename: str):
     # Remove the padding from the page number.
     filename = filename.removeprefix(COLLECTION_PREFIX)
     prefix, suffix = os.path.splitext(filename)
-    m = re.match(FILENAMEPAT, prefix)
-    if m is None:
-        return COLLECTION_PREFIX + denormalize_id(prefix) + suffix
-    if m.group(5):
-        parta = f'{m.group(1)}-{m.group(2)}'
-        page = f'{int(m.group(5))}'
-        if m.group(6):
-            page += m.group(6)  # A or B
-        return COLLECTION_PREFIX + f'{parta}-{page}{suffix}'
+    # parse_prefix has already been called once so it shouldn't raise an exception
+    (accn, subn, subn_ab, page, page_ab, modes_key1,
+     modes_key2) = parse_prefix(prefix)
+
+    if subn or page:
+        parta = f'{accn}-{subn}{subn_ab}'
+        partb = f'-{int(page)}{page_ab}' if page else ''
+        denormed_filename = f'{parta}-{partb}'
     else:
-        return COLLECTION_PREFIX + filename  # simple accession number
+        denormed_filename = accn  # simple accession number
+    return COLLECTION_PREFIX + denormed_filename + suffix
 
 
 def one_file(filename):
     """
-    Extract the accession number from the filename and update the global dict
-    with the key as the accession number of an object and the value the list of
-    its files.
-    :param filename: filename in the format of an accession number or FILENAMEPAT
+    Extract the accession number with or without a subnumber from the filename and update `accndict`
+    with the key as the accession number of an object and the value as the list of
+    its files. The filename is normalized so that the page number is three digits
+    so that it sorts correctly.
+
+    There are two cases of accession number. It can be a main number such as
+    "JB001" or a main number with a sub-number such as "JB001.2". In some cases
+    there is an Object element group in the XML file for the sub-number and in
+    other cases the sub-number is an Item under a main number. We cannot tell
+    which cases it is from the filename so we insert both cases into accndict
+    only one of which will be found in the XML file.
+
+    :param filename: filename in one of the following formats:
+
+        JB001.jpg
+        JB001-001[A].jpg
+        JB001-001-1[A].jpg
+        JB001--1[A].jpg
+
+        JB001   The accession number
+        -001    The subnumber
+        A       The page indicator can be A (verso) or B (recto)
+        --      Indicates that an object with an accession number but not a
+                subnumber has multiple pages
+
     :return: None
     """
 
@@ -88,27 +147,26 @@ def one_file(filename):
     m = None
     prefix, suffix = os.path.splitext(filename)
     if suffix.lower() not in IMGFILES:
-        if filename != '.DS_Store':
+        if filename != '.DS_Store':  # MacOS magic file
             print(f'Skipping not image: {filename}')
         return
     if not prefix.startswith(COLLECTION_PREFIX):
         print(f'File "{filename}" doesn’t strt with {COLLECTION_PREFIX}. Ignored.')
         return
     try:
-        # fails if the name contains a page number
-        naccn = normalize_id(prefix.removeprefix(COLLECTION_PREFIX))
+        accn, subn, subn_ab, page, page_ab, modes_key1, modes_key2 = parse_prefix(prefix)
     except ValueError:
-        m = re.match(FILENAMEPAT, prefix)
-        if not m:
-            print(f'Filename failed match: {filename}')
-            num_failed_match += 1
-            return
-        if m.group(3) and m.group(4):
-            raise ValueError(f'Illegal filename format: {filename}, cannot'
-                             f' have A/B token before the page number.')
-        accn = f'{m.group(1)}.{int(m.group(2))}'
-        naccn = normalize_id(accn.removeprefix(COLLECTION_PREFIX))
-    accndict[naccn].append(normalize_filename(filename, suffix, m))
+        print(f'Filename failed match: {filename}')
+        num_failed_match += 1
+        return
+    n_modes_key1 = normalize_id(modes_key1)
+    n_modes_key2 = normalize_id(modes_key2)
+    # Pad the page number in the filename so the pages are sorted so they appear
+    # on the website in order.
+    padded_filename = pad_page_number(prefix, suffix, accn, subn, subn_ab, page, page_ab)
+    accndict[n_modes_key1].append(padded_filename)
+    if n_modes_key2:  # if the filename includes a subnumber
+        accndict[n_modes_key2].append(padded_filename)
 
 
 def main(indir):
@@ -126,8 +184,10 @@ def main(indir):
             listlen = len(filelist)
             longest = accn
         filelist.sort()
-        denormed_filelist = [denormalize_filename(filename) for filename in filelist]
-        files = '|'.join(denormed_filelist)
+        # Now return the filenames to the unpadded form, that is, as they
+        # actually appear in the folder.
+        unpadded_filelist = [unpad_page_number(filename) for filename in filelist]
+        files = '|'.join(unpadded_filelist)
         print(f'{denormalize_id(accn)},{files}', file=outfile)
     print(f'Longest page list: {denormalize_id(longest)}, length: {listlen}')
     print(f'Number failed match: {num_failed_match}')
@@ -135,7 +195,7 @@ def main(indir):
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
-    print(Fore.GREEN + 'Begin x053_list_pages.' + Style.RESET_ALL)
+    print(Fore.LIGHTGREEN_EX + 'Begin x053_list_pages.' + Style.RESET_ALL)
     num_failed_match = 0
     accndict = defaultdict(list)
     inputdir = sys.argv[1]
