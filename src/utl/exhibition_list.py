@@ -1,5 +1,5 @@
-# EXSTR is processed by exhibition.py to create a dictionary for reference
-# when updating the Modes XML file.
+# EXSTR is processed by get_exhibition_dict() which is called by exhibition.py
+# to create a dictionary for reference when updating the Modes XML file.
 #
 # The Place field is optional and defaults to the HRM.
 #
