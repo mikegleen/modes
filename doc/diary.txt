@@ -1,0 +1,3 @@
+prod_update/pretty/2024-10-09_postcard_pretty.xml
+	manually change keywords "Postcard" to "postcard"
+
