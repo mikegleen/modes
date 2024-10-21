@@ -172,10 +172,11 @@ def one_file(filename):
 def main(indir):
     #
     #   Create accndict containing accn --> list of files
+    #
     for file in os.listdir(indir):
         filepath = os.path.join(indir, file)
         if os.path.isdir(filepath):
-            main(filepath)
+            main(filepath)  # recursively walk subdirectory
         else:
             one_file(file)
 
