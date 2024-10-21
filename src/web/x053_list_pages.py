@@ -14,6 +14,10 @@
     a simple-name file that there aren't already long-name files in the list.
 
     The output of this script is input to recode_collection.py.
+
+    Note: This script doesn't completely check for valid file names. However,
+    an invalid filename will generate an invalid accession number that will not
+    be found in Modes.
 """
 import os
 import re
@@ -28,13 +32,6 @@ from utl.normalize import normalize_id, denormalize_id
 #   The 'A|B' can either follow the subnumber or the page number (or neither)
 #   but not both. This is not enforced by the pattern.
 #
-# FILENAMEPAT = (r'(?P<accn>.+?)'
-#                r'(-(?P<subn>\d{3})?(?P<subnAB>[AB])?)?'
-#                r'(-(?P<page>\d+)(?P<pageAB>[AB])?)?$')
-
-# FILENAMEPAT = (r'^(?P<accn>[^\-]*)'
-#                r'(-((?P<subn>\d{3})(?P<subnAB>[AB])?(-(?P<page>\d+)((?P<pageAB>[AB])?)?)?))?')
-#                1 23             33              3 3 4           445              5 4 3 21
 FILENAMEPAT = (r'^(?P<accn>[^\-]*)'
                r'(-((?P<subn>\d{3})(?P<subnAB>[A-Z])?(-(?P<page>\d+)(?P<pageAB>[A-Z])?)?))?')
 #                1 23             33              3 3 4           44              4 3 21
@@ -43,7 +40,10 @@ FILENAMEPAT = (r'^(?P<accn>[^\-]*)'
 Groups:   1        2       3     4      5     6    7
        ('JB001', '-001', '001', None, '-3A', '3', 'A')
 """
-
+#
+# FILENAMEPAT2 is for the case where there is "--" in the filename indicating
+# that this is an accession number without subnumbers but with page numbers.
+#
 FILENAMEPAT2 = (r'^(?P<accn>[^\-]*)'
                 r'--((?P<page>\d+)(?P<pageAB>[A-Z])?)')
 #                   12           22              2 1
@@ -52,21 +52,8 @@ IMGFILES = ('.jpg', '.jpeg', '.png')
 COLLECTION_PREFIX = 'collection_'
 
 
-def pad_page_number(prefix, suffix, accn, subnum, subnum_ab, pagenum, pagenum_ab):
-    # Pad the page number to three digits
-    # print(f'{filename=}')
-
-    if pagenum:  # if a page number exists
-        parta = f'{accn}-{subnum}{subnum_ab}'
-        page = f'{int(pagenum):03}{pagenum_ab}'
-        nfilename = f'{parta}-{page}{suffix}'
-        # print(f'{filename=}, {nfilename=}')
-        return nfilename
-    else:
-        return prefix + suffix
-
-
 def parse_prefix(prefix):
+    prefix = prefix.removeprefix(COLLECTION_PREFIX)
     if '--' in prefix:
         # There is no subnum but there is a page number.
         m = re.match(FILENAMEPAT2, prefix)
@@ -83,9 +70,9 @@ def parse_prefix(prefix):
         if not m:
             raise ValueError(f'File prefix failed match (FILENAMEPAT): {prefix}')
         accn = m['accn']
-        modes_key1 = f'{accn}'
+        modes_key1 = accn
         if m['subn']:
-            subn = f'{m["subn"]}'  # remove leading zeros
+            subn = m["subn"]
             subn_ab = m['subnAB'] if m['subnAB'] else ''
             modes_key2 = f'{accn}.{int(subn)}'
             page = m['page'] if m['page'] else ''
@@ -94,6 +81,20 @@ def parse_prefix(prefix):
             subn = subn_ab = page = page_ab = ''
             modes_key2 = None
     return accn, subn, subn_ab, page, page_ab, modes_key1, modes_key2
+
+
+def pad_page_number(prefix, suffix, accn, subnum, subnum_ab, pagenum, pagenum_ab):
+    # Pad the page number to three digits
+    # print(f'{filename=}')
+
+    if pagenum:  # if a page number exists
+        parta = f'{accn}-{subnum}{subnum_ab}'
+        page = f'{int(pagenum):03}{pagenum_ab}'
+        nfilename = f'{parta}-{page}{suffix}'
+        # print(f'{filename=}, {nfilename=}')
+        return nfilename
+    else:
+        return prefix + suffix
 
 
 def unpad_page_number(filename: str):
@@ -106,7 +107,7 @@ def unpad_page_number(filename: str):
 
     if subn or page:
         parta = f'{accn}-{subn}{subn_ab}'
-        partb = f'-{int(page)}{page_ab}' if page else ''
+        partb = f'{int(page)}{page_ab}' if page else ''
         denormed_filename = f'{parta}-{partb}'
     else:
         denormed_filename = accn  # simple accession number
@@ -144,7 +145,6 @@ def one_file(filename):
     """
 
     global num_failed_match
-    m = None
     prefix, suffix = os.path.splitext(filename)
     if suffix.lower() not in IMGFILES:
         if filename != '.DS_Store':  # MacOS magic file
@@ -170,6 +170,8 @@ def one_file(filename):
 
 
 def main(indir):
+    #
+    #   Create accndict containing accn --> list of files
     for file in os.listdir(indir):
         filepath = os.path.join(indir, file)
         if os.path.isdir(filepath):
@@ -201,4 +203,4 @@ if __name__ == '__main__':
     inputdir = sys.argv[1]
     outfile = open(sys.argv[2], 'w')
     main(inputdir)
-    print(Fore.GREEN + 'End x053_list_pages.' + Style.RESET_ALL)
+    print(Fore.LIGHTGREEN_EX + 'End x053_list_pages.' + Style.RESET_ALL)
