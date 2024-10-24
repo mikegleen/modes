@@ -73,7 +73,7 @@ def decade(datebegin, dateend):
         else:
             decend = decbegin
         dec = '|'.join([str(d) + 's' for d in range(decbegin, decend + 10, 10)])
-    trace(2, f'{datebegin=} {dateend=} {dec=}')
+    trace(3, f'{datebegin=} {dateend=} {dec=}')
     return dec
 
 
@@ -97,10 +97,15 @@ def read_img_csv_file() -> dict[list]:
 
 
 def onerow(oldrow):
+    # print(f'Object Type="{oldrow['ObjectType']}"')
+    # See the discussion in x053_list_pages.py for why we discard this row.
+    if oldrow['ObjectType'] == 'object group':
+        trace(1, 'Discarding object group: {}', oldrow['Serial'])
+        return None
     newrow = {}
     n_serial = normalize_id(oldrow['Serial'])
     newrow['Serial'] = denormalize_id(n_serial)  # to be sure to be sure
-    trace(2, 'Serial = {}', newrow['Serial'])
+    trace(3, 'Serial = {}', newrow['Serial'])
     newrow['Title'] = clean(oldrow['Title'])
     newrow['Medium'] = oldrow['Medium']
     order = oldrow['Order']
@@ -161,7 +166,7 @@ def onerow(oldrow):
     except ValueError:
         newrow['IsoDate'] = ''
     newrow['Decade'] = decade(datebegin, dateend)
-    trace(2, f'{newrow["Decade"]=}')
+    trace(3, f'{newrow["Decade"]=}')
 
     # ------------------------- Exhibitions ----------------------------------
 
@@ -331,6 +336,6 @@ if __name__ == '__main__':
     if len(imgdict):
         trace(1, '{} images discarded', len(imgdict))
     for serial in imgdict.keys():
-        trace(2, '{}: images not used.', serial)
+        trace(2, '{}: images not used.', denormalize_id(str(serial)))
     trace(1, 'End recode_collection. {} row{} written.', nrows,
           '' if nrows == 1 else 's', color=Fore.GREEN)
