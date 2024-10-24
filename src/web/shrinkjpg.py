@@ -95,6 +95,7 @@ def getargs():
 
 def normalize_prefix(prefix: str):
     prefix = prefix.removeprefix('collection_')
+    prefix = prefix.replace('-', '.')
     try:
         nidnum = normalize_id(prefix)
     except ValueError:
@@ -146,7 +147,9 @@ def main():
             continue
         with Image.open(filepath) as im:
             img_width, img_height = im.size
+            trace(2, 'Image height/width = {}/{}', img_height, img_width)
         nidnum = normalize_prefix(prefix)
+        trace(2, 'prefix = {}, nidnum = {}', prefix, nidnum)
         if nidnum in readings:
             trace(3, 'Normalized id: {}', nidnum)
             try:
@@ -187,12 +190,12 @@ def main():
 def set_one_reading(idnum, readingtext):
     nidnum = normalize_id(idnum)
     rtext = readingtext.replace(' ', '') if readingtext else ''
-    trace(4, 'set_one_reading: idnum = {}, rtext = "{}"',
-          idnum, rtext, color=Fore.YELLOW)
+    trace(4, 'set_one_reading: idnum = {}({}), rtext = "{}"',
+          idnum, nidnum, rtext, color=Fore.YELLOW)
     if not rtext:
-        trace(3, 'set_one_reading: idnum = {}, '
+        trace(3, 'set_one_reading: idnum = {}({}), '
                  'rtext = "{}" failed match',
-              idnum, rtext, color=Fore.YELLOW)
+              idnum, nidnum, rtext, color=Fore.YELLOW)
         return
     m = re.match(r'(\d*\.?\d+)(?:mm)?[Xx](?:mm)?(\d*\.?\d+)', rtext)
     if m:
@@ -212,6 +215,7 @@ def get_readings_from_xml():
     for idnum, elem in object_reader(_args.inxml):
         # print('nxt', idnum)
         reading = elem.find('./Description/Measurement[Part="image"]/Reading')
+        # print(idnum, reading)
         if reading is None:
             # ephemera don't have <Part>image</Part>
             reading = elem.find('./Description/Measurement/Reading')
@@ -219,7 +223,7 @@ def get_readings_from_xml():
             set_one_reading(idnum, reading.text)
         else:
             etype = elem.get('elementtype')
-            if etype not in ['letter', 'object group', 'books']:
+            if etype not in ['letter', 'object group', 'books', 'placeholder']:
                 trace(1, 'Cannot find Reading element for {} ({})', idnum, etype)
 
 
