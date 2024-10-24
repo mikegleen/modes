@@ -29,7 +29,7 @@ mkdir -p $DESTDIR
 # Create a file with the accession numbers in column 1 and a "|" delimited list of filenames
 # in column 2. There is no heading row.
 #
-python src/web/x053_list_pages.py ../collection/aawebimgs/$BR ${DESTDIR}/${BR}_list.csv
+python src/web/x053_list_pages.py $IMGDIR ${DESTDIR}/${BR}_list.csv
 #
 # Pull the relevant fields from the Modes XML file for the objects in the batch.
 #
