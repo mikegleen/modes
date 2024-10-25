@@ -35,6 +35,7 @@ def trace(level, template, *args, color=None):
             print(template.format(*args), file=_args.trace)
         _args.trace.flush()
 
+
 def getparser():
     parser = argparse.ArgumentParser(description='''
         For every JPG file in a directory, copy it to the output directory or, if
