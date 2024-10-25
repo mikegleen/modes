@@ -41,67 +41,14 @@
 """
 import argparse
 import os
-import re
 import sys
 from collections import defaultdict
 from colorama import Fore, Style
 
 from utl.normalize import normalize_id, denormalize_id
-
-#
-#   <accession #>-<3-digit subnumber>[<A|B>][-<page #>][<A|B>]
-#   The 'A|B' can either follow the subnumber or the page number (or neither)
-#   but not both. This is not enforced by the pattern.
-#
-FILENAMEPAT = (r'^(?P<accn>[^\-]*)'
-               r'(-((?P<subn>\d{3})(?P<subnAB>[A-Z])?(-(?P<page>\d+)(?P<pageAB>[A-Z])?)?))?')
-#                1 23             33              3 3 4           44              4 3 21
-"""
-'JB001-001-3A'
-Groups:   1        2       3     4      5     6    7
-       ('JB001', '-001', '001', None, '-3A', '3', 'A')
-"""
-#
-# FILENAMEPAT2 is for the case where there is "--" in the filename indicating
-# that this is an accession number without subnumbers but with page numbers.
-#
-FILENAMEPAT2 = (r'^(?P<accn>[^\-]*)'
-                r'--((?P<page>\d+)(?P<pageAB>[A-Z])?)')
-#                   12           22              2 1
+from web.webutil import COLLECTION_PREFIX, parse_prefix
 
 IMGFILES = ('.jpg', '.jpeg', '.png')
-COLLECTION_PREFIX = 'collection_'
-
-
-def parse_prefix(prefix):
-    prefix = prefix.removeprefix(COLLECTION_PREFIX)
-    if '--' in prefix:
-        # There is no subnum but there is a page number.
-        m = re.match(FILENAMEPAT2, prefix)
-        if not m:
-            raise ValueError(f'File prefix failed match (FILENAMEPAT2): {prefix}')
-        accn = m['accn']
-        subn = subn_ab = ''
-        page = m['page']
-        page_ab = m['pageAB'] if m['pageAB'] else ''
-        modes_key1 = accn
-        modes_key2 = None
-    else:
-        m = re.match(FILENAMEPAT, prefix)
-        if not m:
-            raise ValueError(f'File prefix failed match (FILENAMEPAT): {prefix}')
-        accn = m['accn']
-        modes_key1 = accn
-        if m['subn']:
-            subn = m["subn"]
-            subn_ab = m['subnAB'] if m['subnAB'] else ''
-            modes_key2 = f'{accn}.{int(subn)}'
-            page = m['page'] if m['page'] else ''
-            page_ab = m['pageAB'] if m['pageAB'] else ''
-        else:
-            subn = subn_ab = page = page_ab = ''
-            modes_key2 = None
-    return accn, subn, subn_ab, page, page_ab, modes_key1, modes_key2
 
 
 def pad_page_number(prefix, suffix, accn, subnum, subnum_ab, pagenum, pagenum_ab):
@@ -171,8 +118,8 @@ def one_file(filename):
         if filename != '.DS_Store':  # MacOS magic file
             print(f'Skipping not image: {filename}')
         return
-    if not prefix.startswith(COLLECTION_PREFIX):
-        print(f'File "{filename}" doesn’t strt with {COLLECTION_PREFIX}. Ignored.')
+    if not prefix.startswith(COLLECTION_PREFIX) and not _args.force:
+        print(f'File "{filename}" doesn’t start with {COLLECTION_PREFIX}. Ignored.')
         return
     try:
         accn, subn, subn_ab, page, page_ab, modes_key1, modes_key2 = parse_prefix(prefix)
@@ -226,6 +173,9 @@ def getparser():  # called either by getargs or sphinx
         The folder containing the images.''')
     parser.add_argument('outfile',  help='''
         The output CSV file.''')
+    parser.add_argument('-f', '--force', action='store_true', help=f'''
+        process a file even if the collection prefix "{COLLECTION_PREFIX}"
+        is not specified,''')
     parser.add_argument('-m', '--mode', choices=('item', 'subnum'),
                         default='subnum',
                         help='''If the mode is "item", pictures will be grouped

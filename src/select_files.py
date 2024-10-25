@@ -11,9 +11,9 @@ import sys
 
 from utl.normalize import sphinxify, if_not_sphinx, DEFAULT_MDA_CODE
 from utl.readers import row_list_reader
+from web.webutil import COLLECTION_PREFIX
 
 IMGFILES = ('.jpg', '.jpeg', '.png')
-COLLECTION_PREFIX = 'collection_'
 
 
 def s(i: int):

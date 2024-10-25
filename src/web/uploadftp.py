@@ -16,10 +16,11 @@ import sys
 import time
 from colorama import Fore, Style
 
+from web.webutil import COLLECTION_PREFIX
+
 HOST = 'heathrobinsonmuseum.org'
 USER = 'mike@heathrobinsonmuseum.org'
 PASSWORDFILE = 'etc/passwd'
-COLLECTION_PREFIX = 'collection_'
 VERBOSE = 2
 DRYRUN = False
 IMGFILES = ('.jpg', '.jpeg', '.png')
