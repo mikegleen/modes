@@ -33,7 +33,7 @@ def trace(level, template, *args, color=None):
             print(f'{color}{template.format(*args)}{Style.RESET_ALL}', file=_args.trace)
         else:
             print(template.format(*args), file=_args.trace)
-
+        _args.trace.flush()
 
 def getparser():
     parser = argparse.ArgumentParser(description='''
