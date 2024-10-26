@@ -34,7 +34,7 @@ python src/web/x053_list_pages.py $IMGDIR ${DESTDIR}/${BR}_list.csv
 # Pull the relevant fields from the Modes XML file for the objects in the batch.
 #
 # echo python src/xml2csv.py $MODESFILE $DESTDIR/${BR}_step1.csv -c src/cfg/website.yml --include ../collection/etc/$BR/${BR}_list.csv --heading -b -l results/reports/${BR}_website.log -v 2
-python src/xml2csv.py $MODESFILE $DESTDIR/${BR}_step1.csv -c src/cfg/website.yml --include ${DESTDIR}/${BR}_list.csv --heading -b -l results/reports/${BR}_website.log -v 2
+python src/xml2csv.py $MODESFILE $DESTDIR/${BR}_step1.csv -c src/cfg/website.yml --include ${DESTDIR}/${BR}_list.csv --heading -b -l results/reports/${BR}_website.log -v $VERBOS
 #
 # Modify the CSV file to included new and adjusted columns.
 #
