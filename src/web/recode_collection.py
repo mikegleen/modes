@@ -110,9 +110,11 @@ def onerow(oldrow):
     newrow['Medium'] = oldrow['Medium']
     order = oldrow['Order']
     if not order.isnumeric() or not (1 <= int(order) <= 9):
+        order = '9'
         trace(1, 'Serial = {}, order is not in range 1-9: {}, '
                  '"9" assigned.', newrow['Serial'], order, color=Fore.YELLOW)
-        order = '9'
+    # Append the normalized accession number so that within a priority, images
+    # are displayed in accession number order.
     newrow['Order'] = f'{order}_{n_serial}'
 
     description = clean(oldrow['Description'])
