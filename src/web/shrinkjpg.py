@@ -20,6 +20,7 @@ from colorama import Fore, Style
 from utl.cfgutil import expand_idnum
 from utl.normalize import if_not_sphinx, sphinxify, normalize_id
 from utl.readers import object_reader, row_list_reader
+from web.webutil import parse_prefix
 
 DEFAULT_MAXPIXELS = 1000
 DEFAULT_PPI = 72  # Pixels per inch
@@ -63,11 +64,9 @@ def getparser():
                         default=DEFAULT_MAXPIXELS, help=sphinxify('''
         Maximum number of pixels in either dimension. This parameter is ignored
         if parameter --inxml and/or --incsv is specified and a size value is
-         found.'''
-                         + if_not_sphinx(f''' The
+         found.''' + if_not_sphinx(f''' The
                          default is {DEFAULT_MAXPIXELS} pixels.''',
-                                        calledfromsphinx
-                                        ), calledfromsphinx))
+                                   calledfromsphinx), calledfromsphinx))
     parser.add_argument('--nocolor', action='store_true', help='''
                         Inhibit colorizing the output which makes reading redirected output easier''')
     parser.add_argument('--ppi', type=int, default=DEFAULT_PPI, help='''
@@ -95,13 +94,32 @@ def getargs():
 
 
 def normalize_prefix(prefix: str):
-    prefix = prefix.removeprefix('collection_')
-    prefix = prefix.replace('-', '.')
-    try:
-        nidnum = normalize_id(prefix)
-    except ValueError:
-        nidnum = None
-    return nidnum
+    """
+
+    :param prefix: The leading part of the filename, without the extension, e.g. ".jpg".
+    :return: A tuple of the two possible relevant accession numbers.
+
+    For example, (JB001, JB001.1). This is because if an accession number
+    with a subnumber is extracted from a filename, it may refer to a unique
+    Object element with ID of JB001.1 or it may refer to an Object element of
+    JB001 with an Item subelement of 1. If there is an object with ID JB001.1
+    then there may also be an "object group" Object element with ID JB001.
+    In that case, the object group element will not have measurement information
+    and so we will keep looking at the second ID given in modes_key2.
+    """
+    (accn, subn, subn_ab, page, page_ab, modes_key1,
+     modes_key2) = parse_prefix(prefix)
+
+    # try:
+    #     nidnum1 = normalize_id(modes_key1)
+    # except ValueError:
+    #     nidnum1 = None
+    # try:
+    #     nidnum2 = normalize_id(modes_key2)  # None if modes_key2 is None
+    # except ValueError:
+    #     nidnum2 = None
+
+    return modes_key1, modes_key2
 
 
 def new_hxw(xh, xw, ih, iw) -> (int, int):
@@ -149,26 +167,28 @@ def main():
         with Image.open(filepath) as im:
             img_width, img_height = im.size
             trace(2, 'Image height/width = {}/{}', img_height, img_width)
-        nidnum = normalize_prefix(prefix)
-        trace(2, 'prefix = {}, nidnum = {}', prefix, nidnum)
-        if nidnum in readings:
-            trace(3, 'Normalized id: {}', nidnum)
-            try:
-                xh, xw = readings[nidnum]
-            except KeyError:
-                trace(1, "No find dimensions of filename {}, nidnum: {}",
-                      filename, nidnum, color=Fore.RED)
+        idnums = normalize_prefix(prefix)
+        trace(3, 'prefix = {}, nidnums = {}', prefix, idnums)
+        for idnum in idnums:
+            nidnum = normalize_id(idnum)
+            if nidnum and nidnum in readings:
+                trace(2, 'Normalized id: {}', nidnum)
+                try:
+                    xh, xw = readings[nidnum]
+                except KeyError:
+                    trace(1, "No find dimensions of filename {}, nidnum: {}",
+                          filename, nidnum, color=Fore.RED)
+                    continue
+                newh, neww = new_hxw(xh, xw, img_height, img_width)
+                trace(3, 'XML H,W: {}mm,{}mm Orig img H,W: {}px,{}px', xh, xw, img_height, img_width)
+                if newh == img_height and neww == img_width:
+                    trace(2, 'copying {}', filepath)
+                    if not _args.dryrun:
+                        copy2(filepath, outdir)
+                else:
+                    call_sips(newh, neww, filepath, outdir)
+                nshrunk += 1
                 continue
-            newh, neww = new_hxw(xh, xw, img_height, img_width)
-            trace(3, 'XML H,W: {}mm,{}mm Orig img H,W: {}px,{}px', xh, xw, img_height, img_width)
-            if newh == img_height and neww == img_width:
-                trace(2, 'copying {}', filepath)
-                if not _args.dryrun:
-                    copy2(filepath, outdir)
-            else:
-                call_sips(newh, neww, filepath, outdir)
-            nshrunk += 1
-            continue
         trace(2, "Cannot find measurements, using max {} pixels.", maxpixels)
         if max(img_width, img_height) > maxpixels:
             sipscmd = SIPSCMD.format(maxpixels, filepath, outdir)
