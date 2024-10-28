@@ -5,3 +5,10 @@ prod_update/pretty/2024-10-21_edit_pretty.xml
 	manually add titles of JB1220.1 and .2
 	manuall add dimensions to JB1203.39
 	manually add title of JB1217.6
+
+2024-10-25_merged_batch026_accessions.xml
+    added obituary clippings in JB1213.xx
+    added dimensions to JB1203.xx and JB1213.xx
+    added titles to ephemera
+
+
