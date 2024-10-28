@@ -10,7 +10,7 @@ pushd ~/pyprj/hrm/modes
 # See ZSH documentation section 14.1.4 Modifiers.
 export BATCH=${0:t:r}
 export REVISION=
-export VERBOS=2
-export MODESFILE=prod_update/normal/2024-10-21_edit.xml
+export VERBOS=1
+export MODESFILE=prod_update/normal/2024-10-25_merged_batch026_accessions.xml
 #
 bin/collection/batch_sub.sh

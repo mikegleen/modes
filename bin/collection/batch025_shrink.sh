@@ -19,7 +19,7 @@ LDHRM.2024.24.1-6,90x140
 EOF
 # python src/web/shrinkjpg.py ../collection/candidates_large/batch025_large ../collection/aawebimgs/batch025  --incsv tmp/incsv.csv -v 3 --nocolor
 # python src/web/shrinkjpg.py ../collection/candidates_large/postcards ../collection/aawebimgs/batch025  --incsv tmp/incsv.csv -v 2 --nocolor
-python src/web/shrinkjpg.py ../collection/candidates_large/batch025_large ../collection/aawebimgs/batch025 -i $MODESFILE --incsv tmp/incsv.csv -v $VERBOS -t tmp/trace.txt --dryrun
+python src/web/shrinkjpg.py ../collection/candidates_large/batch025_large ../collection/aawebimgs/batch025 --inxml $MODESFILE --incsv tmp/incsv.csv -v $VERBOS -t tmp/trace.txt --dryrun
 #
 # Handle the Harry Tate picture specially
 #
