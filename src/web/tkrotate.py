@@ -20,7 +20,7 @@ class Rotate:
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
         self.mainframe = ttk.Frame(self.root, padding='3 3 12 12')
-        self.mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+        self.mainframe.grid(column=0, row=0, sticky="nsew")
         self.canvas = Canvas(self.mainframe, width=CANVAS_SIZE,
                              height=CANVAS_SIZE)
         self.canvas.grid()
