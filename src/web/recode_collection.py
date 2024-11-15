@@ -108,6 +108,9 @@ def onerow(oldrow):
     trace(3, 'Serial = {}', newrow['Serial'])
     newrow['Title'] = clean(oldrow['Title'])
     newrow['Medium'] = oldrow['Medium']
+
+    # ------------------------- Order ----------------------------------
+
     order = oldrow['Order']
     if not order.isnumeric() or not (1 <= int(order) <= 9):
         order = '9'
@@ -116,6 +119,8 @@ def onerow(oldrow):
     # Append the normalized accession number so that within a priority, images
     # are displayed in accession number order.
     newrow['Order'] = f'{order}_{n_serial}'
+
+    # ------------------------- Description ------------------------------
 
     description = clean(oldrow['Description'])
     # Append the Production/SummaryText field to the end of the
