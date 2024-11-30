@@ -1,9 +1,22 @@
-cmd: column
-xpath: ./Conservation/Type
+cmd: if
+xpath: ./Description/Condition/Note
 ---
-cmd: column
-xpath: ./Conservation/Person
+cmd: attrib
+xpath: .
+attribute: elementtype
+title: Type
 ---
-cmd: column
-xpath: ./Conservation/Date
+column: Title
+xpath: ./Identification/Title
 ---
+#cmd: column
+#xpath: ./Conservation/Type
+#---
+#cmd: column
+#xpath: ./Conservation/Person
+#---
+#cmd: column
+#xpath: ./Conservation/Date
+#---
+column: Condition
+xpath: ./Description/Condition/Note
