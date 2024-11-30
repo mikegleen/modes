@@ -14,7 +14,7 @@ xpath: ./Association[Type="Adopt a Picture"]/Person
 parent_path: ./Association[Type="Adopt a Picture"]
 value:
 ---
-# Insert the <PersonName> element and text from the CSV file column "Name"
+# Insert the <Name> element and text from the CSV file column "Name"
 # The "person_name:" statement says to convert "Firstname Lastname" to "Lastname, Firstname"
 cmd: column
 xpath: ./Association[Type="Adopt a Picture"]/Person/Name
