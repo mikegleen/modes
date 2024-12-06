@@ -1,0 +1,13 @@
+cmd: if
+xpath: ./Association[Type="Adopt a Picture"]/Person/Name
+title: ifname
+---
+cmd: column
+xpath: ./Association[Type="Adopt a Picture"]/Person/Name
+---
+cmd: column
+xpath: ./Association[Type="Adopt a Picture"]/Date
+---
+column: Dedication
+xpath: ./Association[Type="Adopt a Picture"]/SummaryText/Note
+---

@@ -4,6 +4,7 @@ cmd: constant
 xpath: ./Association[Type="Adopt a Picture"]
 parent_path: .
 title: Association
+#element: Association
 child: Type
 child_value: Adopt a Picture
 value:
@@ -13,13 +14,14 @@ cmd: constant
 xpath: ./Association[Type="Adopt a Picture"]/Person
 parent_path: ./Association[Type="Adopt a Picture"]
 value:
+title: Person_element_group
 ---
 # Insert the <Name> element and text from the CSV file column "Name"
 # The "person_name:" statement says to convert "Firstname Lastname" to "Lastname, Firstname"
 cmd: column
 xpath: ./Association[Type="Adopt a Picture"]/Person/Name
 parent_path: ./Association[Type="Adopt a Picture"]/Person
-title: Name
+title: Person
 person_name:
 ---
 # Create a <SummaryText> element under the <Association> element
