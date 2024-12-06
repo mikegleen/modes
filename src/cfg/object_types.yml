@@ -4,14 +4,14 @@
 cmd: attrib
 xpath: .
 attribute: elementtype
+title: Type
 ---
 cmd: column
 xpath: ./ObjectLocation[@elementtype="current location"]/Location
-title: 'Current Location'
+title: Current Location
 ---
 cmd: column
 xpath: ./Identification/Title
-title: Title
 ---
 cmd: column
 xpath: ./Identification/BriefDescription
