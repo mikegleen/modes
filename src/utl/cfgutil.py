@@ -38,6 +38,10 @@ def red(msg):
     return f'{Fore.RED}{msg}{Style.RESET_ALL}'
 
 
+def yellow(msg):
+    return f'{Fore.YELLOW}{msg}{Style.RESET_ALL}'
+
+
 class Cmd:
     """
     Define the configuration commands. This is the value of the "cmd:" statement.
@@ -333,9 +337,9 @@ def new_subelt(doc, obj, idnum, verbos=1):
     if parent is None:
         trace(1, verbos, 'Cannot find parent of {}, column {}: {}',
               doc[Stmt.XPATH], title, doc[Stmt.PARENT_PATH], color=Fore.YELLOW)
-    elif ' ' in element:
-        trace(1, verbos, 'Cannot create element with embedded spaces: {}',
-              element, color=Fore.YELLOW)
+    # elif ' ' in element:
+    #     trace(1, verbos, 'Cannot create element with embedded spaces: {}',
+    #           element, color=Fore.YELLOW)
     elif insert_after is None:
         newelt = ET.SubElement(parent, element)
     elif insert_after == '':
@@ -707,7 +711,9 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
         if Stmt.PARENT_PATH in document and Stmt.ELEMENT not in document:
             xpath = document[Stmt.XPATH]
             element = xpath.split('/')[-1]  # trailing element name
+            element = element.split('[')[0]
             document[Stmt.ELEMENT] = element
+
         if Stmt.TITLE not in document:
             target = document[Stmt.XPATH]
             # print('target', target)
