@@ -114,6 +114,9 @@ Modes format data is cleaned with any leading zeros removed.
 Output CSV File Formats
 -----------------------
 
+Line Terminators
+++++++++++++++++
+
 In general, the Python CSV software is tolerant of varying input CSV formats.
 However, if the CSV file created by, for example, ``xml2csv.py`` is fed to another
 program, you must be aware of certain details.
@@ -133,6 +136,12 @@ a column to the end of the row is::
 A version of awk, called goawk, is available that silently handles the different
 line endings properly.
 
+Note that ``xml2csv.py`` has a command-line option ``--lineterminator`` that
+allows you to set the line terminator to, for example, ``"\n"``.
+
+Byte Order Mark
++++++++++++++++
+
 A separate issue arises when processing the output CSV file in Excel. The file
 is created in UTF-8 format but by default Excel assumes a different format which
 varies depending on the platform (Windows or MacOs). To avoid this, a Byte Order
@@ -142,6 +151,7 @@ data. This BOM is recognized by most Windows programs but not Unix-like systems.
 So if you are processing the output with a program (other than Excel) on a MacOs
 system, do not include the BOM.
 
+A utility program, ``bin/putbom.sh``, will insert a BOM into an existing file.
 
 .. _Reserved Words:
 

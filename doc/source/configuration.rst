@@ -117,8 +117,19 @@ the ``cmd: global`` document.
    Make this the text of the newly created subelement.
 -  **cmd:**
 
-   Required. See below for a description of the individual
-   commands.
+   Required. But see the **column:** statement for an exception.
+   See below for a description of the individual commands.
+-  **column:**
+
+   This statement is a shortcut for creating two commands::
+
+        column: Date
+
+   will create two statements::
+
+        cmd: column
+        title: Date
+
 -  **column_title:**
 
    Normally, the column title is taken from the **title:** statement, which must be unique.
@@ -141,7 +152,16 @@ the ``cmd: global`` document.
 
    Referenced when processing the **parent_path:** statement for the name
    of the element's tag to be created. If this is omitted the element name will be taken
-   from the **xpath:** statment.
+   from the **xpath:** statment. You should use this, for example, if a parent path
+   includes a selector in square brackets such as::
+
+      xpath: ./Association[Type="Adopt a Picture"]
+
+   In the above example, if the **element:** statement is omitted, one will be
+   created from the **xpath:** statement by removing the selector::
+
+      element: Association
+
 - **if_other_column:**
 
    Used by ``csv2xml.py``. Process this column if one of the values in the
@@ -197,7 +217,7 @@ the ``cmd: global`` document.
    "last, first" or "first last". The name will be converted to the
    "last, first" form. Used by ``csv2xml.py`` and ``update_from_csv.py``.
    Restriction: This will not work for a name with a suffix like "Joseph Biden Jr.".
--  **required**
+-  **required:**
 
    If specified then issue an error message and discard the row if
    this field is missing or empty. Valid only with a control
@@ -342,11 +362,11 @@ the elements in the XML document to a corresponding column in the associated CSV
 Data-related Commands
 +++++++++++++++++++++
 
--  **attrib**
+-  **cmd: attrib**
 
    Like **column** except displays the value of the attribute
    named in the **attribute:** statement.
--  **column**
+-  **cmd: column**
 
    This is the basic command to display or update the text of an
    element. When inserting into an XML field, you can control various features.
@@ -358,36 +378,36 @@ Data-related Commands
 
    You must specify a title explicitly with the **title:** statement or implicitly
    with the ``xpath`` statement.
--  **constant**
+-  **cmd: constant**
 
    For ``csv2xml.py`` and ``update_from_csv.py``, create an element
    from the **value:** statement of this document without reference to the CSV file.
    You may also use **constant** in ``xml2csv.py`` but you must include an **xpath:**
    statement with a value that is used for the heading if no **title:** statement
    is specified. The value is inserted unconditionally into the xpath’s text.
--  **count**
+-  **cmd: count**
 
    Displays the number of occurrences of an element under its
    parent.
--  **delete**
+-  **cmd: delete**
 
    For ``update_from_csv.py``. Delete the first element specified by the
    **xpath** statement. If the **delete** command is
    specified, only the **xpath:** statement is allowed.
--  **delete_all**
+-  **cmd: delete_all**
 
    Like **delete** except all occurrences of the element are deleted.
--  **items**
+-  **cmd: items**
    Used by ``csv2xml.py`` to create *Item* elements for the multiple
    text strings delimited by the delimiter specified by the **multiple_delimiter:**
    statement.
--  **keyword**
+-  **cmd: keyword**
 
    Used by ``xml2csv.py`` Find the element specified by the xpath statement
    whose text equals the text in the **value** statement and then return the
    first *Keyword* sub-element's text. This for the special (and deprecated) case where
    an element contains both text and subelements.
--  **multiple**
+-  **cmd: multiple**
 
    Used by ``xml2csv.py``. Like the **column** command except it produces a
    delimiter-separated list of values. See the optional **multiple_delimiter:** statement.
@@ -411,23 +431,23 @@ the tests must succeed for a record to be selected. Note that tests are
 case insensitive unless a **case_sensitive** statement is specified in the
 control command document.
 
--  **global**
+-  **cmd: global**
 
    This document contains statements that affect the
    overall processing, not just a specific column. See the section above *Global-command
    Statements*.
--  **if**
+-  **cmd: if**
 
    Selects an object to display if the element text is populated.
--  **ifnot**
+-  **cmd: ifnot**
 
    Selects an object to display if the element doesn’t exist or the
    text is not populated.
--  **ifattrib**
+-  **cmd: ifattrib**
 
    Selects an object if the attribute is present and the value is
    populated. Requires an **attribute:** statement.
--  **ifattribeq**
+-  **cmd: ifattribeq**
 
    Like **ifeq** except compares the value against an
    attribute. Example::
@@ -439,39 +459,39 @@ control command document.
        ---
 
    This examines the ``elementtype`` attribute on the *Object* element.
--  **ifattribnoteq**
+-  **cmd: ifattribnoteq**
 
    Like **ifnoteq** except compares the value against an
    attribute.
--  **ifcontains**
+-  **cmd: ifcontains**
 
    Select an object if the value in the **value:**
    statement is contained in the element text.
--  **ifelt**
+-  **cmd: ifelt**
 
    Select an object if the element exists, even if the text is empty.
    If the **required:** statement is included, a warning message is issued.
--  **ifnotelt**
+-  **cmd: ifnotelt**
 
    Select an object if the element doesn’t exist.
--  **ifeq**
+-  **cmd: ifeq**
 
    Select an object if the element text equals the **value:**
    statement text. Returns false if the element doesn’t exist.
--  **ifnoteq**
+-  **cmd: ifnoteq**
 
    Select an object if the element text does not equal the
    **value:** statement text.
--  **ifanyeq**
+-  **cmd: ifanyeq**
 
    This is for elements that can occur more than once but is otherwise like
    **ifeq**.
--  **ifnotanyeq**
+-  **cmd: ifnotanyeq**
 
    This is for elements that can occur more than once but is otherwise like
    **ifnoteq**. The object is selected if none of the instances of this element
    equals the contents of the **value:** statement.
--  **ifexhib**
+-  **cmd: ifexhib**
 
    A special purpose command that selects an object if it was displayed at a
    particular exhibition. The exhibition number (from ``exhibition_list.py``)
@@ -489,11 +509,11 @@ control command document.
          </Date>
       </Exhibition>
 
-- **ifnoexhib**
+- **cmd: ifnoexhib**
 
    Select objects that have never been exhibited. No **xpath:** or other statement
    is required. This assumes the normal format as described above.
--  **ifcolumneq**
+-  **cmd: ifcolumneq**
 
    Used in ``csv2xml.py``. Process this row in the CSV file if the value in the
    column named in this document’s **title** statement is equal the value named
@@ -502,7 +522,7 @@ control command document.
 The **global** Command
 ++++++++++++++++++++++
 
--  **global**
+-  **cmd: global**
 
    This document contains statements that affect the
    overall processing, not just a specific column. See the section above *Global-command
