@@ -64,8 +64,8 @@ def getparser():
                         default=DEFAULT_MAXPIXELS, help=sphinxify('''
         Maximum number of pixels in either dimension. This parameter is ignored
         if parameter --inxml and/or --incsv is specified and a size value is
-         found.''' + if_not_sphinx(f''' The
-                         default is {DEFAULT_MAXPIXELS} pixels.''',
+        found.''' + if_not_sphinx(f'''
+        The default is {DEFAULT_MAXPIXELS} pixels.''',
                                    calledfromsphinx), calledfromsphinx))
     parser.add_argument('--nocolor', action='store_true', help='''
                         Inhibit colorizing the output which makes reading redirected output easier''')
@@ -74,7 +74,8 @@ def getparser():
         the dimensions of the object is found.'''
                         + if_not_sphinx(f''' The default is {DEFAULT_PPI}.''', calledfromsphinx))
     parser.add_argument('-t', '--trace', type=argparse.FileType('w'),
-                        default=sys.stdout, help=sphinxify('''File to write trace
+                        default=sys.stdout, help=sphinxify('''
+                        File to write trace
                         output to, to avoid confusion with output from sips. Implies --nocolor. 
                         Use this to avoid mixing output from sips with debug output.''', calledfromsphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
