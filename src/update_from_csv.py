@@ -415,7 +415,9 @@ def main():
         if updated and _args.short:
             break
     outfile.write(b'</Interchange>\n')
-    if cfg.subid_parent is None:
+    # if it's not subid mode and we're not debugging, then trace the serial
+    # numbers in the CSV file that did not result in XML updates.
+    if cfg.subid_parent is None and not _args.short:
         for nidnum in newvals:
             trace(1, 'In CSV but not XML: "{}"', denormalize_id(nidnum))
 
