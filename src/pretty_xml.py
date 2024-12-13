@@ -2,6 +2,9 @@
 """
 For an XML file in a pre-defined location, create a pretty version in a
 subfolder named "pretty" with "pretty" embedded in the filename.
+
+If an output file is named explicitly, bypass the default behavior and use the
+input and output file paths given.
 """
 
 import argparse
@@ -22,6 +25,8 @@ def getfiles():
     :return: A tuple of the input file and output file. If necessary, create
     the output subdirectory "pretty".
     """
+    if _args.outfile:
+        return open(_args.infile), open(_args.outfile, 'wb')
     os.makedirs(PRETTYDIR, exist_ok=True)
     filename: str = _args.infile
     inputfile = open(os.path.join(INDIR, filename))
@@ -90,6 +95,10 @@ def getargs():
         The input XML file is assumed to be in {INDIR}. The output directory
         will be {PRETTYDIR}. The output file will have "pretty" inserted after
         the leading date.''')
+    parser.add_argument('-o', '--outfile', help=f'''
+        Specify the output pretty file. If this is not specified, the default
+        behavior of creating a subdirectory named 'pretty' will be done.
+    ''')
     parser.add_argument('-e', '--input_encoding', default=None, help='''
         Set the input encoding. The encoding defaults to UTF-8. If set, you
         must also set --output_encoding.
