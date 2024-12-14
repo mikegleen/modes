@@ -3,10 +3,7 @@
 Utility for handling object location updating and checking.
 
 There are three location types recorded in the XML database, the normal,
-current, and previous locations. There may be multiple previous locations. The
-input CSV file (the "map" file) only applies to one of these location types. So
-if you need to update multiple types, you must prepare separate input CSV files
-and run this program more than once.
+current, and previous locations. There may be multiple previous locations.
 
 Exception: When updating a current location, a previous location element is
 created (unless the ``--patch`` option is selected).
@@ -22,7 +19,7 @@ import sys
 import xml.etree.ElementTree as ET
 import utl.normalize as nd
 from utl.cfgutil import expand_idnum
-from utl.excel_cols import col2num
+from utl.readers import row_dict_reader
 
 NORMAL_LOCATION = 'normal location'
 CURRENT_LOCATION = 'current location'
@@ -33,7 +30,7 @@ verbose = 1  # overwritten by _args.verbose; set here for unittest
 
 
 def trace(level, template, *args, color=None):
-    if _args.verbose >= level:
+    if verbose >= level:
         if color:
             print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
         else:
@@ -51,60 +48,48 @@ def loadcsv():
     location_dict, reason_dict = {}, {}
     if _args.subp == 'validate':
         return location_dict, reason_dict
-    # --location and --heading are mutually exclusive
     loc_arg = _args.location
-    need_heading = bool(_args.heading)
-    with codecs.open(_args.mapfile, encoding='utf-8-sig') as mapfile:
-        reader = csv.reader(mapfile)
-        for n in range(_args.skiprows):
-            next(reader)
-        for row in reader:
-            rownum += 1
-            if len(row) == 0:
-                trace(2, 'Skipping empty row {}: {}', rownum, row)
-                continue
-            trace(3, 'row {}: {}', rownum, row, color=Fore.YELLOW)
-            if need_heading:
-                if (row[_args.col_loc].strip().lower()
-                   != _args.heading.lower()):
-                    trace(0, 'Fatal error: Failed heading check. '
-                          '{} is not {}.',
-                          row[_args.col_loc].lower(), _args.heading.lower(),
-                          color=Fore.RED)
-                    sys.exit(1)
-                need_heading = False
-                continue
-            objid = row[_args.col_acc].strip().upper()
-            if not objid:
-                if ''.join(row):
-                    trace(2, 'Skipping row with blank accession id: {}', row)
-                continue
-            objidlist = expand_idnum(objid)
-            reason = ''
-            if is_update:
-                if _args.reason:
-                    reason = _args.reason
-                elif _args.col_reason:
-                    try:
-                        reason = row[_args.col_reason]
-                    except IndexError:
-                        pass
-            location = loc_arg if loc_arg else row[_args.col_loc].strip()
-            for ob in objidlist:
+    # with codecs.open(_args.mapfile, encoding='utf-8-sig') as mapfile:
+    reader = row_dict_reader(_args.mapfile, _args.verbose, _args.skiprows)
+    for n in range(_args.skiprows):
+        next(reader)
+    for row in reader:
+        rownum += 1
+        if len(row) == 0:
+            trace(2, 'Skipping empty row {}: {}', rownum, row)
+            continue
+        trace(3, 'row {}: {}', rownum, row, color=Fore.YELLOW)
+        objid = row[_args.col_acc].strip().upper()
+        if not objid:
+            if ''.join(row):
+                trace(2, 'Skipping row with blank accession id: {}', row)
+            continue
+        objidlist = expand_idnum(objid)
+        reason = ''
+        if is_update:
+            if _args.reason:
+                reason = _args.reason
+            elif _args.col_reason:
                 try:
-                    nobjid = nd.normalize_id(ob)
-                except ValueError:
-                    continue  # normalize_id printed an error msg
-                if not nobjid:
-                    print(f'Warning: Blank object ID row {rownum}: {row}')
-                    continue  # blank number
-                if nobjid in location_dict:
-                    print(f'Fatal error: Duplicate object ID row {rownum}: '
-                          f'{row}.')
-                    sys.exit(1)
-                location_dict[nobjid] = location
-                reason_dict[nobjid] = reason
-                rows[nobjid] = row
+                    reason = row[_args.col_reason]
+                except IndexError:
+                    pass
+        location = loc_arg if loc_arg else row[_args.col_loc].strip()
+        for ob in objidlist:
+            try:
+                nobjid = nd.normalize_id(ob)
+            except ValueError:
+                continue  # normalize_id printed an error msg
+            if not nobjid:
+                print(f'Warning: Blank object ID row {rownum}: {row}')
+                continue  # blank number
+            if nobjid in location_dict:
+                print(f'Fatal error: Duplicate object ID row {rownum}: '
+                      f'{row}.')
+                sys.exit(1)
+            location_dict[nobjid] = location
+            reason_dict[nobjid] = reason
+            rows[nobjid] = row
     return location_dict, reason_dict, rows
 
 
@@ -534,7 +519,6 @@ def add_arguments(parser, command):
     # reason_group: --col_reason or --reason
     reason_group = None
     # map_group: --mapfile or --object
-    # heading_group: --heading or --location
     # diff_group: --current or --normal
     diff_group = None  # only if diff command
     # patch_group: --col_patch or --patch
@@ -555,18 +539,19 @@ def add_arguments(parser, command):
         objects. In either case warn if an object in the CSV file is not in the
         input XML file.''')
     if is_update or is_diff:
-        parser.add_argument('--col_acc', type=str, default='0', help='''
-        The zero-based column containing the accession number of the
-        object to be updated. The default is column zero, the first column. The
-        column can be a number or a spreadsheet-style letter.
+        parser.add_argument('--col_acc', type=str, default='Serial', help='''
+        The heading of the column containing the accession number of the
+        object to be updated. The default is "Serial".
         ''')
-        parser.add_argument('--col_loc', type=str, default='1',
+        # noinspection PyPep8
+        parser.add_argument('--col_loc', type=str, default='Location',
                             help=nd.sphinxify('''
-        The zero-based column containing the new location of the
-        object to be updated. The default is column 1. See the --location
+        The heading of the column containing the new location of the
+        object to be updated. See the --location
         option which sets the location for all objects in which case this
-        option is ignored. The column can be a
-        number or a spreadsheet-style letter.''', called_from_sphinx))
+        option is ignored.''' +
+              nd.if_not_sphinx(''' The default is Location.''',
+                               called_from_sphinx), called_from_sphinx))
     if is_update:
         parser.add_argument('--col_loc_type', help=nd.sphinxify('''
         Set this column in the CSV file to ``c``, ``n``, or ``cn`` indicating
@@ -591,7 +576,8 @@ def add_arguments(parser, command):
         parser.add_argument('-c', '--current', action='store_true',
                             help=nd.sphinxify('''
         Update the current location and change the old current location to a
-        previous location. See the descrption of "-n" and "-p". Do not specify
+        previous location. You may also specify ``-n`` to update the normal
+        location. See the descrption of ``-n`` and ``-p`` Do not specify
         this and --col_loc_type.''',
                                               called_from_sphinx))
     if is_diff:
@@ -636,30 +622,23 @@ def add_arguments(parser, command):
         An illegal accession number format will be skipped instead of causing
         a fatal error.
         ''')
-    heading_group = parser.add_mutually_exclusive_group()
-    heading_group.add_argument('--heading', help=nd.sphinxify('''
-        The first row of the map file contains a column title which must match
-        this
-        parameter (case insensitive) in the column designated for the location.
-        Do not specify this and --location.
-        ''', called_from_sphinx))
     if is_update or is_diff or is_select:
         map_group = parser.add_mutually_exclusive_group(required=True)
         map_group.add_argument('-j', '--object', help=nd.sphinxify('''
         Specify a single object to be processed. If specified, do not specify
-        the CSV file containing object numbers and locations (--mapfile). You
+        --mapfile, the CSV file containing object numbers and locations. You
         must also specify --location.
         ''', called_from_sphinx))
-        heading_group.add_argument('-l', '--location', help=nd.sphinxify('''
+        parser.add_argument('-l', '--location', help=nd.sphinxify('''
         Set the location for all of the objects in the CSV file. In this 
         case the CSV file only needs a single column containing the 
-        accession number. Do not specify this and --heading.
+        accession number.
         ''', called_from_sphinx))
         map_group.add_argument('-m', '--mapfile', help=nd.sphinxify('''
             The CSV file mapping the object number to its new location. By
-            default, the accession number is in the first column (column 0) but 
+            default, the accession number is in the column with header "Serial" but 
             this can be changed by the --col_acc option. The new location is by
-            default in the second column (column 1) but can be changed by the
+            default in the column with header "Location" but can be changed by the
             --col_loc option. This  argument is ignored if --object is
             specified.
             ''', called_from_sphinx))
@@ -671,7 +650,8 @@ def add_arguments(parser, command):
             you may not select --normal or --previous''', called_from_sphinx))
         parser.add_argument('-n', '--normal', action='store_true',
                             help=nd.sphinxify('''
-            Update the normal location. See the description for "-c" and "-p".
+            Update the normal location. You may also specify ``-c`` to update
+            the current location.  See the description for ``-c`` and ``-p``.
             Do not specify this and --col_loc_type.''', called_from_sphinx))
     if is_diff:
         diff_group.add_argument('-n', '--normal', action='store_true', help='''
@@ -755,14 +735,7 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
-    if is_update or is_diff:
-        args.col_acc = col2num(args.col_acc)
-        args.col_loc = col2num(args.col_loc)
     if is_update:
-        args.col_reason = col2num(args.col_reason)
-        args.col_loc_type = col2num(args.col_loc_type)
-        if args.col_patch is not None:
-            args.col_patch = col2num(args.col_patch)
         if args.col_loc_type:
             if args.current or args.normal:
                 trace(0, 'You may not specify both --col_loc_type and -c or -n.',
