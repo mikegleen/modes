@@ -30,7 +30,6 @@ NEW_TO_OLD_MAP = {'Pages': 'Multiple Images',
                   'Person To': 'To'}
 
 
-
 def onefile(filename):
     is_xlsx = filename.lower().endswith('.xlsx')
     outpath = os.path.join(_args.outdir, filename)
@@ -50,7 +49,7 @@ def onefile(filename):
     infilepath = os.path.join(_args.indir, filename)
     row_num = 1
     for inrow in row_dict_reader(infilepath, _args.verbose,
-                                 _args.skip_rows):
+                                 _args.skiprows):
         row_num += 1
         outrow = []
         for col_num, col in enumerate(NEWCOLS, start=1):
@@ -109,7 +108,7 @@ def getparser():
         ''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
-    parser.add_argument('--skip_rows', type=int, default=0, help='''
+    parser.add_argument('--skiprows', type=int, default=0, help='''
         Skip rows at the beginning of the input file. In the output file,
         the heading will start at the first row.''')
     return parser

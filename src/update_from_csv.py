@@ -491,7 +491,7 @@ def getparser():
                                                          called_from_sphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
-    parser.add_argument('--skip_rows', type=int, default=0, help=sphinxify('''
+    parser.add_argument('--skiprows', type=int, default=0, help=sphinxify('''
         Skip rows at the beginning of the CSV file specified by --mapfile.
         ''', called_from_sphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -564,7 +564,7 @@ if __name__ == '__main__':
         trace(1, 'update_from_csv aborting due to config error(s).',
               color=Fore.RED)
         sys.exit(1)
-    csvreader = row_dict_reader(_args.mapfile, _args.verbose, _args.skip_rows)
+    csvreader = row_dict_reader(_args.mapfile, _args.verbose, _args.skiprows)
     if cfg.subid_parent is not None:
         newvals, subvals = loadsubidvals(csvreader, allow_blanks=_args.allow_blanks)
     else:

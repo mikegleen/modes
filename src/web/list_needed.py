@@ -47,7 +47,7 @@ def getparser():
         accession number will include the subnumber with leading zeroes removed.''')
     parser.add_argument('-o', '--outfile', help='''
         Output file. Default is sys.stdout''')
-    parser.add_argument('-s', '--skip_rows', type=int, default=0, help='''
+    parser.add_argument('-s', '--skiprows', type=int, default=0, help='''
         Skip rows at the beginning of the CSV file.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
@@ -143,7 +143,7 @@ def build_candidate_set(valid_idnums):
             add_one_id(c)
     else:
         # row_list_reader will skip the header row after any skipped.
-        reader = row_list_reader(_args.candidatefile, skiprows=_args.skip_rows)
+        reader = row_list_reader(_args.candidatefile, skiprows=_args.skiprows)
         col_acc = _args.col_acc
         for row in reader:
             idnum = row[col_acc]

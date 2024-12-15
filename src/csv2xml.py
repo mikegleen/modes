@@ -187,7 +187,7 @@ def main():
         ifcolumneq_title = ifcolumneq_doc[Stmt.TITLE]
         ifcolumneq_value = ifcolumneq_doc[Stmt.VALUE]
     for row in row_dict_reader(_args.incsvfile, _args.verbose,
-                               _args.skip_rows):
+                               _args.skiprows):
         if ifcolumneq_doc:
             if row[ifcolumneq_title] != ifcolumneq_value:
                 trace(2, 'skipping {} row: {}',
@@ -295,7 +295,7 @@ def getparser():
         ''')
     parser.add_argument('-i', '--incsvfile', required=True, help=sphinxify('''
         The file containing data to be inserted into the XML template.
-        The file must have a heading, but see option --skip_rows.
+        The file must have a heading, but see option --skiprows.
         The heading of the column containing the serial number must be
         ``Serial`` or an alternative set by --serial parameter. Subsequent
         columns must match the corresponding title in the configuration file.
@@ -327,7 +327,7 @@ def getparser():
                                        calledfromsphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
-    parser.add_argument('--skip_rows', type=int, default=0, help='''
+    parser.add_argument('--skiprows', type=int, default=0, help='''
         Skip rows at the beginning of the CSV file.''')
     parser.add_argument('-t', '--template', help=sphinxify('''
         The XML file that is the template for creating the output XML.

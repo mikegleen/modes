@@ -115,7 +115,7 @@ def get_filterset():
     :return: A set of normalized accession numbers of letters.
     """
     filterset = set()
-    csvreader = row_dict_reader(_args.filter, _args.verbose, _args.skip_rows)
+    csvreader = row_dict_reader(_args.filter, _args.verbose, _args.skiprows)
     typefilter = _args.filter
     for row in csvreader:
         if row['Type'] == typefilter:
@@ -133,7 +133,7 @@ def getparser():
         Output folder containing merged PDF files''')
     parser.add_argument('-f', '--filter', help='''
         spreadsheet containing Serial and Type columns. ''')
-    parser.add_argument('--skip_rows', type=int, default=0, help=sphinxify('''
+    parser.add_argument('--skiprows', type=int, default=0, help=sphinxify('''
         Skip rows at the beginning of the CSV file specified by --filter.
         ''', called_from_sphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
