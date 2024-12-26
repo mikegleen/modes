@@ -9,8 +9,6 @@ Exception: When updating a current location, a previous location element is
 created (unless the ``--patch`` option is selected).
 """
 import argparse
-import codecs
-import csv
 import time
 from colorama import Fore, Style
 from datetime import date
@@ -25,6 +23,10 @@ NORMAL_LOCATION = 'normal location'
 CURRENT_LOCATION = 'current location'
 PREVIOUS_LOCATION = 'previous location'
 ELEMENTTYPE = 'elementtype'
+#
+# FORCE_PATCH was implemented because the museum's policy briefly changed to
+# never create previous locations. This has now been changed to create previous
+# locations as normal.
 FORCE_PATCH = False  # Set True to inhibit creating previous locations.
 verbose = 1  # overwritten by _args.verbose; set here for unittest
 
@@ -61,7 +63,7 @@ def loadcsv():
         trace(3, 'row {}: {}', rownum, row, color=Fore.YELLOW)
         objid = row[_args.col_acc].strip().upper()
         if not objid:
-            if ''.join(row):
+            if ''.join(row):  # if there is anything else on the line
                 trace(2, 'Skipping row with blank accession id: {}', row)
             continue
         objidlist = expand_idnum(objid)
@@ -137,10 +139,13 @@ def validate_locations(idnum, elem, strict=True):
     """
     numnormal = numcurrent = 0
     objlocs = elem.findall('./ObjectLocation')
+    #
+    # locationdates will contain tuples of Date objects of (begindate, enddate)
+    #
     locationdates = []
     for ol in objlocs:
-        datebegin = ol.find('./Date/DateBegin')
-        dateend = ol.find('./Date/DateEnd')
+        datebeginelt = ol.find('./Date/DateBegin')
+        dateendelt = ol.find('./Date/DateEnd')
         loctype = ol.get(ELEMENTTYPE)
         if loctype == NORMAL_LOCATION:
             numnormal += 1
@@ -155,41 +160,41 @@ def validate_locations(idnum, elem, strict=True):
             if not loc.text:
                 return True
             numcurrent += 1
-            if datebegin is None or datebegin.text is None:
+            if datebeginelt is None or datebeginelt.text is None:
                 trace(1, 'E01 {}: No DateBegin for current location', idnum)
                 return False
             try:
-                datebegindate, _ = nd.datefrommodes(datebegin.text)
+                datebegindate, _ = nd.datefrommodes(datebeginelt.text)
             except (ValueError, TypeError):
                 trace(1,
                       'E02 {}: Invalid DateBegin for current location: "{}".',
-                      idnum, datebegin.text)
+                      idnum, datebeginelt.text)
                 return False
-            if dateend is not None and dateend.text is not None:
+            if dateendelt is not None and dateendelt.text:
                 trace(1,
                       'E03 {}: DateEnd not allowed for current location: "{}".',
-                      idnum, dateend.text)
+                      idnum, dateendelt.text)
                 return False
             # None indicates this is current:
             locationdates.append((datebegindate, None))
         elif loctype == PREVIOUS_LOCATION:
             try:
-                datebegindate, _ = nd.datefrommodes(datebegin.text)
+                datebegindate, _ = nd.datefrommodes(datebeginelt.text)
             except (ValueError, TypeError):
                 trace(1,
                       'E04 {}: Invalid DateBegin for previous location: "{}".',
-                      idnum, datebegin.text)
+                      idnum, datebeginelt.text)
                 return False
-            if dateend is None or dateend.text is None:
+            if dateendelt is None or not dateendelt.text:
                 trace(1, 'E05 {}: Missing DateEnd for previous location.',
                       idnum)
                 return False
             try:
-                dateenddate, _ = nd.datefrommodes(dateend.text)
+                dateenddate, _ = nd.datefrommodes(dateendelt.text)
             except (ValueError, TypeError):
                 trace(1,
                       'E06 {}: Invalid DateEnd for previous location: "{}".',
-                      idnum, dateend.text)
+                      idnum, dateendelt.text)
                 return False
             locationdates.append((datebegindate, dateenddate))
         else:
@@ -271,43 +276,62 @@ def update_current_location(elem, idnum):
     change the current location into a previous location and insert a new
     current location element.
 
-    If --reset_current is set, delete all existing previous location elements.
-
     We've called validate_locations() so there is no need to test return
     values from function calls.
 
     """
+    nidnum = nd.normalize_id(idnum)
 
     # Find the current location
     ol = elem.find('./ObjectLocation[@elementtype="current location"]')
 
-    # If the location hasn't changed, do nothing.
     locationelt = ol.find('./Location')
-    if locationelt.text is not None:
-        oldlocation = locationelt.text.strip().upper()
-        oldlocationtext = locationelt.text
-    else:
-        oldlocation = oldlocationtext = None
-    nidnum = nd.normalize_id(idnum)
+    datebeginelt = ol.find('./Date/DateBegin')
+
+    oldlocation_upper = locationelt.text.strip().upper()
     if _args.move_to_normal:
         nl = elem.find('./ObjectLocation[@elementtype="normal location"]')
         newlocationelt = nl.find('./Location')
         newlocationtext = newlocationelt.text.strip().upper()
     else:
-        newlocationtext = _args.location if _args.location else newlocs[nidnum]
+        newlocationtext = newlocs[nidnum] if newlocs[nidnum] else _args.location
 
+    #
     # If the current location is empty, just insert the new location without
     # creating a previous location.
-    if not oldlocation:
+    #
+    if not oldlocation_upper:
         trace(2, 'Inserting location into empty current location: {}: {}',
               idnum, newlocationtext)
         locationelt.text = newlocationtext
         datebegin = ol.find('./Date/DateBegin')
         datebegin.text = _args.date
         return True
-    if oldlocation == newlocationtext.upper():
-        trace(2, 'Unchanged: {}: {}', idnum, oldlocation)
+    #
+    # If a location has a valid date, make sure that it's older than the new
+    # one we are creating.
+    #
+    oldlocdatetext = datebeginelt.text
+    try:
+        oldlocdate, _ = nd.datefrommodes(oldlocdatetext)
+    except ValueError:
+        oldlocdate = None
+    if oldlocdate and new_loc_date < oldlocdate:
         if _args.force:
+            trace(1, '{}: Warning: New date is older than existing date ({})',
+                  idnum, oldlocdatetext, color=Fore.YELLOW)
+        else:
+            trace(1, '{}: Fatal: New date is older than existing date ({})',
+                  idnum, oldlocdatetext, color=Fore.RED)
+            sys.exit(1)
+    #
+    # If the location hasn't changed, do nothing unless --force is set.
+    #
+    if oldlocation_upper == newlocationtext.upper():
+        trace(2, 'Unchanged: {}: {}', idnum, locationelt.text)
+        if _args.force:
+            datebegin = ol.find('./Date/DateBegin')
+            datebegin.text = _args.date
             return True
         else:
             return False
@@ -323,29 +347,27 @@ def update_current_location(elem, idnum):
             pass  # False if the line is short
 
     if must_patch:
-        datebegin = ol.find('./Date/DateBegin')
-        oldlocation = ol.find('./Location')
-        datebegin.text = _args.date
-        oldlocationtext = oldlocation.text
-        oldlocation.text = newlocationtext
-        oldreason = ol.find('./Reason')
+        datebeginelt.text = _args.date
+        oldlocationtext = locationelt.text
+        locationelt.text = newlocationtext
+        reasonelt = ol.find('./Reason')
         reasontext = _args.reason if _args.reason else ''
         if newreasons[nidnum]:
             # The specific reason overrides the general one from the cmd line.
             reasontext = newreasons[nidnum]
         # Add the reason text "Patched" unless patching because of FORCEDPATCH
-        if _args.patch:
+        if not FORCE_PATCH:
             if reasontext:
                 reasontext += ' (Patched)'
             else:
                 reasontext = 'Patched'
-        if oldreason is not None:
-            if reasontext:
-                oldreason.text = reasontext
-            else:
-                ol.remove(oldreason)
-        elif reasontext:
-            ET.SubElement(ol, 'Reason').text = reasontext
+        if reasonelt is None and reasontext:
+            reasonelt = ET.SubElement(ol, 'Reason')
+        if reasontext:
+            reasonelt.text = reasontext
+        elif reasonelt is not None:
+            # There may have been a previous reason but that is now obsolete.
+            ol.remove(reasonelt)
 
         trace(2, '{}: Patched current location {} -> {}', idnum,
               oldlocationtext, newlocationtext)
@@ -362,7 +384,7 @@ def update_current_location(elem, idnum):
 
     # Find the current location's index
     subelts = list(elem)
-    clix = 0  # index of the current location
+    clix = 0  # index of the current location element
     for elt in subelts:
         clix += 1
         if (elt.tag == 'ObjectLocation'
@@ -382,7 +404,7 @@ def update_current_location(elem, idnum):
     # now a previous location.
     elem.insert(clix - 1, newobjloc)
 
-    trace(2, '{}: Updated current location: {} -> {}', idnum, oldlocationtext,
+    trace(2, '{}: Updated current location: {} -> {}', idnum, locationelt.text,
           newlocationtext)
     return True
 
@@ -429,8 +451,7 @@ def loc_types(idnum, nidnum, args, rows):
             case 'N':
                 normal = True
             case _:
-                e = (f'Illegal location type for {idnum}:'
-                     f' "{c}"')
+                e = f'Illegal location type in CSV file for {idnum}: "{c}"'
                 raise ValueError(e)
     return current, normal, None
 
@@ -543,21 +564,19 @@ def add_arguments(parser, command):
         The heading of the column containing the accession number of the
         object to be updated. The default is "Serial".
         ''')
-        # noinspection PyPep8
+        defloc = nd.if_not_sphinx(''' The default is Location.''',
+                                  called_from_sphinx)
         parser.add_argument('--col_loc', type=str, default='Location',
                             help=nd.sphinxify('''
         The heading of the column containing the new location of the
         object to be updated. See the --location
-        option which sets the location for all objects in which case this
-        option is ignored.''' +
-              nd.if_not_sphinx(''' The default is Location.''',
-                               called_from_sphinx), called_from_sphinx))
+        option which sets the default location for all objects being updated if
+        the cell in the CSV file is not populated.''' + defloc, called_from_sphinx))
     if is_update:
         parser.add_argument('--col_loc_type', help=nd.sphinxify('''
         Set this column in the CSV file to ``c``, ``n``, or ``cn`` indicating
         that the current, normal, or both, respectively, should be updated.
-        If this is set, do not set the -c or -n or -p argument. The column can
-        be a number or a spreadsheet-style letter.
+        If this is set, do not set the -c or -n or -p argument.
         ''', called_from_sphinx))
         patch_group = parser.add_mutually_exclusive_group()
         patch_group.add_argument('--col_patch', help=nd.sphinxify('''
@@ -621,18 +640,23 @@ def add_arguments(parser, command):
         
         An illegal accession number format will be skipped instead of causing
         a fatal error.
+        
+        If a new date to be applied to a current location is older than the
+        existing date, the date will be applied instead of causing a fatal error.
         ''')
     if is_update or is_diff or is_select:
         map_group = parser.add_mutually_exclusive_group(required=True)
         map_group.add_argument('-j', '--object', help=nd.sphinxify('''
         Specify a single object to be processed. If specified, do not specify
-        --mapfile, the CSV file containing object numbers and locations. You
+        --mapfile, the CSV file containing object numbers and locations.
+        The object specified can be a range of objects. You
         must also specify --location.
         ''', called_from_sphinx))
         parser.add_argument('-l', '--location', help=nd.sphinxify('''
         Set the location for all of the objects in the CSV file. In this 
         case the CSV file only needs a single column containing the 
-        accession number.
+        accession number. If --col_loc is also specified, this location will
+        be used if that cell is not populated.
         ''', called_from_sphinx))
         map_group.add_argument('-m', '--mapfile', help=nd.sphinxify('''
             The CSV file mapping the object number to its new location. By
@@ -772,6 +796,7 @@ if __name__ == '__main__':
     is_validate = sys.argv[1] == 'validate'
     _args = getargs(sys.argv)
     verbose = _args.verbose
+    new_loc_date, _ = nd.datefrommodes(_args.date)
     trace(1, 'Begin location {}.', _args.subp,
           color=Fore.GREEN)
     if is_update and _args.object:
