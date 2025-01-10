@@ -287,8 +287,9 @@ def update_current_location(elem, idnum):
 
     locationelt = ol.find('./Location')
     datebeginelt = ol.find('./Date/DateBegin')
-
-    oldlocation_upper = locationelt.text.strip().upper()
+    if locationelt is None or datebeginelt is None:
+        trace(1, '{}: Location or DateBegin subelt missing', idnum, color=Fore.RED)
+        return False
     if _args.move_to_normal:
         nl = elem.find('./ObjectLocation[@elementtype="normal location"]')
         newlocationelt = nl.find('./Location')
@@ -300,6 +301,7 @@ def update_current_location(elem, idnum):
     # If the current location is empty, just insert the new location without
     # creating a previous location.
     #
+    oldlocation_upper = locationelt.text.strip().upper()
     if not oldlocation_upper:
         trace(2, 'Inserting location into empty current location: {}: {}',
               idnum, newlocationtext)
@@ -318,8 +320,9 @@ def update_current_location(elem, idnum):
         oldlocdate = None
     if oldlocdate and new_loc_date < oldlocdate:
         if _args.force:
-            trace(1, '{}: Warning: New date is older than existing date ({})',
-                  idnum, oldlocdatetext, color=Fore.YELLOW)
+            trace(1, '{}: Warning: New date ({}) is older than existing date '
+                     '({}) in current location',
+                  idnum, new_loc_date, oldlocdatetext, color=Fore.YELLOW)
         else:
             trace(1, '{}: Fatal: New date is older than existing date ({})',
                   idnum, oldlocdatetext, color=Fore.RED)
@@ -372,8 +375,9 @@ def update_current_location(elem, idnum):
         trace(2, '{}: Patched current location {} -> {}', idnum,
               oldlocationtext, newlocationtext)
         return True
-
+    #
     # Create the new current location element.
+    #
     newobjloc = ET.Element('ObjectLocation')
     newobjloc.set(ELEMENTTYPE, CURRENT_LOCATION)
     ET.SubElement(newobjloc, 'Location').text = newlocationtext
@@ -381,8 +385,9 @@ def update_current_location(elem, idnum):
     ET.SubElement(locdate, 'DateBegin').text = _args.date
     if newreasons[nidnum]:
         ET.SubElement(newobjloc, 'Reason').text = newreasons[nidnum]
-
-    # Find the current location's index
+    #
+    # Find the current location's subelement index
+    #
     subelts = list(elem)
     clix = 0  # index of the current location element
     for elt in subelts:
@@ -390,18 +395,20 @@ def update_current_location(elem, idnum):
         if (elt.tag == 'ObjectLocation'
                 and elt.get(ELEMENTTYPE) == CURRENT_LOCATION):
             break
-
+    #
     # Insert the DateEnd text in the existing current location and convert it
     # to a previous location
+    #
     oldate = ol.find('./Date')
     oldateend = oldate.find('./DateEnd')
     if oldateend is None:
         oldateend = ET.SubElement(oldate, 'DateEnd')
     oldateend.text = _args.date
     ol.set(ELEMENTTYPE, PREVIOUS_LOCATION)
-
+    #
     # insert the new current location before the old current location (which is
     # now a previous location.
+    #
     elem.insert(clix - 1, newobjloc)
 
     trace(2, '{}: Updated current location: {} -> {}', idnum, locationelt.text,
