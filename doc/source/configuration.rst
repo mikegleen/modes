@@ -449,7 +449,7 @@ Data-related Commands
 
    Used by ``xml2csv.py``. Like the **column** command except it produces a
    delimiter-separated list of values. See the optional **multiple_delimiter:** statement.
--  **reproduction**
+-  **cmd: reproduction**
 
    Used by ``csv2xml.py``. A special-purpose command to create a ``Reproduction``
    element group with the accession number followed by ".jpg" as filename::
