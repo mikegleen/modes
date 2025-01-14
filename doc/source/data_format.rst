@@ -14,14 +14,14 @@ There are four accession number formats in use at the Heath Robinson Museum.
 -  The first
    is for objects that are part of the Joan Brinsmead family gift. This is the bulk of the
    collection. Numbers start with "JB" and are followed by a decimal number. Numbers less
-   than 100 are zero padded. For example, "JB001". Objects with numbers greater than
+   than 100 are zero padded, for example, "JB001". Objects with numbers greater than
    999 are left intact.
 -  The second is for items from the Simon Heneage estate. These numbers start with "SH"
-   followed by decimal numbers without any zero padding. For example, "SH1"
+   followed by decimal numbers without any zero padding, for example, "SH1"
 -  The third format follows the Collections Trust standard. This is the MDA code,
    by default "LDHRM", followed by a full stop, followed by the year, followed by a full
    stop, followed by a serial number, optionally followed by another full stop and item
-   number, all without leading zeros. For example, "LDHRM.2020.1". Utility
+   number, all without leading zeros, for example, "LDHRM.2020.1". Utility
    programs provide an option for overriding the default MDA code. Input data may have a colon
    (“:”) character instead of the full stop following the MDA code but accession numbers
    are written to the XML file with the full stop. If input accession numbers start with the

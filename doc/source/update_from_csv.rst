@@ -321,3 +321,14 @@ This results in the following being inserted in the Object element::
 
 Note that the accession number has been expanded from L7 to L007 in accordance
 with the rule for "JB" and "L" numbers.
+
+
+.. _updating_locations:
+
+Updating Locations
+~~~~~~~~~~~~~~~~~~
+
+``update_from_csv.py`` contains the most common commands from the ``location.py`` script so
+that locations fields can be updated in the same process as other fields are updated. Formerly,
+two passes were required over the data.
+

@@ -20,8 +20,8 @@ selected for processing. The language is used for processing
 of CSV → XML, XML → CSV, and XML → XML (with updates from a CSV file).
 Most but not all of the commands and statements are used for all cases.
 
-The configuration consists of a YAML file broken into multiple
-documents separated by lines containing ``---`` in the left three columns.
+The configuration consists of a YAML file broken into multiple sections
+(called *documents*) separated by lines containing ``---`` in the left three columns.
 Documents are control documents or column documents.
 Each column document corresponds to a column in the associated CSV file. The “control”
 document directs the selection of records (the if... commands) or is a global command.
@@ -351,13 +351,44 @@ These statements are in the document whose **cmd:** is **global**.
    "key" rows in the YAML file is mandatory. The keys in the YAML and CSV files are case
    insensitive. Do not use this statement and also the **template_file:** statement.
 
+.. _location_command_statements:
+
+Location-command Statements
++++++++++++++++++++++++++++
+
+The following statements are either unique to the **location** command or are used in
+a different way from their use with, for example, the **column** command.
+
+-  **date:**
+
+   The parameter is the modes-format (d.m.yyyy) date to be inserted as the
+   *DateEnd* field of the now previous location and the *DateBegin* field of the new
+   current location. If not included, the value of the ``--date`` parameter is used.
+-  **reason:**
+
+   The parameter is text to be entered in the *Reason* field of the location
+   element.
+-  **location_type**
+
+   You can update the normal location, the current location, or both. You can also
+   move the current location to the normal location. The syntax is best explained by
+   examples::
+
+      location_type: normal
+      location_type: current
+      location_type: current normal
+      location_type: normal current
+      location_type: move_to_normal
+
+   Parameters can be abbreviated to the first letter.
+
 Commands
 ~~~~~~~~
 
 Each document has one **cmd:** statement, which is customarily the first
 statement in the document. Data-related commands are those that map
 the elements in the XML document to a corresponding column in the associated CSV file
-(but see the **constant** and **delete** commands for exceptions).
+(but see the **location**, **constant**, and **delete** commands for exceptions).
 
 Data-related Commands
 +++++++++++++++++++++
@@ -365,7 +396,7 @@ Data-related Commands
 -  **cmd: attrib**
 
    Like **column** except displays the value of the attribute
-   named in the **attribute:** statement.
+   named in the **attribute:** statement. For ``xml2csv.py`` only.
 -  **cmd: column**
 
    This is the basic command to display or update the text of an
@@ -407,6 +438,13 @@ Data-related Commands
    whose text equals the text in the **value** statement and then return the
    first *Keyword* sub-element's text. This for the special (and deprecated) case where
    an element contains both text and subelements.
+-  **cmd: location**
+
+   Update the location of objects. Do not include an **xpath:** statement; the paths
+   to be updated are hard-coded. See :ref:`location_command_statements` above for the relevant
+   location-command statements.
+   Also see :ref:`updating_locations` in the documentation for ``update_from_csv.py``.
+   At most one **location** command may be included in a configuration.
 -  **cmd: multiple**
 
    Used by ``xml2csv.py``. Like the **column** command except it produces a
