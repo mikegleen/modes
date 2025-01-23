@@ -6,7 +6,6 @@
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
-
 from colorama import Fore
 
 import utl.normalize as nd
@@ -17,15 +16,16 @@ PREVIOUS_LOCATION = 'previous location'
 ELEMENTTYPE = 'elementtype'
 
 
-def update_normal_loc(ol: ET.Element, idnum: str, newtext: str, trace: Callable) -> bool:
+def update_normal_loc(elem: ET.Element, idnum: str, newtext: str, trace: Callable) -> bool:
     """
-    :param ol: the ObjectLocation element
+    :param elem: the ObjectLocation element
     :param idnum: the ObjectIdentity/Number text (we've tested that idnum is
     in newlocs)
     :param newtext: The new location value
     :param trace: function name
     :return: True if the object is updated, False otherwise
     """
+    ol = elem.find('./ObjectLocation[@elementtype="normal location"]')
     updated = False
     location = ol.find('./Location')
     if location.text is not None:
@@ -43,7 +43,7 @@ def update_normal_loc(ol: ET.Element, idnum: str, newtext: str, trace: Callable)
 
 
 def update_current_loc(elem: ET.Element, idnum: str, newtext: str,
-                       newdate: str, newreason: str, trace: Callable) -> bool:
+                       newdate: str, newreason: str | None, trace: Callable) -> bool:
     """
 
     :param elem: the Object element

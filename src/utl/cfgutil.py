@@ -12,6 +12,7 @@ import ruamel.yaml.constructor
 
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
+
 from utl.normalize import normalize_id, datefrommodes, DEFAULT_MDA_CODE
 from utl.exhibition_list import get_inverted_exhibition_dict, ExhibitionTuple
 
@@ -58,8 +59,9 @@ class Cmd:
     DELETE = 'delete'
     DELETE_ALL = 'delete_all'
     GLOBAL = 'global'
-    KEYWORD = 'keyword'
     ITEMS = 'items'
+    KEYWORD = 'keyword'
+    LOCATION = 'location'
     REPRODUCTION = 'reproduction'
     # "IF" commands follow:
     IF = 'if'  # if text is present
@@ -137,10 +139,12 @@ class Stmt:
     IF_OTHER_COLUMN = 'if_other_column'
     IF_OTHER_COLUMN_VALUE = 'if_other_column_value'
     INSERT_AFTER = 'insert_after'
+    LOCATION_TYPE = 'location_type'  # "normal" and/or "current" also "move_to_normal"
     MULTIPLE_DELIMITER = 'multiple_delimiter'
     NORMALIZE = 'normalize'
     PARENT_PATH = 'parent_path'
     PERSON_NAME = 'person_name'
+    REASON = 'reason'
     RECORD_TAG = 'record_tag'
     RECORD_ID_XPATH = 'record_id_xpath'
     REQUIRED = 'required'
@@ -203,9 +207,30 @@ class Config:
         """
         Config.__instance = None
 
+    @staticmethod
+    def set_location_doc(doc, args):
+        setattr(doc, 'update_current', False)
+        setattr(doc, 'update_normal', False)
+        setattr(doc, 'move_to_normal', False)
+        loctype = doc[Stmt.LOCATION_TYPE]
+        lt = loctype.upper().split()
+        for t in lt:
+            if t.startswith('C'):
+                doc.update_current = True
+            elif t.startswith('N'):
+                doc.update_normal = True
+            elif t.startswith('M'):
+                doc.move_to_normal = True
+                doc.update_current = True
+        if doc.move_to_normal and doc.update_normal:
+            return 'Cannot mix "move_to_normal" with "normal" location type.'
+        if Stmt.DATE not in doc:
+            doc[Stmt.DATE] = args.date
+        return None
+
     def __init__(self, yamlcfgfile=None, dump: bool = False,
                  allow_required: bool = False, logfile=sys.stdout, verbos=1,
-                 mdacode=DEFAULT_MDA_CODE):
+                 mdacode=DEFAULT_MDA_CODE, args=None):
         """
 
         :param yamlcfgfile: If None then only the default global values will
@@ -291,6 +316,10 @@ class Config:
             cmd = document[Stmt.CMD]
             if cmd == Cmd.GLOBAL:
                 set_globals()
+            elif cmd == Cmd.LOCATION:
+                err = Config.set_location_doc(document, args)
+                if err:
+                    yaml_error(document, logfile, dump, err)
             elif cmd in Cmd.get_control_cmds():
                 self.ctrl_docs.append(document)
             else:  # not control command
@@ -618,6 +647,13 @@ def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
                 print(red(f'ERROR: "value" statement is not allowed for '
                           f'{command} command.'), file=logfile)
                 valid_doc = False
+        if command == Cmd.LOCATION:
+            if Stmt.LOCATION_TYPE not in document:
+                print(red(f'ERROR: "location_type:" statement is required for "location" command.'))
+                valid_doc = False
+            if Stmt.TITLE not in document:
+                print(red(f'ERROR: "title:" statement is required for "location" command.'))
+                valid_doc = False
         if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ, Cmd.IFATTRIBNOTEQ):
             if Stmt.ATTRIBUTE not in document:
                 print(red(f'ERROR: "attribute" statement is required for '
@@ -676,17 +712,23 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
         print(e.args)
         sys.exit()
     titles = set()
+    num_location_cmds = 0
     for document in cfg:
         for key in document:
             if document[key] is None:
                 document[key] = ''
-            document[key] = str(document[key])
+            document[key] = str(document[key]).strip()
         if dump:
             dump_document(document, logfile=logfile)
         if Stmt.CMD in document:
             if Stmt.COLUMN in document:
                 yaml_error(document, logfile, dump,
                            'A document cannot have both "cmd:" and "column:" statements.')
+            if document[Stmt.CMD] == Cmd.LOCATION:
+                if num_location_cmds:
+                    yaml_error(document, logfile, dump,
+                               'No more than one "location" command is allowed')
+                num_location_cmds += 1
         elif Stmt.COLUMN in document:
             document[Stmt.CMD] = Cmd.COLUMN  # Fake the "cmd: column" statement
             if document[Stmt.COLUMN]:  # if the column statement has a parameter

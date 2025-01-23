@@ -46,6 +46,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Config, Stmt, Cmd, new_subelt, expand_idnum
+from utl.location_sub import update_normal_loc, update_current_loc
 from utl.normalize import normalize_id, sphinxify, denormalize_id
 from utl.normalize import if_not_sphinx, DEFAULT_MDA_CODE
 from utl.normalize import modes_person, modesdatefrombritishdate
@@ -167,7 +168,7 @@ def add_item(elt, subid: int, nmainid: str) -> ET.Element:
         if subid < oldid:
             elt.insert(n, newitem)
             return newitem
-    raise ValueError('Could not find where to insert the new element')
+    raise ValueError(f'Could not find where to insert the new element under {nmainid}')
 
 
 def one_doc_aspect(objelem, idnum, doc):
@@ -261,6 +262,35 @@ def one_doc_aspect(objelem, idnum, doc):
     return True
 
 
+def one_doc_location(objelem, idnum, doc):
+    """
+
+    :param objelem:
+    :param idnum:
+    :param doc:
+    :return:
+    """
+    nidnum = normalize_id(idnum)
+    if doc.move_to_normal:
+        nl = objelem.find('./ObjectLocation[@elementtype="normal location"]')
+        newlocationelt = nl.find('./Location')
+        newloc = newlocationelt.text.strip().upper()
+    else:
+        csvrow = newvals[nidnum]
+        loc_col = doc[Stmt.TITLE]
+        newloc = csvrow[loc_col]
+    if doc.update_normal:
+        update_normal_loc(objelem, idnum, newloc, trace)
+    if doc.update_current:
+        if Stmt.DATE in doc:
+            newdate = doc[Stmt.DATE]
+        else:
+            newdate = _args.date
+        reason = doc.get(Stmt.REASON)
+        update_current_loc(objelem, idnum, newloc, newdate, reason, trace)
+    return
+
+
 def one_element(objelem, idnum):
     """
     Update the fields specified by "column" configuration documents.
@@ -281,7 +311,7 @@ def one_element(objelem, idnum):
                 nupdated += 1
             continue
         command = doc[Stmt.CMD]
-        xpath = doc[Stmt.XPATH]
+        xpath = doc.get(Stmt.XPATH)  # previously checked that xpath is present if needed
         title = doc[Stmt.TITLE]
         if command == Cmd.DELETE:
             parent = objelem.find(doc[Stmt.PARENT_PATH])
@@ -298,6 +328,9 @@ def one_element(objelem, idnum):
                     trace(2, '{}: Removing {}', idnum, xpath)
                     objelem.remove(target)
                     ndeleted += 1
+            continue
+        elif command == Cmd.LOCATION:
+            one_doc_location(objelem, idnum, doc)
             continue
         target = objelem.find(xpath)
         if target is None:
