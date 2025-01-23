@@ -332,3 +332,47 @@ Updating Locations
 that locations fields can be updated in the same process as other fields are updated. Formerly,
 two passes were required over the data.
 
+The following YAML configuration file is an example of updating a location::
+
+    cmd: location
+    loc_type: current
+    value: S24
+    reason: returned to store
+    date: 19.3.2023
+
+
+The following XML fragment shows before the update was applied::
+
+    <ObjectLocation elementtype="normal location">
+        <Location>S24</Location>
+    </ObjectLocation>
+    <ObjectLocation elementtype="current location">
+        <Location>Joan Brinsmead Gallery</Location>
+        <Date>
+            <DateBegin>20.12.2022</DateBegin>
+        </Date>
+    </ObjectLocation>
+
+
+After the update is applied the current location element is renamed to "previous"
+and a new current location element is created::
+
+    <ObjectLocation elementtype="normal location">
+        <Location>S24</Location>
+    </ObjectLocation>
+    <ObjectLocation elementtype="current location">
+        <Location>S24</Location>
+        <Date>
+            <DateBegin>19.3.2023</DateBegin>
+        </Date>
+        <Reason>returned to store</Reason>
+    </ObjectLocation>
+    <ObjectLocation elementtype="previous location">
+        <Location>Joan Brinsmead Gallery</Location>
+        <Date>
+            <DateBegin>20.12.2022</DateBegin>
+            <DateEnd>19.3.2023</DateEnd>
+        </Date>
+    </ObjectLocation>
+
+In this case, a loc_type of move_to_normal could have been used with the same result.
