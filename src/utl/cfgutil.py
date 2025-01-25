@@ -148,6 +148,7 @@ class Stmt:
     RECORD_TAG = 'record_tag'
     RECORD_ID_XPATH = 'record_id_xpath'
     REQUIRED = 'required'
+    SERIAL = 'serial'
     SKIP_NUMBER = 'skip_number'
     SORT_NUMERIC = 'sort_numeric'
     SUBID_PARENT = 'subid_parent'
@@ -252,6 +253,8 @@ class Config:
                     self.sort_numeric = True
                 elif stmt == Stmt.SUBID_PARENT:
                     self.subid_parent = document[stmt]
+                elif stmt == Stmt.SERIAL:
+                    self.serial = document[stmt]
                 elif stmt == Stmt.SUBID_GRANDPARENT:
                     self.subid_grandparent = document[stmt]
                 elif stmt == Stmt.RECORD_ID_XPATH:
@@ -291,6 +294,7 @@ class Config:
         self.logfile = logfile
         self.col_docs = []  # documents that generate columns
         self.ctrl_docs = []  # control documents
+        self.serial = None
         self.skip_number = False
         self.sort_numeric = False
         self.subid_parent = None

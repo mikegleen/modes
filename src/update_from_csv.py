@@ -78,7 +78,7 @@ def loadsubidvals(reader, allow_blanks) -> (dict, dict):
     subval_dict = dict()
     for row in reader:
         # print(f'{row=}')
-        accnum = row[_args.serial]
+        accnum = row[cfg.serial]
         if not accnum:
             if allow_blanks:
                 trace(2, 'Row with blank accession number skipped: {}', row)
@@ -107,7 +107,7 @@ def loadnewvals(reader, allow_blanks=False):
     newval_dict = {}
     for row in reader:
         # print(f'{row=}')
-        accnum = row[_args.serial]
+        accnum = row[cfg.serial]
         if not accnum:
             if allow_blanks:
                 trace(2, 'Row with blank accession number skipped: {}', row)
@@ -517,11 +517,13 @@ def getparser():
         contains the special value ``{{clear}}``. See also --empty. If
         --replace is not set a warning will be issued if the existing value
         is not blank.''', called_from_sphinx))
-    parser.add_argument('--serial', default='Serial', help=sphinxify('''
+    parser.add_argument('--serial', default='Serial', deprecated=True,
+                        help=sphinxify('''
         The column containing the serial number must have a heading with this
-        value. ''' + if_not_sphinx('''
+        value. This argument is deprecated. Use the
+        ``serial:`` global configuration statement.''' + if_not_sphinx('''
         The default value is "Serial".''', called_from_sphinx),
-                                                         called_from_sphinx))
+                                       called_from_sphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('--skiprows', type=int, default=0, help=sphinxify('''
@@ -597,6 +599,8 @@ if __name__ == '__main__':
         trace(1, 'update_from_csv aborting due to config error(s).',
               color=Fore.RED)
         sys.exit(1)
+    if not cfg.serial:
+        cfg.serial = _args.serial
     csvreader = row_dict_reader(_args.mapfile, _args.verbose, _args.skiprows)
     if cfg.subid_parent is not None:
         newvals, subvals = loadsubidvals(csvreader, allow_blanks=_args.allow_blanks)

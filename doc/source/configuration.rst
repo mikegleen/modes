@@ -292,7 +292,8 @@ These statements are in the document whose **cmd:** is **global**.
 -  **serial:**
 
    This is the column title of the column to use for the accession number. The
-   default value is ``Serial`` (case sensitive).
+   default value is ``Serial`` (case sensitive). If this statement is specified,
+   the command line parameter ``--serial`` is ignored.
 -  **skip_number:**
 
    If specified, do not automatically write the serial number as the

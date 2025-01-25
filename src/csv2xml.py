@@ -191,7 +191,7 @@ def main():
         if ifcolumneq_doc:
             if row[ifcolumneq_title] != ifcolumneq_value:
                 trace(2, 'skipping {} row: {}',
-                      row[ifcolumneq_title], row[_args.serial])
+                      row[ifcolumneq_title], row[config.serial])
                 continue
         emit = True
         if global_object_template is not None:
@@ -206,7 +206,7 @@ def main():
             trace(2, 'Serial generated: {}', accnum)
         else:
             trace(3, '{}', row)
-            accnum = row[_args.serial]
+            accnum = row[config.serial]
             if not accnum:
                 trace(1, '\n*** Serial number empty, row skipped: {}', ','.
                       join(row.values()), color=Fore.RED)
@@ -318,10 +318,12 @@ def getparser():
         Inhibit the insertion of an XML prolog at the front of the file and an
         <Interchange> element as the root. This results in an invalid XML file
         but is useful if the output is to be manually edited.''')
-    parser.add_argument('--serial', default='Serial', help=sphinxify('''
+    parser.add_argument('--serial', default='Serial',
+                        deprecated=True, help=sphinxify('''
         The column containing the serial number (the first column) must have a
         heading with this value. This is ignored if the --acc_num parameter is
-        specified.
+        specified. This argument is deprecated. Use the
+        ``serial:`` global configuration statement.
         ''' + if_not_sphinx('''
         The default value is "Serial".''', calledfromsphinx),
                                        calledfromsphinx))
@@ -394,6 +396,8 @@ if __name__ == '__main__':
         trace(1, '{} error(s) found. Aborting.', errors)
         sys.exit(1)
     trace(1, 'Begin csv2xml.', color=Fore.GREEN)
+    if not config.serial:
+        config.serial = _args.serial
     main()
     trace(1, 'End csv2xml. {} object{} written.', nrows,
           '' if nrows == 1 else 's', color=Fore.GREEN)

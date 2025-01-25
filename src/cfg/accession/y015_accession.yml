@@ -1,10 +1,11 @@
 # For Accessions 2024-10-27
 cmd: global
+serial: Accession Number
 add_mda_code:
 template_title: Template
 template_dir: /Users/mlg/pyprj/hrm/modes/templates/normal
 templates:
-  Book: books_template.xml
+  Book: book_template.xml
   book_o: books_organisation_template.xml
   original_artwork: Original_Artwork_template.xml
   original_artwork_o: Original_Artwork_template.xml
@@ -28,36 +29,37 @@ xpath: ./Production/Organisation[Role="publisher"]/OrganisationName
 column: Description
 xpath: ./Identification/BriefDescription
 ---
-cmd: column
+column: Date published
 parent_path: ./Production/Date[@elementtype="publication date"]
 xpath: ./Production/Date[@elementtype="publication date"]/DateBegin
-title: Date published
 element: DateBegin
 ---
-cmd: column
+column: Date published accuracy
 parent_path: ./Production/Date[@elementtype="publication date"]
 xpath: ./Production/Date[@elementtype="publication date"]/Accuracy
-title: Date published accuracy
 element: Accuracy
 ---
-cmd: column
+column: Date acquired
 xpath: ./Acquisition/Date
-title: Date acquired
 date:
 ---
 column: Acquired from
 xpath: ./Acquisition/Person/PersonName
 person_name:
 ---
+column: Email
+xpath: ./Acquisition/Person/Email
+parent_path: ./Acquisition/Person
+---
 column: Acquisition method
 xpath: ./Acquisition/Method
 ---
-cmd: column
-xpath: ./Acquisition/SummaryText
-title: Acquisition SummaryText
-parent_path: ./Acquisition
-element: SummaryText
----
+#cmd: column
+#xpath: ./Acquisition/SummaryText
+#title: Acquisition SummaryText
+#parent_path: ./Acquisition
+#element: SummaryText
+#---
 #cmd: column
 #xpath: ./Identification/ObjectName[@elementtype="simple name"]/Keyword
 #title: Simple Name
@@ -72,6 +74,12 @@ element: SummaryText
 #title: Items
 #element: Content
 #---
+column: Size mm HxW
+xpath: ./Description/Measurement/Reading
+---
+column: Medium
+xpath: ./Description/Material[Part="medium"]/Keyword
+---
 column: Location
 xpath: ./ObjectLocation[@elementtype="current location"]/Location
 xpath2: ./ObjectLocation[@elementtype="normal location"]/Location
@@ -81,27 +89,33 @@ xpath: ./ObjectLocation[@elementtype="current location"]/Date/DateBegin
 title: 'Date Begin'
 value: "27.10.2024"
 ---
-column: Medium
-xpath: ./Description/Material[Part="medium"]/Keyword
+#cmd: column
+#xpath: ./Production/Date/DateBegin
+#title: Production Date
+#---
+#cmd: column
+#xpath: ./Production/Date/Accuracy
+#parent_path: ./Production/Date
+#title: Accuracy
+#---
+#cmd: column
+#xpath: ./Production/SummaryText
+#title: Production SummaryText
+#---
+#cmd: column
+#xpath: ./Content/SummaryText
+#title: Content SummaryText
+#---
+#cmd: column
+#xpath: ./References/Reference[@elementtype="Reproduced In"]/SummaryText
+#title: Reproduced In
+#---
+column: Pages
+xpath: ./Description/Aspect/Reading
 ---
-cmd: column
-xpath: ./Production/Date/DateBegin
-title: Production Date
+column: Condition
+xpath: ./Description/Condition/Note
 ---
-cmd: column
-xpath: ./Production/Date/Accuracy
-parent_path: ./Production/Date
-title: Accuracy
----
-cmd: column
-xpath: ./Production/SummaryText
-title: Production SummaryText
----
-cmd: column
-xpath: ./Content/SummaryText
-title: Content SummaryText
----
-cmd: column
-xpath: ./References/Reference[@elementtype="Reproduced In"]/SummaryText
-title: Reproduced In
+column: Notes
+xpath: ./Notes
 ---
