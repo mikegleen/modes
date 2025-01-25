@@ -289,6 +289,10 @@ These statements are in the document whose **cmd:** is **global**.
    root tag. The default is ``./ObjectIdentity/Number``. In addition to
    being output as column 1 by default, the ID is used in error
    messages.
+-  **serial:**
+
+   This is the column title of the column to use for the accession number. The
+   default value is ``Serial`` (case sensitive).
 -  **skip_number:**
 
    If specified, do not automatically write the serial number as the
