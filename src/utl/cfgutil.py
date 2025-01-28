@@ -473,14 +473,14 @@ def select_ifexhib(cfg: Config, objelem, document):
     return selected
 
 
-def select(cfg: Config, objelem, includes=None, exclude=False):
+def select(cfg: Config, objelem, includes=None, exclude=False) -> bool:
     """
     :param cfg: the Config instance
     :param objelem: the Object element
     :param includes: A set or dict of id numbers of objects to be included
                      in the output CSV file. The list must be all uppercase.
     :param exclude: Treat the includes list as an excludes list.
-    :return: selected is true if the Object element should be written out
+    :return: True if the Object element should be written out
     """
     # print('select')
 
