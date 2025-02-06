@@ -28,6 +28,8 @@ def _trimrow(r: list, maxlen: int):
             break
         r.pop()
         ix -= 1
+    for n, elt in enumerate(r):
+        r[n] = ' '.join(str(elt).split())
     return r
 
 
