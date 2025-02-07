@@ -478,7 +478,7 @@ def select(cfg: Config, objelem, includes=None, exclude=False) -> bool:
     :param cfg: the Config instance
     :param objelem: the Object element
     :param includes: A set or dict of id numbers of objects to be included
-                     in the output CSV file. The list must be all uppercase.
+                     in the output CSV file. The list must be all normalized.
     :param exclude: Treat the includes list as an excludes list.
     :return: True if the Object element should be written out
     """
@@ -625,6 +625,7 @@ def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
         if not Stmt.validate_yaml_stmts(document):
             valid_doc = False
         if Stmt.CMD not in document:
+            # Remember the column: statement creates a cmd: statement
             print(red('ERROR: cmd statement is missing.'), file=logfile)
             valid = False
             dump_document(document, logfile=logfile)

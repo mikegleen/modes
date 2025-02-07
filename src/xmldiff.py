@@ -201,7 +201,7 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
-    if not args.outfile:
+    if not args.outfile and not args.outorig:
         print('Dry run. No output written')
     return args
 
@@ -239,7 +239,10 @@ if __name__ == '__main__':
     trace(1, '{} object{} deleted.', deleted, s(deleted))
     trace(1, '{} object{} added.', added, s(added))
     trace(1, '{} object{} replaced.', replaced, s(replaced))
-    trace(1, '{} object{} written to {}.', written, s(written), _args.outfile)
+    if _args.outfile:
+        trace(1, '{} object{} written to {}.', written, s(written), _args.outfile)
+    if _args.outorig:
+        trace(1, '{} object{} written to {}.', written, s(written), _args.outorig)
     elapsed = time.perf_counter() - t1
     trace(1, 'End {}. Elapsed: {:5.3f} seconds.', basename.split(".")[0],
           elapsed, color=Fore.GREEN)

@@ -33,7 +33,7 @@ verbose = 1  # overwritten by _args.verbose; set here for unittest
 
 def trace(level, template, *args, color=None):
     if verbose >= level:
-        if color:
+        if color and not _args.nocolor:
             print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
         else:
             print(template.format(*args))
@@ -86,9 +86,9 @@ def loadcsv():
                 print(f'Warning: Blank object ID row {rownum}: {row}')
                 continue  # blank number
             if nobjid in location_dict:
-                print(f'Fatal error: Duplicate object ID row {rownum}: '
-                      f'{row}.')
-                sys.exit(1)
+                print(f'Error, row ignored: Duplicate object ID row {rownum}: '
+                      f'{row}')
+                continue
             location_dict[nobjid] = location
             reason_dict[nobjid] = reason
             rows[nobjid] = row
@@ -97,36 +97,85 @@ def loadcsv():
 
 def handle_diff(idnum, elem):
     global total_diff
-    if idnum not in newlocs and _args.warn:
-        trace(3, 'Not in CSV file: {}', idnum)
+    # print('enter handle_diff')
+    nidnum = nd.normalize_id(idnum)
+    if nidnum not in newlocs:
+        if _args.warn:
+            trace(1, 'Not in CSV file: {}', idnum)
         return
     objlocs = elem.findall('./ObjectLocation')
+    newdatetext = _args.date
+    newdate, _ = nd.datefrommodes(newdatetext) if _args.date else None
+    norm_ol = curr_ol = None
     for ol in objlocs:
         loc = ol.get(ELEMENTTYPE)
-        if (_args.normal and loc == NORMAL_LOCATION) or (
-                _args.current and loc == CURRENT_LOCATION
-        ):
-            location = ol.find('./Location')
-            if location.text is not None:
-                text = location.text.strip().upper()
+        if loc == NORMAL_LOCATION:
+            norm_ol = ol
+        elif loc == CURRENT_LOCATION:
+            curr_ol = ol
+        elif loc == PREVIOUS_LOCATION:
+            pass
+        else:
+            trace(1, '{}: unrecognized location type.', idnum)
+            continue
+    if norm_ol is None:
+        trace(1, '{}: Normal location missing.', idnum, color=Fore.RED)
+        return
+    if curr_ol is None:
+        trace(1, '{}: Current location missing.', idnum, color=Fore.RED)
+        return
+
+    ol = curr_ol if _args.current else norm_ol
+
+    location = ol.find('./Location')
+    if location.text is not None:
+        xml_loctext = location.text.strip().upper()
+    else:
+        xml_loctext = None
+    # print(f'{xml_loctext=}')
+    if _args.location:
+        new_loctext = _args.location
+    else:
+        try:
+            new_loctext = newlocs[nidnum]
+        except KeyError:
+            print(f'{idnum} not in CSV file')
+            return  # not in CSV file
+        del newlocs[nidnum]
+    # print(idnum, new_loctext, type(new_loctext))
+    if not new_loctext:
+        trace(1, '{}: New location unspecified', idnum)
+        return
+    trace(3, '{}: New location: {}', idnum, new_loctext)
+    if xml_loctext == new_loctext:
+        trace(2, '{}: Same: {}', idnum, xml_loctext)
+        if _args.current:
+            normloc = norm_ol.find('./Location')
+            norm_loctext = normloc.text
+            if norm_loctext is None:
+                trace(1, '{}: empty normal location', idnum)
             else:
-                text = None
-            if _args.location:
-                newtext = _args.location
-            else:
-                nidnum = nd.normalize_id(idnum)
-                newtext = newlocs.get(nidnum, None)
-                if newtext is None:
-                    return
-                del newlocs[nidnum]
-            trace(3, 'New location for {}: {}', idnum, newtext)
-            if text == newtext:
-                trace(2, 'Same {}: {}', idnum, text)
-            else:
-                trace(1, 'Different {}: XML: {}, CSV: {}', idnum, text,
-                      newtext)
-                total_diff += 1
-            break
+                norm_loctext = norm_loctext.upper()
+                if norm_loctext != new_loctext:
+                    trace(1, '{}: current {} != normal {}', idnum, new_loctext, norm_loctext)
+    else:
+        xmldateelt = ol.find('./Date/DateBegin')
+        if xmldateelt is not None:
+            xmldatetext = xmldateelt.text
+            xmldate, _ = nd.datefrommodes(xmldatetext)
+            if xmldate > newdate:
+                trace(1, '{}: XML date ({}) is newer than CSV date ({})', idnum, xmldatetext,
+                      newdatetext)
+        trace(1, '{}: Different: XML: {}, CSV: {}', idnum, xml_loctext,
+              new_loctext)
+        total_diff += 1
+        if _args.current:
+            normloc = norm_ol.find('./Location')
+            norm_loctext = normloc.text
+            if norm_loctext == new_loctext:
+                trace(1, '     {}: Moving to normal location ({})', idnum, new_loctext)
+            elif norm_loctext == xml_loctext:
+                trace(1, '     {}: Moving from normal location ({})', idnum, norm_loctext)
 
 
 def validate_locations(idnum, elem, strict=True):
@@ -448,8 +497,10 @@ def loc_types(idnum, nidnum, args, rows):
         raise Exception(f'Row with index {idnum} is too short; doesn‘t '
                         f'contain the location type.') from e
     if len(loc_type) < 1:
-        raise ValueError(f'{idnum} location type column empty.')
+        return False, False, False
+        # raise ValueError(f'{idnum} location type column empty.')
     current = normal = False
+    # print(f'{loc_type=}')
     for c in loc_type:
         nc = c.upper()
         match nc:
@@ -613,6 +664,10 @@ def add_arguments(parser, command):
                                 help='''
         Compare the location in the CSV file to the current location in the
         XML file.''')
+        parser.add_argument('-d', '--date', default=None,
+                            help='''
+            If specified, check that the current location DateBegin is before this date.
+            ''')
     if is_update:
         parser.add_argument('-d', '--date', default=nd.modesdate(date.today()),
                             help='''
@@ -673,6 +728,8 @@ def add_arguments(parser, command):
             --col_loc option. This  argument is ignored if --object is
             specified.
             ''', called_from_sphinx))
+    parser.add_argument('--nocolor', action='store_true', help='''
+                        Inhibit colorizing the output which makes reading redirected output easier''')
     if is_update:
         parser.add_argument('-q', '--move_to_normal', action='store_true',
                             help=nd.sphinxify('''
@@ -766,6 +823,11 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    quotes = '"\''
+    # print(f'{quotes=}')
+    if args.mapfile:
+        args.mapfile = args.mapfile.strip(quotes)
+    # print(f'{args.mapfile=}')
     if is_update:
         if args.col_loc_type:
             if args.current or args.normal:
@@ -803,7 +865,8 @@ if __name__ == '__main__':
     is_validate = sys.argv[1] == 'validate'
     _args = getargs(sys.argv)
     verbose = _args.verbose
-    new_loc_date, _ = nd.datefrommodes(_args.date)
+    if is_update:
+        new_loc_date, _ = nd.datefrommodes(_args.date)
     trace(1, 'Begin location {}.', _args.subp,
           color=Fore.GREEN)
     if is_update and _args.object:

@@ -509,7 +509,7 @@ def getparser():
         is specified without the leading MDA code. You must also specify
         the global statement ``add_mda_code`` in the YAML config file.''',
                                        called_from_sphinx) +
-                        if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".
+                        if_not_sphinx(f''' The default is "{DEFAULT_MDA_CODE}".
                         ''', called_from_sphinx))
     parser.add_argument('-r', '--replace', action='store_true', help=sphinxify('''
         Replace existing values. If not specified only empty elements will be

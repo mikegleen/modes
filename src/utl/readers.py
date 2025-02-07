@@ -29,7 +29,10 @@ def _trimrow(r: list, maxlen: int):
         r.pop()
         ix -= 1
     for n, elt in enumerate(r):
-        r[n] = ' '.join(str(elt).split())
+        if elt is None:
+            r[n] = ''
+        else:
+            r[n] = ' '.join(str(elt).split())
     return r
 
 
@@ -178,6 +181,7 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
                   f'{", ".join([str(x) for x in heading])}')
         for nrow, rawrow in enumrows:
             rawrow = list(rawrow)
+            # print(f'{rawrow=}')
             row = dict()
             # print(f'before: {rawrow}')
             _trimrow(rawrow, n_input_fields)
@@ -187,9 +191,14 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
                 sys.exit(1)
             for ncell, cell in enumerate(rawrow):
                 ccell = cleancell(cell)
+                # print(f'{cell=}, {ccell=}')
                 row[heading[ncell]] = ccell
+                # if row['Accession Number'] == 'JB008':
+                #     sys.exit(1)
             if not ''.join(row.values()):
                 continue
+            # print(f'{row=}')
+
             yield row
     else:
         if verbos >= 1:
