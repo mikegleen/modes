@@ -136,11 +136,7 @@ def handle_diff(idnum, elem):
     if _args.location:
         new_loctext = _args.location
     else:
-        try:
-            new_loctext = newlocs[nidnum]
-        except KeyError:
-            print(f'{idnum} not in CSV file')
-            return  # not in CSV file
+        new_loctext = newlocs[nidnum]
         del newlocs[nidnum]
     # print(idnum, new_loctext, type(new_loctext))
     if not new_loctext:
@@ -823,11 +819,6 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
-    quotes = '"\''
-    # print(f'{quotes=}')
-    if args.mapfile:
-        args.mapfile = args.mapfile.strip(quotes)
-    # print(f'{args.mapfile=}')
     if is_update:
         if args.col_loc_type:
             if args.current or args.normal:
