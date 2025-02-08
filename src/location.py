@@ -569,7 +569,12 @@ def handle_select(idnum, elem):
 
 
 def main():
+    if _args.infile:
+        trace(1, 'Input XML file: {}', _args.infile)
+    if _args.mapfile:
+        trace(1, 'Input data file: {}', _args.mapfile)
     if outfile:
+        trace(1, 'Output XML file: {}', _args.outfile)
         outfile.write(b'<?xml version="1.0" encoding="utf-8"?><Interchange>\n')
     for event, elem in ET.iterparse(infile):
         if elem.tag != 'Object':
@@ -584,8 +589,8 @@ def main():
     if outfile:
         outfile.write(b'</Interchange>')
     if not _args.short:  # Skip warning if only processing one object.
-        for idnum in newlocs:
-            trace(1, '{}: In CSV but not XML, ignored.', nd.denormalize_id(idnum))
+        for nidnum in newlocs:
+            trace(1, '{}: In CSV but not XML, ignored.', nd.denormalize_id(nidnum))
 
 
 def add_arguments(parser, command):
