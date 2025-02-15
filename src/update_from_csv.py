@@ -29,7 +29,7 @@
     **subid_grandparent** statements in the **global** document.
     The data in the CSV file will be inserted in
     ``Item`` elements under an ``ItemList`` element group. The subid
-    will be enterd as
+    will be entered as
     ``ListNumber`` elements for the items. The serial numbers
     in the CSV file must contain subid numbers.
 
