@@ -232,8 +232,9 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
     non-cannonical filenames but the order is only helpful, not necessary.
 
     Input can be of the form JB001 or JB0001 or JB001a or SH1 or with a leading
-    MDA code: LDHRM/2018/1 or LDHRM.2018.1. or LDHRM.2018.1.2. Input can also
-    be a simple integer. The "/" character is allowed as an alternative because
+    MDA code: LDHRM/2018/1 or LDHRM.2018.1. or LDHRM.2018.1.2. If the leading
+    "LDHRM." is omitted from an ID so that the first character is numeric, the "LDHRM."
+    will be prepended. The "/" character is allowed as an alternative because
     some input files contain these. It is never used in the Modes data.
     Also allowed is LDHRM:2018.1 in the input data.
 
@@ -259,10 +260,10 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
     if objidu[0].isnumeric():
         objidu = mdacode + '.' + objidu
     if objidu.startswith(mdacode):
-        objidu = objidu.replace(':', '.')  # accept LDHRM:...
+        objidu = objidu.replace(':', '.', 1)  # accept LDHRM:...
         idlist = re.split(r'[/.]', objidu)  # split on either "/" or "."
         if len(idlist) not in (3, 4):
-            raise ValueError(f'Bad accession ID: {objid}')
+            raise ValueError(f'Bad accession ID, wrong number of fields: {objid}')
         if len(idlist[2]) > 6:
             raise ValueError(f'Third field, {idlist[2]}, of {objid} is too long')
         idlist[2] = f'{int(idlist[2]):06d}'
