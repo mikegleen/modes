@@ -37,6 +37,18 @@ class TestNormalizeId(unittest.TestCase):
         nid = normalize_id('LDHRM.2018.1.2')
         self.assertEqual(nid, 'LDHRM.2018.000001.000002')
 
+    def test_03a(self):
+        nid = normalize_id('2018.1')
+        self.assertEqual(nid, 'LDHRM.2018.000001')
+
+    def test_03b(self):
+        nid = normalize_id('2018.1.2')
+        self.assertEqual(nid, 'LDHRM.2018.000001.000002')
+
+    def test_03c(self):
+        with self.assertRaises(ValueError):
+            normalize_id('2018')
+
     def test_04(self):
         with self.assertRaises(ValueError):
             normalize_id('JB9999999')
@@ -77,17 +89,9 @@ class TestNormalizeId(unittest.TestCase):
         nid = split_subid('JB001')
         self.assertEqual(nid, ('JB001', None))
 
-    # def test_14(self):
-    #     nid = normalize_id('2018.1')
-    #     self.assertEqual(nid, '002018.000001')
-    #
-    # def test_15(self):
-    #     nid = normalize_id('2018')
-    #     self.assertEqual(nid, '002018')
-    #
-    # def test_16(self):
-    #     nid = normalize_id('1.2')
-    #     self.assertEqual(nid, '000001.000002')
+    def test_14(self):
+        with self.assertRaises(ValueError):
+            normalize_id('LDHRM:2018:2')
 
 
 class TestDenormalizeId(unittest.TestCase):
