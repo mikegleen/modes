@@ -33,8 +33,44 @@
     ``ListNumber`` elements for the items. The serial numbers
     in the CSV file must contain subid numbers.
 
-    See the commands **subid_parent** and **subid_grandparent** in the
-    :ref:`configuration` document.
+    An example use for this mode was the creation of object LDHRM:2024.24, the
+    collection of Ideal Home Exhibition postcards. The entire script is in file
+    bin/make/2024-07-04_postcards.sh but the relevant extract follows::
+
+        cat >tmp/in2.csv <<EOF
+        Serial,Item Number,Title
+        2024.24,1,The Gadgets
+        2024.24,2,The Kitchen
+        --etc--
+        EOF
+        cat >tmp/update2.yml <<EOF
+        cmd: global
+        add_mda_code:
+        subid_column: Item Number
+        subid_grandparent: .
+        subid_parent: ItemList
+        ---
+        cmd: column
+        xpath: Title
+        EOF
+        python src/update_from_csv.py tmp/normal/step1.xml tmp/normal/step2.xml -c tmp/update2.yml -m tmp/in2.csv -v 1
+
+    This creates XML as follows::
+
+        <ItemList>
+            <Item>
+                <ListNumber>1</ListNumber>
+                <Title>The Gadgets</Title>
+            </Item>
+            <Item>
+                <ListNumber>2</ListNumber>
+                <Title>The Kitchen</Title>
+            </Item>
+            --etc--
+        </ItemList>
+
+    See the commands **subid_column**, **subid_parent**, and **subid_grandparent** in the
+    :ref:`global_command` section in the configuration document.
 
 """
 import argparse
@@ -68,13 +104,11 @@ def loadsubidvals(reader, allow_blanks) -> (dict, dict):
     :param reader:
     :param allow_blanks:
     :return: 2-tuple of:
-             (1) dict of accession numbers
-             dict with key of accession number with subid as in the CSV file
+             (0) newval dict of accession numbers
+             (1) subval dict with key of accession number with subid as in the CSV file
              without added MDA code (if applicable).
     """
-    newval_dict = dict()  # dict updated with key of accession # without the subid
-    # subval_dict is a dict with key of accession number with subid as in the
-    # CSV file without added MDA code (if applicable).
+    newval_dict = dict()
     subval_dict = dict()
     for row in reader:
         # print(f'{row=}')
@@ -393,7 +427,7 @@ def one_element(objelem, idnum):
 def one_element_subid_mode(nidnum: str, objelem: ET.Element):
     """
 
-    :param nidnum: accession number of object
+    :param nidnum: normalized accession number of object
     :param objelem:
     :return:
     """
