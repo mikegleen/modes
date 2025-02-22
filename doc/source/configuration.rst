@@ -141,6 +141,7 @@ the ``cmd: global`` document.
    If specified, indicates that a field may be in date
    format and should be converted to Modes format. See the section *Date Formats*
    in the document page *Data Formats* for the formats supported. Allowed in ``csv2xml.py``.
+   Also used in ``update_from_csv.py`` with the **location** command.
 -  **denormalize:**
 
    See **normalize:**. If a value has been normalized, it will be output as
@@ -173,7 +174,7 @@ the ``cmd: global`` document.
 
       cmd: column
       title: Artist
-      if_column: Template
+      if_other_column: Template
       if_column_value: Artwork | Reproduction
       xpath: ...
       ---
@@ -258,6 +259,8 @@ the ``cmd: global`` document.
    for a **column** command. You can, for example, create both the ``normal`` and
    ``current`` locations from a single column value.
 
+
+.. _global_command:
 
 Global-command Statements
 +++++++++++++++++++++++++
@@ -429,7 +432,10 @@ Data-related Commands
 
    For ``update_from_csv.py``. Delete the first element specified by the
    **xpath** statement. If the **delete** command is
-   specified, only the **xpath:** statement is allowed.
+   specified, the **xpath:**  and **parent_path:** statements are required and
+   the only ones allowed.
+
+   To delete complete ``Object`` elements, use ``filter_xml.py``.
 -  **cmd: delete_all**
 
    Like **delete** except all occurrences of the element are deleted.
@@ -457,11 +463,13 @@ Data-related Commands
 -  **cmd: reproduction**
 
    Used by ``csv2xml.py``. A special-purpose command to create a ``Reproduction``
-   element group with the accession number followed by ".jpg" as filename::
+   element group with the accession number followed by ".jpg" as filename. This
+   is the name of the file that Modes will use as a thumbnail::
 
       <Reproduction>
          <Filename>LDHRM.2023.20.jpg</Filename>
       </Reproduction>
+
 
 Control Commands
 ++++++++++++++++
