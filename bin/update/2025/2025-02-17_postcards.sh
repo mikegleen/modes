@@ -10,13 +10,13 @@ DELTAXML=2025-02-17_postcards_delta.xml
 # Step 2. Add the six postcards as Item elements
 #
 cat >tmp/in2.csv <<EOF
-Serial,Subid,Title
-2024.24,1,The Gadgets
-2024.24,2,The Kitchen
-2024.24,3,The Dining Room
-2024.24,4,The Nursery
-2024.24,5,The Bedroom
-2024.24,6,The Garden
+Serial,Title
+2024.24.1,The Gadgets
+2024.24.2,The Kitchen
+2024.24.3,The Dining Room
+2024.24.4,The Nursery
+2024.24.5,The Bedroom
+2024.24.6,The Garden
 EOF
 cat >tmp/update2.yml <<EOF
 cmd: global
