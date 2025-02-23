@@ -6,10 +6,10 @@ import argparse
 from collections import defaultdict
 import sys
 # noinspection PyPep8Naming
-import xml.etree.ElementTree as ET
+# import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Config, Stmt
-from utl.zipmagic import openfile
+# from utl.zipmagic import openfile
 from utl.normalize import sphinxify, normalize_id, denormalize_id, if_not_sphinx
 from utl.readers import object_reader
 
@@ -31,14 +31,20 @@ def main(inf):
         if path is None:
             nonepathcount += 1
             continue
-        value = path.text
-        if value is None:
-            value = 'None'
-        elif normalize:
+        if _args.itertext:
+            value = ''
+            for val in path.itertext():
+                if val:
+                    value += val.strip()
+        else:
+            value = path.text
+        if normalize:
             # disable accession number checks - could be, for example,
             # location
             value = normalize_id(value, strict=False, verbose=0)
-        counts[value] += 1
+        value = value.strip()
+        if value:
+            counts[value] += 1
         accn_nums[value].append(accnum)
         if _args.type and value in _args.type:
             v = value[:_args.width]
@@ -52,9 +58,9 @@ def main(inf):
         for value, count in sorted(counts.items()):
             if normalize:
                 value = denormalize_id(value)
-            print(value, _args.sep, count, sep='')
             if _args.report:
-                print([an for an in accn_nums[value]])
+                print('\n', [an for an in accn_nums[value]], sep='')
+            print(value, _args.sep, count, sep='')
         #         for accn_num in accn_nums[e]:
         #             print(f'    {accn_num.text}')
         # print(f'{len(values)} unique values.')
@@ -63,7 +69,7 @@ def main(inf):
     return
 
 
-def get_xpath():
+def get_xpath() -> (str, bool):
     if _args.xpath:
         return _args.xpath, _args.normalize
     else:
@@ -82,7 +88,7 @@ def getparser() -> argparse.ArgumentParser:
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
     parser.add_argument('-c', '--cfgfile',
-                        type=argparse.FileType('r'), help=sphinxify('''
+                        type=argparse.FileType(), help=sphinxify('''
         The YAML file describing the column path containing values to count.
         The config file may contain only a single ``column`` command. Specify 
         this or the --xpath parameter.
@@ -91,8 +97,10 @@ def getparser() -> argparse.ArgumentParser:
         Normalize the object element value before sorting and restore it
         for printing.  Use this argument if you specified --xpath, otherwise
         include the `normalize:` statement in the YAML configuration.
-        ''',calledfromsphinx))
-    parser.add_argument('-r', '--report', action='store_true', help=sphinxify('''
+        ''', calledfromsphinx))
+    parser.add_argument('--itertext', action='store_true', help=sphinxify('''
+        Concatenate all of the text under the element and its descendents.''', calledfromsphinx))
+    parser.add_argument('--report', action='store_true', help=sphinxify('''
         For each value, print the accession numbers of all of the Object
         elements that have this value in the specified field.
         Do not specify this option and the --type option.''', calledfromsphinx))
