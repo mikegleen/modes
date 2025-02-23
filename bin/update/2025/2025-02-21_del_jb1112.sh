@@ -52,6 +52,15 @@ xpath: ./Production/Person[Role="author"]/PersonName
 ---
 column: Condition
 xpath: ./Description/Condition/Note
+---
+cmd: constant
+xpath: ./Description/Measurement/Reading
+value: 410x270
+---
+cmd: constant
+xpath: ./Description
+aspect: pages
+value: 16 + 6 plates
 EOF
 #
 # We use --force because we want to replace "Percy Bradshaw" with "Percy Bradshaw"
