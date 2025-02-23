@@ -374,6 +374,8 @@ def one_element(objelem, idnum):
                       xpath, title)
                 continue
         if command == Cmd.CONSTANT:
+            if Stmt.ATTRIBUTE in doc:
+                target.set(doc[Stmt.ATTRIBUTE], doc[Stmt.ATTRIBUTE_VALUE])
             newtext = doc[Stmt.VALUE]
             target.text = newtext
             updated = True
@@ -395,7 +397,7 @@ def one_element(objelem, idnum):
                       color=Fore.YELLOW)
             nunchanged += 1
             continue
-        if oldtext and oldtext == newtext:
+        if oldtext and oldtext == newtext and not _args.force:
             nequal += 1
             trace(2, '{} {}: Unchanged: "{}" == "{}"', idnum, title,
                   oldtext, newtext)
@@ -520,6 +522,9 @@ def getparser():
         the fields in the file. Another way to do this for specific fields is
         to set the text to ``{{clear}}`` in the CSV field to be emptied.
         --empty implies --replace.''', called_from_sphinx))
+    parser.add_argument('-f', '--force', action='store_true', help='''
+         If set, replace existing fields even if they are identical. This is needed
+         in case a field like a date or person name will undergo transformation.''')
     parser.add_argument('--missing', action='store_true', help='''
         By default, ignore indices missing from the CSV file. If selected,
         trace the missing index. Useful if you are updating all objects.''')
