@@ -37,10 +37,6 @@
         </Date>
 		<Note elementtype="imprint/edition" />
 	</Production>
-	<Content>
-		<SummaryText />
-		<Classification />
-	</Content>
 	<Description>
 		<SummaryText />
 		<Measurement>

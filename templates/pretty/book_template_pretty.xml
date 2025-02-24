@@ -49,7 +49,6 @@
 		</Place>
 		<ReferenceNumber elementtype="ISBN" />
 	</Production>
-	<Content />
 	<Description>
 		<SummaryText />
 		<Measurement>
