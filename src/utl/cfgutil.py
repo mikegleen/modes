@@ -368,11 +368,8 @@ def new_subelt(doc, obj, idnum, verbos=1):
           idnum, element, insert_after)
     parent = obj.find(doc[Stmt.PARENT_PATH])
     if parent is None:
-        trace(1, verbos, 'Cannot find parent of {}, column {}: {}',
+        trace(1, verbos, '{}: Cannot find parent of {}, column {}: {}', idnum,
               doc[Stmt.XPATH], title, doc[Stmt.PARENT_PATH], color=Fore.YELLOW)
-    # elif ' ' in element:
-    #     trace(1, verbos, 'Cannot create element with embedded spaces: {}',
-    #           element, color=Fore.YELLOW)
     elif insert_after is None:
         newelt = ET.SubElement(parent, element)
     elif insert_after == '':
@@ -404,6 +401,34 @@ def new_subelt(doc, obj, idnum, verbos=1):
             value = doc.get(Stmt.ATTRIBUTE_VALUE, '')
             newelt.set(doc[Stmt.ATTRIBUTE], value)
     return newelt
+
+
+def process_if_other_column(row, doc, title):
+    """
+    If the IF_OTHER_COLUMN statement is not present, return True to process this document.
+
+    If the IF_OTHER_COLUMN_VALUE statement is present, then process this
+    column if the values are equal. Otherwise, process this column if
+    the value exists. Used by  the COLUMN and CONSTANT commands.
+
+    :param row:
+    :param doc:
+    :param title:
+    :return: True to process the document, False to skip it.
+    """
+    if Stmt.IF_OTHER_COLUMN not in doc:
+        return True
+    key_title = doc[Stmt.IF_OTHER_COLUMN]
+    if Stmt.IF_OTHER_COLUMN_VALUE in doc:
+        if_values = [val.strip() for val in doc[Stmt.IF_OTHER_COLUMN_VALUE].split("|")]
+        if row[key_title] not in if_values:
+            trace(3, 'Skipping col {} because {} not in {}', title, key_title, if_values)
+            return False
+    else:
+        # print(f'process... {title=} {key_title=} “{row[key_title]=}”')
+        if not row[key_title]:
+            return False
+    return True
 
 
 def select_ifnoexhib(objelem):
@@ -675,6 +700,9 @@ def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
             print(red(f'ERROR: "insert_after" statement must be a simple tag name, not an '
                       f'xpath. title: {document[Stmt.TITLE]}'))
             valid_doc = False
+        if Stmt.ELEMENT in document and ' ' in document[Stmt.ELEMENT]:
+            trace(1, 'Cannot create element with embedded spaces, title: {}', document[Stmt.TITLE])
+            valid = False
         if not valid_doc:
             valid = False
             dump_document(document, logfile=logfile)
