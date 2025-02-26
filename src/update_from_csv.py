@@ -346,9 +346,10 @@ def one_element(objelem, idnum):
         if not must_process:
             continue
         if Stmt.ASPECT in doc:
-            updated = one_doc_aspect(objelem, idnum, doc)
-            if updated:
+            aspect_updated = one_doc_aspect(objelem, idnum, doc)
+            if aspect_updated:
                 nupdated += 1
+                updated = aspect_updated
             continue
         xpath = doc.get(Stmt.XPATH)  # previously checked that xpath is present if needed
         title = doc[Stmt.TITLE]
@@ -359,6 +360,7 @@ def one_element(objelem, idnum):
                 trace(2, '{}: Removing {}', idnum, xpath)
                 parent.remove(target)
                 ndeleted += 1
+                updated = True
             continue
         elif command == Cmd.DELETE_ALL:
             targets = objelem.findall(xpath)
@@ -606,12 +608,15 @@ def check_cfg(config: Config):
     for doc in config.col_docs:
         cmd = doc[Stmt.CMD]
         if cmd == Cmd.DELETE:
+            if Stmt.PARENT_PATH not in doc:
+                trace(1, 'The parent_path: statement is required for the delete command.')
+                errs += 1
             for stmt in doc:
                 # Note some statements are created internally if they are not
                 # explicitly specified in the config.
                 if stmt not in (Stmt.CMD, Stmt.XPATH, Stmt.TITLE,
                                 Stmt.MULTIPLE_DELIMITER, Stmt.PARENT_PATH,
-                                Stmt.ELEMENT):
+                                Stmt.ELEMENT, Stmt.COLUMN_TITLE):
                     trace(1, 'Delete command: Statement "{}" not allowed, '
                              'ignored', stmt, color=Fore.RED)
                     errs += 1
@@ -623,7 +628,7 @@ def check_cfg(config: Config):
                   'attribute_value:', cmd, color=Fore.RED)
             errs += 1
     for doc in config.ctrl_docs:  # "global" is not in this dict
-        trace(1, 'Command "{}" not allowed, ignored.', doc[Stmt.CMD],
+        trace(1, 'Control command "{}" not allowed, ignored.', doc[Stmt.CMD],
               color=Fore.RED)
         errs += 1
     return errs
