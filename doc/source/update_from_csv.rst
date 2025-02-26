@@ -62,7 +62,7 @@ This illustrates several features.
    **add_mda_code** forces ``LDHRM.`` to be prepended to the given number.
 #. Accession number expansion is used. See :doc:`data_format`.
 #. The entry number is sometimes given with leading zeros. These are stripped off
-   because of the **normalize** statement in the ``EntryNumber`` column.
+   because of the **normalize:** statement in the ``EntryNumber`` column.
 #. The ``EntryNumber`` column does not have an explicit title. This is taken from the trailing
    tag in the **xpath** statement.
 
