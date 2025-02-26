@@ -132,8 +132,8 @@ the ``cmd: global`` document.
 
 -  **column_title:**
 
-   Normally, the column title is taken from the **title:** statement, which must be unique.
-   However,
+   Normally, the column title is taken from the **title:** statement. However,
+   this must be unique so
    if you want the same column to behave differently depending upon **if_other_column:**
    and **if_other_column_value:** values, then specify the column title with this statement.
 -  **date:**
