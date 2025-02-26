@@ -81,7 +81,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-from utl.cfgutil import Config, Stmt, Cmd, new_subelt, expand_idnum
+from utl.cfgutil import Config, Stmt, Cmd, new_subelt, expand_idnum, process_if_other_column
 from utl.location_sub import update_normal_loc, update_current_loc
 from utl.normalize import normalize_id, sphinxify, denormalize_id
 from utl.normalize import if_not_sphinx, DEFAULT_MDA_CODE
@@ -339,12 +339,17 @@ def one_element(objelem, idnum):
     global nupdated, nunchanged, nequal, ndeleted
     updated = False
     for doc in cfg.col_docs:
+        command = doc[Stmt.CMD]
+        # print(f'{command=}')
+        must_process = process_if_other_column(newvals[idnum], doc, idnum)
+        trace(3, 'process... {} {} {}, must process: {}', idnum, command, doc[Stmt.TITLE], must_process)
+        if not must_process:
+            continue
         if Stmt.ASPECT in doc:
             updated = one_doc_aspect(objelem, idnum, doc)
             if updated:
                 nupdated += 1
             continue
-        command = doc[Stmt.CMD]
         xpath = doc.get(Stmt.XPATH)  # previously checked that xpath is present if needed
         title = doc[Stmt.TITLE]
         if command == Cmd.DELETE:
@@ -366,14 +371,14 @@ def one_element(objelem, idnum):
         elif command == Cmd.LOCATION:
             one_doc_location(objelem, idnum, doc)
             continue
-        target = objelem.find(xpath)
-        if target is None:
-            target = new_subelt(doc, objelem, idnum, _args.verbose)
-            if target is None:  # parent is not specified or doesn't exist
-                trace(1, '{}: Cannot find target "{}", document "{}"', idnum,
-                      xpath, title)
-                continue
         if command == Cmd.CONSTANT:
+            target = objelem.find(xpath)
+            if target is None:
+                target = new_subelt(doc, objelem, idnum, _args.verbose)
+                if target is None:  # parent is not specified or doesn't exist
+                    trace(1, '{}: Cannot find target "{}", document "{}"', idnum,
+                          xpath, title)
+                    continue
             if Stmt.ATTRIBUTE in doc:
                 target.set(doc[Stmt.ATTRIBUTE], doc[Stmt.ATTRIBUTE_VALUE])
             newtext = doc[Stmt.VALUE]
@@ -383,10 +388,18 @@ def one_element(objelem, idnum):
             continue
         # command is COLUMN
         newtext = newvals[idnum][title]
+        # print(f'Command is column: {idnum=} {title=} {newtext=}')
         if not newtext and not _args.empty:
-            trace(2, '{}: empty field in CSV ignored. --empty not specified',
-                  idnum)
+            trace(2, '{}: empty field ({}) in CSV ignored. --empty not specified',
+                  idnum, title)
             continue
+        target = objelem.find(xpath)
+        if target is None:
+            target = new_subelt(doc, objelem, idnum, _args.verbose)
+            if target is None:  # parent is not specified or doesn't exist
+                trace(1, '{}: Cannot find target "{}", document "{}"', idnum,
+                      xpath, title)
+                continue
         # get the text from the CSV column for this row
         oldtext = target.text
         if oldtext and not _args.replace:
