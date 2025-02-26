@@ -13,7 +13,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 
-from utl.cfgutil import Config, Stmt, Cmd, new_subelt
+from utl.cfgutil import Config, Stmt, Cmd, new_subelt, process_if_other_column
 from utl.normalize import modesdatefrombritishdate, sphinxify, if_not_sphinx
 from utl.normalize import DEFAULT_MDA_CODE, normalize_id, denormalize_id
 from utl.normalize import modes_person, modesdate
@@ -227,19 +227,8 @@ def main():
             else:
                 text = row[column_title]
             trace(4, 'column="{}", text="{}"', column_title, text)
-            if Stmt.IF_OTHER_COLUMN in doc:
-                key_title = doc[Stmt.IF_OTHER_COLUMN]
-                # If the IF_OTHER_COLUMN_VALUE statement is present, then process this
-                # column if the values are equal. Otherwise, process this column if
-                # the value exists.
-                if Stmt.IF_OTHER_COLUMN_VALUE in doc:
-                    if_values = [val.strip() for val in doc[Stmt.IF_OTHER_COLUMN_VALUE].split("|")]
-                    if row[key_title] not in if_values:
-                        trace(3, 'Skipping col {} because {} not in {}', title, key_title, if_values)
-                        continue
-                else:
-                    if not row[key_title]:
-                        continue
+            if not process_if_other_column(row, doc, accnum):
+                continue
             if cmd != Cmd.CONSTANT and not text:
                 trace(3, '{}: cell empty {}', accnum, title)
                 if Stmt.REQUIRED in doc:
