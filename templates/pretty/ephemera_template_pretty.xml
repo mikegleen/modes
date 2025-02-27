@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Interchange>
+<templates application="Object"><template filename="SYSTEM" name="hrm ephemera template">
 <Object elementtype="ephemera">
 	<ObjectIdentity>
 		<Number />
@@ -33,8 +32,8 @@
 			<OrganisationName />
 		</Organisation>
 		<Date elementtype="publication date">
-            <DateBegin />
-        </Date>
+			<DateBegin />
+		</Date>
 		<Note elementtype="imprint/edition" />
 	</Production>
 	<Description>
@@ -44,10 +43,10 @@
 			<Dimension>height x width</Dimension>
 			<Reading />
 		</Measurement>
-        <Aspect>
-            <Keyword>pages</Keyword>
-            <Reading />
-        </Aspect>
+		<Aspect>
+			<Keyword>pages</Keyword>
+			<Reading />
+		</Aspect>
 		<Inscription>
 			<Method />
 			<Position />
@@ -81,4 +80,4 @@
 	</Reproduction>
 	<Notes />
 </Object>
-</Interchange>
+</template></templates>

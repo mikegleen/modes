@@ -1,60 +1,59 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Interchange>
+<templates application="Object"><template filename="SYSTEM" name="hrm decorative art template">
 <Object elementtype="decorative art">
 	<ObjectIdentity>
-		<Number>JB801</Number>
+		<Number />
 	</ObjectIdentity>
 	<Identification>
 		<ObjectName elementtype="simple name">
-			<Keyword>teapot and lid</Keyword>
+			<Keyword />
 		</ObjectName>
 		<ObjectName elementtype="other name">
-			<Keyword>nursery china</Keyword>
+			<Keyword />
 		</ObjectName>
 		<Classification>
 			<Keyword />
 			<System />
 		</Classification>
-		<BriefDescription>'Baa, baa, blacksheep, have you any wool?...' + 'Pussycat, pussycat, where have you been?'</BriefDescription>
-		<Title>Teapot and lid, 'Baa, baa, blacksheep...'</Title>
+		<BriefDescription />
+		<Title />
 	</Identification>
 	<ObjectLocation elementtype="current location">
-		<Location>B7</Location>
+		<Location />
 		<Date>
-			<DateBegin>19.12.2018</DateBegin>
+			<DateBegin />
 			<DateEnd />
 			<Note />
 		</Date>
 	</ObjectLocation>
 	<ObjectLocation elementtype="normal location">
-		<Location>B7</Location>
+		<Location />
 	</ObjectLocation>
 	<Production>
-		<SummaryText>Produced for Soane and Smith</SummaryText>
+		<SummaryText />
 		<Method />
 		<Person>
 			<Role>artist</Role>
-			<PersonName>Robinson, W H</PersonName>
+			<PersonName />
 		</Person>
 		<Organisation>
 			<Role>manufacturer</Role>
-			<OrganisationName>Midwinter, W R</OrganisationName>
+			<OrganisationName />
 		</Organisation>
 		<Place>
-			<PlaceName>Burslem, England</PlaceName>
+			<PlaceName />
 			<County />
 			<Country />
 		</Place>
 		<Date>
-			<DateBegin>1928</DateBegin>
+			<DateBegin />
 			<DateEnd />
 			<Accuracy />
 		</Date>
 		<Period />
 	</Production>
 	<Association>
-		<Type>nursery china</Type>
-		<SummaryText>Each piece decorated with a frieze of children’s faces, and with nursey rhyme and other pictures. [Solely for Soane and Smith, Knightsbridge, SW3. Redg. Nos for designs 732602/13 inclusive]</SummaryText>
+		<Type />
+		<SummaryText />
 		<Person>
 			<Role />
 			<PersonName />
@@ -79,7 +78,7 @@
 		<Period />
 	</Association>
 	<Description>
-		<SummaryText>'Baa, baa, blacksheep, have you any wool?...' + 'Pussycat, pussycat, where have you been?'</SummaryText>
+		<SummaryText />
 		<Measurement>
 			<Dimension>height x width x depth</Dimension>
 			<Reading />
@@ -112,12 +111,12 @@
 		</Completeness>
 	</Description>
 	<Acquisition>
-		<Method>gift</Method>
+		<Method />
 		<Person>
-			<Role>acquired from</Role>
+			<Role />
 			<PersonName />
 		</Person>
-		<Date>1992</Date>
+		<Date />
 		<Price />
 		<Conditions />
 	</Acquisition>
@@ -134,4 +133,4 @@
 	</Recorder>
 	<Notes />
 </Object>
-</Interchange>
+</template></templates>

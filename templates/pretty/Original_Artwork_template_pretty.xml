@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Interchange>
+<templates application="Object"><template filename="SYSTEM" name="hrm Original Artwork template">
 <Object elementtype="Original Artwork">
 	<ObjectIdentity>
 		<Number />
@@ -126,6 +125,6 @@
 		</ObjectIdentity>
 		<Note />
 	</RelatedObject>
-    <Notes  />
+	<Notes />
 </Object>
-</Interchange>
+</template></templates>

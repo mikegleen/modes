@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Interchange>
+<templates application="Object"><template filename="SYSTEM" name="hrm cutting template">
 <Object elementtype="cutting">
 	<ObjectIdentity>
 		<Number />
@@ -45,12 +44,12 @@
 			<Reading />
 		</Aspect>
 		<Aspect>
-            <Keyword>display order</Keyword>
+			<Keyword>display order</Keyword>
 			<Reading>9</Reading>
 		</Aspect>
-        <Condition>
-            <Note />
-        </Condition>
+		<Condition>
+			<Note />
+		</Condition>
 	</Description>
 	<Acquisition>
 		<Method />
@@ -68,4 +67,4 @@
 	</References>
 	<Notes />
 </Object>
-</Interchange>
+</template></templates>

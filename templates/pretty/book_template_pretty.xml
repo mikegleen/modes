@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Interchange>
-<Object elementtype="books">
+<templates application="Object"><template filename="SYSTEM" name="hrm book template">
+<Object elementtype="book">
 	<ObjectIdentity>
 		<Number />
 	</ObjectIdentity>
@@ -58,7 +57,7 @@
 		</Measurement>
 		<Aspect>
 			<Keyword>pages</Keyword>
-            <Reading />
+			<Reading />
 		</Aspect>
 		<Inscription>
 			<Method />
@@ -99,4 +98,4 @@
 	</Reproduction>
 	<Notes />
 </Object>
-</Interchange>
+</template></templates>

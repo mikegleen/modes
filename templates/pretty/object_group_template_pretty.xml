@@ -1,24 +1,23 @@
-<templates application="Object">
-    <template filename="SYSTEM" name="hrm object group template">
-        <Object elementtype="object group">
-            <ObjectIdentity>
-                <Number/>
-            </ObjectIdentity>
-            <Identification>
-                <BriefDescription/>
-            </Identification>
-            <ObjectLocation elementtype="normal location">
-                <Location/>
-                <Date>
-                    <DateBegin/>
-                </Date>
-            </ObjectLocation>
-            <ObjectLocation elementtype="current location">
-                <Location/>
-                <Date>
-                    <DateBegin/>
-                </Date>
-            </ObjectLocation>
-        </Object>
-    </template>
-</templates>
+<?xml version="1.0" encoding="UTF-8"?>
+<Interchange>
+<Object elementtype="object group">
+	<ObjectIdentity>
+		<Number />
+	</ObjectIdentity>
+	<Identification>
+		<BriefDescription />
+	</Identification>
+	<ObjectLocation elementtype="normal location">
+		<Location />
+		<Date>
+			<DateBegin />
+		</Date>
+	</ObjectLocation>
+	<ObjectLocation elementtype="current location">
+		<Location />
+		<Date>
+			<DateBegin />
+		</Date>
+	</ObjectLocation>
+</Object>
+</Interchange>

@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Interchange>
+<templates application="Object"><template filename="SYSTEM" name="hrm reproduction template">
 <Object elementtype="reproduction">
 	<ObjectIdentity>
 		<Number />
@@ -65,4 +64,4 @@
 	</Reproduction>
 	<Notes />
 </Object>
-</Interchange>
+</template></templates>
