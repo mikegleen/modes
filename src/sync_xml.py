@@ -57,10 +57,23 @@ def onefile(infile_name: str, outfile_name: str, mtime: float,
         return
     nlines = 0
     t1 = time.perf_counter()
+    is_template = False
+    with open(infile_name) as templatefile:
+        tree = ET.parse(templatefile)
+        root = tree.getroot()
+        if root.tag == 'templates':
+            is_template = True
+            template = root.find('./template')
+            template_name = template.get('name')
+
     infile = open(infile_name, encoding=_args.input_encoding)
     outfile = open(outfile_name, 'wb')
-    declaration = ('<?xml version="1.0" encoding="'
-                   f'{_args.output_encoding}"?>\n<Interchange>')
+    if is_template:
+        declaration = ('<templates application="Object">'
+                       f'<template filename="SYSTEM" name="{template_name}">')
+    else:
+        declaration = ('<?xml version="1.0" encoding="'
+                       f'{_args.output_encoding}"?>\n<Interchange>')
     outfile.write(bytes(declaration, _args.output_encoding))
     if make_pretty:
         outfile.write(b'\n')
@@ -100,7 +113,10 @@ def onefile(infile_name: str, outfile_name: str, mtime: float,
         if make_pretty:
             outfile.write(b'\n')
         elem.clear()
-    outfile.write(b'</Interchange>')
+    if is_template:
+        outfile.write(b'</template></templates>')
+    else:
+        outfile.write(b'</Interchange>')
     infile.close()
     print(f'updating {outfile_name=}')
     outfile.close()
@@ -191,6 +207,9 @@ def getargs():
     parser.add_argument('parent_dir', help='''
         The parent folder containing subfolders "normal" and "pretty" ''')
 
+    parser.add_argument('-d', '--dryrun', action='store_true', help='''
+        Print logs but do not process files.
+        ''')
     parser.add_argument('-e', '--input_encoding', default=None, help='''
         Set the input encoding. The encoding defaults to UTF-8. If set, you
         must also set --output_encoding.
@@ -203,8 +222,6 @@ def getargs():
         If present, this directory is a sub-directory under both the normal and
         pretty directories. 
         ''')
-    parser.add_argument('-d', '--dryrun', action='store_true', help='''
-        Print logs but do not process files.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
