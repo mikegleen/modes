@@ -18,6 +18,9 @@ ROOTDIR = '/Users/mlg/pyprj/hrm/modes'
 INDIR = ROOTDIR + '/results/xml'
 PRETTYDIR = INDIR + '/pretty'
 
+# Define the two valid root tags and the associated record tags
+TEMPLATES = {'templates': 'template', 'Interchange': 'Object'}
+
 
 def getfiles():
     """
@@ -46,10 +49,8 @@ def getfiles():
 def main():
     nlines = 0
     if is_template:
-        record_tag = 'template'
         declaration = '<templates application="Object">'
     else:
-        record_tag = 'Object'
         declaration = ('<?xml version="1.0" encoding="'
                        f'{_args.output_encoding}"?>\n<Interchange>')
     outfile.write(bytes(declaration, _args.output_encoding))
@@ -132,15 +133,20 @@ def getargs():
     return args
 
 
+def get_record_tag():
+    with open(_args.infile) as xmlfile:
+        event, elem = next(ET.iterparse(xmlfile, events=('start',)))
+        tag = elem.tag
+    return TEMPLATES[tag]  # barf if the root tag is not "templates" or "Interchange"
+
+
 if __name__ == '__main__':
-    assert sys.version_info >= (3, 9)
+    assert sys.version_info >= (3, 13)
     if len(sys.argv) == 1:
         sys.argv.append('-h')
     _args = getargs()
-    with open(_args.infile) as xmlfile:
-        tree = ET.parse(xmlfile)
-        root = tree.getroot()
-        is_template = True if root.tag == 'templates' else False
-
+    record_tag = get_record_tag()
+    is_template = True if record_tag == 'template' else False
+    print(f'{record_tag=}')
     infile, outfile = getfiles()
     main()
