@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Interchange>
+<templates application="Object">
+<template filename="SYSTEM" name="hrm object group template">
 <Object elementtype="object group">
 	<ObjectIdentity>
 		<Number />
@@ -20,4 +20,5 @@
 		</Date>
 	</ObjectLocation>
 </Object>
-</Interchange>
+</template>
+</templates>
