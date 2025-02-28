@@ -130,4 +130,5 @@ test/pretty/
 Manuals/
 Object Elements
 templates/normal/
+templates/exported
 *.zip
