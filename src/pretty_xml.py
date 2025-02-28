@@ -45,18 +45,24 @@ def getfiles():
 
 def main():
     nlines = 0
-    declaration = ('<?xml version="1.0" encoding="'
-                   f'{_args.output_encoding}"?>\n<Interchange>')
+    if is_template:
+        record_tag = 'template'
+        declaration = '<templates application="Object">'
+    else:
+        record_tag = 'Object'
+        declaration = ('<?xml version="1.0" encoding="'
+                       f'{_args.output_encoding}"?>\n<Interchange>')
     outfile.write(bytes(declaration, _args.output_encoding))
     outfile.write(b'\n')
     objectlevel = 0
+
     for event, elem in ET.iterparse(infile, events=('start', 'end')):
         if event == 'start':
-            if elem.tag == 'Object':
+            if elem.tag == record_tag:
                 objectlevel += 1
             continue
         # It's an "end" event.
-        if elem.tag != 'Object':
+        if elem.tag != record_tag:
             continue
         objectlevel -= 1
         if objectlevel:
@@ -80,7 +86,10 @@ def main():
         if _args.short:
             break
         elem.clear()
-    outfile.write(b'</Interchange>')
+    if is_template:
+        outfile.write(b'</templates>')
+    else:
+        outfile.write(b'</Interchange>')
     if _args.verbose >= 1:
         s = 's' if nlines > 1 else ''
         print(f'End pretty_xml. {nlines} object{s} written.')
@@ -128,5 +137,10 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         sys.argv.append('-h')
     _args = getargs()
+    with open(_args.infile) as xmlfile:
+        tree = ET.parse(xmlfile)
+        root = tree.getroot()
+        is_template = True if root.tag == 'templates' else False
+
     infile, outfile = getfiles()
     main()
