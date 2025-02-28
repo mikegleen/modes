@@ -58,8 +58,8 @@ def onefile(infile_name: str, outfile_name: str, mtime: float,
     nlines = 0
     t1 = time.perf_counter()
     is_template = False
-    with open(infile_name) as templatefile:
-        tree = ET.parse(templatefile)
+    with open(infile_name) as xmlfile:
+        tree = ET.parse(xmlfile)
         root = tree.getroot()
         if root.tag == 'templates':
             is_template = True
