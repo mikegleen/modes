@@ -8,42 +8,13 @@ input and output file paths given.
 """
 
 import argparse
-import os.path
 import sys
 import xml.dom.minidom as minidom
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
-ROOTDIR = '/Users/mlg/pyprj/hrm/modes'
-INDIR = ROOTDIR + '/results/xml'
-PRETTYDIR = INDIR + '/pretty'
-
 # Define the two valid root tags and the associated record tags
 TEMPLATES = {'templates': 'template', 'Interchange': 'Object'}
-
-
-def getfiles():
-    """
-
-    :return: A tuple of the input file and output file. If necessary, create
-    the output subdirectory "pretty".
-    """
-    if _args.outfile:
-        return open(_args.infile), open(_args.outfile, 'wb')
-    os.makedirs(PRETTYDIR, exist_ok=True)
-    filename: str = _args.infile
-    inputfile = open(os.path.join(INDIR, filename))
-    print(f'Reading file {inputfile.name}')
-
-    # 2021-04-30_children.xml -> 2021-04-30_pretty_children.xml
-    parts = filename.split('_')
-    if len(parts) == 1:
-        raise ValueError('Filename must be of format yyyy-mm-dd_name.xml')
-    parts[0] += '_pretty'
-    prettyname = '_'.join(parts)
-    prettyfile = open(PRETTYDIR + '/' + prettyname, 'wb')
-    print(f'Creating file: {prettyfile.name}')
-    return inputfile, prettyfile
 
 
 def main():
@@ -102,12 +73,9 @@ def getargs():
         convert multiple spaces to single spaces.
         ''')
     parser.add_argument('infile', help=f'''
-        The input XML file is assumed to be in {INDIR}. The output directory
-        will be {PRETTYDIR}. The output file will have "pretty" inserted after
-        the leading date.''')
-    parser.add_argument('-o', '--outfile', help=f'''
-        Specify the output pretty file. If this is not specified, the default
-        behavior of creating a subdirectory named 'pretty' will be done.
+        The path to the input XML file.''')
+    parser.add_argument('outfile', help=f'''
+        Specify the output pretty file.
     ''')
     parser.add_argument('-e', '--input_encoding', default=None, help='''
         Set the input encoding. The encoding defaults to UTF-8. If set, you
@@ -148,5 +116,6 @@ if __name__ == '__main__':
     record_tag = get_record_tag()
     is_template = True if record_tag == 'template' else False
     print(f'{record_tag=}')
-    infile, outfile = getfiles()
+    infile = open(_args.infile)
+    outfile = open(_args.outfile, 'wb')
     main()
