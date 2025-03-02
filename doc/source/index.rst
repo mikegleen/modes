@@ -20,6 +20,7 @@ Modes Python Library
    location
    recode_collection
    shrinkjpg
+   sync_xml
    x053_list_pages
    update_from_csv
    utility_programs
