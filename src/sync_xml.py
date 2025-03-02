@@ -1,13 +1,15 @@
 """
 Synchronize the normal and pretty XML folders. This assumes a folder structure
-as:
+as::
+
     Parent
          |
          |-normal
          |-pretty
 
 Alternatively, there can be a folder under each of the normal and pretty
-folders:
+folders::
+
     Parent
          |
          |-normal
@@ -195,7 +197,7 @@ def main():
         onefile(from_file, to_file, mtime=pretty_mtime[fn], make_pretty=False)
 
 
-def getargs():
+def getparser():
     parser = argparse.ArgumentParser(description='''
         Examine two folders named *normal* and *pretty* which are subfolders of the
         folder named in the first parameter. If any files in *pretty* are newer
@@ -225,7 +227,12 @@ def getargs():
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
-    args = parser.parse_args()
+    return parser
+
+
+def getargs(argv):
+    parser = getparser()
+    args = parser.parse_args(args=argv[1:])
     e = args.input_encoding
     g = args.output_encoding
     if (e and not g) or (g and not e):
@@ -242,5 +249,5 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 10)
     if len(sys.argv) == 1:
         sys.argv.append('-h')
-    _args = getargs()
+    _args = getargs(sys.argv)
     main()
