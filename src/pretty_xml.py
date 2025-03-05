@@ -13,8 +13,7 @@ import xml.dom.minidom as minidom
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
-# Define the two valid root tags and the associated record tags
-TEMPLATES = {'templates': 'template', 'Interchange': 'Object'}
+from utl.xmlutil import get_record_tag
 
 
 def main():
@@ -101,19 +100,12 @@ def getargs():
     return args
 
 
-def get_record_tag():
-    with open(_args.infile) as xmlfile:
-        event, elem = next(ET.iterparse(xmlfile, events=('start',)))
-        tag = elem.tag
-    return TEMPLATES[tag]  # barf if the root tag is not "templates" or "Interchange"
-
-
 if __name__ == '__main__':
     assert sys.version_info >= (3, 13)
     if len(sys.argv) == 1:
         sys.argv.append('-h')
     _args = getargs()
-    record_tag = get_record_tag()
+    record_tag = get_record_tag(_args.infile)
     is_template = True if record_tag == 'template' else False
     print(f'{record_tag=}')
     infile = open(_args.infile)

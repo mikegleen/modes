@@ -38,6 +38,8 @@ import xml.dom.minidom as minidom
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
+from utl.xmlutil import get_record_tag
+
 
 def trace(level, template, *args):
     if _args.verbose >= level:
@@ -59,20 +61,14 @@ def onefile(infile_name: str, outfile_name: str, mtime: float,
         return
     nlines = 0
     t1 = time.perf_counter()
-    is_template = False
-    with open(infile_name) as xmlfile:
-        tree = ET.parse(xmlfile)
-        root = tree.getroot()
-        if root.tag == 'templates':
-            is_template = True
-            template = root.find('./template')
-            template_name = template.get('name')
+    record_tag = get_record_tag(infile_name)
+    is_template = True if record_tag == 'template' else False
+    trace(1, 'file {}, record_tag={}', infile_name, record_tag)
 
     infile = open(infile_name, encoding=_args.input_encoding)
     outfile = open(outfile_name, 'wb')
     if is_template:
-        declaration = ('<templates application="Object">'
-                       f'<template filename="SYSTEM" name="{template_name}">')
+        declaration = '<templates application="Object">'
     else:
         declaration = ('<?xml version="1.0" encoding="'
                        f'{_args.output_encoding}"?>\n<Interchange>')
@@ -82,11 +78,11 @@ def onefile(infile_name: str, outfile_name: str, mtime: float,
     objectlevel = 0
     for event, elem in ET.iterparse(infile, events=('start', 'end')):
         if event == 'start':
-            if elem.tag == 'Object':
+            if elem.tag == record_tag:
                 objectlevel += 1
             continue
         # It's an "end" event.
-        if elem.tag != 'Object':
+        if elem.tag != record_tag:
             continue
         objectlevel -= 1
         if objectlevel:
@@ -116,7 +112,7 @@ def onefile(infile_name: str, outfile_name: str, mtime: float,
             outfile.write(b'\n')
         elem.clear()
     if is_template:
-        outfile.write(b'</template></templates>')
+        outfile.write(b'</templates>')
     else:
         outfile.write(b'</Interchange>')
     infile.close()
@@ -129,7 +125,7 @@ def onefile(infile_name: str, outfile_name: str, mtime: float,
     if _args.verbose >= 1:
         elapsed = time.perf_counter() - t1
         s = 's' if nlines > 1 else ''
-        print(f'End file {infile_name} -> {outfile_name} {nlines} object{s} '
+        print(f'End file {infile_name} -> {outfile_name}\n{nlines} object{s} '
               f'written in {elapsed:.3f} seconds')
 
 
@@ -174,7 +170,9 @@ def select(source_mtime: dict[str, float], dest_mtime: dict[str, float]):
                       source_mtime[fn])
             selected.append(fn)
             trace(3, '    Selecting {}', fn)
-    trace(2, '{} files selected.', len(selected))
+    nfiles = len(selected)
+    s = 's' if nfiles > 1 else ''
+    trace(2, '{} file{} selected.', nfiles, s)
     return selected
 
 
