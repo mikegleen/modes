@@ -4,6 +4,8 @@ import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
 def get_record_tag(infile):
     """
+    Parse a Modes XML file containing Object or template records returning either
+    "Object" or "template" and raising a KeyError otherwise.
 
     :param infile: The XML file containing Object or template repeated element
                    groups.
