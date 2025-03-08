@@ -108,6 +108,7 @@ def loadsubidvals(reader, allow_blanks) -> (dict, dict):
              (1) subval dict with key of accession number with subid as in the CSV file
              without added MDA code (if applicable).
     """
+    strict = not allow_blanks
     newval_dict = dict()
     subval_dict = dict()
     for row in reader:
@@ -120,7 +121,7 @@ def loadsubidvals(reader, allow_blanks) -> (dict, dict):
             else:
                 raise ValueError('Blank accession number in include file;'
                                  ' --allow_blank not selected.')
-        naccnum = normalize_id(accnum)
+        naccnum = normalize_id(accnum, strict=strict)
         mainid, subid = nd.split_subid(naccnum)
         if subid is None:
             raise ValueError(f'Accession number "{accnum}" is missing the subid.')
@@ -129,7 +130,7 @@ def loadsubidvals(reader, allow_blanks) -> (dict, dict):
             fullmainid = _args.mdacode + '.' + mainid
         # Don't call expand_idnum as only a single subid is allowed.
         trace(2, 'loadsubidvals: mainid = {}, subid = {}', mainid, subid)
-        newval_dict[normalize_id(fullmainid)] = None
+        newval_dict[normalize_id(fullmainid, strict=strict)] = None
         if naccnum in subval_dict:
             sys.tracebacklimit = 0
             raise ValueError(f'Duplicate subid: {accnum}')
@@ -138,6 +139,7 @@ def loadsubidvals(reader, allow_blanks) -> (dict, dict):
 
 
 def loadnewvals(reader, allow_blanks=False):
+    strict = not allow_blanks
     newval_dict = {}
     for row in reader:
         # print(f'{row=}')
@@ -154,7 +156,7 @@ def loadnewvals(reader, allow_blanks=False):
         accnums = expand_idnum(accnum)
         trace(3, 'loadnewvals: accnums = {}', accnums)
         for accnum in accnums:
-            newval_dict[normalize_id(accnum)] = row
+            newval_dict[normalize_id(accnum, strict=strict)] = row
     return newval_dict
 
 
@@ -521,8 +523,8 @@ def getparser():
     parser.add_argument('-a', '--all', action='store_true', help='''
         Write all objects. The default is to only write updated objects.''')
     parser.add_argument('--allow_blanks', action='store_true', help='''
-        Skip rows in the include CSV file with blank accession numbers. If not
-        set, this will cause an abort. ''')
+        Skip rows in the include CSV file with blank or badly formed accession
+        numbers. If not set, this will cause an abort.''')
     parser.add_argument('-c', '--cfgfile', required=True,
                         type=argparse.FileType(), help='''
         Required. The YAML configuration file describing the column path(s) to

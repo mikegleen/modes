@@ -837,13 +837,15 @@ def _splitid(idstr: str, m: re.Match) -> (str, int, int, int):
              intsecondidnum: int = 24
              len(variablepart) = 2
     """
+    if m[3] and m[1] != m[3]:
+        raise ValueError(f'{idstr} first "{m[1]}" and second "{m[3]}"    prefix must match')
     prefix = m[1]  # will be updated later if 2nd # is shorter than 1st #
     lenprefix = len(prefix)
     firstidnum = m[2]
-    intsecondidnum = int(m[3])  # the numbers after the '-'
+    intsecondidnum = int(m[4])  # the numbers after the '-'
     # lenfirstid will change if the second # is shorter than the first
     lenfirstid = len(firstidnum)
-    lenlastid = len(m[3])
+    lenlastid = len(m[4])
     lenfixedpart = max(lenfirstid - lenlastid, 0)
     # In a case like SH21-4, the fixed part will be the leading part of the
     # number, in this case "2".
@@ -884,6 +886,11 @@ def _expand_one_idnum(idstr: str) -> list[str]:
             ['JB021', 'JB022', 'JB023', 'JB024']
         JB021&026&033 returns:
             ['JB021', 'JB026', 'JB033']
+
+    It is unnecessary but allowed to have a prefix on the part following the
+    separator:
+        JB001-JB002
+        LDHRM.2022.1-LDHRM.2022.3
     """
 
     jlist = []
@@ -892,7 +899,12 @@ def _expand_one_idnum(idstr: str) -> list[str]:
         if '&' in idstr:
             raise ValueError(f'Bad accession number list: cannot contain both'
                              f' "-" and "&": "{idstr}"')
-        if m := re.match(r'(.+?)(\d+)[-/](\d+)$', idstr):
+        if m := re.match(r'''(.+?)  # prefix like "JB" or "LDHRM.2024."
+                             (\d+)  # number up to the separator
+                             [-/]   # the separator can be "-" or "/"
+                             (.*?)  # possibly a prefix on the second part
+                             (\d+)$ # the trailing number
+                             ''', idstr, flags=re.VERBOSE):
             prefix, num1, num2, lenvariablepart = _splitid(idstr, m)
             try:
                 for suffix in range(num1, num2 + 1):
@@ -918,6 +930,7 @@ def _expand_one_idnum(idstr: str) -> list[str]:
             jlist.append(prefix + tail)
 
     else:
+        # It's just a single accession number.
         jlist.append(idstr)
     return jlist
 
