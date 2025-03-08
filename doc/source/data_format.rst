@@ -88,7 +88,7 @@ is illegal but::
 
     JB002-3,JB005
 
-is legal.
+is legal. You can use a "/" instead of the "-" separator.
 
 
 Date Formats
