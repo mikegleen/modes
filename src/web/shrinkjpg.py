@@ -151,35 +151,33 @@ def call_sips(img_height, img_width, filepath, outdir):
 
 
 def main():
-    indir = _args.indir
-    outdir = _args.outdir
-    maxpixels = _args.maxpixels
-    dryrun = _args.dryrun
-    files = os.listdir(indir)
-    ncopied = 0
-    nshrunk = 0
-    for filename in files:
+
+    def onefile():
+        nonlocal nshrunk, ncopied
         trace(2, 'Filename: {}', filename)
         prefix, suffix = os.path.splitext(filename)
-        filepath = os.path.join(indir, filename)
         if suffix.lower() not in ('.jpg', '.png'):
             trace(1, 'skipping {}', filename)
-            continue
+            return
+        filepath = os.path.join(indir, filename)
         with Image.open(filepath) as im:
             img_width, img_height = im.size
             trace(2, 'Image height/width = {}/{}', img_height, img_width)
         idnums = normalize_prefix(prefix)
-        trace(3, 'prefix = {}, nidnums = {}', prefix, idnums)
+        trace(3, 'prefix = {}, idnums = {}', prefix, idnums)
         for idnum in idnums:
+            trace(3, 'idnum = {}', idnum)
             nidnum = normalize_id(idnum)
-            if nidnum and nidnum in readings:
-                trace(2, 'Normalized id: {}', nidnum)
-                try:
-                    xh, xw = readings[nidnum]
-                except KeyError:
-                    trace(1, "No find dimensions of filename {}, nidnum: {}",
-                          filename, nidnum, color=Fore.RED)
+            trace(2, 'Normalized id: {}', nidnum)
+            if nidnum not in readings:
+                trace(2, 'Unknown id ignored: {}', idnum)
+                continue
+            if readings[nidnum] is str:
+                if readings[nidnum] in ['object group', 'placeholder']:
+                    trace(2, 'Ineligible object type ignored: id={}, type={}', idnum, readings[nidnum])
                     continue
+            else:  # readings[nidnum] is Reading
+                xh, xw = readings[nidnum]
                 newh, neww = new_hxw(xh, xw, img_height, img_width)
                 trace(3, 'XML H,W: {}mm,{}mm Orig img H,W: {}px,{}px', xh, xw, img_height, img_width)
                 if newh == img_height and neww == img_width:
@@ -187,35 +185,54 @@ def main():
                     if not _args.dryrun:
                         copy2(filepath, outdir)
                 else:
-                    call_sips(newh, neww, filepath, outdir)
+                    if not _args.dryrun:
+                        call_sips(newh, neww, filepath, outdir)
                 nshrunk += 1
                 continue
-        trace(2, "Cannot find measurements, using max {} pixels.", maxpixels)
-        if max(img_width, img_height) > maxpixels:
-            sipscmd = SIPSCMD.format(maxpixels, filepath, outdir)
-            trace(2, 'Setting maxpixels {}, width = {}, height = {}, command = {}',
-                  maxpixels, img_width, img_height,
-                  sipscmd)
-            nshrunk += 1
-            if dryrun:
-                continue
-            subprocess.check_call(sipscmd, shell=True)
-        else:
-            trace(2, 'copying {} --> {}', filepath, outdir)
-            ncopied += 1
-            if dryrun:
-                continue
-            copy2(filepath, outdir)
+            trace(2, "Cannot find measurements, using max {} pixels.", maxpixels)
+            if max(img_width, img_height) > maxpixels:
+                sipscmd = SIPSCMD.format(maxpixels, filepath, outdir)
+                trace(2, 'Setting maxpixels {}, width = {}, height = {}, command = {}',
+                      maxpixels, img_width, img_height,
+                      sipscmd)
+                nshrunk += 1
+                if dryrun:
+                    return
+                subprocess.check_call(sipscmd, shell=True)
+            else:
+                trace(2, 'copying {} --> {}', filepath, outdir)
+                ncopied += 1
+                if dryrun:
+                    return
+                copy2(filepath, outdir)
+
+    outdir = _args.outdir
+    maxpixels = _args.maxpixels
+    dryrun = _args.dryrun
+    ncopied = 0
+    nshrunk = 0
+    if isdir:
+        indir = _args.indir
+        files = os.listdir(indir)
+        for filename in files:
+            onefile()
+    else:
+        indir, filename = os.path.split(_args.indir)
+        print(f'{indir=}, {filename=}')
+        onefile()
     trace(1, '{} copied\n{} shrunk', ncopied, nshrunk)
 
 
-def set_one_reading(idnum, readingtext):
+def set_one_reading(idnum, readingtext: str | None):
     nidnum = normalize_id(idnum)
+    if readingtext is None:
+        readings[nidnum] = None  # The object is present but the readings don't exist.
+        return
     rtext = readingtext.replace(' ', '') if readingtext else ''
     trace(4, 'set_one_reading: idnum = {}({}), rtext = "{}"',
           idnum, nidnum, rtext, color=Fore.YELLOW)
     if not rtext:
-        trace(3, 'set_one_reading: idnum = {}({}), '
+        trace(4, 'set_one_reading: idnum = {}({}), '
                  'rtext = "{}" failed match',
               idnum, nidnum, rtext, color=Fore.YELLOW)
         return
@@ -244,7 +261,9 @@ def get_readings_from_xml():
         if reading is not None:
             set_one_reading(idnum, reading.text)
         else:
+            nidnum = normalize_id(idnum)
             etype = elem.get('elementtype')
+            readings[nidnum] = etype
             if etype not in ['letter', 'object group', 'books', 'placeholder']:
                 trace(1, 'Cannot find Reading element for {} ({})', idnum, etype)
 
@@ -272,8 +291,10 @@ if __name__ == '__main__':
         sys.argv.append('-h')
     _args = getargs()
     trace(0, 'Begin shrinkjpg.py {}', datetime.now())
-    if not os.path.isdir(_args.indir):
-        raise ValueError('Input must be a directory.')
+    isdir = False
+    if os.path.isdir(_args.indir):
+        isdir = True
+        # raise ValueError('Input must be a directory.')
     if not os.path.isdir(_args.outdir):
         os.mkdir(_args.outdir)
     VERBOSE = _args.verbose
