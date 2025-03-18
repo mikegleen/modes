@@ -12,7 +12,7 @@
 import re
 import sys
 import unittest
-from web.x053_list_pages import FILENAMEPAT, FILENAMEPAT2, parse_prefix
+from web.webutil import FILENAMEPAT, FILENAMEPAT2, parse_prefix
 
 
 class TestFilenamePat(unittest.TestCase):
