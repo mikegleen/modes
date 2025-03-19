@@ -40,7 +40,7 @@ def object_reader(infilename: str | None, config=None, normalize=False, verbos=1
     """
     Open an XML file and return Object elements.
 
-    :param infilename: The XML file in Modes format
+    :param infilename: The XML file in Modes format. Can be a zip file.
     :param config: A Config object or None in which case an empty one is made.
                    The function refers to config members ``record_tag`` and ``record_id_xpath``.
     :param normalize: return a modified tuple (see below)
