@@ -596,8 +596,6 @@ def main():
 def add_arguments(parser, command):
     global is_update, is_diff, is_select, is_validate  # Needed for Sphinx
     # Define groups as None to avoid warnings from PyCharm.
-    # reason_group: --col_reason or --reason
-    reason_group = None
     # map_group: --mapfile or --object
     # diff_group: --current or --normal
     diff_group = None  # only if diff command
@@ -644,11 +642,11 @@ def add_arguments(parser, command):
         equivalent for this row to setting the --patch command-line option
         which applies to all of the rows in the CSV file. The column can be a
         number or a spreadsheet-style letter.''', called_from_sphinx))
-        reason_group = parser.add_mutually_exclusive_group()
-        reason_group.add_argument('--col_reason', help=nd.sphinxify('''
+        parser.add_argument('--col_reason', help=nd.sphinxify('''
             The zero-based column containing text to be inserted as the
             reason for the move to the new current location for the object
-            named in the row. Specify this or --reason. The column can be a
+            named in the row. If this field is specified and --reason is also specified,
+            the  --reason value will be used if this field is empty. The column can be a
             number or a spreadsheet-style letter.
             ''', called_from_sphinx))
         parser.add_argument('-c', '--current', action='store_true',
@@ -767,10 +765,10 @@ def add_arguments(parser, command):
         you must specify --datebegin and --dateend. Do not specify
         this and --col_loc_type.
         ''', called_from_sphinx))
-        reason_group.add_argument('-r', '--reason', default='',
+        parser.add_argument('-r', '--reason', default='',
                                   help=nd.sphinxify('''
         Insert this text as the reason for the move to the new current location
-        for all of the objects updated. Do not specify this and --col_reason.
+        for all of the objects updated. See also --col_reason.
         ''', called_from_sphinx))
     parser.add_argument('--short', action='store_true', help='''
         Only process a single object. For debugging.''')
