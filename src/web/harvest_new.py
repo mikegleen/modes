@@ -137,9 +137,12 @@ if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
     _args = getargs()
 
-    if not _args.dryrun and _args.staging and not os.path.isdir(_args.staging):
+    if not _args.staging and not _args.dryrun:
+        print('Staging directory required, aborting.')
+        sys.exit(1)
+    if _args.staging and not os.path.isdir(_args.staging):
         print(_args.staging, 'is not a directory. Aborting.')
-        sys.exit()
+        sys.exit(1)
     verbose = _args.verbose
     ncandidates = ncopied = 0
     donefiles = getdone()
