@@ -17,7 +17,7 @@ from utl.normalize import normalize_id
 Obj_id = namedtuple('Obj_id', 'normalized original')
 
 
-def list_objects(infile):
+def list_objects(infile: str) -> list[tuple[str, str]]:
     """
     Extract the accession numbers from the Object elements in an XML file
     :param infile: filename or file object containing XML data
