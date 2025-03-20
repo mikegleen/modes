@@ -24,8 +24,11 @@ from web.webutil import parse_prefix
 
 DEFAULT_MAXPIXELS = 1000
 DEFAULT_PPI = 72  # Pixels per inch
+DEFAULT_CUTTING_PPI = 100
 SIPSCMD = 'sips -s format jpeg -Z {} "{}" -o "{}"'
-Reading = namedtuple('Reading', 'height width')
+INELIGIBLE_TYPES = ('object group', 'placeholder')
+
+Reading = namedtuple('Reading', 'height width elementtype')
 
 
 def trace(level, template, *args, color=None):
@@ -69,10 +72,10 @@ def getparser():
                                    calledfromsphinx), calledfromsphinx))
     parser.add_argument('--nocolor', action='store_true', help='''
                         Inhibit colorizing the output which makes reading redirected output easier''')
-    parser.add_argument('--ppi', type=int, default=DEFAULT_PPI, help='''
+    parser.add_argument('--ppi', type=int, help=f'''
         Set the number of pixels per inch in the output image. This value is used if
-        the dimensions of the object is found.'''
-                        + if_not_sphinx(f''' The default is {DEFAULT_PPI}.''', calledfromsphinx))
+        the dimensions of the object is found. The default is {DEFAULT_PPI} unless the elementtype
+        is "cutting" in which case it is {DEFAULT_CUTTING_PPI}.''')
     parser.add_argument('-t', '--trace', type=argparse.FileType('w'),
                         default=sys.stdout, help=sphinxify('''
                         File to write trace
@@ -123,16 +126,16 @@ def normalize_prefix(prefix: str):
     return modes_key1, modes_key2
 
 
-def new_hxw(xh, xw, ih, iw) -> (int, int):
+def new_hxw(xh, xw, ih, iw, ppi: int) -> (int, int):
     """
-
     :param xh: XML height in mm
     :param xw: XML width in mm
     :param ih: image height in pixels
     :param iw: image width in pixels
+    :param ppi: pixels per inch
     :return: new image (height, width) in pixels
     """
-    pixels_per_mm = _args.ppi / 25.4
+    pixels_per_mm = ppi / 25.4
     newh = min(xh * pixels_per_mm, float(ih))
     neww = min(xw * pixels_per_mm, float(iw))
     newh = int(round(newh))
@@ -172,14 +175,19 @@ def main():
             if nidnum not in readings:
                 trace(2, 'Unknown id ignored: {}', idnum)
                 continue
-            if readings[nidnum] is str:
-                if readings[nidnum] in ['object group', 'placeholder']:
+            if readings[nidnum] is str:  # if there is no HxW field in the object
+                if readings[nidnum] in INELIGIBLE_TYPES:
                     trace(2, 'Ineligible object type ignored: id={}, type={}', idnum, readings[nidnum])
                     continue
+                # Fall through to handle "no HxW" case.
             else:  # readings[nidnum] is Reading
-                xh, xw = readings[nidnum]
-                newh, neww = new_hxw(xh, xw, img_height, img_width)
-                trace(3, 'XML H,W: {}mm,{}mm Orig img H,W: {}px,{}px', xh, xw, img_height, img_width)
+                xh, xw, elementtype = readings[nidnum]
+                ppi = _args.ppi
+                if ppi is None:
+                    ppi = DEFAULT_CUTTING_PPI if elementtype == 'cutting' else DEFAULT_PPI
+                newh, neww = new_hxw(xh, xw, img_height, img_width, ppi)
+                trace(3, 'XML HxW: {}x{}mm, Orig img HxW: {}x{}px, elementtype={}, ppi={} new HxW= {}x{}px',
+                      xh, xw, img_height, img_width, elementtype, ppi, newh, neww)
                 if newh == img_height and neww == img_width:
                     trace(2, 'copying {}', filepath)
                     if not _args.dryrun:
@@ -223,7 +231,7 @@ def main():
     trace(1, '{} copied\n{} shrunk', ncopied, nshrunk)
 
 
-def set_one_reading(idnum, readingtext: str | None):
+def set_one_reading(idnum, readingtext: str | None, elementtype: str | None):
     nidnum = normalize_id(idnum)
     if readingtext is None:
         readings[nidnum] = None  # The object is present but the readings don't exist.
@@ -238,7 +246,7 @@ def set_one_reading(idnum, readingtext: str | None):
         return
     m = re.match(r'(\d*\.?\d+)(?:mm)?[Xx](?:mm)?(\d*\.?\d+)', rtext)
     if m:
-        readings[nidnum] = Reading(float(m[1]), float(m[2]))
+        readings[nidnum] = Reading(float(m[1]), float(m[2]), elementtype)
         # print(idnum, readings[nidnum])
     else:
         trace(2, 'set_one_reading: idnum = {}, '
@@ -253,13 +261,14 @@ def get_readings_from_xml():
     """
     for idnum, elem in object_reader(_args.inxml):
         # print('nxt', idnum)
+        elementtype = elem.get('elementtype')
         reading = elem.find('./Description/Measurement[Part="image"]/Reading')
         # print(idnum, reading)
         if reading is None:
             # ephemera don't have <Part>image</Part>
             reading = elem.find('./Description/Measurement/Reading')
         if reading is not None:
-            set_one_reading(idnum, reading.text)
+            set_one_reading(idnum, reading.text, elementtype)
         else:
             nidnum = normalize_id(idnum)
             etype = elem.get('elementtype')
@@ -279,7 +288,7 @@ def get_readings_from_csv():
         reading = row[1]
         trace(2, 'get_readings_from_csv: reading: "{}", idnums: {}', reading, idnums)
         for idnum in idnums:
-            set_one_reading(idnum, reading)
+            set_one_reading(idnum, reading, None)
 
 
 calledfromsphinx = True
