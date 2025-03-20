@@ -1,7 +1,7 @@
 """
     Apply a detail file to a master file creating a new master file. The detail file
     contains either updated object records or new object records. There is no mechanism
-    to delete records from the master file.
+    to delete records from the master file. Use ``update_from_csv.py`` to delete records.
 
     It is required that input files are in order according to normalized
     accession numbers.
@@ -9,7 +9,7 @@
     Trace levels:
 
     #. Summary info
-    #. Inserted and deleted objects
+    #. Inserted objects
     #. Changed objects
     #. Unchanged objects
     #. Details for debugging
@@ -24,8 +24,7 @@ import xml.etree.ElementTree as ET
 
 from utl import readers
 from utl.cfgutil import Config, DEFAULT_MDA_CODE
-from utl.normalize import normalize_id, sphinxify
-from utl.normalize import if_not_sphinx
+from utl.normalize import if_not_sphinx, sphinxify
 
 
 def trace(level, template, *args, color=None):
@@ -39,7 +38,7 @@ def trace(level, template, *args, color=None):
 def nextobj(pnum: int, objectreader):
     """
 
-    :param pnum: Either 1 or 2 indicating which iterparser has ben passed
+    :param pnum: Either 1 or 2 indicating which object reader has ben passed
     :param objectreader: Either file 1 or file 2 object_reader
     :return: a tuple of:
         the object parsed,
@@ -47,7 +46,7 @@ def nextobj(pnum: int, objectreader):
         the normalized accession number,
         the output of ET.tostring(obj)
     """
-    objectlevel = 0
+
     while True:
         try:
             idnum, nidnum, obj = next(objectreader)
@@ -95,8 +94,7 @@ def main():
             obj1.clear()
             trace(2, "Writing object from master file at end: {}", id1)
             obj1, id1, nid1, objstr1 = nextobj(1, ip1)
-            continue
-        if nid1 is None:
+        elif nid1 is None:
             # The objects in infile2 are new. Write them all
             written += 1
             added += 1
@@ -104,8 +102,7 @@ def main():
             outfile.write(objstr2)
             obj2.clear()
             obj2, id2, nid2, objstr2 = nextobj(2, ip2)
-            continue
-        if nid1 == nid2:
+        elif nid1 == nid2:
             trace(3, "Write changed element {}", id2)
             written += 1
             replaced += 1
@@ -116,22 +113,21 @@ def main():
             obj1, id1, nid1, objstr1 = nextobj(1, ip1)
             obj2.clear()
             obj2, id2, nid2, objstr2 = nextobj(2, ip2)
-            continue
-        if nid1 < nid2:
+        elif nid1 < nid2:
             trace(2, "Keeping object: {}", id1)
             outfile.write(objstr1)
             written += 1
             obj1.clear()
             obj1, id1, nid1, objstr1 = nextobj(1, ip1)
-            continue
-        # nid2 < nid1
-        # A new object has been inserted.
-        trace(2, "Write new element {}", id2)
-        added += 1
-        written += 1
-        outfile.write(objstr2)
-        obj2.clear()
-        obj2, id2, nid2, objstr2 = nextobj(2, ip2)
+        else:
+            # nid2 < nid1
+            # A new object has been inserted.
+            trace(2, "Write new element {}", id2)
+            added += 1
+            written += 1
+            outfile.write(objstr2)
+            obj2.clear()
+            obj2, id2, nid2, objstr2 = nextobj(2, ip2)
 
     outfile.write(b'</Interchange>')
     if _args.outorig:
@@ -140,9 +136,9 @@ def main():
 
 def getparser():
     parser = argparse.ArgumentParser(description=sphinxify('''
-        Compare two Modes XML Object files and output just the elements that
-        have changed or been added. If an element has been deleted, the accession
-        number is reported.
+    Apply a detail file to a master file creating a new master file. The detail file
+    contains either updated object records or new object records. There is no mechanism
+    to delete records from the master file.
         ''', calledfromsphinx))
     parser.add_argument('infile1', help='''
         The old XML master file''')
@@ -150,9 +146,11 @@ def getparser():
         The detail XML file.''')
     parser.add_argument('-c', '--config', help=sphinxify('''
         Optionally specify a YAML configuration file to allow specification
-        of ``record_tag`` and ``record_id_xpath`` statements.''', calledfromsphinx))
-    parser.add_argument('-e', '--encoding', default='utf-8', help=
-                        '''Set the output encoding.''' +
+        of ``record_tag`` and ``record_id_xpath`` statements. The default is
+        to conform to Modes format.
+        ''', calledfromsphinx))
+    parser.add_argument('-e', '--encoding', default='utf-8', help='''
+                        Set the output encoding.''' +
                         if_not_sphinx(''' The default is "utf-8".
                         ''', calledfromsphinx))
     parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
@@ -161,8 +159,7 @@ def getparser():
                         ''', calledfromsphinx))
     parser.add_argument('-o', '--outfile', required=True, help=sphinxify('''
         The updated XML master file containing the changed or added Object elements.
-        If this parameter is not specified, only messages will be displayed
-        and no output will be written. But see --outorig.''', calledfromsphinx))
+        ''', calledfromsphinx))
     parser.add_argument('--outorig', help='''
         The XML file containing the Object elements from the old XML file
         if the element in the new file is different.''')
