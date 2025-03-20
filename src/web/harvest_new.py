@@ -18,7 +18,7 @@ def trace(level, template, *args):
         print(template.format(*args))
 
 
-def getargs():
+def getparser():
     parser = argparse.ArgumentParser(description='''
     For each file in a "candidate" folder, if that file is not in the "done"
     folder or any of its subfolders, copy it to a "staging" folder. Optionally
@@ -38,18 +38,25 @@ def getargs():
         accession numbers in the XML file and only those that match will be
         harvested.''')
     # sdgroup = parser.add_mutually_exclusive_group(required=True)
-    parser.add_argument('-s', '--staging', help='''
+    parser.add_argument('-s', '--staging', help=sphinxify('''
         Directory to contain files to be transferred. We copy files from the
-        candidate directory to this directory.
-        ''')
+        candidate directory to this directory. Required unless --dryrun is set.
+        ''', calledfromsphinx))
     parser.add_argument('--dryrun', action='store_true',
                         help=sphinxify('''
-        Do not copy files. Just print info.''',
-                                       calledfromsphinx))
+        Do not copy files. Just print info. --verbose is set to 2 unless it is already
+        set higher than 1.''', calledfromsphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
+    return parser
+
+
+def getargs():
+    parser = getparser()
     args = parser.parse_args()
+    if args.dryrun and args.verbose == 1:
+        args.verbose = 2
     return args
 
 
@@ -71,16 +78,12 @@ def getdonedir() -> dict[str]:
                           prefix, donef, str(e), e.args)
                     continue
                 done_files[naccnum] = os.path.join(dirpath, donef)
-            elif not donefile.startswith('.'):  # ignore .DS_Store
+            elif not donefile.startswith('.'):  # ignore .DS_Store etc.
                 trace(2, f'----skipping {donef}')
     return done_files
 
 
-def getdone() -> dict[str]:
-    if os.path.isdir(_args.done):
-        return getdonedir()
-    # Not a directory, treat as CSV. The value in the dict will be just the
-    # accession number as we don't have the path
+def getdonecsv() -> dict[str]:
     done_files = {}
     reader = csv.reader(_args.done)
     for row in reader:
@@ -92,6 +95,8 @@ def getdone() -> dict[str]:
                       row[0], str(e), e.args)
                 continue
             done_files[naccnum] = row[0]
+        else:
+            trace(2, 'Skipping row with empty accession number: {}', row)
     return done_files
 
 
@@ -145,7 +150,7 @@ if __name__ == '__main__':
         sys.exit(1)
     verbose = _args.verbose
     ncandidates = ncopied = 0
-    donefiles = getdone()
+    donefiles = getdonedir() if os.path.isdir(_args.done) else getdonecsv()
     objects = None
     if _args.modes:
         objectslist = list_objects(_args.modes)
