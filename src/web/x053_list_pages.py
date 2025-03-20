@@ -19,7 +19,7 @@
     doesn't have subnumbers. In this case the subnumber field will be empty
     resulting in a filename like "JB001--1A" with the 1A indicating a page number.
 
-    You can have single file for an object with a name corresponding to its
+    You can have a single file for an object with a name corresponding to its
     accession number or you can have one or more files in the format of
     <accnum>-<subnum>[-<pagenum>] but you cannot mix the two formats.
     Here we keep track of files with the simple name so if we try to add
@@ -91,10 +91,8 @@ def one_file(filename):
 
     There are two cases of accession number. It can be a main number such as
     "JB001" or a main number with a sub-number such as "JB001.2". In some cases
-    there is an Object element group in the XML file for the sub-number and in
-    other cases the sub-number is an Item under a main number. We cannot tell
-    which cases it is from the filename so we insert both cases into accndict
-    only one of which will be found in the XML file.
+    there is an Object element group in the XML file for the sub-number. These will
+    be with an elementtype of "object group"
 
     :param filename: filename in one of the following formats:
 
@@ -132,9 +130,10 @@ def one_file(filename):
     # Pad the page number in the filename so the pages are sorted so they appear
     # on the website in order.
     padded_filename = pad_page_number(prefix, suffix, accn, subn, subn_ab, page, page_ab)
-    accndict[n_modes_key1].append(padded_filename)
     if n_modes_key2:  # if the filename includes a subnumber
         accndict[n_modes_key2].append(padded_filename)
+    else:
+        accndict[n_modes_key1].append(padded_filename)
 
 
 def main(indir):
@@ -179,7 +178,7 @@ def getparser():  # called either by getargs or sphinx
     parser.add_argument('-m', '--mode', choices=('item', 'subnum'),
                         default='subnum',
                         help='''If the mode is "item", pictures will be grouped
-                        under the accession number. If the mode is "subnum" the
+                        under the accession number. If the mode is "subnum"
                         each subnumber is assumed to have its own Modes Object
                         element group. This means that you will be unable to
                         mix the two different modes in a single batch.''')
