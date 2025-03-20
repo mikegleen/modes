@@ -18,7 +18,7 @@ import re
 from PyPDF2 import PdfFileMerger
 from colorama import Style, Fore
 
-from utl.normalize import normalize_id, sphinxify
+from utl.normalize import normalize_id, sphinxify, if_not_sphinx
 from utl.readers import row_dict_reader
 
 
@@ -114,13 +114,14 @@ def get_filterset():
 
     :return: A set of normalized accession numbers of letters.
     """
-    filterset = set()
-    csvreader = row_dict_reader(_args.filter, _args.verbose, _args.skiprows)
-    typefilter = _args.filter
+
+    filter_set = set()
+    csvreader = row_dict_reader(_args.filter_file, _args.verbose, _args.skiprows)
+    typefilter = _args.filter_text.lower()
     for row in csvreader:
-        if row['Type'] == typefilter:
-            filterset.add(normalize_id(row['Serial']))
-    return filterset
+        if row[_args.col_filter].lower() == typefilter:
+            filter_set.add(normalize_id(row['Serial']))
+    return filter_set
 
 
 def getparser():
@@ -131,8 +132,19 @@ def getparser():
         Folder containing subfolders containing PDF files.''')
     parser.add_argument('outdir', help='''
         Output folder containing merged PDF files''')
-    parser.add_argument('-f', '--filter', help='''
+    defval = if_not_sphinx(''' The default is "Type".''',
+                           called_from_sphinx)
+    parser.add_argument('--col_filter', default='Type', help=sphinxify('''
+        The column in the file specified by --filter_file indicating the type of the
+        object to include as a letter.
+    ''' + defval, called_from_sphinx))
+    parser.add_argument('-f', '--filter_file', help='''
         spreadsheet containing Serial and Type columns. ''')
+    defval = if_not_sphinx(''' The default is "letter".''',
+                           called_from_sphinx)
+    parser.add_argument('--filter_text', default='letter', help='''
+        The text of the contents of the filter column indicating that this object is
+        included. The comparison is case insensitive.''' + defval)
     parser.add_argument('--skiprows', type=int, default=0, help=sphinxify('''
         Skip rows at the beginning of the CSV file specified by --filter.
         ''', called_from_sphinx))
