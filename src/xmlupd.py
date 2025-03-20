@@ -68,17 +68,17 @@ def nextobj(pnum: int, objectreader):
 
 def main():
     global objcount, deleted, added, replaced, written, skipped
-    ip1 = readers.object_reader(_args.infile1, normalize=True)
-    ip2 = readers.object_reader(_args.infile2, normalize=True)
+    config = Config(_args.config, mdacode=_args.mdacode, dump=_args.verbose >= 2)
+    ip1 = readers.object_reader(_args.infile1, config=config, normalize=True,)
+    ip2 = readers.object_reader(_args.infile2, config=config, normalize=True)
     obj1, id1, nid1, objstr1 = nextobj(1, ip1)
     obj2, id2, nid2, objstr2 = nextobj(2, ip2)
     #
     #   Write output head
     #
     declaration = f'<?xml version="1.0" encoding="{_args.encoding}"?>\n'
-    if _args.outfile:
-        outfile.write(bytes(declaration, encoding=_args.encoding))
-        outfile.write(b'<Interchange>\n')
+    outfile.write(bytes(declaration, encoding=_args.encoding))
+    outfile.write(b'<Interchange>\n')
     if _args.outorig:
         outorig.write(bytes(declaration, encoding=_args.encoding))
         outorig.write(b'<Interchange>\n')
@@ -91,10 +91,10 @@ def main():
             if obj1 is None:
                 break
             outfile.write(objstr1)
+            written += 1
             obj1.clear()
-            trace(2, "Deleting object at end: {}", id1)
+            trace(2, "Writing object from master file at end: {}", id1)
             obj1, id1, nid1, objstr1 = nextobj(1, ip1)
-            deleted += 1
             continue
         if nid1 is None:
             # The objects in infile2 are new. Write them all
@@ -120,6 +120,7 @@ def main():
         if nid1 < nid2:
             trace(2, "Keeping object: {}", id1)
             outfile.write(objstr1)
+            written += 1
             obj1.clear()
             obj1, id1, nid1, objstr1 = nextobj(1, ip1)
             continue
@@ -132,8 +133,7 @@ def main():
         obj2.clear()
         obj2, id2, nid2, objstr2 = nextobj(2, ip2)
 
-    if _args.outfile:
-        outfile.write(b'</Interchange>')
+    outfile.write(b'</Interchange>')
     if _args.outorig:
         outorig.write(b'</Interchange>')
 
@@ -145,9 +145,9 @@ def getparser():
         number is reported.
         ''', calledfromsphinx))
     parser.add_argument('infile1', help='''
-        The old XML file''')
+        The old XML master file''')
     parser.add_argument('infile2', help='''
-        The updated XML file.''')
+        The detail XML file.''')
     parser.add_argument('-c', '--config', help=sphinxify('''
         Optionally specify a YAML configuration file to allow specification
         of ``record_tag`` and ``record_id_xpath`` statements.''', calledfromsphinx))
@@ -160,7 +160,7 @@ def getparser():
                         if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".
                         ''', calledfromsphinx))
     parser.add_argument('-o', '--outfile', required=True, help=sphinxify('''
-        The XML file containing the changed or added Object elements.
+        The updated XML master file containing the changed or added Object elements.
         If this parameter is not specified, only messages will be displayed
         and no output will be written. But see --outorig.''', calledfromsphinx))
     parser.add_argument('--outorig', help='''
@@ -202,19 +202,16 @@ if __name__ == '__main__':
     oldid = [None, '', '']
     basename = os.path.basename(sys.argv[0])
     trace(1, 'Begin {}', basename.split(".")[0], color=Fore.GREEN)
-    if _args.outfile:
-        outfile = open(_args.outfile, 'wb')
+    outfile = open(_args.outfile, 'wb')
     if _args.outorig:
         outorig = open(_args.outorig, 'wb')
-    config = Config(_args.config, mdacode=_args.mdacode, dump=_args.verbose >= 2)
     main()
-    trace(1, '{} object{} in old file: {}', objcount[1], s(objcount[1]), _args.infile1)
-    trace(1, '{} object{} in new file: {}', objcount[2], s(objcount[2]), _args.infile2)
+    trace(1, '{} object{} in master file: {}', objcount[1], s(objcount[1]), _args.infile1)
+    trace(1, '{} object{} in detail file: {}', objcount[2], s(objcount[2]), _args.infile2)
     trace(1, '{} object{} deleted.', deleted, s(deleted))
     trace(1, '{} object{} added.', added, s(added))
     trace(1, '{} object{} replaced.', replaced, s(replaced))
-    if _args.outfile:
-        trace(1, '{} object{} written to {}.', written, s(written), _args.outfile)
+    trace(1, '{} object{} written to {}.', written, s(written), _args.outfile)
     if _args.outorig:
         trace(1, '{} object{} written to {}.', written, s(written), _args.outorig)
     elapsed = time.perf_counter() - t1
