@@ -25,6 +25,7 @@ Modes Python Library
    update_from_csv
    utility_programs
    xmldiff
+   xmlupd
    xml2csv
    genindex
    data_format
