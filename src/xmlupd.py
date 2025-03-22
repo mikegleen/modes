@@ -158,7 +158,7 @@ def getparser():
                         if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".
                         ''', calledfromsphinx))
     parser.add_argument('-o', '--outfile', required=True, help=sphinxify('''
-        The updated XML master file containing the changed or added Object elements.
+        The updated XML master file containing the changed or added Object elements. Required.
         ''', calledfromsphinx))
     parser.add_argument('--outorig', help='''
         The XML file containing the Object elements from the old XML file
