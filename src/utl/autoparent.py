@@ -17,10 +17,15 @@ import xml.etree.ElementTree as ET
 
 
 patstr = r"""(?P<tag>\w*)
-             (?P<qual>\[              # @ section enclosed by "[]"
-             (?P<at>@?)               # indicating that the ref is an attribute
-             ((?P<ref>\w+)           # either a child name or attribute
-             (="(?P<val>[^"]+)")?)?])?  # the attribute or child text value
+             (?P<qual>\[                # section enclosed by "[]"
+               (?P<at>@?)               # indicating that the ref is an attribute
+                 (
+                   (?P<ref>\w+)         # either a child name or attribute
+                   (="
+                     (?P<val>[^"]+)"    # the attribute or child text value
+                   )?
+                 )?]
+             )?
           """
 
 pat = re.compile(patstr, flags=re.VERBOSE)
@@ -29,11 +34,13 @@ pat = re.compile(patstr, flags=re.VERBOSE)
 def getelt(root: ET.Element, xpath: str, maxcreate=0) -> ET.Element | None:
     """
 
-    :param root:
-    :param xpath:
-    :param maxcreate: The number of elements to create. If set to 1,
-    only the final element will be created. If set to 2, the parent will also be created.
-    If set to zero, the element must exist.
+    :param root: Usually the Object element
+    :param xpath: The path to the element we want.
+    :param maxcreate: The number of elements to create.
+                     0: the element must exist.
+                     1: the final element will be created.
+                     2: the parent will also be created.
+                     >2: further ancestors will be created.
     :return: the element whose path is described or None if the xpath doesn't exist
     """
     elt = root.find(xpath)
@@ -52,7 +59,7 @@ def getelt(root: ET.Element, xpath: str, maxcreate=0) -> ET.Element | None:
     if m['qual']:
         atsign = m['at']
         ref = m['ref']
-        val = m['val']
+        val = m['val']  # if the =... part is not specified, val is None
         if atsign:
             elt.set(ref, val)
         else:
