@@ -51,6 +51,7 @@ from utl.exhibition_list import (get_exhibition_dict,
                                  get_inverted_exhibition_dict, ExhibitionTuple)
 from utl.cfgutil import expand_idnum
 from utl.excel_cols import col2num
+from utl.location_sub import update_current_loc
 from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
 from utl.normalize import sphinxify, vdate, isoformatfrommodesdate
 from utl.readers import row_list_reader, object_reader
@@ -205,8 +206,12 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
                 firstexix = n + 1  # insert the new elt after <Acquisition>
                 break
     if firstexix is None:
-        outfile.close()
-        os.remove(_args.outfile)
+        if outfile:
+            outfile.close()
+            os.remove(_args.outfile)
+        if deltafile:
+            deltafile.close()
+            os.remove(_args.deltafile)
         trace(0, '{}: No Acquisition element found. Program aborting.',
               display_id, color=Fore.RED)
         sys.exit(1)
@@ -325,7 +330,10 @@ def verify():
 
 
 def main():
-    outfile.write(b'<?xml version="1.0"?><Interchange>\n')
+    if outfile:
+        outfile.write(b'<?xml version="1.0"?><Interchange>\n')
+    if deltafile:
+        deltafile.write(b'<?xml version="1.0"?><Interchange>\n')
     if _args.object:
         objlist = expand_idnum(_args.object)  # JB001-002 -> JB001, JB002
         exmap = {normalize_id(obj):  # JB001 -> JB00000001
@@ -340,18 +348,29 @@ def main():
         trace(3, 'idnum: {}', idnum)
         if nidnum and nidnum in exmap:
             exnum, cataloguenumber = exmap[nidnum]
-            one_object(elem, nidnum, exdict[exnum], cataloguenumber)
+            exhibition = exdict[exnum]
+            one_object(elem, nidnum, exhibition, cataloguenumber)
+            if _args.move_to_location:
+                place = exhibition.Place
+                if place == 'HRM':
+                    place = 'Joan Brinsmead Gallery'
+                update_current_loc(elem, idnum, place, modesdate(exhibition.DateBegin),
+                                   'Exhibition: ' + exhibition.ExhibitionName, trace)
             del exmap[nidnum]
             updated = True
             numupdated += 1
         else:
             updated = False
-        if updated or _args.all:
-            outfile.write(ET.tostring(elem, encoding='utf-8'))
+        outfile.write(ET.tostring(elem, encoding='utf-8'))
+        if updated:
+            deltafile.write(ET.tostring(elem, encoding='utf-8'))
             written += 1
         if updated and _args.short:
             break
-    outfile.write(b'</Interchange>')
+    if outfile:
+        outfile.write(b'</Interchange>')
+    if deltafile:
+        deltafile.write(b'</Interchange>')
     for nidnum in exmap:
         trace(1, 'In CSV but not XML: "{}"', denormalize_id(nidnum))
     trace(1, f'End exhibition.py. {written} object'
@@ -382,8 +401,8 @@ def getparser():
         The XML file saved from Modes.''')
     parser.add_argument('-o', '--outfile', help='''
         The output XML file. Specify this except for --verify.''')
-    parser.add_argument('-a', '--all', action='store_true', help='''
-        Write all objects. The default is to only write updated objects.''')
+    parser.add_argument('--deltafile', help='''
+        The XML file to contain updated objects.''')
     parser.add_argument('--allow_missing', action='store_true', help='''
         Skip rows with missing exhibition numbers. Otherwise abort.''')
     parser.add_argument('--col_acc', help=sphinxify('''
@@ -417,6 +436,13 @@ def getparser():
     objgroup.add_argument('-m', '--mapfile', help=sphinxify('''
         The CSV  or XLSX file mapping the accession number to the catalog number and
         exhibition number. (but see --exhibition). There must be a heading row.
+        ''', called_from_sphinx))
+    parser.add_argument('-l', '--move_to_location', action='store_true',
+                        help=sphinxify('''
+        If set, the current location will be updated to the exhibition location. If the
+        location in ``exhibition_list.py`` is "HRM", the location will be set to
+        "Joan Brinsmead Gallery". The DateBegin field is set to the start date of the
+        exhibition.
         ''', called_from_sphinx))
     objgroup.add_argument('-j', '--object', help=sphinxify('''
     Specify a single object to be processed. If specified, do not specify
@@ -456,8 +482,8 @@ def getargs(argv):
     args = parser.parse_args(args=argv[1:])
     if args.verify:
         return args  # ignore all other options
-    if args.outfile is None:
-        raise ValueError('You must specify --outfile.')
+    if args.outfile is None and args.deltafile is None:
+        raise ValueError('You must specify --outfile or --deltafile.')
     if (args.mapfile is None) == (args.object is None):
         raise ValueError('You must specify one of --mapfile and --object')
     if (args.exhibition is None) == (args.col_ex is None):
@@ -504,8 +530,13 @@ if __name__ == '__main__':
     if _args.verify:
         verify()
     else:
-        outfile = open(_args.outfile, 'wb')
-        trace(1, 'Creating file: {}', _args.outfile)
+        outfile = deltafile = None
+        if _args.outfile:
+            outfile = open(_args.outfile, 'wb')
+            trace(1, 'Creating output file: {}', _args.outfile)
+        if _args.deltafile:
+            deltafile = open(_args.deltafile, 'wb')
+            trace(1, 'Creating delta file: {}', _args.outfile)
         main()
         if (_oldname or _oldplace or _olddate) and not found_old_key:
             trace(0, "Warning: Old name/place/date specified but no"
