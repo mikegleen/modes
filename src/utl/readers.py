@@ -113,7 +113,7 @@ def get_heading(filepath: str | None, verbos=1, skiprows=0) -> list | None:
         return heading
     else:
         if verbos >= 1:
-            print(f'"{suffix}" is not a valid suffix. Terminating.')
+            print(f'"{suffix}" is not a valid suffix {filepath=}. Terminating.')
         sys.exit(1)
 
 
@@ -202,7 +202,7 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
             yield row
     else:
         if verbos >= 1:
-            print(f'"{suffix}" is not a valid suffix. Terminating.')
+            print(f'"{suffix}" is not a valid suffix {filename=}. Terminating.')
         sys.exit(1)
 
 
@@ -267,5 +267,5 @@ def row_list_reader(filename: str | None, verbos=1, skiprows=0,
             yield rawrow
     else:
         if verbos >= 1:
-            print(f'"{suffix}" is not a valid suffix. Terminating.')
+            print(f'"{suffix}" is not a valid suffix. {filename=} Terminating.')
         sys.exit(1)
