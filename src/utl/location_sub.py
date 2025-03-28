@@ -75,7 +75,8 @@ def update_current_loc(elem: ET.Element, idnum: str, newtext: str,
         newlocationelt = nl.find('./Location')
         newlocationtext = newlocationelt.text.strip().upper()
     else:
-        newlocationtext = newtext.upper()
+        # Box numbers should be uppercase but not, e.g. "Joan Brinsmead Gallery".
+        newlocationtext = newtext.upper() if len(newtext) < 10 else newtext
 
     #
     # If the current location is empty, just insert the new location without
