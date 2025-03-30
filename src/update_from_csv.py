@@ -474,7 +474,10 @@ def one_element_subid_mode(nidnum: str, objelem: ET.Element):
 
 def main():
     global nwritten
-    outfile.write(b'<?xml version="1.0" encoding="UTF-8"?><Interchange>\n')
+    if outfile:
+        outfile.write(b'<?xml version="1.0"?><Interchange>\n')
+    if deltafile:
+        deltafile.write(b'<?xml version="1.0"?><Interchange>\n')
     for event, elem in ET.iterparse(infile):
         if elem.tag != 'Object':
             continue
@@ -495,12 +498,18 @@ def main():
             if _args.missing:
                 trace(2, 'Not in CSV file: "{}"', idnum)
         trace(4, 'updated....... {}', updated)
-        if updated or _args.all:
+        if outfile:
             outfile.write(ET.tostring(elem, encoding='utf-8'))
+        if updated:
+            if deltafile:
+                deltafile.write(ET.tostring(elem, encoding='utf-8'))
             nwritten += 1
         if updated and _args.short:
             break
-    outfile.write(b'</Interchange>\n')
+    if outfile:
+        outfile.write(b'</Interchange>')
+    if deltafile:
+        deltafile.write(b'</Interchange>')
     # if it's not subid mode and we're not debugging, then trace the serial
     # numbers in the CSV file that did not result in XML updates.
     if cfg.subid_parent is None and not _args.short:
@@ -518,10 +527,10 @@ def getparser():
         in the YAML configuration file.''')
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
-    parser.add_argument('outfile', help='''
+    parser.add_argument('-o', '--outfile', help='''
         The output XML file.''')
-    parser.add_argument('-a', '--all', action='store_true', help='''
-        Write all objects. The default is to only write updated objects.''')
+    parser.add_argument('--deltafile', help='''
+        The XML file to contain updated objects.''')
     parser.add_argument('--allow_blanks', action='store_true', help='''
         Skip rows in the include CSV file with blank or badly formed accession
         numbers. If not set, this will cause an abort.''')
@@ -594,6 +603,8 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    if args.outfile is None and args.deltafile is None:
+        raise ValueError('You must specify --outfile or --deltafile.')
     if args.empty:
         args.replace = True
     if os.path.splitext(args.mapfile)[1].lower() not in ('.csv', '.xlsx'):
@@ -650,8 +661,14 @@ if __name__ == '__main__':
     nupdated = nunchanged = nwritten = nequal = ndeleted = 0
     trace(1, 'Begin update_from_csv.', color=Fore.GREEN)
     infile = open(_args.infile)
-    outfile = open(_args.outfile, 'wb')
-    trace(1, 'Input file: {}\nCreating file: {}', _args.infile, _args.outfile)
+    trace(1, 'Input file: {}', _args.infile)
+    outfile = deltafile = None
+    if _args.outfile:
+        outfile = open(_args.outfile, 'wb')
+        trace(1, 'Creating output file: {}', _args.outfile)
+    if _args.deltafile:
+        deltafile = open(_args.deltafile, 'wb')
+        trace(1, 'Creating delta file: {}', _args.outfile)
     cfg = Config(_args.cfgfile, dump=_args.verbose > 1)
     if errors := check_cfg(cfg):
         trace(1, '{} command{} ignored.', errors, 's' if errors > 1 else '')
