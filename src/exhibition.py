@@ -361,9 +361,11 @@ def main():
             numupdated += 1
         else:
             updated = False
-        outfile.write(ET.tostring(elem, encoding='utf-8'))
+        if outfile:
+            outfile.write(ET.tostring(elem, encoding='utf-8'))
         if updated:
-            deltafile.write(ET.tostring(elem, encoding='utf-8'))
+            if deltafile:
+                deltafile.write(ET.tostring(elem, encoding='utf-8'))
             written += 1
         if updated and _args.short:
             break
