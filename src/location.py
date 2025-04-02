@@ -546,10 +546,11 @@ def handle_update(idnum, elem):
     if nidnum in newlocs and not validate_locations(idnum, elem):
         trace(1, 'Failed post-update validation.')
         sys.exit(1)
-    if updated:
-        total_updated += 1
-    if updated or _args.all:
+    if outfile:
         outfile.write(ET.tostring(elem, encoding='utf-8'))
+    if updated:
+        if deltafile:
+            deltafile.write(ET.tostring(elem, encoding='utf-8'))
         total_written += 1
 
 
@@ -576,6 +577,9 @@ def main():
     if outfile:
         trace(1, 'Output XML file: {}', _args.outfile)
         outfile.write(b'<?xml version="1.0" encoding="utf-8"?><Interchange>\n')
+    if deltafile:
+        deltafile.write(b'<?xml version="1.0" encoding="utf-8"?><Interchange>\n')
+        trace(1, 'Delta XML file: {}', _args.outfile)
     for event, elem in ET.iterparse(infile):
         if elem.tag != 'Object':
             continue
@@ -588,6 +592,8 @@ def main():
             break
     if outfile:
         outfile.write(b'</Interchange>')
+    if deltafile:
+        deltafile.write(b'</Interchange>')
     if not _args.short:  # Skip warning if only processing one object.
         for nidnum in newlocs:
             trace(1, '{}: In CSV but not XML, ignored.', nd.denormalize_id(nidnum))
@@ -608,14 +614,14 @@ def add_arguments(parser, command):
         is_validate = command == 'validate'
     parser.add_argument('-i', '--infile', required=True, help='''
         The XML file saved from Modes.''')
-    if is_update or is_select:
+    if is_update:
+        parser.add_argument('-o', '--outfile', help='''
+            The output XML file containing all objects.''')
+        parser.add_argument('--deltafile', help='''
+            The XML file to contain updated objects.''')
+    if is_select:
         parser.add_argument('-o', '--outfile', required=True, help='''
-            The output XML file.''')
-        parser.add_argument('-a', '--all', action='store_true', help='''
-        Write all objects and, if -w is selected, issue a warning if an object
-        is not in the detail CSV file. The default is to only write updated
-        objects. In either case warn if an object in the CSV file is not in the
-        input XML file.''')
+            The output XML file containing all objects.''')
     if is_update or is_diff:
         parser.add_argument('--col_acc', type=str, default='Serial', help='''
         The heading of the column containing the accession number of the
@@ -880,10 +886,13 @@ if __name__ == '__main__':
     total_updated = total_written = total_diff = 0
     total_failed = total_objects = 0  # validate only
     infile = open(_args.infile, encoding=_args.encoding)
-    if is_update:
+    outfile = deltafile = None
+    if _args.outfile:
         outfile = open(_args.outfile, 'wb')
-    else:
-        outfile = None
+        trace(1, 'Creating output file: {}', _args.outfile)
+    if _args.deltafile:
+        deltafile = open(_args.deltafile, 'wb')
+        trace(1, 'Creating delta file: {}', _args.deltafile)
     main()
     if is_update:
         print(f'Total Updated: {total_updated}/{total_in_csvfile}\n'
