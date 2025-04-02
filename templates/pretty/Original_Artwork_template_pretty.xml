@@ -76,7 +76,9 @@
 		<Date />
 	</Conservation>
 	<Exhibition>
-		<Place />
+		<Place>
+			<PlaceName />
+		</Place>
 		<Date>
 			<DateBegin />
 			<DateEnd />

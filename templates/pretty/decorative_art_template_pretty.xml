@@ -41,8 +41,6 @@
 		</Organisation>
 		<Place>
 			<PlaceName />
-			<County />
-			<Country />
 		</Place>
 		<Date>
 			<DateBegin />
