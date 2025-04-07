@@ -272,7 +272,7 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
                 raise ValueError('Fourth field, {idlist[3]}, of {objid} is too long')
             idlist[3] = f'{int(idlist[3]):06d}'
         newobjid = '.'.join(idlist)
-        if verbose >= 3:
+        if verbose > 3:
             print(f'normalize: {objid} -> {newobjid}')
         return newobjid
 
