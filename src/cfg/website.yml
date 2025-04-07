@@ -40,7 +40,7 @@ xpath: ./References/Reference[@elementtype="First Published In"]/Page
 title: PageFirstPublished
 ---
 cmd: multiple
-xpath: ./Exhibition/Place
+xpath: ./Exhibition/Place/PlaceName
 title: ExhibitionPlace
 ---
 cmd: multiple

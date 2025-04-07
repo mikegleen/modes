@@ -32,7 +32,9 @@ The Exhibition group template is::
         <Exhibition>
             <ExhibitionName />
             <CatalogueNumber />
-            <Place />
+            <Place>
+                <PlaceName />
+            </Place>
             <Date>
                 <DateBegin />
                 <DateEnd />
@@ -83,7 +85,8 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
         if catalog_num:
             subelt = ET.SubElement(newelt, 'CatalogueNumber')
             subelt.text = str(catalog_num)
-        subelt = ET.SubElement(newelt, 'Place')
+        placeelt = ET.SubElement(newelt, 'Place')
+        subelt = ET.SubElement(placeelt, 'PlaceName')
         subelt.text = exhibition.Place
         dateelt = ET.SubElement(newelt, 'Date')
         subelt = ET.SubElement(dateelt, 'DateBegin')
@@ -92,7 +95,7 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
         subelt.text = modesdate(exhibition.DateEnd)
         return exhibition.DateBegin, newelt
 
-    def one_exhibition(exhib_elt):
+    def one_exhibition(exhib_elt: ET.Element):
         """
         Handle an existing exhibition
         :param exhib_elt: an Exhibition element (under Object)
@@ -128,7 +131,12 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
         for subelt in subelts:
             tag = subelt.tag
             if tag == "Place":
-                xmlplace = subelt.text
+                placename = subelt.find('./PlaceName')
+                if placename is None:
+                    placename = ET.SubElement(subelt, "PlaceName")
+                xmlplace = placename.text
+                if xmlplace is None:
+                    xmlplace = ''
             elif tag == "Date":
                 dates = list(subelt)
                 for dateelt in dates:
@@ -148,7 +156,8 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
             elif tag == "CatalogueNumber":
                 subelt.text = str(catalog_num)
             elif tag == "Place":
-                subelt.text = exhibition.Place
+                placename = subelt.find('./PlaceName')
+                placename.text = exhibition.Place
             elif tag == "Date":
                 dates = list(subelt)
                 for dateelt in dates:
@@ -310,9 +319,12 @@ def verify():
             exhibname = element.find('./ExhibitionName')
             if exhibname is not None:
                 exhibname = exhibname.text
-            place = element.find('./Place')
-            if place is not None:
-                place = place.text
+            placeelt = element.find('./Place')
+            place = None
+            if placeelt is not None:
+                placename = placeelt.find('./PlaceName')
+                if placename is not None:
+                    place = placename.text
             # print(f'{idnum=}:{datebegin=}')
             if datebegin is None and dateend is None and exhibname is None and place is None:
                 # it's an empty Exhibition
