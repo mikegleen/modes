@@ -264,19 +264,27 @@ def onerow(oldrow):
 
 
 def main():
-    reader = csv.DictReader(incsvfile)
-    n_input_fields = len(reader.fieldnames)
+    inreader = csv.DictReader(incsvfile)
+    n_input_fields = len(inreader.fieldnames)
+    readers = [inreader]
+    if _args.addendum:
+        addreader = csv.DictReader(addendum)
+        readers.append(addreader)
+        if inreader.fieldnames != addreader.fieldnames:
+            raise TypeError(f'Mismatch:\n{inreader.fieldnames=}\n{addreader.fieldnames=}')
+
     writer = csv.DictWriter(outfile, fieldnames=FIELDS.split())
     writer.writeheader()
     n_rows = 0
-    for oldrow in reader:
-        if len(oldrow) > n_input_fields:
-            print(f"Error: row {n_rows + 1} longer than heading: {oldrow}")
-            return
-        newrow = onerow(oldrow)
-        if newrow:
-            writer.writerow(newrow)
-        n_rows += 1
+    for reader in readers:
+        for oldrow in reader:
+            if len(oldrow) > n_input_fields:
+                print(f"Error: row {n_rows + 1} longer than heading: {oldrow}")
+                return
+            newrow = onerow(oldrow)
+            if newrow:
+                writer.writerow(newrow)
+            n_rows += 1
     return n_rows
 
 
@@ -299,11 +307,14 @@ def getparser() -> argparse.ArgumentParser:
     
     The input columns are defined in ``cfg/website.yml`` and must match
     names hard-coded here.''')
-    parser.add_argument('incsvfile', help=sphinxify('''
+    parser.add_argument('-i', '--incsvfile', help=sphinxify('''
         The input is expected to have been produced by ``xml2csv.py`` using the
         ``website.yml`` config file. You must specify the --heading option
         ''', called_from_sphinx))
-    parser.add_argument('outfile', help='''
+    parser.add_argument('-a', '--addendum', help='''
+        An extra manually created CSV file in the same format as the main input CSV file.
+        This is used in case we want to upload an image that is not contained in Modes.''')
+    parser.add_argument('-o', '--outfile', help='''
         The output CSV file.''')
     parser.add_argument('-g', '--imgcsvfile', required=False,
                         help=sphinxify('''
@@ -337,6 +348,10 @@ if __name__ == '__main__':
     outfile = codecs.open(_args.outfile, 'w', encoding='utf-8-sig')
     trace(1, 'Begin recode_collection.', color=Fore.GREEN)
     trace(1, '    Input file: {}', _args.incsvfile)
+    addendum = None
+    if _args.addendum:
+        addendum = codecs.open(_args.addendum, encoding='utf-8-sig')
+        trace(1, '    Input addendum file: {}', _args.addendum)
     trace(1, '    Creating file: {}', _args.outfile)
     imgdict = read_img_csv_file()
     nrows = main()
