@@ -34,8 +34,20 @@ python src/web/x053_list_pages.py $IMGDIR ${DESTDIR}/${BR}_list.csv
 # Pull the relevant fields from the Modes XML file for the objects in the batch.
 #
 # echo python src/xml2csv.py $MODESFILE $DESTDIR/${BR}_step1.csv -c src/cfg/website.yml --include ../collection/etc/$BR/${BR}_list.csv --heading -b -l results/reports/${BR}_website.log -v 2
-python src/xml2csv.py $MODESFILE $DESTDIR/${BR}_step1.csv -c src/cfg/website.yml --include ${DESTDIR}/${BR}_list.csv --heading -b -l results/reports/${BR}_website.log -v $VERBOS
+python src/xml2csv.py $MODESFILE $DESTDIR/${BR}_modesdata.csv \
+                      --cfgfile src/cfg/website.yml \
+                      --include ${DESTDIR}/${BR}_list.csv \
+                      --logfile results/reports/${BR}_website.log \
+                      --heading --bom --verbose $VERBOS
 #
 # Modify the CSV file to included new and adjusted columns.
 #
-python src/web/recode_collection.py $DESTDIR/${BR}_step1.csv $DESTDIR/${BR}.csv --imgcsvfile $DESTDIR/${BR}_list.csv -v $VERBOS
+if [ -z "$ADDENDUM" ] ; then
+python src/web/recode_collection.py --incsvfile $DESTDIR/${BR}_modesdata.csv --outfile $DESTDIR/${BR}.csv --imgcsvfile $DESTDIR/${BR}_list.csv -v $VERBOS
+else
+python src/web/recode_collection.py --incsvfile $DESTDIR/${BR}_modesdata.csv \
+                                    --addendum $DESTDIR/$ADDENDUM \
+                                    --outfile $DESTDIR/${BR}.csv \
+                                    --imgcsvfile $DESTDIR/${BR}_list.csv \
+                                    -v $VERBOS
+fi
