@@ -6,7 +6,7 @@
     single column of "<name> at <place>".
 
     Input is the CSV file produced by xml2csv.py using website.yml
-    Also input is a file produced by x051_harvest_letter_jpgs.py containing
+    Also input is a file produced by x053_list_pages.py containing
     gallery information.
 
     Output is a reformatted CSV file to feed to WordPress.
