@@ -1,3 +1,8 @@
+"""
+    This test demonstrates that embedded line feeds are preserved within quoted CSV fields.
+"""
+
+
 import csv
 import io
 
