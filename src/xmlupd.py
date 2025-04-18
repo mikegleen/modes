@@ -1,7 +1,7 @@
 """
     Apply a detail file to a master file creating a new master file. The detail file
     contains either updated object records or new object records. There is no mechanism
-    to delete records from the master file. Use ``update_from_csv.py`` to delete records.
+    to delete records from the master file. Use ``filter_xml.py`` to delete records.
 
     It is required that input files are in order according to normalized
     accession numbers.
