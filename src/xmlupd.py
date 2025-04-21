@@ -56,7 +56,7 @@ def nextobj(pnum: int, objectreader):
         objstr = ET.tostring(obj)
         trace(5, 'File {} {}', pnum, nidnum)
         if nidnum <= oldid[pnum]:
-            trace(0, "Objects out of order in file {}. Old ID = {}, "
+            trace(0, "Objects out of order or duplicate ID in file {}. Old ID = {}, "
                      "New ID = {}", pnum, oldid[pnum], nidnum,
                   color=Fore.RED)
             sys.exit(-1)
