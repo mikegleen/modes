@@ -1,8 +1,8 @@
-import codecs
+# import codecs
 
 from colorama import Fore, Style
-import csv
-import os
+# import csv
+# import os
 import re
 import sys
 
@@ -15,6 +15,7 @@ import xml.etree.ElementTree as ET
 
 from utl.normalize import normalize_id, datefrommodes, DEFAULT_MDA_CODE
 from utl.exhibition_list import get_inverted_exhibition_dict, ExhibitionTuple
+# from utl.readers import row_list_reader
 
 yaml = YAML(typ='safe')   # default, if not specfied, is 'rt' (round-trip)
 
@@ -539,12 +540,12 @@ def select(cfg: Config, objelem, includes=None, exclude=False) -> bool:
             # print('select return false')
             return False
     for document in cfg.ctrl_docs:
-        command = document[Stmt.CMD]
         eltstr = document.get(Stmt.XPATH)
         if eltstr:
             element = objelem.find(eltstr)
         else:
             element = None
+        command: str = document[Stmt.CMD]
         # print(f'{command=}')
         match command:
             case Cmd.IF:
@@ -948,47 +949,3 @@ def expand_idnum(idnumstr: str) -> list[str]:
         # _expand_one_idnum returns a list. Append the members of that list.
         rtnlist += _expand_one_idnum(idstr)
     return rtnlist
-
-
-def read_include_dict(includes_file, include_column, include_skip, verbos=1,
-                      logfile=sys.stdout, allow_blanks=False):
-    """
-    Read the optional CSV file from the --include argument. Build a dict
-    of normalized accession IDs for use by cfgutil.select. The value
-    of the dict is the row from the CSV file. Function expand_num is called
-    so one row in the CSV file may result in multiple entries in the dict.
-    :return: a dict or None if --include was not specified
-    """
-
-    if not includes_file:
-        return None
-    if os.path.splitext(includes_file)[1].lower() != '.csv':
-        raise ValueError('--include file must be a CSV file.')
-    includedict: dict = dict()
-    includereader = csv.reader(codecs.open(includes_file, encoding='utf-8-sig'))
-    for n in range(include_skip):  # default in xml2csv = 0
-        skipped = next(includereader)  # skip header
-        if verbos >= 1:
-            print(f'Skipping row in "include" file: {skipped}', file=logfile)
-    for row in includereader:
-        if not row:
-            continue
-        idnum = row[include_column].upper()  # cfgutil.select needs uppercase
-        if not idnum:
-            if allow_blanks:
-                if verbos >= 1 and ''.join(row):
-                    print(f'Skipping row with blank ID: {row}',
-                          file=logfile)
-                continue  # skip blank accession numbers
-            else:
-                raise ValueError('Blank accession number in include file;'
-                                 ' --allow_blank not selected.')
-        idnumlist: list[str] = [normalize_id(i) for i in expand_idnum(idnum)]
-        if verbos >= 1:
-            for num in idnumlist:
-                if num in includedict:
-                    print(f'Warning: Duplicate id number in include '
-                          f'file, {num}, ignored.', file=logfile)
-        for idnum in idnumlist:
-            includedict[idnum] = row
-    return includedict

@@ -17,7 +17,8 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
-from utl.cfgutil import expand_idnum, read_include_dict
+from utl.cfgutil import expand_idnum
+from utl.readers import read_include_dict
 from utl.excel_cols import col2num
 from utl.normalize import normalize_id, denormalize_id
 from utl.normalize import sphinxify, if_not_sphinx

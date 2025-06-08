@@ -18,7 +18,8 @@ import time
 import xml.etree.ElementTree as ET
 
 from utl.cfgutil import Cmd, Stmt, yaml_fieldnames, expand_idnum
-from utl.cfgutil import Config, read_include_dict
+from utl.cfgutil import Config
+from utl.readers import read_include_dict
 from utl.excel_cols import col2num
 from utl.normalize import normalize_id, denormalize_id, DEFAULT_MDA_CODE
 from utl.normalize import if_not_sphinx

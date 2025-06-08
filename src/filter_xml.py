@@ -9,8 +9,9 @@ import os.path
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from utl.cfgutil import Config, read_include_dict
+from utl.cfgutil import Config
 from utl.cfgutil import expand_idnum
+from utl.readers import read_include_dict
 from utl.excel_cols import col2num
 from utl.normalize import normalize_id, sphinxify, DEFAULT_MDA_CODE
 from utl.normalize import if_not_sphinx
