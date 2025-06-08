@@ -353,7 +353,7 @@ def main():
     else:
         exmap = get_mapfile_dict(_args.mapfile)  # acc # -> (exhibition #, catalog #)
     exdict = get_exhibition_dict()  # exhibition # -> Exhibition tuple
-    written = 0
+    written_to_main = 0
     numupdated = 0
 
     for idnum, nidnum, elem in object_reader(_args.infile, normalize=True, verbos=_args.verbose):
@@ -375,10 +375,10 @@ def main():
             updated = False
         if outfile:
             outfile.write(ET.tostring(elem, encoding='utf-8'))
+            written_to_main += 1
         if updated:
             if deltafile:
                 deltafile.write(ET.tostring(elem, encoding='utf-8'))
-            written += 1
         if updated and _args.short:
             break
     if outfile:
@@ -387,9 +387,13 @@ def main():
         deltafile.write(b'</Interchange>')
     for nidnum in exmap:
         trace(1, 'In CSV but not XML: "{}"', denormalize_id(nidnum))
-    trace(1, f'End exhibition.py. {written} object'
-             f'{"s" if written != 1 else ""} written '
+    trace(1, f'End exhibition.py. {written_to_main} object'
+             f'{"s" if written_to_main != 1 else ""} written to main: '
              f'of which {numupdated} updated.', color=Fore.GREEN)
+    if _args.deltafile:
+        trace(1, f' {numupdated} object'
+                 f'{"s" if numupdated != 1 else ""} written to delta: ',
+                 color=Fore.GREEN)
 
 
 def getparser():
@@ -409,8 +413,8 @@ def getparser():
         --mapfile argument and specify a single object wth the --object
         argument. See also the --catalogue argument.
         ''', called_from_sphinx))
-    exgroup = parser.add_mutually_exclusive_group(required=False)
-    objgroup = parser.add_mutually_exclusive_group(required=False)
+    exgroup = parser.add_mutually_exclusive_group()
+    objgroup = parser.add_mutually_exclusive_group()
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
     parser.add_argument('-o', '--outfile', help='''
