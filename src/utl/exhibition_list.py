@@ -56,6 +56,7 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 38,2016-10-01,2017-04-17,Den Store Opfindelses Udstilling,Storm P. Museum
 39,2025-02-15,2025-05-10,Ralph Steadman: INKling
 40,2025-05-17,2025-07-19,Ways of Seeing
+41,2025-05-29,2025-06-04,BBC Antique Road Show,Stephens House & Gardens
 '''
 # data for testing
 '''
