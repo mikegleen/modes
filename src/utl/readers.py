@@ -283,8 +283,6 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
 
     if not includes_file:
         return None
-    if os.path.splitext(includes_file)[1].lower() != '.csv':
-        raise ValueError('--include file must be a CSV file.')
     includedict: dict = dict()
     includereader = row_list_reader(includes_file, verbos=verbos, skiprows=include_skip,
                                     allow_long_rows=True)
