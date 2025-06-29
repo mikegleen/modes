@@ -207,7 +207,7 @@ def onerow(oldrow):
         # print(f'{oldrow["Dimensions"]=}, {newrow["Height"]=}, {newrow["Width"]=}')
     if oldrow['Pages']:
         nl = '<br/>' if m else ''
-        newrow['Dimensions'] += f"{nl}Number of Pages:{oldrow['Pages']}"
+        newrow['Dimensions'] += f"{nl}Number of Pages: {oldrow['Pages']}"
 
     # ------------------------- Gallery -------------------------------------
 
