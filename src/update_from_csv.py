@@ -622,7 +622,8 @@ def check_cfg(config: Config):
         cmd = doc[Stmt.CMD]
         if cmd == Cmd.DELETE:
             if Stmt.PARENT_PATH not in doc:
-                trace(1, 'The parent_path: statement is required for the delete command.')
+                trace(1, 'The parent_path: statement is required for the delete command.',
+                      color=Fore.RED)
                 errs += 1
             for stmt in doc:
                 # Note some statements are created internally if they are not
