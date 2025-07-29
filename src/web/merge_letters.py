@@ -8,7 +8,9 @@
     is documented in the file *Scanning Notes rev.4.docx* in the ../letters
     directory.
 
-    For each letter, merge its JPEG images into a single PDF file.
+    For each letter, merge its pages, each of which is in its own PDF image, into a single PDF file.
+    The PDF files, one per page, were created by ../src/web/img2pdf.py.
+
 """
 import argparse
 import os
@@ -72,7 +74,7 @@ def get_letters_dict(indirname):
     return ld, fd
 
 
-def skey(s):
+def sortkey(s):
     prefix, suffix = os.path.splitext(s)
     parts = prefix.split('-')
     len_parts = len(parts)
@@ -97,11 +99,11 @@ def main():
         nanum = normalize_id(anum)
         if filterset and nanum not in filterset:
             continue
-        pages = sorted(pages, key=skey)
+        pages = sorted(pages, key=sortkey)
         output = PdfFileMerger()
         subdirpath = fd[anum_tuple]
         for page in pages:
-            output.append(os.path.join(subdirpath, page))
+            output.append(str(os.path.join(subdirpath, page)))
         outputpath = os.path.join(_args.outdir, anum + '.pdf')
         output.write(outputpath)
 
