@@ -6,6 +6,9 @@
 	<NumberOfItems />
 	<Identification>
 		<Title />
+		<ObjectName elementtype="simple name">
+			<Keyword />
+		</ObjectName>
 		<BriefDescription />
 	</Identification>
 	<Production>
