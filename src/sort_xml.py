@@ -13,6 +13,8 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 # import tracemalloc
+import psutil
+
 
 from utl.normalize import normalize_id, denormalize_id, DEFAULT_MDA_CODE
 from utl.readers import row_dict_reader
@@ -154,3 +156,5 @@ if __name__ == '__main__':
     # print(f'End sort_xml. {numobjs} objects written. Max memory: {tm[1]:,} bytes.')
     trace(1, f'End sort_xml. {numobjs} objects written.',
           color=Fore.GREEN)
+    process = psutil.Process()
+    print('Max memory usage (bytes):', process.memory_info().rss)
