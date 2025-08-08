@@ -102,7 +102,7 @@ def get_object_from_file(templatefilepath):
     return object_template
 
 
-def get_template_from_csv(row: dict[str]):
+def get_template_from_csv(row: dict):
     """
     The YAML configuration file defines tags and filenames for templates such as:
         book: 2022-10-17_books_template.xml
@@ -131,7 +131,7 @@ def store(xpath: str, doc, template, accnum, text):
     """
 
     :param xpath: The xpath or xpath2 from the document
-    :param doc: The full document
+    :param doc: The full config document
     :param template: The template xml to be populated
     :param accnum: The accession number from the CSV file
     :param text: The text from the CSV file to store
