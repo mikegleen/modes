@@ -97,6 +97,7 @@ ENV/
 .ropeproject
 
 # mlg stuff
+.gitignore.swp
 .idea/
 .vscode
 tmp/
@@ -131,4 +132,5 @@ Manuals/
 Object Elements
 templates/normal/
 templates/exported
+templates/bak
 *.zip
