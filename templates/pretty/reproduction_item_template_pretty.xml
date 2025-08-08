@@ -1,0 +1,43 @@
+<templates application="Object"><template filename="SYSTEM" name="hrm reproduction_item template">
+<Object elementtype="reproduction_item">
+	<ObjectIdentity>
+		<Number />
+	</ObjectIdentity>
+	<Identification>
+		<Title />
+		<Classification />
+		<BriefDescription />
+	</Identification>
+	<ObjectLocation elementtype="current location">
+		<Location />
+		<Date>
+			<DateBegin />
+			<DateEnd />
+		</Date>
+	</ObjectLocation>
+	<ObjectLocation elementtype="normal location">
+		<Location />
+	</ObjectLocation>
+	<Production />
+	<Description>
+		<SummaryText />
+		<Measurement>
+			<Part>image</Part>
+			<Dimension>height x width</Dimension>
+			<Reading />
+		</Measurement>
+		<Condition>
+			<Note />
+		</Condition>
+		<Aspect>
+			<Keyword>display order</Keyword>
+			<Reading>9</Reading>
+		</Aspect>
+	</Description>
+	<Acquisition />
+	<Reproduction>
+		<Filename />
+	</Reproduction>
+	<Notes />
+</Object>
+</template></templates>

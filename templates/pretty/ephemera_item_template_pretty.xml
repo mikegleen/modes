@@ -1,0 +1,50 @@
+<templates application="Object"><template filename="SYSTEM" name="hrm ephemera_item template">
+<Object elementtype="ephemera_item">
+	<ObjectIdentity>
+		<Number />
+	</ObjectIdentity>
+	<Identification>
+		<Title />
+		<Classification />
+		<BriefDescription />
+	</Identification>
+	<ObjectLocation elementtype="current location">
+		<Location />
+		<Date>
+			<DateBegin />
+			<DateEnd />
+		</Date>
+	</ObjectLocation>
+	<ObjectLocation elementtype="normal location">
+		<Location />
+	</ObjectLocation>
+	<Description>
+		<SummaryText />
+		<Measurement>
+			<Part />
+			<Dimension>height x width</Dimension>
+			<Reading />
+		</Measurement>
+		<Aspect>
+			<Keyword>pages</Keyword>
+			<Reading />
+		</Aspect>
+		<Inscription>
+			<Method />
+			<Position />
+			<Transcription />
+		</Inscription>
+		<Condition>
+			<Note />
+		</Condition>
+		<Aspect>
+			<Keyword>display order</Keyword>
+			<Reading>9</Reading>
+		</Aspect>
+	</Description>
+	<Reproduction>
+		<Filename />
+	</Reproduction>
+	<Notes />
+</Object>
+</template></templates>
