@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+    Deprecated: Use the cmd: reproduction document in csv2xml.py.
+
     Update the Reproduction/Filename element to contain <id>.jpg
     Remove the attribute elementtype="Digital Image" from Reproduction
 """
