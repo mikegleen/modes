@@ -298,7 +298,7 @@ def one_doc_aspect(objelem, idnum, doc):
     return True
 
 
-def one_doc_location(objelem, idnum, doc):
+def one_doc_location(objelem, idnum, doc) -> bool:
     """
 
     :param objelem:
@@ -306,25 +306,36 @@ def one_doc_location(objelem, idnum, doc):
     :param doc:
     :return:
     """
+    # trace(3, 'doc: {}', doc)
+    updated = False
     nidnum = normalize_id(idnum)
-    if doc.move_to_normal:
+    if doc['move_to_normal']:
         nl = objelem.find('./ObjectLocation[@elementtype="normal location"]')
         newlocationelt = nl.find('./Location')
         newloc = newlocationelt.text.strip().upper()
     else:
         csvrow = newvals[nidnum]
-        loc_col = doc[Stmt.TITLE]
-        newloc = csvrow[loc_col]
-    if doc.update_normal:
-        update_normal_loc(objelem, idnum, newloc, trace)
-    if doc.update_current:
+        if Stmt.LOCATION_COLUMN in doc:
+            loc_col = doc[Stmt.LOCATION_COLUMN]
+            newloc = csvrow[loc_col]
+            if not newloc:
+                if Stmt.VALUE in doc:
+                    newloc = doc[Stmt.VALUE]
+                else:
+                    trace(1, 'ERROR: No new location for {}. Not updated', idnum, color=Fore.RED)
+                    return False
+        else:
+            newloc = doc[Stmt.VALUE]
+    if doc['update_normal']:
+        updated = update_normal_loc(objelem, idnum, newloc, trace)
+    if doc['update_current'] or doc['move_to_normal']:
         if Stmt.DATE in doc:
             newdate = doc[Stmt.DATE]
         else:
             newdate = _args.date
         reason = doc.get(Stmt.REASON)
-        update_current_loc(objelem, idnum, newloc, newdate, reason, trace)
-    return
+        updated = update_current_loc(objelem, idnum, newloc, newdate, reason, trace)
+    return updated
 
 
 def one_element(objelem, idnum):
@@ -338,6 +349,8 @@ def one_element(objelem, idnum):
     :param idnum: the ObjectIdentity/Number text
     :return: True if updated, False otherwise
     """
+    # print('one element')
+    # print(f'{cfg.col_docs=}')
     global nupdated, nunchanged, nequal, ndeleted
     updated = False
     for doc in cfg.col_docs:
@@ -373,7 +386,10 @@ def one_element(objelem, idnum):
                     ndeleted += 1
             continue
         elif command == Cmd.LOCATION:
-            one_doc_location(objelem, idnum, doc)
+            updated |= one_doc_location(objelem, idnum, doc)
+            if updated:
+                nupdated += 1
+            # print(f'one_element {updated=}')
             continue
         if command == Cmd.CONSTANT:
             target = objelem.find(xpath)
@@ -634,7 +650,7 @@ def check_cfg(config: Config):
                     trace(1, 'Delete command: Statement "{}" not allowed, '
                              'ignored', stmt, color=Fore.RED)
                     errs += 1
-        elif cmd not in (Cmd.COLUMN, Cmd.CONSTANT):
+        elif cmd not in (Cmd.COLUMN, Cmd.CONSTANT, Cmd.LOCATION):
             trace(1, 'Command "{}" not allowed, ignored', cmd, color=Fore.RED)
             errs += 1
         elif (Stmt.ATTRIBUTE in doc) ^ (Stmt.ATTRIBUTE_VALUE in doc):
