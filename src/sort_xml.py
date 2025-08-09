@@ -157,4 +157,4 @@ if __name__ == '__main__':
     trace(1, f'End sort_xml. {numobjs} objects written.',
           color=Fore.GREEN)
     process = psutil.Process()
-    print('Max memory usage (bytes):', process.memory_info().rss)
+    print(f'Max memory usage (bytes): {process.memory_info().rss:,}')
