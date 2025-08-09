@@ -269,7 +269,14 @@ Inserting Sub-IDs
    row while this process creates one item from each row.
 
 This is a special mode in ``update_from_csv.py`` wherein all of the rows in the
-input CSV file contain serial numbers which specify sub-IDs. Examples are::
+input CSV file contain serial numbers which specify sub-IDs. These will be
+inserted as Item elements within the parent Object element group.
+
+It is also possible to have accession numbers containing sub-IDs that exist in
+their own Object element groups. You cannot mix updates to these two formats
+in the same configuration.
+
+Examples are::
 
    JB1204.10
    LDHRM.2022.10.4
@@ -335,7 +342,7 @@ two passes were required over the data.
 The following YAML configuration file is an example of updating a location::
 
     cmd: location
-    loc_type: current
+    location_type: current
     value: S24
     reason: returned to store
     date: 19.3.2023
@@ -375,4 +382,38 @@ and a new current location element is created::
         </Date>
     </ObjectLocation>
 
-In this case, a loc_type of move_to_normal could have been used with the same result.
+In this case, a location_type of move_to_normal could have been used with the same result.
+
+
+.. _adding_objectname:
+
+Adding ObjectName Elements
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following configuration statements are used to add an ObjectName element
+group with a Keyword sub-element::
+
+    cmd: constant
+    parent_path: ./Identification
+    xpath: ./Identification/ObjectName[@elementtype="simple name"]
+    attribute: elementtype
+    attribute_value: simple name
+    value:
+    ---
+    column: ObjectName (simple name)
+    xpath: ./Identification/ObjectName[@elementtype="simple name"]/Keyword
+    parent_path: ./Identification/ObjectName[@elementtype="simple name"]
+
+This will add the element group, including the Keyword text from the input CSV file. If an ObjectName element
+group with elementtype="simple name" already exists under the Identification element, the value of the
+Keyword text will be replaced (if --replace is selected). Note that the **value:** statement is required
+even though no text value is to be inserted directly to the ObjectName element::
+
+    <Identification>
+        <Title>How we can break through the Siegfried Line</Title>
+        <BriefDescription />
+        <ObjectName elementtype="simple name">
+            <Keyword>rough sketch</Keyword>
+        </ObjectName>
+    </Identification>
+
