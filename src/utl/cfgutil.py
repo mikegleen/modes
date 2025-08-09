@@ -142,6 +142,7 @@ class Stmt:
     IF_OTHER_COLUMN_VALUE = 'if_other_column_value'
     INSERT_AFTER = 'insert_after'
     LOCATION_TYPE = 'location_type'  # "normal" and/or "current" also "move_to_normal"
+    LOCATION_COLUMN = 'location_column'
     MULTIPLE_DELIMITER = 'multiple_delimiter'
     NORMALIZE = 'normalize'
     PARENT_PATH = 'parent_path'
@@ -212,23 +213,23 @@ class Config:
 
     @staticmethod
     def set_location_doc(doc, args):
-        setattr(doc, 'update_current', False)
-        setattr(doc, 'update_normal', False)
-        setattr(doc, 'move_to_normal', False)
+        doc['update_current'] = False
+        doc['update_normal'] = False
+        doc['move_to_normal'] = False
         loctype = doc[Stmt.LOCATION_TYPE]
         lt = loctype.upper().split()
         for t in lt:
             if t.startswith('C'):
-                doc.update_current = True
+                doc['update_current'] = True
             elif t.startswith('N'):
-                doc.update_normal = True
+                doc['update_normal'] = True
             elif t.startswith('M'):
-                doc.move_to_normal = True
-                doc.update_current = True
-        if doc.move_to_normal and doc.update_normal:
+                doc['move_to_normal'] = True
+        if doc['move_to_normal'] and doc['update_normal']:
             return 'Cannot mix "move_to_normal" with "normal" location type.'
         if Stmt.DATE not in doc:
             doc[Stmt.DATE] = args.date
+        # print('set_location_doc', doc)
         return None
 
     def __init__(self, yamlcfgfile=None, dump: bool = False,
@@ -326,6 +327,7 @@ class Config:
                 err = Config.set_location_doc(document, args)
                 if err:
                     yaml_error(document, logfile, dump, err)
+                self.col_docs.append(document)
             elif cmd in Cmd.get_control_cmds():
                 self.ctrl_docs.append(document)
             else:  # not control command
@@ -675,16 +677,23 @@ def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
                 print(red(f'ERROR: "value" statement is required for {command} command.'), file=logfile)
                 valid_doc = False
         else:
-            if Stmt.VALUE in document:
+            # The value: statement is optional for the location command.
+            if Stmt.VALUE in document and command != Cmd.LOCATION:
                 print(red(f'ERROR: "value" statement is not allowed for '
                           f'{command} command.'), file=logfile)
                 valid_doc = False
         if command == Cmd.LOCATION:
             if Stmt.LOCATION_TYPE not in document:
-                print(red(f'ERROR: "location_type:" statement is required for "location" command.'))
+                print(red('ERROR: "location_type:" statement is required for "location" command.'))
                 valid_doc = False
-            if Stmt.TITLE not in document:
-                print(red(f'ERROR: "title:" statement is required for "location" command.'))
+            elif document[Stmt.LOCATION_TYPE] == 'move_to_normal':
+                if (Stmt.TITLE in document) or (Stmt.VALUE in document):
+                    print(red('ERROR: "title:" or "value:" statement is not allowed for "move_to_normal" '
+                              'location_type'))
+                    valid_doc = False
+            elif not ((Stmt.LOCATION_COLUMN in document) != (Stmt.VALUE in document)):
+                print(document)
+                print(red('ERROR: One of "location_column:" or "value:" statement is required for "location" command.'))
                 valid_doc = False
         if command in (Cmd.ATTRIB, Cmd.IFATTRIB, Cmd.IFATTRIBEQ, Cmd.IFATTRIBNOTEQ):
             if Stmt.ATTRIBUTE not in document:
@@ -776,6 +785,12 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
         else:
             yaml_error(document, logfile, dump, '"cmd" statement missing from document.')
         cmd = document[Stmt.CMD]
+        if cmd == Cmd.LOCATION:
+            if Stmt.TITLE not in document:
+                if Stmt.LOCATION_COLUMN in document:
+                    document[Stmt.TITLE] = document[Stmt.LOCATION_COLUMN]
+                else:
+                    document[Stmt.TITLE] = 'Location'
         if cmd in Cmd.get_control_cmds():
             continue
         if Stmt.XPATH not in document:
