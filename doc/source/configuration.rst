@@ -3,6 +3,8 @@
 configuration
 =============
 
+.. contents::
+
 The Configuration Domain Specific Language (DSL)
 ------------------------------------------------
 
@@ -22,9 +24,11 @@ Most but not all of the commands and statements are used for all cases.
 
 The configuration consists of a YAML file broken into multiple sections
 (called *documents*) separated by lines containing ``---`` in the left three columns.
-Documents are control documents or column documents.
-Each column document corresponds to a column in the associated CSV file. The “control”
-document directs the selection of records (the if... commands) or is a global command.
+Documents are control documents, column documents, or special documents. The special
+documents are **global** and **location**.
+Each column document corresponds to a column in the associated CSV file, although there are
+exceptions. The “control”
+document directs the selection of records (the if... commands).
 The various programs use the CSV file for slightly different purposes. For example,
 ``csv2xml.py`` uses it to contain multiple columns each of which defines a value to
 go into a corresponding field in the XML file. On the other hand, ``xml2csv.py`` uses
@@ -376,7 +380,7 @@ a different way from their use with, for example, the **column** command.
 
    The parameter is text to be entered in the *Reason* field of the location
    element.
--  **location_type**
+-  **location_type:**
 
    You can update the normal location, the current location, or both. You can also
    move the current location to the normal location. The syntax is best explained by
@@ -389,6 +393,25 @@ a different way from their use with, for example, the **column** command.
       location_type: move_to_normal
 
    Parameters can be abbreviated to the first letter.
+-  **location_column:**
+
+   This indicates the column in the CSV file containing the new location. You must
+   include either this statement or a **value:** statement. If both are included then
+   the new location will be taken from this statement unless the field in the CSV file
+   is empty in which case the value from the **value:** statement will be used.
+
+   If there is no **value:** statement, an empty field in the CSV file is an error.
+-  **title:**
+
+   Optional. Each document requires a unique title. If this statement is not included, a title will be taken
+   from the **location_column:** statement if it exists. Otherwise a default of "Location" will be used.
+
+   This statement is only needed in the rare case that there is a CSV column entitled "Location" other than
+   the column named in the **location_column:** statement.
+-  **value:**
+
+   The new location to be inserted in all objects updated. See the **location_column:** statement above for more
+   details.
 
 Commands
 ~~~~~~~~
