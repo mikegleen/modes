@@ -552,8 +552,7 @@ def select(cfg: Config, objelem, includes=None, exclude=False) -> bool:
         match command:
             case Cmd.IF:
                 # select if element has text
-                if element is None or not element.text:
-                    # print('\nnot selected')
+                if element is None or not striptext(element.text):
                     selected = False
             case Cmd.IFNOT:
                 # select if element does not exist or does not have text
