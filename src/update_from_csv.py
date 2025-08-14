@@ -396,8 +396,8 @@ def one_element(objelem, idnum):
             if target is None:
                 target = new_subelt(doc, objelem, idnum, _args.verbose)
                 if target is None:  # parent is not specified or doesn't exist
-                    trace(1, '{}: Cannot find target "{}", document "{}"', idnum,
-                          xpath, title)
+                    trace(1, '{} ({}): Cannot find "{}", document "{}"', idnum,
+                          objelem.get('elementtype'), xpath, title)
                     continue
             if Stmt.ATTRIBUTE in doc:
                 target.set(doc[Stmt.ATTRIBUTE], doc[Stmt.ATTRIBUTE_VALUE])
@@ -417,8 +417,8 @@ def one_element(objelem, idnum):
         if target is None:
             target = new_subelt(doc, objelem, idnum, _args.verbose)
             if target is None:  # parent is not specified or doesn't exist
-                trace(1, '{}: Cannot find target "{}", document "{}"', idnum,
-                      xpath, title)
+                trace(1, '{} ({}): Cannot find "{}", document "{}"', idnum,
+                      objelem.get('elementtype'), xpath, title)
                 continue
         # get the text from the CSV column for this row
         oldtext = target.text

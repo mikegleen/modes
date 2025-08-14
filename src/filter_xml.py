@@ -109,7 +109,7 @@ def getparser():
         the Sphinx-formatted documentation.''')
     parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.''' +
-                        if_not_sphinx(''' The default is "{DEFAULT_MDA_CODE}".
+                        if_not_sphinx(f''' The default is "{DEFAULT_MDA_CODE}".
                         ''', calledfromsphinx))
     parser.add_argument('-n', '--normalize', action='store_true', help='''
         Noramlize the accession number written to the CSV file or used to

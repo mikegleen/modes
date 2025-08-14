@@ -212,7 +212,7 @@ class Config:
         Config.__instance = None
 
     @staticmethod
-    def set_location_doc(doc, args):
+    def set_location_doc(doc, args) -> str | None:
         doc['update_current'] = False
         doc['update_normal'] = False
         doc['move_to_normal'] = False
@@ -225,6 +225,8 @@ class Config:
                 doc['update_normal'] = True
             elif t.startswith('M'):
                 doc['move_to_normal'] = True
+            else:
+                print(f'location type {t} ignored.')
         if doc['move_to_normal'] and doc['update_normal']:
             return 'Cannot mix "move_to_normal" with "normal" location type.'
         if Stmt.DATE not in doc:
@@ -281,7 +283,7 @@ class Config:
                     self.templates = {key.lower(): value for key, value in
                                       templates.items()}
                 else:
-                    print(f'Unknown statement, ignored: {stmt}.')
+                    print(f'Unknown global statement, ignored: {stmt}.')
             if self.templates or self.template_title or self.template_dir:
                 if not (self.templates and self.template_title and
                         self.template_dir):
