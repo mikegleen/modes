@@ -881,7 +881,7 @@ def _expand_one_idnum(idstr: str) -> list[str]:
     indicated by a hyphen or ampersand anywhere in the string, the format of
     the number is:
         idstr ::= idnum | rangestr | liststr
-        idnum ::= string without '-' or '&'
+        idnum ::= string without '-', '/', or '&'
         rangestr ::= prefix-suffix | prefix/suffix
         liststr ::=  prefix&suffix | liststr&suffix
         prefix ::= text<n digits>
@@ -928,7 +928,7 @@ def _expand_one_idnum(idstr: str) -> list[str]:
                     newidnum = f'{prefix}{suffix:0{lenvariablepart}}'
                     jlist.append(newidnum)
             except ValueError:
-                raise ValueError(f'Bad accession number, contains "-" but not'
+                raise ValueError(f'Bad accession number, contains "-" but not '
                                  f'well formed: {m.groups()}')
         else:
             raise ValueError('Bad accession number, failed pattern match:', idstr)
