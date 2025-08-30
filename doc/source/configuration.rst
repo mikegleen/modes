@@ -114,7 +114,7 @@ the ``cmd: global`` document.
 -  **child:**
 
    Used by ``update_from_csv.py`` when **parent_path:** is specified to force
-   creation of a new element. When that element is created, a subelement is also created.
+   creation of a new element. When that element is created, a subelement of that element is also created.
    The tag of the new subelement is the value of this statement.
 -  **child_value:**
 
