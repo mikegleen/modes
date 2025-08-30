@@ -402,10 +402,6 @@ def new_subelt(doc, obj, idnum, verbos=1):
             childelt = ET.SubElement(newelt, doc[Stmt.CHILD])
             childelt.text = doc.get(Stmt.CHILD_VALUE, '')
         # print(f'{doc[Stmt.TITLE]}: {newelt.tag=}')
-        if Stmt.ATTRIBUTE in doc:
-            # print(f'setting attribute {newelt.tag=}')
-            value = doc.get(Stmt.ATTRIBUTE_VALUE, '')
-            newelt.set(doc[Stmt.ATTRIBUTE], value)
     return newelt
 
 
