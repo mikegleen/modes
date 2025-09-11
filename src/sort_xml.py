@@ -122,7 +122,8 @@ def getparser():
         The default is "{DEFAULT_MDA_CODE}".
         ''')
     parser.add_argument('-n', '--nostrict', action='store_true', help='''
-        Set the verbosity. The default is 1 which prints summary information.
+        Allow duplicate accession numbers. If not set, a duplicate accession
+        number will cause the program to abort.
         ''')
     parser.add_argument('-r', '--renumber', help=f'''
         A CSV file containing two columns with headings OldSerial and NewSerial.
