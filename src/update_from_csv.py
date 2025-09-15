@@ -454,6 +454,8 @@ def one_element(objelem, idnum):
         elif Stmt.PERSON_NAME in doc:
             newtext = modes_person(newtext)
         target.text = newtext
+        if Stmt.ATTRIBUTE in doc:
+            target.set(doc[Stmt.ATTRIBUTE], doc[Stmt.ATTRIBUTE_VALUE])
         updated = True
         nupdated += 1
     return updated
