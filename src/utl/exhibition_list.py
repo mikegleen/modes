@@ -58,6 +58,8 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 40,2025-05-17,2025-07-19,Ways of Seeing
 41,2025-05-29,2025-06-04,BBC Antique Road Show,Stephens House & Gardens
 42,2025-07-26,2025-10-26,Contraptions and Connections
+43,2025-11-01,2026-02-22,Sublime Space
+44,2026-02-28,2026-05-30,The LIFE in a Line!
 '''
 # data for testing
 '''
