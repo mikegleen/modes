@@ -831,8 +831,7 @@ def getargs(argv):
     if is_update:
         if args.col_loc_type:
             if args.current or args.normal:
-                trace(0, 'You may not specify both --col_loc_type and -c or -n.',
-                      color=Fore.RED)
+                trace(0, 'You may not specify both --col_loc_type and -c or -n.')
                 sys.exit(1)
         if args.move_to_normal:
             if args.normal or args.previous:
