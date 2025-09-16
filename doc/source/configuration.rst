@@ -186,6 +186,32 @@ the ``cmd: global`` document.
 -  **if_other_column_value:**
 
    Used in conjunction with the **if_other_column:** statement. See above.
+- **if_template:**
+
+   This a a shortcut command to be used when there is a **template_title:** statement
+   in the **global** command. For example, given a **global** command containing::
+
+      cmd: global
+      ...
+      template_title: my_template
+      ---
+
+   the following document::
+
+      column: Artist
+      if_template: Artwork
+      xpath: ...
+      ---
+
+   will be converted to::
+
+      column: Artist
+      if_other_column: my_template
+      if_column_value: Artwork
+      xpath: ...
+      ---
+
+   As with all column titles, the template name is case sensitive.
 -  **insert_after:**
 
    If an element doesn't exist, it will be inserted after the
