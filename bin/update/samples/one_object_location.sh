@@ -9,16 +9,17 @@ OBJECT=LDHRM.2023.19
 LOCATION='Another Location'
 #
 source bin/boilerplate.sh
+COMMON_ARGS=--object $OBJECT --current --location $LOCATION
 #
 yellow ----------------------------------------------------
 yellow "Update the single object"
 yellow ----------------------------------------------------
 #
 python src/location.py update -i prod_update/normal/${INXML}.xml -o prod_update/normal/${OUTXML}.xml -a \
-                        --object $OBJECT --current --location $LOCATION
+                        $COMMON_ARGS
 #
 python src/location.py update -i prod_update/normal/${INXML}.xml -o prod_delta/normal/${OUTXML}_delta.xml \
-                        -j $OBJECT -c -l $LOCATION
+                        $COMMON_ARGS
 #
 bin/syncupdate.sh
 bin/syncdelta.sh
