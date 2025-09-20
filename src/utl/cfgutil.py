@@ -140,6 +140,7 @@ class Stmt:
     ELEMENT = 'element'
     IF_OTHER_COLUMN = 'if_other_column'
     IF_OTHER_COLUMN_VALUE = 'if_other_column_value'
+    IF_TEMPLATE = 'if_template'
     INSERT_AFTER = 'insert_after'
     LOCATION_TYPE = 'location_type'  # "normal" and/or "current" also "move_to_normal"
     LOCATION_COLUMN = 'location_column'
@@ -346,6 +347,14 @@ class Config:
                     raise ValueError(msg)
             if Stmt.MULTIPLE_DELIMITER not in doc:
                 doc[Stmt.MULTIPLE_DELIMITER] = self.multiple_delimiter
+
+            if Stmt.IF_TEMPLATE in doc:
+                if self.template_title is None:
+                    msg = red(f'ERROR: The if_template: statement requires a template_title statement '
+                              f'under the global command. Document: {doc[Stmt.TITLE]}')
+                    raise ValueError(msg)
+                doc[Stmt.IF_OTHER_COLUMN] = self.template_title
+                doc[Stmt.IF_OTHER_COLUMN_VALUE] = doc[Stmt.IF_TEMPLATE]
         if len(self.ctrl_docs) and verbos:
             print("Config contains filtering commands.")
 
@@ -405,7 +414,7 @@ def new_subelt(doc, obj, idnum, verbos=1):
     return newelt
 
 
-def process_if_other_column(row, doc, title):
+def process_if_other_column(row, doc, title, verbose=1):
     """
     If the IF_OTHER_COLUMN statement is not present, return True to process this document.
 
@@ -416,6 +425,7 @@ def process_if_other_column(row, doc, title):
     :param row:
     :param doc:
     :param title:
+    :param verbose:
     :return: True to process the document, False to skip it.
     """
     if Stmt.IF_OTHER_COLUMN not in doc:
@@ -424,7 +434,7 @@ def process_if_other_column(row, doc, title):
     if Stmt.IF_OTHER_COLUMN_VALUE in doc:
         if_values = [val.strip() for val in doc[Stmt.IF_OTHER_COLUMN_VALUE].split("|")]
         if row[key_title] not in if_values:
-            trace(3, 'Skipping col {} because {} not in {}', title, key_title, if_values)
+            trace(3, verbose, 'Skipping col {} because {} not in {}', title, key_title, if_values)
             return False
     else:
         # print(f'process... {title=} {key_title=} “{row[key_title]=}”')
@@ -710,7 +720,10 @@ def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
             valid_doc = False
         if Stmt.ELEMENT in document and ' ' in document[Stmt.ELEMENT]:
             trace(1, 'Cannot create element with embedded spaces, title: {}', document[Stmt.TITLE])
-            valid = False
+            valid_doc = False
+        if Stmt.IF_TEMPLATE in document and Stmt.IF_OTHER_COLUMN in document:
+            trace(1, 'Cannot have both if_template and if_other_column: {}', document[Stmt.TITLE])
+            valid_doc = False
         if not valid_doc:
             valid = False
             dump_document(document, logfile=logfile)

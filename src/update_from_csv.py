@@ -356,7 +356,7 @@ def one_element(objelem, idnum):
     for doc in cfg.col_docs:
         command = doc[Stmt.CMD]
         # print(f'{command=}')
-        must_process = process_if_other_column(newvals[idnum], doc, idnum)
+        must_process = process_if_other_column(newvals[idnum], doc, idnum, _args.verbose)
         trace(3, 'process... {} {} {}, must process: {}', idnum, command, doc[Stmt.TITLE], must_process)
         if not must_process:
             continue

@@ -227,7 +227,7 @@ def main():
             else:
                 text = row[column_title]
             trace(4, 'column="{}", text="{}"', column_title, text)
-            if not process_if_other_column(row, doc, accnum):
+            if not process_if_other_column(row, doc, accnum, _args.verbose):
                 continue
             if cmd != Cmd.CONSTANT and not text:
                 trace(3, '{}: cell empty {}', accnum, title)
