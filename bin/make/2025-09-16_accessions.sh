@@ -14,11 +14,14 @@ OUTXML=${SCRIPT}.xml
 MERGEDXML=${SCRIPT}_merged.xml
 cat >tmp/update.yml <<EOF
 cmd: global
+serial: Accession Number
 template_title: Template
 template_dir: /Users/mlg/pyprj/hrm/modes/templates/normal
 templates:
   Book: book_template.xml
   Ephemera: ephemera_template.xml
+  Letter: letter_template.xml
+  Cutting: cutting_template.xml
   Artwork: Original_Artwork_template.xml
   Reproduction: reproduction_template.xml
 ---
@@ -154,35 +157,27 @@ xpath: ./Description/Condition/Note
 ---
 column: Sender
 xpath: ./Production/Person[Role="sender"]/PersonName
+if_template: Letter
 ---
 column: Recipient
 xpath: ./Production/Person[Role="recipient"]/PersonName
+if_template: Letter
 ---
 column: Sender org
 xpath: ./Production/Organisation[Role="sender"]/OrganisationName
+if_template: Letter
 ---
 column: Recipient org
 xpath: ./Production/Organisation[Role="recipient"]/OrganisationName
+if_template: Letter
 ---
-# cmd: column
-# title: Notes
-# xpath: ./Notes
-# ---
-# column: ISBN
-# xpath: ./Production/ReferenceNumber[@elementtype="ISBN"]
-# ---
-# cmd: column
-# title: Pages notes
-# xpath: ./Description/Aspect[Keyword="pages"]/Notes
-# parent_path: ./Description/Aspect[Keyword="pages"]
-# ---
 cmd: reproduction
 xpath: ./Reproduction/Filename
 EOF
 python src/csv2xml.py -o prod_make/normal/$OUTXML \
                       -c tmp/update.yml \
                       -i $INCSV \
-                      -v 1 --serial "Accession Number"
+                      -v 1
 bin/syncmake.sh
 #
 # python src/merge_xml.py -i tmp/filtered.xml -i prod_make/normal/$OUTXML -o tmp/$MERGEDXML -v 1
