@@ -62,6 +62,9 @@
 		</Person>
 		<Date />
 	</Acquisition>
+	<Reproduction>
+		<Filename />
+	</Reproduction>
 	<Notes />
 </Object>
 </template></templates>
