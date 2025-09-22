@@ -56,7 +56,9 @@ for filename in files:
             # test for multiple sheets
             m = re.fullmatch(r'(JB\d+[AB]?-)(?P<subnum>\d{3})-(?P<pagenum>\d+)(?P<side>[AB]).jpg', newfilename)
             if m:
-                if m.group('pagenum') == '1':
+                # Originally, page numbers did not have leading zeros. But then I changed
+                # my mind and later ones do. Sorry ’bout that.
+                if m.group('pagenum').lstrip("0") == '1':
                     if not m.group('side') or m.group('side') == 'A':
                         subnum = int(m.group('subnum'))
                         newfilename = f'{m.group(1)}.{subnum}.jpg'
