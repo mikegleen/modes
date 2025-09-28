@@ -1,6 +1,6 @@
 #!/bin/zsh
 #
-#   Move letters etc from G12 to G7 to make room for JB1224
+#   Update location of pictures going out for conservation
 #
 set -e
 INXML=/Users/mlg/pyprj/hrm/modes/prod_update/normal/2025-09-13_location.xml
