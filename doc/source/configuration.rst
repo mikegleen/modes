@@ -376,7 +376,7 @@ These statements are in the document whose **cmd:** is **global**.
    containing the files named in the ``templates`` statement.
 -  **templates:**
 
-   Only in ``CSV2XML.py``: This is a complex statement used to map keys
+   Only in ``csv2xml.py``: This is a complex statement used to map keys
    to filenames. The format of the statement is::
 
       templates:
