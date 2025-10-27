@@ -332,6 +332,11 @@ def getparser() -> argparse.ArgumentParser:
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    #
+    # commented out because I can't remember why I wrote it.
+    # if args.addendum:
+    #     args.addendum = args.addendum.lower()
+
     return args
 
 
