@@ -134,6 +134,9 @@ the ``cmd: global`` document.
         cmd: column
         title: Date
 
+   Do not use both the **column:** statement and the **cmd:** statement within
+   a single document. (Remember, a configuation file consists of multiple
+   documents separated by ``---`` lines).
 -  **column_title:**
 
    Normally, the column title is taken from the **title:** statement. However,
@@ -443,12 +446,15 @@ Commands
 ~~~~~~~~
 
 Each document has one **cmd:** statement, which is customarily the first
-statement in the document. Data-related commands are those that map
-the elements in the XML document to a corresponding column in the associated CSV file
-(but see the **location**, **constant**, and **delete** commands for exceptions).
+statement in the document. The **cmd:** statement can either be explicitly
+written or generated internally by a **column:** statement.
 
 Data-related Commands
 +++++++++++++++++++++
+
+Data-related commands are those that map
+the elements in the XML document to a corresponding column in the associated CSV file
+(but see the **location**, **constant**, and **delete** commands for exceptions).
 
 -  **cmd: attrib**
 
