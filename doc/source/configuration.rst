@@ -170,6 +170,16 @@ the ``cmd: global`` document.
 
       element: Association
 
+- **group:**
+
+   Used by **if**, **ifnot**, and **column** commands to indicate that the text
+   from the named element and all of its descendents are to be examined instead
+   of just the named elemennt’s text.
+
+   The optional parameter is the delimiter character or characters to be used to separate the text fields
+   from the individual sub-elements. The default is an empty string.
+
+   Enclose the character in quote marks.
 - **if_other_column:**
 
    Used by ``csv2xml.py``. Process this column if one of the values in the
@@ -310,6 +320,9 @@ These statements are in the document whose **cmd:** is **global**.
 
    The character to use for the CSV file field
    separator. The default is “,”.
+
+   Enclose the character in quote marks as some characters are recognized
+   by YAML as having semantic meaning.
 -  **multiple_delimiter:**
 
    See the description of this command in the
@@ -472,6 +485,8 @@ the elements in the XML document to a corresponding column in the associated CSV
 
    You must specify a title explicitly with the **title:** statement or implicitly
    with the ``xpath`` statement.
+
+   See the **group:** statement to include text from sub-elements.
 -  **cmd: constant**
 
    For ``csv2xml.py`` and ``update_from_csv.py``, create an element
