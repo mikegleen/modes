@@ -382,5 +382,9 @@ def modes_person(person: str) -> str:
     return fullname
 
 
+def serial_from_filename(filename):
+    pass
+
+
 if __name__ == '__main__':
     print('This module is not callable. Try src/normalize_xml.py')
