@@ -10,9 +10,8 @@ xpath: ./Identification/Title
 cmd: column
 xpath: ./Identification/Type
 ---
-cmd: column
+column: Medium
 xpath: ./Description/Material[Part="medium"]/Keyword
-title: Medium
 ---
 # For books or letters, this is the publication date.
 cmd: column
@@ -27,17 +26,14 @@ xpath: ./Production/Date/DateEnd
 cmd: column
 xpath: ./Production/Date/Accuracy
 ---
-cmd: column
+column: DateFirstPublished
 xpath: ./References/Reference[@elementtype="First Published In"]/Date
-title: DateFirstPublished
 ---
-cmd: column
+column: TitleFirstPublished
 xpath: ./References/Reference[@elementtype="First Published In"]/Title
-title: TitleFirstPublished
 ---
-cmd: column
+column: PageFirstPublished
 xpath: ./References/Reference[@elementtype="First Published In"]/Page
-title: PageFirstPublished
 ---
 cmd: multiple
 xpath: ./Exhibition/Place/PlaceName
@@ -47,48 +43,38 @@ cmd: multiple
 xpath: ./Exhibition/ExhibitionName
 title: ExhibitionName
 ---
-cmd: column
+column: Description
 xpath: ./Identification/BriefDescription
-title: Description
 ---
-cmd: column
+column: Production_SummaryText
 xpath: ./Production/SummaryText
-title: Production_SummaryText
 ---
 cmd: attrib
 xpath: .
 attribute: elementtype
 title: ObjectType
 ---
-cmd: column
+column: Dimensions
 xpath: ./Description/Measurement[Part="image"]/Reading
-title: Dimensions
 ---
-cmd: column
+column: Pages
 xpath: ./Description/Aspect[Keyword="pages"]/Reading
-title: Pages
 ---
-cmd: column
+column: Sender
 xpath: ./Production/Person[Role="sender"]/PersonName
-title: Sender
 ---
-cmd: column
+column: Sender Org
 xpath: ./Production/Organisation[Role="sender"]/OrganisationName
-title: Sender Org
 ---
-cmd: column
+column: Recipient
 xpath: ./Production/Person[Role="recipient"]/PersonName
-title: Recipient
 ---
-cmd: column
+column: Recipient Org
 xpath: ./Production/Organisation[Role="recipient"]/OrganisationName
-title: Recipient Org
 ---
 # for cuttings
-cmd: column
+column: Publ Name
 xpath: ./Production/Organisation[Role="publication name"]/OrganisationName
-title: Publ Name
 ---
-cmd: column
+column: Order
 xpath: ./Description/Aspect[Keyword="display order"]/Reading
-title: Order
