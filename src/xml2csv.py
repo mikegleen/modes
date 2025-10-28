@@ -45,6 +45,7 @@ def opencsvwriter(filename, delimiter):
 def one_document(document, parent):
     command = document[Stmt.CMD]
     eltstr = document.get(Stmt.XPATH)
+    ifgroup: bool = Stmt.GROUP in document
     text = None
     if eltstr:
         element = parent.find(eltstr)
@@ -72,10 +73,14 @@ def one_document(document, parent):
         text = delimiter.join([e.text for e in elements if e.text is not None])
     elif command == Cmd.CONSTANT:
         text = document[Stmt.VALUE]
+    elif Stmt.GROUP in document:
+        delimiter = document[Stmt.GROUP]
+        text = delimiter.join(element.itertext()).strip()
     elif element.text is None:
         text = ''
     else:
         text = element.text.strip()
+
     if Stmt.NORMALIZE in document:
         text = normalize_id(text, _args.mdacode)
     if Stmt.WIDTH in document:

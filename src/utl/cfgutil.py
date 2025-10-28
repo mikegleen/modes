@@ -12,6 +12,7 @@ import ruamel.yaml.constructor
 
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
+from sphinx.cmd.quickstart import nonempty
 
 from utl.normalize import normalize_id, datefrommodes, DEFAULT_MDA_CODE
 from utl.exhibition_list import get_inverted_exhibition_dict, ExhibitionTuple
@@ -138,6 +139,7 @@ class Stmt:
     DELIMITER = 'delimiter'
     DENORMALIZE = 'denormalize'
     ELEMENT = 'element'
+    GROUP = 'group'
     IF_OTHER_COLUMN = 'if_other_column'
     IF_OTHER_COLUMN_VALUE = 'if_other_column_value'
     IF_TEMPLATE = 'if_template'
@@ -556,17 +558,33 @@ def select(cfg: Config, objelem, includes=None, exclude=False) -> bool:
         else:
             element = None
         command: str = document[Stmt.CMD]
+        ifgroup: bool = Stmt.GROUP in document
         # print(f'{command=}')
         match command:
             case Cmd.IF:
-                # select if element has text
-                if element is None or not striptext(element.text):
-                    selected = False
+                # select if element exists and has text
+                if ifgroup:
+                    # print('ifgroup')
+                    if element is None:
+                        text = None
+                    else:
+                        text = ''.join(element.itertext()).strip()
+                        # print(text)
+                    if not text:
+                        selected = False
+                else:
+                    # select if element has text
+                    if element is None or not striptext(element.text):
+                        selected = False
             case Cmd.IFNOT:
                 # select if element does not exist or does not have text
                 if element is None:
                     continue
-                if striptext(element.text):
+                if ifgroup:
+                    text = ''.join(element.itertext()).strip()
+                    if text:
+                        selected = False
+                elif element.text:
                     selected = False
             case Cmd.IFEQ:
                 if element is None:
