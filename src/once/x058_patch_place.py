@@ -7,7 +7,7 @@ import io
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from utl.cfgutil import Config, new_subelt
+from utl.cfgutil import Config
 from utl.readers import object_reader as obr
 
 cfgtext = '''
