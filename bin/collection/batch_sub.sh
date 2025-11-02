@@ -4,7 +4,7 @@
 # ------------
 #
 # Subroutine for creating the CSV file to be imported by the website system
-# Assumed to be in directory ~/pyprj/hrm/modes
+# The current directory is assumed to be ~/pyprj/hrm/modes
 # The caller must set:
 #   BATCH     the name of the directory containing the new JPG files
 #             under ~/pyprj/hrm/collection/aawebimgs/
@@ -26,14 +26,13 @@ IMGDIR=../collection/aawebimgs/${BR}
 DESTDIR=../collection/etc/$BATCH
 mkdir -p $DESTDIR
 #
-# Create a file with the accession numbers in column 1 and a "|" delimited list of filenames
-# in column 2. There is no heading row.
+# Create a file with the accession numbers in column 1 and a "|" delimited list of image
+# filename in column 2. There is no heading row.
 #
 python src/web/x053_list_pages.py $IMGDIR ${DESTDIR}/${BR}_list.csv
 #
 # Pull the relevant fields from the Modes XML file for the objects in the batch.
 #
-# echo python src/xml2csv.py $MODESFILE $DESTDIR/${BR}_step1.csv -c src/cfg/website.yml --include ../collection/etc/$BR/${BR}_list.csv --heading -b -l results/reports/${BR}_website.log -v 2
 python src/xml2csv.py $MODESFILE $DESTDIR/${BR}_modesdata.csv \
                       --cfgfile src/cfg/website.yml \
                       --include ${DESTDIR}/${BR}_list.csv \
