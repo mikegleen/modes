@@ -17,6 +17,8 @@ DESCRIPTION = """
 
 IMGFILES = ('.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff')
 
+HOMEDIR = '/Users/mlg'
+
 
 def one_file(parentpath, filename):
     prefix, suffix = os.path.splitext(filename)
@@ -34,7 +36,7 @@ def one_file(parentpath, filename):
         filesize = os.path.getsize(fullpath)
 
         # table[filename].append(parentpath)
-        table[filename] += [parentpath, filesize]
+        table[filename] += [parentpath.replace(HOMEDIR, '~'), filesize]
     return
 
 
