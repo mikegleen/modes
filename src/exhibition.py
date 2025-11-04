@@ -214,6 +214,11 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
             if elt.tag == "Acquisition":
                 firstexix = n + 1  # insert the new elt after <Acquisition>
                 break
+        else:
+            trace(1, '{}: No Acquisition element. etype: “{}”. '
+                     'Inserting the new exhibition at the end.',
+                  display_id, etype)
+            firstexix = len(elts)
     if firstexix is None:
         if outfile:
             outfile.close()
