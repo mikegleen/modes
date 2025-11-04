@@ -252,7 +252,7 @@ def getparser():  # called either by getargs or sphinx
     parser.add_argument('--include', required=False, help='''
         A CSV file specifying the accession numbers of objects to be processed.
         If omitted, all records will be processed. In either case, objects will
-        be output based on configuration statements. ''')
+        be output based on configuration statements. There must be a heading row.''')
     parser.add_argument('--include_column', required=False,
                         default='0', type=str, help='''
         The column number containing the accession number in the file
