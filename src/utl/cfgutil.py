@@ -712,8 +712,8 @@ def validate_yaml_cfg(cfglist, allow_required=False, logfile=sys.stdout):
                 print(red('ERROR: "location_type:" statement is required for "location" command.'))
                 valid_doc = False
             elif document[Stmt.LOCATION_TYPE] == 'move_to_normal':
-                if (Stmt.TITLE in document) or (Stmt.VALUE in document):
-                    print(red('ERROR: "title:" or "value:" statement is not allowed for "move_to_normal" '
+                if Stmt.VALUE in document:
+                    print(red('ERROR: "value:" statement is not allowed for "move_to_normal" '
                               'location_type'))
                     valid_doc = False
             elif not ((Stmt.LOCATION_COLUMN in document) != (Stmt.VALUE in document)):
