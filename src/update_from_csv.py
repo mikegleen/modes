@@ -491,7 +491,7 @@ def one_element_subid_mode(nidnum: str, objelem: ET.Element):
 
 
 def main():
-    global nwritten
+    global nwritten, nupdated
     if outfile:
         outfile.write(b'<?xml version="1.0"?><Interchange>\n')
     if deltafile:
@@ -518,10 +518,10 @@ def main():
         trace(4, 'updated....... {}', updated)
         if outfile:
             outfile.write(ET.tostring(elem, encoding='utf-8'))
+            nwritten += 1
         if updated:
             if deltafile:
                 deltafile.write(ET.tostring(elem, encoding='utf-8'))
-            nwritten += 1
         if updated and _args.short:
             break
     if outfile:
