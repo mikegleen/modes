@@ -559,7 +559,7 @@ if __name__ == '__main__':
             trace(1, 'Creating output file: {}', _args.outfile)
         if _args.deltafile:
             deltafile = open(_args.deltafile, 'wb')
-            trace(1, 'Creating delta file: {}', _args.outfile)
+            trace(1, 'Creating delta file: {}', _args.deltafile)
         main()
         if (_oldname or _oldplace or _olddate) and not found_old_key:
             trace(0, "Warning: Old name/place/date specified but no"
