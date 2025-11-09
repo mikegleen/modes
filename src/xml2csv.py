@@ -99,6 +99,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         _logfile = open(_args.logfile, 'w')
     else:
         _logfile = sys.stdout
+    trace(1, 'Input: {}', infilename)
     infile = openfile(infilename)
     nlines = notfound = nwritten = 0
     Config.reset_config()  # needed by test_xml2csv
