@@ -1,7 +1,6 @@
 #!/bin/zsh
 #
 #
-#
 set -e
 SCRIPT=$(python -c "print('$ZSH_ARGZERO'.split('.')[0].split('/')[-1])")
 echo SCRIPT: $SCRIPT
