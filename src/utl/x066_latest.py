@@ -26,7 +26,10 @@ def getparser():
         Name of file to compare against the tentative newest in the named folder(s).
         Skip this file since it is the name of the file we are creating. This is not
         the first run of this script.''')
-    parser.add_argument('-s', '--strict', action='store_true')
+    parser.add_argument('-s', '--strict', action='store_true', help='''
+    If set, abort if we are using the output file as input. This would happen
+    if we re-run a script without previously deleting the output file. If not set,
+    check for the output file and skip it, issuing a warning.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
