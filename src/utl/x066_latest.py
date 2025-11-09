@@ -26,6 +26,7 @@ def getparser():
         Name of file to compare against the tentative newest in the named folder(s).
         Skip this file since it is the name of the file we are creating. This is not
         the first run of this script.''')
+    parser.add_argument('-s', '--strict', action='store_true')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -43,6 +44,8 @@ def onedir(dirname):
     onedir_path = None
     for filename in os.listdir(dirname):
         if _args.newxml and _args.newxml == filename:
+            if _args.strict:
+                raise ValueError('Cannot use output file for input.')
             print(f'Skipping {filename}', file=sys.stderr)
             continue
         path = os.path.join(dirname, filename)
