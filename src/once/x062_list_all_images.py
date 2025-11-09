@@ -40,36 +40,58 @@ def one_file(parentpath, filename):
     return
 
 
-def main(indir):
+def one_argument(indir):
+    if '.git' in indir:
+        return
+    # print(f'{indir=}')
     for file in os.listdir(indir):
         filepath = os.path.join(indir, file)
         if os.path.isdir(filepath):
-            if file == "2023-10-22_high_res_images":
-                continue
-            main(filepath)  # recursively walk subdirectory
+            # if file == "2023-10-22_high_res_images":
+            #     continue
+            one_argument(filepath)  # recursively walk subdirectory
         else:
             one_file(indir, file)
+
+
+def main():
+    for arg in _args.indirs:
+        one_argument(arg)
 
 
 def print_table():
     maxlen = 0
     maxfn = ''
     for fn in sorted(table):
-        if len(table[fn]) > maxlen:
-            maxlen = len(table[fn])
+        row = table[fn]
+        if len(row) > maxlen:
+            maxlen = len(row)
             maxfn = fn
+        if _args.dups:
+            found = False
+            sizes = set()
+            for i in range(2, len(row), 2):
+                if row[i] in sizes:
+                    found = True
+                sizes.add(row[i])
+            if not found:
+                continue
         csvwriter.writerow(table[fn])
     print(f'{maxfn=}, {maxlen=}')
 
 
 def getparser():
     parser = argparse.ArgumentParser(description=DESCRIPTION)
-    parser.add_argument('indir', help='''
+    parser.add_argument('indirs', nargs='*', help='''
         Folder containing files to search.''')
-    parser.add_argument('outfile', help='''
+    parser.add_argument('-o', '--outfile', help='''
         File to contain the output CSV file.''')
     parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code. The default is {DEFAULT_MDA_CODE}''')
+    parser.add_argument('-p', '--dups', action='store_true', help='''
+        Only write to output if there are multiple copies of the same file, determined
+        by name and file size.
+        ''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -90,5 +112,5 @@ if __name__ == '__main__':
     table = dict()
     csvfile = open(_args.outfile, 'w')
     csvwriter = csv.writer(csvfile)
-    main(_args.indir)
+    main()
     print_table()

@@ -1,14 +1,9 @@
 import argparse
 import csv
-import os.path
-import re
 import sys
 
-from web.webutil import COLLECTION_PREFIX
-from utl.normalize import DEFAULT_MDA_CODE
-
 DESCRIPTION = """
-    Input is two files created by x061_list_all_images.py.
+    Input is two files created by x062_list_all_images.py.
     Output is a single file with the rows merged.
 """
 
@@ -60,7 +55,8 @@ def getparser():
     parser.add_argument('outfile', help='''
         File to contain the output CSV file.''')
     parser.add_argument('-p', '--dups', action='store_true', help='''
-        Only write to output if there are multiple copies of the same file.
+        Only write to output if there are multiple copies of the same file, determined
+        by name and file size.
         ''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
