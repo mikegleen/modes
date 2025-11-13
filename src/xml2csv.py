@@ -22,7 +22,7 @@ from utl.cfgutil import Config
 from utl.readers import read_include_dict
 from utl.excel_cols import col2num
 from utl.normalize import normalize_id, denormalize_id, DEFAULT_MDA_CODE
-from utl.normalize import if_not_sphinx
+from utl.normalize import if_not_sphinx, sphinxify
 from utl.zipmagic import openfile
 
 
@@ -42,7 +42,7 @@ def opencsvwriter(filename, delimiter):
     return outcsv, csvfile
 
 
-def one_document(document, parent):
+def one_document(document, parent, norm_idnum, includes):
     command = document[Stmt.CMD]
     eltstr = document.get(Stmt.XPATH)
     ifgroup: bool = Stmt.GROUP in document
@@ -56,6 +56,10 @@ def one_document(document, parent):
     if command == Cmd.ATTRIB:
         attribute = document[Stmt.ATTRIBUTE]
         text = element.get(attribute)
+    elif command == Cmd.COPY:
+        copy_column = document.get(Stmt.COPY_COLUMN)
+        title = document.get(Stmt.TITLE)
+        text = includes[norm_idnum][copy_column]
     elif command == Cmd.COUNT:
         count = len(list(parent.findall(eltstr)))
         text = f'{count}'
@@ -127,6 +131,11 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
                                      _args.include_skip, _args.verbose,
                                      logfile=_logfile,
                                      allow_blanks=_args.allow_blanks)
+    if includes is None or _args.Object:
+        # Cannot have copy command
+        for document in config.col_docs:
+            if document[Stmt.CMD] == Cmd.COPY:
+                raise ValueError('The copy command requires the --include argument.')
     normids = {}
     objectlevel = 0
     for event, elem in ET.iterparse(infile, events=('start', 'end')):
@@ -169,7 +178,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
             data.append(norm_idnum)
 
         for document in config.col_docs:
-            text, command = one_document(document, elem)
+            text, command = one_document(document, elem, norm_idnum, includes)
             # print(f'{command=}')
             if text is None:
                 notfound += 1
@@ -255,17 +264,15 @@ def getparser():  # called either by getargs or sphinx
         If omitted, all records will be processed. In either case, objects will
         be output based on configuration statements. There must be a heading row.''')
     parser.add_argument('--include_column', required=False,
-                        default='0', type=str, help='''
-        The column number containing the accession number in the file
+                        default='Serial', type=str, help=sphinxify('''
+        The title in the heading row of the column containing the accession number in the file
         specified by the --include option.
-        The column can be a number or a spreadsheet-style letter.''' +
-                        if_not_sphinx(f''' The default is 0, the first column.''',
-                                      calledfromsphinx))
-
+        ''', called_from_sphinx) + if_not_sphinx(f''' The default is "Serial".''',
+                                                 called_from_sphinx))
     parser.add_argument('--include_skip', type=int, default=0, help='''
-        The number of rows to skip at the front of the include file.''' +
+        The number of rows to skip at the front of the include file before the heading row.''' +
                         if_not_sphinx(f''' The default is 0.
-        ''', calledfromsphinx))
+        ''', called_from_sphinx))
     parser.add_argument('-j', '--object', help='''
     Specify a single object to be processed. Do not also specify the include
     file. The argument can be an object range, like JB001-2.
@@ -275,7 +282,7 @@ def getparser():  # called either by getargs or sphinx
     parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.''' +
                         if_not_sphinx(f''' The default is "{DEFAULT_MDA_CODE}". ''',
-                                      calledfromsphinx))
+                                      called_from_sphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('-t', '--lineterminator', help=r'''
@@ -295,19 +302,18 @@ def getparser():  # called either by getargs or sphinx
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
-    args.include_column = col2num(args.include_column)
     # Set the default here because Sphinx can't display \r\n.
     if args.lineterminator is None:
         args.lineterminator = '\r\n'
     return args
 
 
-calledfromsphinx = True
+called_from_sphinx = True
 
 if __name__ == '__main__':
     global _args, _logfile
     assert sys.version_info >= (3, 6)
-    calledfromsphinx = False
+    called_from_sphinx = False
     t1 = time.perf_counter()
     if len(sys.argv) == 1:
         sys.argv.append('-h')

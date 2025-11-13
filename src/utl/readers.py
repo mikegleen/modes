@@ -276,7 +276,7 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
     """
     Read the optional CSV file from the --include argument. Build a dict
     of normalized accession IDs for use by cfgutil.select. The value
-    of the dict is the row from the CSV file. Function expand_num is called
+    of the dict is the dict from row_dict_reader from the CSV file. Function expand_num is called
     so one row in the CSV file may result in multiple entries in the dict.
     :return: a dict or None if --include was not specified
     """
@@ -284,7 +284,7 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
     if not includes_file:
         return None
     includedict: dict = dict()
-    includereader = row_list_reader(includes_file, verbos=verbos, skiprows=include_skip,
+    includereader = row_dict_reader(includes_file, verbos=verbos, skiprows=include_skip,
                                     allow_long_rows=True)
     for row in includereader:
         if not row:
