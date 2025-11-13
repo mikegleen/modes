@@ -143,6 +143,9 @@ the ``cmd: global`` document.
    this must be unique so
    if you want the same column to behave differently depending upon **if_other_column:**
    and **if_other_column_value:** values, then specify the column title with this statement.
+-  **copy_column:**
+
+   For use in the **copy** command. See that command for the usage.
 -  **date:**
 
    If specified, indicates that a field may be in date
@@ -484,7 +487,7 @@ the elements in the XML document to a corresponding column in the associated CSV
    :ref:`Reserved Words` for other actions.
 
    You must specify a title explicitly with the **title:** statement or implicitly
-   with the ``xpath`` statement.
+   with the **xpath:** statement.
 
    See the **group:** statement to include text from sub-elements.
 -  **cmd: constant**
@@ -494,6 +497,19 @@ the elements in the XML document to a corresponding column in the associated CSV
    You may also use **constant** in ``xml2csv.py`` but you must include an **xpath:**
    statement with a value that is used for the heading if no **title:** statement
    is specified. The value is inserted unconditionally into the xpath’s text.
+-  **cmd: copy**
+
+   For ``xml2csv.py``. If the CSV file specified by the ``--include`` argument contains
+   columns in addition to the one with heading "Serial", these columns can be copied
+   to the output CSV file. For example::
+
+      cmd: copy
+      copy_column: Old Location
+      title: Old Loc
+
+   For the accession number specified, copy the value of the column with heading "Old Location"
+   in the file specified by ``--include`` to the output CSV file in the column with heading "Old Loc".
+   Do not include an **xpath:** statement.
 -  **cmd: count**
 
    Displays the number of occurrences of an element under its
