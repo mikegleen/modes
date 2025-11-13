@@ -1,0 +1,2 @@
+cmd: column
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
