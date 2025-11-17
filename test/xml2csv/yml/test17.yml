@@ -1,2 +1,6 @@
 cmd: column
 xpath: ./ObjectLocation[@elementtype="current location"]/Location
+---
+cmd: copy
+copy_column: Old Location
+title: Old Loc
