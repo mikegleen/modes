@@ -51,14 +51,13 @@ def one_document(document, parent, norm_idnum, includes):
         element = parent.find(eltstr)
     else:
         element = None
-    if element is None and command != Cmd.CONSTANT:
+    if element is None and command in Cmd.get_needxpath_cmds():
         return None, command
     if command == Cmd.ATTRIB:
         attribute = document[Stmt.ATTRIBUTE]
         text = element.get(attribute)
     elif command == Cmd.COPY:
         copy_column = document.get(Stmt.COPY_COLUMN)
-        title = document.get(Stmt.TITLE)
         text = includes[norm_idnum][copy_column]
     elif command == Cmd.COUNT:
         count = len(list(parent.findall(eltstr)))
@@ -131,7 +130,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
                                      _args.include_skip, _args.verbose,
                                      logfile=_logfile,
                                      allow_blanks=_args.allow_blanks)
-    if includes is None or _args.Object:
+    if includes is None or _args.object:
         # Cannot have copy command
         for document in config.col_docs:
             if document[Stmt.CMD] == Cmd.COPY:

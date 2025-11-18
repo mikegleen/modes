@@ -2,12 +2,17 @@
 """
     Convert a datetime or date object to Modes format d[d].m[m].yyyy.
 """
+from __future__ import annotations
 import datetime
 import re
+
+import utl.cfgutil
 
 DEFAULT_MDA_CODE = 'LDHRM'  # must be upper case
 MODESTYPE = 'modestype'
 BRITISHTYPE = 'britishtype'
+
+config_instance: utl.cfgutil.Config | None = None
 
 
 def modesdate(indate: datetime.date, nfields: int = 3) -> str:
@@ -332,11 +337,14 @@ def denormalize_id(objid: str, mdacode=DEFAULT_MDA_CODE):
     # 5. nnnnnn - same as group 4 without leading period
     m = re.match(r'(\D+)(\d+)([A-Za-z]?)(\.(\d+))?$', objid)
     if m:
-        if m[1].upper() in ('JB', 'L'):
-            # pad with leading zeroes to 3 columns
-            newobjid = m[1] + f'{int(m[2]):03d}' + m[3]
+        prefixes = config_instance.prefixes
+        print(f'{prefixes=}')
+        prefix = m[1].upper()
+        if prefix in prefixes and prefixes[prefix] > 0:
+            # pad with leading zeroes to defined columns
+            newobjid = prefix + f'{int(m[2]):0{prefixes[prefix]}d}' + m[3]
         else:
-            newobjid = m[1] + f'{int(m[2])}' + m[3]
+            newobjid = prefix + f'{int(m[2])}' + m[3]
         if m.group(5):
             # denormalize sub-number
             newobjid += '.' + f'{int(m[5])}'

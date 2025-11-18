@@ -1,5 +1,5 @@
 # import codecs
-
+from __future__ import annotations
 from colorama import Fore, Style
 # import csv
 # import os
@@ -14,6 +14,7 @@ import ruamel.yaml.constructor
 import xml.etree.ElementTree as ET
 from sphinx.cmd.quickstart import nonempty
 
+import utl.normalize
 from utl.normalize import normalize_id, datefrommodes, DEFAULT_MDA_CODE
 from utl.exhibition_list import get_inverted_exhibition_dict, ExhibitionTuple
 # from utl.readers import row_list_reader
@@ -152,6 +153,7 @@ class Stmt:
     NORMALIZE = 'normalize'
     PARENT_PATH = 'parent_path'
     PERSON_NAME = 'person_name'
+    PREFIXES = 'prefixes'
     REASON = 'reason'
     RECORD_TAG = 'record_tag'
     RECORD_ID_XPATH = 'record_id_xpath'
@@ -196,8 +198,20 @@ class Stmt:
 class Config:
     __instance = None
 
+    #
+    # Set the number of zeros to pad digits with in accession numbers
+    #
+    _DEFAULT_PREFIX_PADDING = {
+        'JB': 3,
+        'L': 3
+    }
+
     @staticmethod
-    def get_config():
+    def get_default_prefix_padding():
+        return Config._DEFAULT_PREFIX_PADDING
+
+    @staticmethod
+    def get_config() -> Config:
         if Config.__instance is None:
             raise Exception('Config instance not created.')
         return Config.__instance
@@ -287,6 +301,10 @@ class Config:
                     templates = yaml.load(document[stmt])
                     self.templates = {key.lower(): value for key, value in
                                       templates.items()}
+                elif stmt == Stmt.PREFIXES:
+                    prefixes = yaml.load(document[stmt])
+                    for key, value in prefixes.items():
+                        self.prefixes[key.upper()] = int(value)
                 else:
                     print(f'Unknown global statement, ignored: {stmt}.')
             if self.templates or self.template_title or self.template_dir:
@@ -301,6 +319,7 @@ class Config:
         if Config.__instance is not None:
             raise ValueError("This class is a singleton!")
         Config.__instance = self
+        utl.normalize.config_instance = self
         self.logfile = logfile
         self.col_docs = []  # documents that generate columns
         self.ctrl_docs = []  # control documents
@@ -320,6 +339,9 @@ class Config:
         self.multiple_delimiter = '|'
         self.mdacode = mdacode
         self.exhibition_inv_dict = None  # will map exhibition tuple to exhib #
+        self.prefixes = {key.upper(): int(value) for key, value in
+                         Config.get_default_prefix_padding().items()}
+
         cfglist = _read_yaml_cfg(yamlcfgfile, dump=dump, logfile=logfile)
         valid = validate_yaml_cfg(cfglist, allow_required)
         if not valid:

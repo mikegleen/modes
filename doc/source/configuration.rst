@@ -330,6 +330,21 @@ These statements are in the document whose **cmd:** is **global**.
 
    See the description of this command in the
    *Single-command Statements* section.
+-  **prefixes**
+
+   This statement specifies the zero padding to be applied to accession numbers
+   with specific prefixes. For example, the accession number "JB001" has a prefix
+   of "JB" and a zero padding of three columns. For the Heath Robinson Museum,
+   the default setting is equivalent to the following configuration::
+
+       prefixes:
+          JB: 3
+          L: 3
+          sh: 0
+
+   Any prefix not defined in the configuration will have no zero padding. So in
+   the above example, the SH entry is redundant. Values specified in the configuration
+   will override the default values. The prefixes are coerced to upper case.
 -  **record_tag:**
 
    This is the tag (of which there are usually many)
