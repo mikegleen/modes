@@ -319,7 +319,7 @@ class Config:
         if Config.__instance is not None:
             raise ValueError("This class is a singleton!")
         Config.__instance = self
-        utl.normalize.config_instance = self
+        utl.normalize.config_instance = self  # kludge to avoid circular import
         self.logfile = logfile
         self.col_docs = []  # documents that generate columns
         self.ctrl_docs = []  # control documents

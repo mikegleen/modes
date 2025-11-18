@@ -12,6 +12,7 @@ DEFAULT_MDA_CODE = 'LDHRM'  # must be upper case
 MODESTYPE = 'modestype'
 BRITISHTYPE = 'britishtype'
 
+# Set by Config.__init__ to avoid circular import
 config_instance: utl.cfgutil.Config | None = None
 
 
