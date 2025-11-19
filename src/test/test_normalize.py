@@ -6,6 +6,7 @@ import unittest
 from utl.normalize import britishdatefrommodes, datefrombritishdate
 from utl.normalize import modesdatefrombritishdate, MODESTYPE, BRITISHTYPE
 from utl.normalize import normalize_id, denormalize_id, split_subid
+from utl.cfgutil import Config
 
 
 class TestNormalizeId(unittest.TestCase):
@@ -174,4 +175,5 @@ class TestModesDateFromBritishDate(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    Config()
     unittest.main()

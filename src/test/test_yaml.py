@@ -13,7 +13,7 @@ town: null
 city: none
 street: false
 s2: f
-s3: t
+s3: 23
 '''
 infile = io.StringIO(data)
 yaml = YAML()
