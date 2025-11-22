@@ -63,7 +63,6 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 '''
 # data for testing
 '''
-999,2022-10-15,2017-01-08,Heath Robinson at War
 999,2021-10-15,2022-01-08,Heath Robinson at War
 '''
 
