@@ -6,14 +6,10 @@ from __future__ import annotations
 import datetime
 import re
 
-import utl.cfgutil
-
-DEFAULT_MDA_CODE = 'LDHRM'  # must be upper case
+from utl import cfg
+from utl.cfg import DEFAULT_MDA_CODE
 MODESTYPE = 'modestype'
 BRITISHTYPE = 'britishtype'
-
-# Set by Config.__init__ to avoid circular import
-config_instance: utl.cfgutil.Config | None = None
 
 
 def modesdate(indate: datetime.date, nfields: int = 3) -> str:
@@ -338,8 +334,7 @@ def denormalize_id(objid: str, mdacode=DEFAULT_MDA_CODE):
     # 5. nnnnnn - same as group 4 without leading period
     m = re.match(r'(\D+)(\d+)([A-Za-z]?)(\.(\d+))?$', objid)
     if m:
-        prefixes = config_instance.prefixes
-        print(f'{prefixes=}')
+        prefixes = cfg.config_instance.prefixes
         prefix = m[1].upper()
         if prefix in prefixes and prefixes[prefix] > 0:
             # pad with leading zeroes to defined columns

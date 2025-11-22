@@ -12,12 +12,11 @@ import ruamel.yaml.constructor
 
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from sphinx.cmd.quickstart import nonempty
 
-import utl.normalize
-from utl.normalize import normalize_id, datefrommodes, DEFAULT_MDA_CODE
+from utl import cfg
+from utl.cfg import DEFAULT_MDA_CODE
+from utl.normalize import normalize_id, datefrommodes
 from utl.exhibition_list import get_inverted_exhibition_dict, ExhibitionTuple
-# from utl.readers import row_list_reader
 
 yaml = YAML(typ='safe')   # default, if not specfied, is 'rt' (round-trip)
 
@@ -319,7 +318,8 @@ class Config:
         if Config.__instance is not None:
             raise ValueError("This class is a singleton!")
         Config.__instance = self
-        utl.normalize.config_instance = self  # kludge to avoid circular import
+        cfg.config_instance = self  # kludge to avoid circular import
+        # print(f'{cfg.config_instance=}')
         self.logfile = logfile
         self.col_docs = []  # documents that generate columns
         self.ctrl_docs = []  # control documents
@@ -493,7 +493,7 @@ def select_ifnoexhib(objelem):
     return True
 
 
-def select_ifexhib(cfg: Config, objelem, document):
+def select_ifexhib(config: Config, objelem, document):
     ymlvalue = document[Stmt.VALUE]  # we have tested that this exists
     elements = objelem.findall('./Exhibition')
     # print(f'{elements=}')
@@ -528,7 +528,7 @@ def select_ifexhib(cfg: Config, objelem, document):
                                      )
         # print(cfg.exhibition_inv_dict)
         # print('ifexhib: {idnum}: {exhibition}')
-        exhibnum = cfg.exhibition_inv_dict.get(exhibition)
+        exhibnum = config.exhibition_inv_dict.get(exhibition)
         # print(f'{exhibnum=} {ymlvalue=}')
         if exhibnum == int(ymlvalue):
             selected = True
@@ -536,9 +536,9 @@ def select_ifexhib(cfg: Config, objelem, document):
     return selected
 
 
-def select(cfg: Config, objelem, includes=None, exclude=False) -> bool:
+def select(config: Config, objelem, includes=None, exclude=False) -> bool:
     """
-    :param cfg: the Config instance
+    :param config: the Config instance
     :param objelem: the Object element
     :param includes: A set or dict of id numbers of objects to be included
                      in the output CSV file. The list must be all normalized.
@@ -565,7 +565,7 @@ def select(cfg: Config, objelem, includes=None, exclude=False) -> bool:
         return docvalue, elttext
 
     selected = True
-    idelem = objelem.find(cfg.record_id_xpath)
+    idelem = objelem.find(config.record_id_xpath)
     idnum = normalize_id(idelem.text) if idelem is not None else None
     # print(f'{idnum=}')
     if idnum and exclude and includes:
@@ -575,7 +575,7 @@ def select(cfg: Config, objelem, includes=None, exclude=False) -> bool:
         if not idnum or idnum not in includes:
             # print('select return false')
             return False
-    for document in cfg.ctrl_docs:
+    for document in config.ctrl_docs:
         eltstr = document.get(Stmt.XPATH)
         if eltstr:
             element = objelem.find(eltstr)
@@ -650,7 +650,7 @@ def select(cfg: Config, objelem, includes=None, exclude=False) -> bool:
                     selected = False
                     if Stmt.REQUIRED in document:
                         print(f'*** Required text in {eltstr} is missing from'
-                              f' {idnum}. Object excluded.', file=cfg.logfile)
+                              f' {idnum}. Object excluded.', file=config.logfile)
             case Cmd.IFNOTELT:
                 if element is not None:
                     selected = False
@@ -672,7 +672,7 @@ def select(cfg: Config, objelem, includes=None, exclude=False) -> bool:
                             selected = False
                             break
             case Cmd.IFEXHIB:
-                selected = select_ifexhib(cfg, objelem, document)
+                selected = select_ifexhib(config, objelem, document)
             case Cmd.IFNOEXHIB:
                 selected = select_ifnoexhib(objelem)
             case _:
@@ -803,13 +803,13 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
     if cfgf is None:
         return []
     try:
-        cfg = [c for c in yaml.load_all(cfgf) if c is not None]
+        config = [c for c in yaml.load_all(cfgf) if c is not None]
     except ruamel.yaml.constructor.DuplicateKeyError as e:
         print(e.args)
         sys.exit()
     titles = set()
     num_location_cmds = 0
-    for document in cfg:
+    for document in config:
         for key in document:
             if document[key] is None:
                 document[key] = ''
@@ -877,7 +877,7 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
         # dump_document(document, logfile=logfile)
         if Stmt.COLUMN_TITLE not in document:
             document[Stmt.COLUMN_TITLE] = document[Stmt.TITLE]
-    return cfg
+    return config
 
 
 def yaml_fieldnames(config):
