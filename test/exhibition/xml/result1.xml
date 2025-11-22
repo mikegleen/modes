@@ -75,7 +75,7 @@
 		<Person />
 		<Date />
 	</Conservation>
-	<Exhibition><ExhibitionName>Heath Robinson at War</ExhibitionName><Place>HRM</Place><Date><DateBegin>15.10.2016</DateBegin><DateEnd>8.1.2017</DateEnd></Date></Exhibition><Reproduction elementtype="Digital Image">
+	<Reproduction elementtype="Digital Image">
 		<Filename />
 		<SummaryText />
 	</Reproduction>
