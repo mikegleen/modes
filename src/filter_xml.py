@@ -9,11 +9,12 @@ import os.path
 import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
+from utl.cfg import DEFAULT_MDA_CODE
 from utl.cfgutil import Config
 from utl.cfgutil import expand_idnum
 from utl.readers import read_include_dict
 from utl.excel_cols import col2num
-from utl.normalize import normalize_id, sphinxify, DEFAULT_MDA_CODE
+from utl.normalize import normalize_id, sphinxify
 from utl.normalize import if_not_sphinx
 
 
@@ -164,5 +165,5 @@ if __name__ == '__main__':
                                      _args.include_skip, _args.verbose)
     main()
     basename = os.path.basename(sys.argv[0])
-    print(f'{selcount} object{"" if selcount == 1 else "s"} selected from {objcount}.')
-    print(f'End {basename.split(".")[0]}')
+    trace(1, f'{selcount} object{"" if selcount == 1 else "s"} selected from {objcount}.')
+    trace(1, f'End {basename.split(".")[0]}')

@@ -23,7 +23,8 @@ from colorama import Fore, Style
 import xml.etree.ElementTree as ET
 
 from utl import readers
-from utl.cfgutil import Config, DEFAULT_MDA_CODE
+from utl.cfg import DEFAULT_MDA_CODE
+from utl.cfgutil import Config
 from utl.normalize import if_not_sphinx, sphinxify
 
 
@@ -38,7 +39,7 @@ def trace(level, template, *args, color=None):
 def nextobj(pnum: int, objectreader):
     """
 
-    :param pnum: Either 1 or 2 indicating which object reader has ben passed
+    :param pnum: Either 1 or 2 indicating which object reader has been passed
     :param objectreader: Either file 1 or file 2 object_reader
     :return: a tuple of:
         the object parsed,
