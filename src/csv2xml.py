@@ -13,9 +13,10 @@ import sys
 import xml.etree.ElementTree as ET
 
 
+from utl.cfg import DEFAULT_MDA_CODE
 from utl.cfgutil import Config, Stmt, Cmd, new_subelt, process_if_other_column
 from utl.normalize import modesdatefrombritishdate, sphinxify, if_not_sphinx
-from utl.normalize import DEFAULT_MDA_CODE, normalize_id, denormalize_id
+from utl.normalize import normalize_id, denormalize_id
 from utl.normalize import modes_person, modesdate
 from utl.readers import row_dict_reader
 from utl.trace import trace_sub
