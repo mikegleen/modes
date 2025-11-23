@@ -28,7 +28,8 @@ import time
 from colorama import Fore, Style
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
-from utl.cfgutil import Config, DEFAULT_MDA_CODE
+from utl.cfg import DEFAULT_MDA_CODE
+from utl.cfgutil import Config
 from utl.normalize import normalize_id, sphinxify
 from utl.normalize import if_not_sphinx
 

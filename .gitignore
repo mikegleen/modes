@@ -134,3 +134,4 @@ templates/normal/
 templates/exported
 templates/bak
 *.zip
+test/*/baseline/*
