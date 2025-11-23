@@ -5,7 +5,7 @@ import re
 import sys
 
 from web.webutil import COLLECTION_PREFIX
-from utl.normalize import DEFAULT_MDA_CODE
+from utl.cfg import DEFAULT_MDA_CODE
 
 DESCRIPTION = """
     Examine a tree of folders recursively and print the filename, file size, and path
