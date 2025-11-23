@@ -9,7 +9,8 @@ import os
 import shutil
 import sys
 
-from utl.normalize import sphinxify, if_not_sphinx, DEFAULT_MDA_CODE
+from utl.cfg import DEFAULT_MDA_CODE
+from utl.normalize import sphinxify, if_not_sphinx
 from utl.readers import row_list_reader
 from web.webutil import COLLECTION_PREFIX
 
