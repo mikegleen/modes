@@ -15,8 +15,8 @@ import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 # import tracemalloc
 import psutil
 
-
-from utl.normalize import normalize_id, denormalize_id, DEFAULT_MDA_CODE
+from utl.cfg import DEFAULT_MDA_CODE
+from utl.normalize import normalize_id, denormalize_id
 from utl.readers import row_dict_reader
 
 from colorama import Fore, Style
