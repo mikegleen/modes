@@ -457,7 +457,7 @@ a different way from their use with, for example, the **column** command.
 
    This indicates the column in the CSV file containing the new location. You must
    include either this statement or a **value:** statement. If both are included then
-   the new location will be taken from this statement unless the field in the CSV file
+   the new location will be taken from the field in the CSV file unless it
    is empty in which case the value from the **value:** statement will be used.
 
    If there is no **value:** statement, an empty field in the CSV file is an error.

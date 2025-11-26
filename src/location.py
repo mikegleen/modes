@@ -785,8 +785,7 @@ def add_arguments(parser, command):
         ''')
     if is_diff or is_select or is_update:
         parser.add_argument('-w', '--warn', action='store_true', help='''
-        Valid if -a is selected. Warn if an object in the XML file is not in
-        the CSV file.
+        Warn if an object in the XML file is not in the CSV file.
         ''')
 
 
