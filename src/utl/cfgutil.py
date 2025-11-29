@@ -197,17 +197,9 @@ class Stmt:
 class Config:
     __instance = None
 
-    #
-    # Set the number of zeros to pad digits with in accession numbers
-    #
-    _DEFAULT_PREFIX_PADDING = {
-        'JB': 3,
-        'L': 3
-    }
-
     @staticmethod
     def get_default_prefix_padding():
-        return Config._DEFAULT_PREFIX_PADDING
+        return cfg.DEFAULT_PREFIX_PADDING
 
     @staticmethod
     def get_config() -> Config:
