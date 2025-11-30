@@ -113,7 +113,7 @@ def get_heading(filepath: str | None, verbos=1, skiprows=0) -> list | None:
         return heading
     else:
         if verbos >= 1:
-            print(f'"{suffix}" is not a valid suffix {filepath=}. Terminating.')
+            print(f'"{suffix}" is not a valid suffix {filepath=}. ".csv" or ".xlsx" required. Terminating.')
         sys.exit(1)
 
 
