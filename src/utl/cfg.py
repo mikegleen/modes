@@ -1,6 +1,9 @@
-from __future__ import annotations
-
+"""
+    This module contains definitions that are specific to a particular implementation.
+"""
 DEFAULT_MDA_CODE = 'LDHRM'  # must be upper case
+DEFAULT_RECORD_TAG = 'Object'
+DEFAULT_RECORD_ID_XPATH = './ObjectIdentity/Number'
 #
 # Set the number of zeros to pad digits with in accession numbers
 #

@@ -38,7 +38,7 @@ def onefile(infile):
     objectlevel = 0
     for event, oldobject in ET.iterparse(infile, events=('start', 'end')):
         if event == 'start':
-            if oldobject.tag == 'Object':
+            if oldobject.tag == config.record_tag:
                 objectlevel += 1
             continue
         # It's an "end" event.
@@ -47,7 +47,7 @@ def onefile(infile):
         objectlevel -= 1
         if objectlevel:
             continue  # It's not a top level Object.
-        idelem = oldobject.find(cfg.record_id_xpath)
+        idelem = oldobject.find(config.record_id_xpath)
         idnum = idelem.text if idelem is not None else None
         if not idnum:
             raise ValueError('Empty accession ID; aborting. Check output file for last'
@@ -98,6 +98,9 @@ def getargs():
         The input XML files. You may specify multiple ``-i`` parameters. ''')
     parser.add_argument('-o', '--outfile', help='''
         The output XML file.''')
+    parser.add_argument('-c', '--cfgfile', help='''
+        The config file may be specified to allow custom "Object" tag names or "Number"
+        XPATHs. If no config file is specified, the values are taken from utl.cfg.py.''')
     parser.add_argument('-e', '--encoding', default='utf-8', help='''
         Set the output encoding. The default is "utf-8".
         ''')
@@ -116,7 +119,7 @@ if __name__ == '__main__':
     trace(1, "Begin merge_xml.", color=Fore.GREEN)
     object_number = ''
     iddict = {}
-    cfg = Config()
+    config = Config(_args.cfgfile)
     outfile = open(_args.outfile, 'wb')
     main()
     trace(1, f'End merge_xml', color=Fore.GREEN)

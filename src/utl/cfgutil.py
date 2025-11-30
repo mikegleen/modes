@@ -171,16 +171,14 @@ class Stmt:
     WIDTH = 'width'
     XPATH = 'xpath'
     XPATH2 = 'xpath2'
-    _DEFAULT_RECORD_TAG = 'Object'
-    _DEFAULT_RECORD_ID_XPATH = './ObjectIdentity/Number'
 
     @staticmethod
     def get_default_record_id_xpath():
-        return Stmt._DEFAULT_RECORD_ID_XPATH
+        return cfg.DEFAULT_RECORD_ID_XPATH
 
     @staticmethod
     def get_default_record_tag():
-        return Stmt._DEFAULT_RECORD_TAG
+        return cfg.DEFAULT_RECORD_TAG
 
     @staticmethod
     def validate_yaml_stmts(document):
