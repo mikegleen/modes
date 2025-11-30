@@ -91,7 +91,7 @@ def main():
 
 def getargs():
     parser = argparse.ArgumentParser(description='''
-        Merge two XML Object files. Append the second file to the end of the
+        Merge two XML Object files. Append the second and subsequent files to the end of the
         first.
         ''')
     parser.add_argument('-i', '--infile', action='append', help='''
