@@ -9,6 +9,7 @@ import sys
 from colorama import Fore, Style
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
+from utl.cfg import DEFAULT_EXHIBITION_PLACE
 from utl.cfgutil import Stmt
 from utl.normalize import normalize_id, denormalize_id
 
@@ -45,7 +46,7 @@ def main():
             exhibplace = exhib.find('./Place')
             if exhibplace is not None:
                 place = exhibplace.text
-                if place and place != 'HRM':
+                if place and place != DEFAULT_EXHIBITION_PLACE:
                     text = f'{text} ({place})'
             tally[idnum].append(text)
     stally = sorted(list(tally.items()), key=lambda x: len(x[1]), reverse=True)

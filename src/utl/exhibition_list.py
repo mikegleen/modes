@@ -1,7 +1,7 @@
 # EXSTR is processed by get_exhibition_dict() which is called by exhibition.py
 # to create a dictionary for reference when updating the Modes XML file.
 #
-# The Place field is optional and defaults to the HRM.
+# The Place field is optional and defaults to the DEFAULT_EXHIBITION_PLACE.
 #
 # NOTE: The dates must be in ISO yyyy-mm-dd format.
 #
@@ -11,6 +11,8 @@
 from collections import namedtuple
 import csv
 from datetime import date
+
+from utl.cfg import DEFAULT_EXHIBITION_PLACE
 
 ExhibitionTuple = namedtuple('ExhibitionTuple',
                              'DateBegin DateEnd ExhibitionName Place')
@@ -90,7 +92,7 @@ def get_exhibition_dict():
         exdic[exhib_num] = ExhibitionTuple(DateBegin=date.fromisoformat(row[1]),
                                            DateEnd=date.fromisoformat(row[2]),
                                            ExhibitionName=row[3],
-                                           Place=row[4] if len(row) >= 5 else 'HRM'
+                                           Place=row[4] if len(row) >= 5 else DEFAULT_EXHIBITION_PLACE
                                            )
         if exdic[int(row[0])].DateBegin > exdic[int(row[0])].DateEnd:
             raise ValueError(f"In exhibition_list.py, Begin Date > End Date: {row}")

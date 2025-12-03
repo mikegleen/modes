@@ -24,8 +24,7 @@ from colorama import Fore, Style
 from utl.normalize import britishdatefrommodes, normalize_id, denormalize_id
 from utl.normalize import isoformatfrommodesdate
 from utl.normalize import sphinxify
-
-DEFAULT_EXHIBITION_PLACE = 'HRM'
+from utl.cfg import DEFAULT_EXHIBITION_PLACE
 PROD_SUMMARYTEXT = 'Production_SummaryText'
 TITLE_FIRST_PUBLISHED = 'TitleFirstPublished'
 PAGE_FIRST_PUBLISHED = 'PageFirstPublished'
@@ -83,7 +82,10 @@ def clean(s):
     return s
 
 
-def read_img_csv_file() -> dict[list]:
+def read_img_csv_file() -> dict:
+    """
+    :return: a dict with key of a normalized id and values of lists of image file names.
+    """
     img_dict = {}
     if not _args.imgcsvfile:
         trace(1, 'Warning: no images loaded.', color=Fore.YELLOW)
@@ -185,7 +187,7 @@ def onerow(oldrow):
     exhibitions = []
     for name, place in zip(names, places):
         if name.strip():
-            # Note: exhibition.py will insert HRM as the exhibition place
+            # Note: exhibition.py will insert the default value as the exhibition place
             # if no place is explicitly given in cfg/exhibition_list.py
             if place == DEFAULT_EXHIBITION_PLACE:
                 exhibitions.append(clean(name))
@@ -293,11 +295,11 @@ def getparser() -> argparse.ArgumentParser:
     Called either by getargs() in this file or by Sphinx.
     :return: an argparse.ArgumentParser object
     """
-    parser = argparse.ArgumentParser(description='''
+    parser = argparse.ArgumentParser(description=f'''
     Read a CSV file, recode columns and write the CSV file.
     The Exhibition
     Name and Exhibition Place columns are merged into a "name at place" format
-    unless the place is "HRM" in which case it's omitted.
+    unless the place is {DEFAULT_EXHIBITION_PLACE} in which case it's omitted.
     
     The DateBegin column (in Modes format) is deleted and replaced by a
     human-friendly column and an ISO date column.

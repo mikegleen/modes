@@ -27,8 +27,8 @@ from colorama import Fore, Style
 import xml.etree.ElementTree as ET
 from utl.cfg import DEFAULT_MDA_CODE
 from utl.cfgutil import Config
-from utl.normalize import normalize_id, sphinxify
-from utl.normalize import if_not_sphinx
+from utl.normalize import sphinxify, if_not_sphinx
+from utl.readers import object_reader
 
 
 def trace(level, template, *args, color=None):
@@ -39,55 +39,37 @@ def trace(level, template, *args, color=None):
             print(template.format(*args))
 
 
-def nextobj(pnum: int, iterparser):
+def nextobj(pnum: int, reader: object_reader):
     """
 
-    :param pnum: Either 1 or 2 indicating which iterparser has ben passed
-    :param iterparser: Either file 1 or file 2 iterparser
+    :param pnum: Either 1 or 2 indicating which object_reader has ben passed
+    :param reader: Either file 1 or file 2 object_reader
     :return: a tuple of:
         the object parsed,
         the accession number,
         the normalized accession number,
         the output of ET.tostring(obj)
     """
-    objectlevel = 0
-    while True:
-        try:
-            event, obj = next(iterparser)
-        except StopIteration:
-            trace(5, 'End of file {}', pnum)
-            return None, None, None, None
-        if event == 'start':
-            if obj.tag == config.record_tag:
-                objectlevel += 1
-            continue
-        # It's an "end" event.
-        if obj.tag != config.record_tag:
-            continue
-        objectlevel -= 1
-        if objectlevel:
-            continue  # It's not a top level Object.
-        idelem = obj.find(config.record_id_xpath)
-        idnum = idelem.text if idelem is not None else None
-        nidnum = normalize_id(idnum)
-        objstr = ET.tostring(obj)
-        trace(5, 'File {} {}', pnum, nidnum)
-        if nidnum <= oldid[pnum]:
-            trace(0, "Objects out of order in file {}. Old ID = {}, "
-                     "New ID = {}", pnum, oldid[pnum], nidnum,
-                  color=Fore.RED)
-            sys.exit(-1)
-        objcount[pnum] += 1
-        oldid[pnum] = nidnum
-        return obj, idnum, nidnum, objstr
+
+    idnum, nidnum, obj = next(reader)
+    objstr = ET.tostring(obj)
+    trace(5, 'File {} {}', pnum, nidnum)
+    if nidnum <= oldid[pnum]:
+        trace(0, "Objects out of order in file {}. Old ID = {}, "
+                 "New ID = {}", pnum, oldid[pnum], nidnum,
+              color=Fore.RED)
+        sys.exit(-1)
+    objcount[pnum] += 1
+    oldid[pnum] = nidnum
+    return obj, idnum, nidnum, objstr
 
 
 def main():
-    global objcount, deleted, added, replaced, written, skipped
-    ip1 = ET.iterparse(infile1, events=('start', 'end'))
-    ip2 = ET.iterparse(infile2, events=('start', 'end'))
-    obj1, id1, nid1, objstr1 = nextobj(1, ip1)
-    obj2, id2, nid2, objstr2 = nextobj(2, ip2)
+    global objcount, written
+    reader1 = object_reader(_args.infile1, normalize=True, verbos=_args.verbos)
+    reader2 = object_reader(_args.infile2, normalize=True, verbos=_args.verbos)
+    obj1, id1, nid1, objstr1 = nextobj(1, reader1)
+    obj2, id2, nid2, objstr2 = nextobj(2, reader2)
     #
     #   Write output head
     #
@@ -95,69 +77,60 @@ def main():
     if _args.outfile:
         outfile.write(bytes(declaration, encoding=_args.encoding))
         outfile.write(b'<Interchange>\n')
-    if _args.outorig:
-        outorig.write(bytes(declaration, encoding=_args.encoding))
-        outorig.write(b'<Interchange>\n')
     #
     #   Main Loop
     #
     while True:
         if nid2 is None:
-            # Any objects left in infile2 are deleted
             if obj1 is None:
                 break
+            written += 1
+            if _args.outfile:
+                outfile.write(objstr1)
             obj1.clear()
-            trace(2, "Deleting object at end: {}", id1)
-            obj1, id1, nid1, objstr1 = nextobj(1, ip1)
-            deleted += 1
+            obj1, id1, nid1, objstr1 = nextobj(1, reader1)
+            trace(2, "Write file1 element at end: {}", nid1)
             continue
         if nid1 is None:
             # The objects in infile2 are new. Write them all
             written += 1
-            added += 1
-            trace(2, "Write new element at end {}", id2)
-            outfile.write(objstr2)
+            trace(2, "Write file2 element at end: {}", nid2)
+            if _args.outfile:
+                outfile.write(objstr2)
             obj2.clear()
-            obj2, id2, nid2, objstr2 = nextobj(2, ip2)
+            obj2, id2, nid2, objstr2 = nextobj(2, reader2)
             continue
         if nid1 == nid2:
-            if objstr1 != objstr2:
-                trace(3, "Write changed element {}", id2)
+            if _args.allow_replace:
                 written += 1
-                replaced += 1
+                trace(2, "Duplicate found. Write file2 element: {}", nid2)
                 if _args.outfile:
                     outfile.write(objstr2)
-                if _args.outorig:
-                    outorig.write(objstr1)
-            else:
-                skipped += 1
-                trace(4, "Skip unchanged {}", id1)
-            obj1.clear()
-            obj1, id1, nid1, objstr1 = nextobj(1, ip1)
-            obj2.clear()
-            obj2, id2, nid2, objstr2 = nextobj(2, ip2)
-            continue
+                obj1.clear()
+                obj2.clear()
+                obj1, id1, nid1, objstr1 = nextobj(1, reader1)
+                obj2, id2, nid2, objstr2 = nextobj(2, reader2)
+                continue
+            trace(1, "Aborting due to duplicate object {}", id1, color=Fore.RED)
+            sys.exit(1)
         if nid1 < nid2:
-            # The old object has been deleted
-            trace(2, "Deleting object: {}", id1)
-            deleted += 1
+            written += 1
+            if _args.outfile:
+                outfile.write(objstr1)
             obj1.clear()
-            obj1, id1, nid1, objstr1 = nextobj(1, ip1)
+            obj1, id1, nid1, objstr1 = nextobj(1, reader1)
+            trace(2, "Write file1 element: {}", nid1)
             continue
         # nid2 < nid1
-        # A new object has been inserted.
-        trace(2, "Write new element {}", id2)
-        added += 1
+        trace(2, "Write file2 element {}", id2)
         written += 1
         if _args.outfile:
             outfile.write(objstr2)
         obj2.clear()
-        obj2, id2, nid2, objstr2 = nextobj(2, ip2)
+        obj2, id2, nid2, objstr2 = nextobj(2, reader2)
 
     if _args.outfile:
         outfile.write(b'</Interchange>')
-    if _args.outorig:
-        outorig.write(b'</Interchange>')
 
 
 def getparser():
@@ -173,8 +146,8 @@ def getparser():
     parser.add_argument('-c', '--config', help=sphinxify('''
         Optionally specify a YAML configuration file to allow specification
         of ``record_tag`` and ``record_id_xpath`` statements.''', calledfromsphinx))
-    parser.add_argument('-e', '--encoding', default='utf-8', help=
-                        '''Set the output encoding.''' +
+    parser.add_argument('-e', '--encoding', default='utf-8',
+                        help='''Set the output encoding.''' +
                         if_not_sphinx(''' The default is "utf-8".
                         ''', calledfromsphinx))
     parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
@@ -185,6 +158,9 @@ def getparser():
         The XML file containing the changed or added Object elements.
         If this parameter is not specified, only messages will be displayed
         and no output will be written.''', calledfromsphinx))
+    parser.add_argument('-r', '--allow_replace', action='store_true', help=sphinxify('''
+        If set, records in file 2 will replace records from file 1. If not set, the program
+        will abort. ''' + if_not_sphinx('Default: False', calledfromsphinx), calledfromsphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -215,12 +191,10 @@ if __name__ == '__main__':
     # Global variables
     #
     objcount = [None, 0, 0]
-    deleted = added = replaced = written = skipped = 0
+    written = 0
     oldid = [None, '', '']
     basename = os.path.basename(sys.argv[0])
     trace(1, 'Begin {}', basename.split(".")[0], color=Fore.GREEN)
-    infile1 = open(_args.infile1)
-    infile2 = open(_args.infile2)
     if _args.outfile:
         outfile = open(_args.outfile, 'wb')
     config = Config(_args.config, mdacode=_args.mdacode, dump=_args.verbose >= 2)

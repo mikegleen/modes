@@ -17,7 +17,7 @@ The format of the exhibition list is::
 
     Exhibition Number,Date Begin,Date End,Exhibition Name[,Place]
 
-If ``Place`` is omitted, it is taken to be "HRM"
+If ``Place`` is omitted, it is taken to be DEFAULT_EXHIBITION_PLACE
 
 In the CSV file, the exhibition number is optional and is ignored if the ``--exhibition``
 parameter is given. The accession number in the CSV file or specified as a parameter
@@ -51,6 +51,7 @@ from colorama import Fore, Style
 import xml.etree.ElementTree as ET
 from utl.exhibition_list import (get_exhibition_dict,
                                  get_inverted_exhibition_dict, ExhibitionTuple)
+from utl.cfg import DEFAULT_EXHIBITION_PLACE, DEFAULT_EXHIBITION_LONG
 from utl.cfgutil import expand_idnum
 from utl.excel_cols import col2num
 from utl.location_sub import update_current_loc
@@ -369,8 +370,8 @@ def main():
             one_object(elem, nidnum, exhibition, cataloguenumber)
             if _args.move_to_location:
                 place = exhibition.Place
-                if place == 'HRM':
-                    place = 'Joan Brinsmead Gallery'
+                if place == DEFAULT_EXHIBITION_PLACE:
+                    place = DEFAULT_EXHIBITION_LONG
                 update_current_loc(elem, idnum, place, modesdate(exhibition.DateBegin),
                                    'Exhibition: ' + exhibition.ExhibitionName, trace)
             del exmap[nidnum]
@@ -461,11 +462,11 @@ def getparser():
         exhibition number. (but see --exhibition). There must be a heading row.
         ''', called_from_sphinx))
     parser.add_argument('-l', '--move_to_location', action='store_true',
-                        help=sphinxify('''
+                        help=sphinxify(f'''
         If set, the current location will be updated to the exhibition location. If the
-        location in ``exhibition_list.py`` is "HRM", the location will be set to
-        "Joan Brinsmead Gallery". The DateBegin field is set to the start date of the
-        exhibition.
+        location in ``exhibition_list.py`` is "{DEFAULT_EXHIBITION_PLACE}", the location
+        will be set to "{DEFAULT_EXHIBITION_LONG}". The DateBegin field is set to the
+        start date of the exhibition.
         ''', called_from_sphinx))
     objgroup.add_argument('-j', '--object', help=sphinxify('''
     Specify a single object to be processed. If specified, do not specify
