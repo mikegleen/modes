@@ -34,6 +34,18 @@ def setsubelts(dateelt, accuracytext):
     keyword.text = 'bracketed'
 
 
+def setcases(dateelt, datecase):
+    match datecase:
+        case 0:
+            pass
+        case 1:  # [1935]
+            setsubelts(dateelt, None)
+        case 2:  # [1935?]
+            setsubelts(dateelt, 'circa')
+        case 3:  # [193-?]
+            setsubelts(dateelt, 'decade')
+
+
 def main(idnum, obj):
     dateelt = obj.find('./Production/Date[@elementtype="publication date"]')
     if dateelt is None:
@@ -43,27 +55,11 @@ def main(idnum, obj):
     if datebegin is not None:
         datecase, text = parsedate(datebegin.text)
         datebegin.text = text
-        match datecase:
-            case 0:
-                pass
-            case 1:  # [1935]
-                setsubelts(dateelt, None)
-            case 2:  # [1935?]
-                setsubelts(dateelt, 'circa')
-            case 3:  # [193-?]
-                setsubelts(dateelt, 'decade')
+        setcases(dateelt, datecase)
     else:
         datecase, text = parsedate(dateelt.text)
         dateelt.text = text
-        match datecase:
-            case 0:
-                pass
-            case 1:  # [1935]
-                setsubelts(dateelt, None)
-            case 2:  # [1935?]
-                setsubelts(dateelt, 'circa')
-            case 3:  # [193-?]
-                setsubelts(dateelt, 'decade')
+        setcases(dateelt, datecase)
     outfile.write(ET.tostring(obj))
     return
 
