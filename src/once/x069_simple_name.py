@@ -1,5 +1,5 @@
 """
-    Remove brackets from around dates
+    Insert <ObjectName elementtype="simple name"> elements into all objects.
 """
 
 import sys
@@ -11,7 +11,7 @@ from utl.readers import object_reader
 def main(idnum, obj):
     identification = obj.find('./Identification')
     if identification is None:
-        print(f'No Identificaiton: {idnum}')
+        print(f'No Identificaiton: {idnum} (elementtype={obj.get('elementtype')})')
         outfile.write(ET.tostring(obj))
         return
     simplename = identification.find('./ObjectName[@elementtype="simple name"]')
