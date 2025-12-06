@@ -1,4 +1,5 @@
 #!/bin/zsh
+set -e
 tpath=test/filter_xml
 result=filtered.xml
 rm -f $tpath/results/$result

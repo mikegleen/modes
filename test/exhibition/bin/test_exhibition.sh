@@ -1,4 +1,5 @@
 #!/bin/zsh
+set -e
 tfile=result1.xml
 tpath=test/exhibition
 #

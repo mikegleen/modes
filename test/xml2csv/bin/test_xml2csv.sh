@@ -1,4 +1,5 @@
 #!/bin/zsh
+set -e
 tfile=test18.csv
 tpath=$(dirname $(dirname $ZSH_ARGZERO))
 rm -f $tpath/results/*

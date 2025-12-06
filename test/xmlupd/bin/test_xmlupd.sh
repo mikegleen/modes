@@ -1,4 +1,5 @@
 #!/bin/zsh
+set -e
 export tpath=test/xmlupd
 export tfile=newmaster.xml
 #
