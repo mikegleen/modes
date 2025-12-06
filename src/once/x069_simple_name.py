@@ -25,8 +25,7 @@ def main(idnum, obj):
         # remove it if the keyword is not populated.
         keyword = othername.find('./Keyword')
         if keyword is None or not keyword.text:
-            if identification is not None:
-                identification.remove(othername)
+            identification.remove(othername)
     outfile.write(ET.tostring(obj))
     return
 
