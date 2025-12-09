@@ -71,8 +71,6 @@ if __name__ == '__main__':
     t1 = time.perf_counter()
     exinvdict = get_inverted_exhibition_dict()
     infile = sys.argv[1]
-    # codecs.open('testunicode.xml', "w", "utf-8-sig")
-    # outfile = open(sys.argv[2], 'w', "utf-8-sig")
     outfile = open(sys.argv[2], 'w', encoding="utf-8")
     outfile.write('<?xml version="1.0" encoding="UTF-8"?><Interchange>\n')
     for id_num, ob_ject in object_reader(infile):
