@@ -37,7 +37,7 @@ def trace(level, template, *args, color=None):
 
 def opencsvwriter(filename, delimiter):
     encoding = 'utf-8-sig' if _args.bom else 'utf-8'
-    csvfile = codecs.open(filename, 'w', encoding)
+    csvfile = open(filename, 'w', encoding=encoding)
     outcsv = csv.writer(csvfile, delimiter=delimiter, lineterminator=_args.lineterminator)
     trace(1, 'Output: {}', filename)
     return outcsv, csvfile
