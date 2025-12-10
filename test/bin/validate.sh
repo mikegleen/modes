@@ -1,6 +1,7 @@
 #!/bin/zsh
 RED='\033[0;31m'
 NC='\033[0m' # No Color
+unsetopt errexit
 #
 #   Caller must pass $? from the program under test down as the first parameter.
 #   Second parameter is the name of the result file to compare.
@@ -19,7 +20,8 @@ if [[ ! -f $tpath/results/$2 ]]; then
 fi
 if [[ -f $tpath/baseline/$2 ]]; then
     diff -q $tpath/baseline/$2 $tpath/results/$2 >/dev/null
-    if [[ $? -ne 0 ]]; then
+    diffreturn=$?
+    if [[ $diffreturn -ne 0 ]]; then
         printf "${RED}Test failed.${NC} (${ZSH_ARGZERO:t:r})\n"
     else
         printf "Test passed. (${ZSH_ARGZERO:t:r})\n"

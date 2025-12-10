@@ -90,7 +90,7 @@
 		<SummaryText elementtype="Acquisition text">Part of the Joan Brinsmead collection</SummaryText>
 		<SummaryText elementtype="Conservation text" />
 	</Acquisition>
-	<Exhibition><ExhibitionName>The LIFE in a Line!</ExhibitionName><Place><PlaceName>HRM</PlaceName></Place><Date><DateBegin>28.2.2026</DateBegin><DateEnd>30.5.2026</DateEnd></Date></Exhibition><References>
+	<Exhibition><ExhibitionName>The LIFE in a Line!</ExhibitionName><Place><PlaceName>HRM</PlaceName></Place><Date><DateBegin>28.2.2026</DateBegin><DateEnd>30.5.2026</DateEnd></Date><ExhibitionNumber>44</ExhibitionNumber></Exhibition><References>
 		<Reference elementtype="AE Johnson Number" />
 		<Reference elementtype="First Published In">
 			<Title />
