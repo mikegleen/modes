@@ -68,12 +68,13 @@ def trace(level, template, *args, color=None):
             print(template.format(*args))
 
 
-def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
+def one_object(exhibnum, objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
     """
 #
+    :param exhibnum: the exhibition number from utl.exhibition_list.EXSTR
     :param objelt: the Object
     :param idnum: the ObjectIdentity/Number text (for trace)
-    :param exhibition: the Exhibition tuple corresponding to exhibition_list.py
+    :param exhibition: the ExhibitionTuple corresponding to exhibition_list.py
     :param catalog_num: for the CatalogueNumber element
     :return: a tuple containing the BeginDate, the new Exhibition element
     """
@@ -94,6 +95,8 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
         subelt.text = modesdate(exhibition.DateBegin)
         subelt = ET.SubElement(dateelt, 'DateEnd')
         subelt.text = modesdate(exhibition.DateEnd)
+        exhibnumelt = ET.SubElement(newelt, 'ExhibitionNumber')
+        exhibnumelt.text = str(exhibnum)
         return exhibition.DateBegin, newelt
 
     def one_exhibition(exhib_elt: ET.Element):
@@ -173,7 +176,8 @@ def one_object(objelt, idnum, exhibition: ExhibitionTuple, catalog_num=''):
     # end one_exhibition
 
     display_id = denormalize_id(idnum)
-    trace(3, 'one_object: {} {}', display_id, exhibition)
+    trace(3, 'one_object: {} {} Exhibition Number: {}', display_id, exhibition,
+          exhibnum)
     elts = list(objelt)  # the children of Object
     # for elt in elts:
     #     print(elt)
@@ -362,12 +366,13 @@ def main():
     written_to_main = 0
     numupdated = 0
 
-    for idnum, nidnum, elem in object_reader(_args.infile, normalize=True, verbos=_args.verbose):
+    for idnum, nidnum, elem in object_reader(_args.infile, normalize=True,
+                                             verbos=_args.verbose):
         trace(3, 'idnum: {}', idnum)
         if nidnum and nidnum in exmap:
             exnum, cataloguenumber = exmap[nidnum]
             exhibition = exdict[exnum]
-            one_object(elem, nidnum, exhibition, cataloguenumber)
+            one_object(exnum, elem, nidnum, exhibition, cataloguenumber)
             if _args.move_to_location:
                 place = exhibition.Place
                 if place == DEFAULT_EXHIBITION_PLACE:
