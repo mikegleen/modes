@@ -491,13 +491,22 @@ def select_ifexhib(config: Config, objelem, document):
     if elements is None:
         return selected
     for element in elements:
+        exhibitionnumber = element.find('./ExhibitionNumber')
+        if exhibitionnumber is not None:
+            if ymlvalue == str(exhibitionnumber.text):
+                selected = True
+                break
+            else:
+                continue
+        # The following is the old method used before exhibition numbers were
+        # included in the database.
         datebegin = element.find('./Date/DateBegin')
         if datebegin is None or not datebegin.text:
             # We are assuming valid data. There are some Exhibition element
             # groups with empty subelements. Just ignore these. This doesn't
             # catch invalid groups where the DateBegin field is not populated
             # but for some reason there is data in the other fields. The
-            # --verify function will catch these.
+            # --verify function in exhibition.py will catch these.
             continue
         else:
             datebegin, _ = datefrommodes(datebegin.text)
