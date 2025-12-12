@@ -137,7 +137,7 @@ def get_mtime(subpath: str) -> (dict[str, float], str):
     :param subpath: either 'normal' or 'pretty'
     :return: dictionary of file basenames -> mtime, joined parent/subpath
     """
-    path = op.join(_args.parent_dir, subpath, _args.subdir)
+    path = str(op.join(_args.parent_dir, subpath, _args.subdir))
     mtime = {}
     for fn in sorted(os.listdir(path)):
         fn = str(fn)  # might be bytes. PyCharm whines.
@@ -183,15 +183,15 @@ def main():
     trace(1, '\nNormal to Pretty:')
     to_pretty = select(normal_mtime, pretty_mtime)
     for fn in to_pretty:
-        from_file = op.join(normal_path, fn + '.xml')
-        to_file = op.join(pretty_path, fn + '_pretty.xml')
+        from_file = str(op.join(normal_path, fn + '.xml'))
+        to_file = str(op.join(pretty_path, fn + '_pretty.xml'))
         onefile(from_file, to_file, mtime=normal_mtime[fn], make_pretty=True)
 
     trace(1, '\nPretty to Normal:')
     to_normal = select(pretty_mtime, normal_mtime)
     for fn in to_normal:
-        from_file = op.join(pretty_path, fn + '_pretty.xml')
-        to_file = op.join(normal_path, fn + '.xml')
+        from_file: str = str(op.join(pretty_path, fn + '_pretty.xml'))
+        to_file: str = str(op.join(normal_path, fn + '.xml'))
         onefile(from_file, to_file, mtime=pretty_mtime[fn], make_pretty=False)
 
 
