@@ -58,8 +58,13 @@ def read_renumber():
     return renum_dict, newnum_set
 
 
-def main():
+def onefile(ifile, ofile) -> int:
+    if _args.dryrun:
+        print(f'{ifile=}, {ofile=}')
+        return 0
     objdict = {}
+    outfile = open(ofile, 'wb')
+    infile = open(ifile, encoding=_args.encoding)
     outfile.write(b'<?xml version="1.0" encoding="utf-8"?><Interchange>\n')
     seq = 0
     for event, elem in ET.iterparse(infile):
@@ -80,8 +85,6 @@ def main():
                   color=Fore.RED)
             sys.exit(1)
         objdict[numn] = elem
-    if not outfile:
-        return
     dupfound = False
     for newnum in newnumset:
         if newnum in objdict:
@@ -101,19 +104,52 @@ def main():
         objdict[newnum] = elem
     for numn in sorted(objdict):
         outfile.write(ET.tostring(objdict[numn], encoding='utf-8').strip())
-    outfile.write(b'\n')
-    outfile.write(b'</Interchange>')
+    outfile.write(b'\n</Interchange>')
     return len(objdict)
+
+
+def sort_files_in_folder():
+    path_head = _args.directory
+    files = [f for f in os.listdir(path_head)
+             if os.path.isfile(os.path.join(path_head, f)) and f.endswith('.xml')]
+    for filename in files:
+        if '_sorted' in filename:
+            continue
+        root, ext = os.path.splitext(filename)
+        infilepath = os.path.join(path_head, filename)
+        outfilename = root + '_sorted' + ext
+        if outfilename in files:
+            continue
+        outfilepath = os.path.join(path_head, outfilename)
+        numobjs = onefile(infilepath, outfilepath)
+        trace(1, '{} objects written to {}.', numobjs, outfilepath)
+    return
+
+
+def main():
+    if _args.directory is not None:
+        sort_files_in_folder()
+    else:
+        numobjs = onefile(_args.infile, _args.outfile)
+        trace(1, f'End sort_xml. {numobjs} objects written.',
+              color=Fore.GREEN)
 
 
 def getparser():
     parser = argparse.ArgumentParser(description='''
         Create an output file sorted by Object ID.
         ''')
-    parser.add_argument('infile', help='''
+    megroup = parser.add_mutually_exclusive_group()
+    megroup.add_argument('-i', '--infile', help='''
         The XML file saved from Modes.''')
-    parser.add_argument('outfile', help='''
-        The sorted XML file.''')
+    megroup.add_argument('-d', '--directory', help='''
+        The directory containing files to be sorted. A sorted file
+        will be created in the same directory with "_sorted" inserted into
+        the name before the extension.''')
+    parser.add_argument('-o', '--outfile', help='''
+        The sorted XML file. Only allowed (and required) if --infile is specified.''')
+    parser.add_argument('--dryrun', action='store_true', help='''
+        Only print the names of files to be sorted.''')
     parser.add_argument('--encoding', default='utf-8', help='''
         Set the input encoding. Default is utf-8. Output is always utf-8.
         ''')
@@ -127,7 +163,7 @@ def getparser():
         ''')
     parser.add_argument('-r', '--renumber', help=f'''
         A CSV file containing two columns with headings OldSerial and NewSerial.
-        The access numbers will be changed accordingly. The program will abort
+        The accession numbers will be changed accordingly. The program will abort
         if you try to  create a duplicate accession number.
         ''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -139,23 +175,22 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    if args.directory and args.outfile:
+        raise ValueError('You cannot specify an output file if the input is '
+                         'a directory.')
+    if args.infile and not args.outfile:
+        raise ValueError('You must specify an output file if the input file is '
+                         'specified.')
     return args
 
 
 if __name__ == '__main__':
-    assert sys.version_info >= (3, 7)
+    assert sys.version_info >= (3, 14)
     if len(sys.argv) == 1:
         sys.argv.append('-h')
     _args = getargs(sys.argv)
     trace(1, 'Begin sort_xml.', color=Fore.GREEN)
-    infile = open(_args.infile, encoding=_args.encoding)
-    outfile = open(_args.outfile, 'wb') if _args.outfile else None
     renumdict, newnumset = read_renumber()
-    # tracemalloc.start()
-    numobjs = main()
-    # tm = tracemalloc.get_traced_memory()
-    # print(f'End sort_xml. {numobjs} objects written. Max memory: {tm[1]:,} bytes.')
-    trace(1, f'End sort_xml. {numobjs} objects written.',
-          color=Fore.GREEN)
+    main()
     process = psutil.Process()
     print(f'Max memory usage (bytes): {process.memory_info().rss:,}')
