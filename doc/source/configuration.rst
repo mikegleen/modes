@@ -659,6 +659,7 @@ control command document.
             <DateBegin>3.11.2003</DateBegin>
             <DateEnd>18.1.2004</DateEnd>
          </Date>
+         <ExhibitionNumber>18</ExhibitionNumber>
       </Exhibition>
 
 - **cmd: ifnoexhib**
