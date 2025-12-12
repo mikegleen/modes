@@ -4,7 +4,7 @@
 #
 set -e
 start=`date +%s.%N`
-INXML=prod_update/normal/2025-12-08_numberofitems.xml
+INXML=prod_save/normal/2025-12-12_prod_save_sorted.xml
 SCRIPT=${ZSH_ARGZERO:t:r}  # ZSH doc 14.1.4 Modifiers
 echo SCRIPT: $SCRIPT
 OUTXML=prod_update/normal/$SCRIPT.xml
