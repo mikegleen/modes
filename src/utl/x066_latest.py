@@ -1,6 +1,7 @@
 import argparse
 from datetime import datetime, timedelta
 import os.path
+import re
 import sys
 
 DESCRIPTION = '''
@@ -18,14 +19,17 @@ DESCRIPTION = '''
 
 def getparser():
     parser = argparse.ArgumentParser(description=DESCRIPTION)
-    parser.add_argument('-i', '--indir', help='''
+    megroup = parser.add_mutually_exclusive_group(required=True)
+    megroup.add_argument('-i', '--indir', help='''
         Folder to search.''')
-    parser.add_argument('-f', '--listfile', help='''
+    megroup.add_argument('-f', '--listfile', help='''
         File containing multiple folders to search, one per line.''')
     parser.add_argument('-n', '--newxml', help='''
         Name of file to compare against the tentative newest in the named folder(s).
         Skip this file since it is the name of the file we are creating. This is not
         the first run of this script.''')
+    parser.add_argument('--re', help='''
+        If specified, files must match this regular expression to be considered.''')
     parser.add_argument('-s', '--strict', action='store_true', help='''
     If set, abort if we are using the output file as input. This would happen
     if we re-run a script without previously deleting the output file. If not set,
@@ -61,6 +65,10 @@ def onedir(dirname):
             isodate = datetime.fromisoformat(filename[:10])
         except ValueError as err:
             raise ValueError(f'Badly formed filename: {path}. {err}')
+        if _args.re:
+            m = re.match(_args.re, filename)
+            if not m:
+                continue
         suffix = filename[10].lower()
         minutes = timedelta()
         if suffix.isalpha():
@@ -77,7 +85,7 @@ def main(args):
     latest_path = None
     if args.indir:
         latest_datetime, latest_path = onedir(args.indir)
-    if args.listfile:
+    elif args.listfile:
         for row in open(args.listfile):
             if row.startswith('#'):
                 continue
