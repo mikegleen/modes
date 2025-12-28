@@ -16,4 +16,3 @@ DEFAULT_PREFIX_PADDING = {
 
 # Set by Config.__init__ to avoid circular import
 config_instance = None
-
