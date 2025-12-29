@@ -420,8 +420,9 @@ These statements are in the document whose **cmd:** is **global**.
    The keys should be entered in the CSV file specified by ``--incsvfile`` in a column
    specified by **template_title:**.
    See commands **template_title:** and **template_dir:**. Note that the indentation of the
-   "key" rows in the YAML file is mandatory. The keys in the YAML and CSV files are case
-   insensitive. Do not use this statement and also the **template_file:** statement.
+   "key" rows in the YAML file is mandatory and must be consistent. The keys in the YAML and
+   CSV files are case insensitive. Do not use this statement and also the **template_file:**
+   statement.
 
 .. _location_command_statements:
 
