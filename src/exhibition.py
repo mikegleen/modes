@@ -55,7 +55,7 @@ from utl.cfg import DEFAULT_EXHIBITION_PLACE, DEFAULT_EXHIBITION_LONG
 from utl.cfgutil import expand_idnum
 from utl.excel_cols import col2num
 from utl.location_sub import update_current_loc
-from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
+from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes, modesdatefromisoformat
 from utl.normalize import sphinxify, vdate, isoformatfrommodesdate
 from utl.readers import row_list_reader, object_reader
 
@@ -309,27 +309,27 @@ def get_mapfile_dict(mapfile):
 
 def verify():
     exhibition_inv_dict = get_inverted_exhibition_dict()
-    for idnum, elem in object_reader(_args.infile, verbos=_args.verbose):
-        elements = elem.findall('./Exhibition')
+    for idnum, object_element in object_reader(_args.infile, verbos=_args.verbose):
+        exhibition_elements = object_element.findall('./Exhibition')
         # print(f'{elements=}')
         selected = False
-        if elements is None:
+        if exhibition_elements is None:
             return selected
-        for element in elements:
-            datebegin = element.find('./Date/DateBegin')
+        for exhibition_element in exhibition_elements:
+            datebegin = exhibition_element.find('./Date/DateBegin')
             if datebegin is None or not datebegin.text:
                 datebegin = None
             else:
                 datebegin, _ = datefrommodes(datebegin.text)
-            dateend = element.find('./Date/DateEnd')
+            dateend = exhibition_element.find('./Date/DateEnd')
             if dateend is None or not dateend.text:
                 dateend = None
             else:
                 dateend, _ = datefrommodes(dateend.text)
-            exhibname = element.find('./ExhibitionName')
+            exhibname = exhibition_element.find('./ExhibitionName')
             if exhibname is not None:
                 exhibname = exhibname.text
-            placeelt = element.find('./Place')
+            placeelt = exhibition_element.find('./Place')
             place = None
             if placeelt is not None:
                 placename = placeelt.find('./PlaceName')
@@ -348,7 +348,15 @@ def verify():
             # print('ifexhib: {idnum}: {exhibition}')
             exhibnum = exhibition_inv_dict.get(exhibition)
             if exhibnum is None:
-                print(f'{idnum}: invalid exhibition: {exhibition}')
+                msg = (f'{modesdate(exhibition.DateBegin)}-{modesdate(exhibition.DateEnd)},'
+                       f' {exhibition.ExhibitionName}, {exhibition.Place}')
+                print(f'{idnum}: Exhibition not in exhibition list: {msg}')
+            else:
+                exhibnumelt = exhibition_element.find('./ExhibitionNumber')
+                if exhibnumelt is None:
+                    print(f'{idnum}: ExhibitionNumber is missing.')
+                elif str(exhibnumelt.text) != str(exhibnum):
+                        print(f'ExhibitionNumber does not match exhibition details: {idnum}.')
 
 
 def main():
