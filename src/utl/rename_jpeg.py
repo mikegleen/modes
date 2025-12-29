@@ -1,7 +1,9 @@
 """
     Rename files in a directory: xxx.jpeg -> xxx.jpg
+    SH68.12.jpg --> SH68.012.jpg
 """
 import os.path
+import re
 import sys
 
 
@@ -12,12 +14,20 @@ def main():
 
     for fn in files:
         prefix, ext = os.path.splitext(fn)
-        if ext.lower() == '.jpeg':
-            ext = '.jpg'
+        m = re.match(r'(SH68\.)(\d+)', prefix)
+        if m:
             src = os.path.join(indir, fn)
-            dst = os.path.join(indir, prefix + ext)
+            newfn = f'{m[1]}{int(m[2]):03}' + ext
+            dst = os.path.join(indir, newfn)
             print(f'{src} -> {dst}')
             os.rename(src, dst)
+
+        # if ext.lower() == '.jpeg':
+        #     ext = '.jpg'
+        #     src = os.path.join(indir, fn)
+        #     dst = os.path.join(indir, prefix + ext)
+        #     print(f'{src} -> {dst}')
+        #     os.rename(src, dst)
 
 
 if __name__ == '__main__':
