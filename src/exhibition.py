@@ -350,13 +350,16 @@ def verify():
             if exhibnum is None:
                 msg = (f'{modesdate(exhibition.DateBegin)}-{modesdate(exhibition.DateEnd)},'
                        f' {exhibition.ExhibitionName}, {exhibition.Place}')
-                print(f'{idnum}: Exhibition not in exhibition list: {msg}')
+                print(f'{idnum}: Cannot find exhibition number by text search: {msg}')
+            exhibnumelts = exhibition_element.findall('./ExhibitionNumber')
+            if not exhibnumelts:
+                print(f'{idnum}: ExhibitionNumber is missing.')
+            elif len(exhibnumelts) > 1:
+                print(f'Multiple ExhibitionNumber elements: {idnum}. {exhibnum=}')
             else:
-                exhibnumelt = exhibition_element.find('./ExhibitionNumber')
-                if exhibnumelt is None:
-                    print(f'{idnum}: ExhibitionNumber is missing.')
-                elif str(exhibnumelt.text) != str(exhibnum):
-                        print(f'ExhibitionNumber does not match exhibition details: {idnum}.')
+                exhibnumelt = exhibnumelts[0]
+                if str(exhibnumelt.text) != str(exhibnum):
+                    print(f'ExhibitionNumber does not match exhibition details: {idnum}.')
 
 
 def main():
