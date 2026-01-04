@@ -308,6 +308,7 @@ def get_mapfile_dict(mapfile):
 
 
 def verify():
+    nerrors = 0
     exhibition_inv_dict = get_inverted_exhibition_dict()
     for idnum, object_element in object_reader(_args.infile, verbos=_args.verbose):
         exhibition_elements = object_element.findall('./Exhibition')
@@ -349,17 +350,22 @@ def verify():
             exhibnum = exhibition_inv_dict.get(exhibition)
             if exhibnum is None:
                 msg = (f'{modesdate(exhibition.DateBegin)}-{modesdate(exhibition.DateEnd)},'
-                       f' {exhibition.ExhibitionName}, {exhibition.Place}')
+                       f' {exhibition.ExhibitionName=}, {exhibition.Place=}')
                 print(f'{idnum}: Cannot find exhibition number by text search: {msg}')
+                nerrors += 1
             exhibnumelts = exhibition_element.findall('./ExhibitionNumber')
             if not exhibnumelts:
                 print(f'{idnum}: ExhibitionNumber is missing.')
+                nerrors += 1
             elif len(exhibnumelts) > 1:
-                print(f'Multiple ExhibitionNumber elements: {idnum}. {exhibnum=}')
+                print(f'{idnum}: Multiple ExhibitionNumber elements. {exhibnum=}')
+                nerrors += 1
             else:
                 exhibnumelt = exhibnumelts[0]
                 if str(exhibnumelt.text) != str(exhibnum):
                     print(f'ExhibitionNumber does not match exhibition details: {idnum}.')
+                    nerrors += 1
+    print(f'End Exhibition validation: {nerrors} error{'' if nerrors == 1 else 's'} found.')
 
 
 def main():
@@ -508,6 +514,9 @@ def getparser():
         Number of lines to skip at the start of the CSV file''')
     parser.add_argument('--short', action='store_true', help='''
         Only process one object. For debugging.''')
+    parser.add_argument('--validate', action='store_true', help='''
+        Alias for `--verify`.
+        ''')
     parser.add_argument('--verify', action='store_true', help='''
         Compare the exhibition values in the XML file the values in exhibition_list.py.
         ''')
@@ -520,6 +529,8 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    if args.validate:  # Who remembers?
+        args.verify = True
     if args.verify:
         return args  # ignore all other options
     if args.outfile is None and args.deltafile is None:
