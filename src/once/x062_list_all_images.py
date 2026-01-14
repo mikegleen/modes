@@ -8,7 +8,7 @@ from web.webutil import COLLECTION_PREFIX
 from utl.cfg import DEFAULT_MDA_CODE
 
 DESCRIPTION = """
-    Examine a tree of folders recursively and print the filename, file size, and path
+    Examine one or more trees of folders recursively and print the filename, file size, and path
     of all images that have accession numbers in the filename.
     
     Output is a CSV file with the first column being the filename and subsequent columns
@@ -83,7 +83,7 @@ def print_table():
 def getparser():
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('indirs', nargs='*', help='''
-        Folder containing files to search.''')
+        One or more folders containing files to search.''')
     parser.add_argument('-o', '--outfile', help='''
         File to contain the output CSV file.''')
     parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
