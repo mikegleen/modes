@@ -1,8 +1,8 @@
 """
     This module contains definitions that are specific to a particular implementation.
 """
-DEFAULT_EXHIBITION_PLACE = 'HRM'
-DEFAULT_EXHIBITION_LONG = 'Joan Brinsmead Gallery'
+DEFAULT_EXHIBITION_PLACE = 'Heath Robinson Museum'
+DEFAULT_EXHIBITION_LONG = 'Heath Robinson Museum'
 DEFAULT_MDA_CODE = 'LDHRM'  # must be upper case
 DEFAULT_RECORD_TAG = 'Object'
 DEFAULT_RECORD_ID_XPATH = './ObjectIdentity/Number'
@@ -14,5 +14,5 @@ DEFAULT_PREFIX_PADDING = {
     'L': 3
 }
 
-# Set by Config.__init__ to avoid circular import
+# Set by Config.__init__(). Placed here to avoid circular import
 config_instance = None
