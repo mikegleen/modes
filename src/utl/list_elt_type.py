@@ -27,7 +27,10 @@ def main(inf):
         if _args.type and elementtype == _args.type:
             num = elem.find('./ObjectIdentity/Number')
             title = elem.find('./Identification/Title')
-            print(f'{num.text},"{title.text[:_args.width]}"')
+            if title is None or title.text is None:
+                print(f'{num.text}, *No Title*')
+            else:
+                print(f'{num.text},"{title.text[:_args.width]}"')
     if _args.type:
         return
     for e, c in attribs.items():
