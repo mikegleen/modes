@@ -136,3 +136,4 @@ templates/bak
 *.zip
 test/*/baseline/*
 *.pdf
+hrm_downloads
