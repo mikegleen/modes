@@ -177,7 +177,7 @@ the ``cmd: global`` document.
 
    Used by **if**, **ifnot**, and **column** commands to indicate that the text
    from the named element and all of its descendents are to be examined instead
-   of just the named elemennt’s text.
+   of just the named element’s text.
 
    The optional parameter is the delimiter character or characters to be used to separate the text fields
    from the individual sub-elements. The default is an empty string.
