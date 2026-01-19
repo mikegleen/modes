@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
     List the elementtype attributes of the Object elements.
+    List all objects of a single elementtype.
 """
 import argparse
 from collections import defaultdict
@@ -38,19 +39,14 @@ def main(inf):
 
 
 def getparser():
-    parser = argparse.ArgumentParser(description='''
-    List the elementtype attributes of the Object elements.
-        ''')
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
-    parser.add_argument('-t', '--type', help='''
-        Print the object number and title of all of the Object elements of this
-        type.''')
-    parser.add_argument('-v', '--verbose', type=int, default=1, help='''
-        Set the verbosity. The default is 1 which prints summary information.
-        ''')
+    parser.add_argument('-t', '--type', help='''Print the object number and title of all of the Object elements of this type.''')
+    parser.add_argument('-v', '--verbose', type=int, default=1, help='''Set the verbosity. '''
+                        '''The default is 1 which prints summary information. ''')
     parser.add_argument('-w', '--width', type=int, default=50,
-                        help=''' Set the width of the title printed.'''
+                        help='''Set the width of the title printed.'''
                         + if_not_sphinx(''' The default is 50. ''',
                                         calledfromsphinx)
                         + sphinxify(''' Ignored if --type is not specified.''',
