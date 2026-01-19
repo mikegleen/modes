@@ -141,7 +141,7 @@ def get_mtime(subpath: str) -> (dict[str, float], str):
     mtime = {}
     for fn in sorted(os.listdir(path)):
         fn = str(fn)  # might be bytes. PyCharm whines.
-        if not fn.endswith('.xml'):
+        if not fn.lower().endswith('.xml'):
             continue
         basefn = os.path.splitext(fn)[0]
         basefn = basefn.removesuffix('_pretty')
