@@ -131,8 +131,9 @@ test/pretty/
 Manuals/
 Object Elements
 templates/normal/
-templates/exported
-templates/bak
+templates/exported/
+templates/bak/
+templates/merged/
 *.zip
 test/*/baseline/*
 *.pdf
