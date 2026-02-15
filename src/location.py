@@ -579,7 +579,7 @@ def main():
         outfile.write(b'<?xml version="1.0" encoding="utf-8"?><Interchange>\n')
     if deltafile:
         deltafile.write(b'<?xml version="1.0" encoding="utf-8"?><Interchange>\n')
-        trace(1, 'Delta XML file: {}', _args.outfile)
+        trace(1, 'Delta XML file: {}', _args.deltafile)
     for event, elem in ET.iterparse(infile):
         if elem.tag != 'Object':
             continue
