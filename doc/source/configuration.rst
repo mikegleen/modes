@@ -183,6 +183,9 @@ the ``cmd: global`` document.
    from the individual sub-elements. The default is an empty string.
 
    Enclose the character in quote marks.
+
+   .. _if-other-column:
+
 - **if_other_column:**
 
    Used by ``csv2xml.py``. Process this column if one of the values in the
@@ -195,7 +198,7 @@ the ``cmd: global`` document.
       cmd: column
       title: Artist
       if_other_column: Template
-      if_column_value: Artwork | Reproduction
+      if_other_column_value: Artwork | Reproduction
       xpath: ...
       ---
 
@@ -205,7 +208,9 @@ the ``cmd: global`` document.
 - **if_template:**
 
    This a a shortcut command to be used when there is a **template_title:** statement
-   in the **global** command. For example, given a **global** command containing::
+   in the **global** command to generate **if_other_column:** and **if_other_column_value:**
+   statements. See `if-other-column`_.
+   For example, given a **global** command containing::
 
       cmd: global
       ...
@@ -227,7 +232,24 @@ the ``cmd: global`` document.
       xpath: ...
       ---
 
+   The follow example shows how data in a single CSV column can be stored in
+   different XML elements depending upon the template::
+
+      cmd: column
+      title: Publisher
+      xpath: ./Production/Organisation[Role="publisher"]/OrganisationName
+      if_template: Ephemera | Book
+      ---
+      cmd: column
+      title: Publisher 2
+      column_title: Publisher
+      xpath: ./Production/Organisation[Role="publication name"]/OrganisationName
+      if_template: Cutting
+      ---
+
    As with all column titles, the template name is case sensitive.
+
+
 -  **insert_after:**
 
    If an element doesn't exist, it will be inserted after the
@@ -513,6 +535,10 @@ the elements in the XML document to a corresponding column in the associated CSV
    You may also use **constant** in ``xml2csv.py`` but you must include an **xpath:**
    statement with a value that is used for the heading if no **title:** statement
    is specified. The value is inserted unconditionally into the xpath’s text.
+
+   The text in the **value:** statement is inserted as is without modification by
+   statements such as **date:** or **person_name:** or by using reserved words such
+   as ``{{clear}}`` or ``{{today}}``.
 -  **cmd: copy**
 
    For ``xml2csv.py``. If the CSV file specified by the ``--include`` argument contains

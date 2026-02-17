@@ -1,5 +1,10 @@
 #!/bin/zsh
-INXML=/Users/mlg/pyprj/hrm/modes/prod_update/normal/2025-09-13a_conservation.xml
+cat >tmp/dirs.csv <<EOF
+prod_save/normal
+prod_update/normal
+EOF
+INXML=$(python src/utl/x066_latest.py -f tmp/dirs.csv)
+# echo INXML = $INXML
 DATE=$(date -I)
 cat >tmp/adopt.yml <<EOF
 cmd: ifeq
@@ -9,14 +14,19 @@ value: Adopt a Picture
 cmd: column
 xpath: ./Identification/Title
 ---
-cmd: column
+column: Donor
 xpath: ./Association/Person/PersonName
-title: Name
 ---
-cmd: column
-xpath: ./Association/Date
+column: Date Adopted
+xpath: ./Association[Type="Adopt a Picture"]/Date
 ---
-cmd: column
+column: Dedication
 xpath: ./Association/SummaryText/Note
+---
+column: Current Location
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
+---
+column: Conservator
+xpath: ./Conservation/Name/PersonName
 EOF
 python src/xml2csv.py $INXML results/reports/${DATE}_adopt.csv -b -c tmp/adopt.yml --heading

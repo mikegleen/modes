@@ -11,6 +11,10 @@ echo INXML = $INXML
 SCRIPT=${ZSH_ARGZERO:t:r}  # ZSH doc 14.1.4 Modifiers
 OUTCSV=tmp/$SCRIPT.csv
 cat >tmp/$SCRIPT.yml <<EOF
+cmd: ifeq
+xpath: ./ObjectLocation[@elementtype="current location"]/Location
+value: S22
+---
 column: Current
 xpath: ./ObjectLocation[@elementtype="current location"]/Location
 ---
@@ -20,16 +24,4 @@ xpath: ./ObjectLocation[@elementtype="normal location"]/Location
 cmd: column
 xpath: ./Identification/Title
 EOF
-cat>tmp/$SCRIPT.csv <<EOF
-Serial
-LDHRM.2022.35
-JB392a
-LDHRM.2021.13
-JB383
-JB387
-JB1114
-JB1105.1
-JB1105.4
-JB1105.5
-EOF
-python src/xml2csv.py $INXML results/reports/$SCRIPT.csv -b -c tmp/$SCRIPT.yml --heading --include tmp/$SCRIPT.csv
+python src/xml2csv.py $INXML results/reports/$SCRIPT.csv -b -c tmp/$SCRIPT.yml --heading
