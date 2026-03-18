@@ -12,8 +12,8 @@ SCRIPT=${ZSH_ARGZERO:t:r}  # ZSH doc 14.1.4 Modifiers
 OUTCSV=tmp/$SCRIPT.csv
 cat >tmp/$SCRIPT.yml <<EOF
 cmd: ifeq
-xpath: ./ObjectLocation[@elementtype="current location"]/Location
-value: S22
+xpath: ./ObjectLocation[@elementtype="current location"]/Reason
+value: sublime exhibition
 ---
 column: Current
 xpath: ./ObjectLocation[@elementtype="current location"]/Location

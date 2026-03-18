@@ -22,14 +22,15 @@ xpath: ./Identification/Title
 EOF
 cat>tmp/$SCRIPT.csv <<EOF
 Serial
-LDHRM.2022.35
-JB392a
-LDHRM.2021.13
-JB383
-JB387
-JB1114
-JB1105.1
-JB1105.4
-JB1105.5
+JB641
+LDHRM.2019.32
+JB425
+JB607
+JB430
+JB644
+JB629
+LDHRM.2019.35
+LDHRM.2019.21
+LDHRM.2019.31
 EOF
 python src/xml2csv.py $INXML results/reports/$SCRIPT.csv -b -c tmp/$SCRIPT.yml --heading --include tmp/$SCRIPT.csv
