@@ -27,6 +27,7 @@ Modes Python Library
    xmldiff
    xmlupd
    xml2csv
+   x066_latest
    genindex
    data_format
 
