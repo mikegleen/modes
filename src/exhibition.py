@@ -55,7 +55,7 @@ from utl.cfg import DEFAULT_EXHIBITION_PLACE, DEFAULT_EXHIBITION_LONG
 from utl.cfgutil import expand_idnum
 from utl.excel_cols import col2num
 from utl.location_sub import update_current_loc
-from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes, modesdatefromisoformat
+from utl.normalize import modesdate, normalize_id, denormalize_id, datefrommodes
 from utl.normalize import sphinxify, vdate, isoformatfrommodesdate
 from utl.readers import row_list_reader, object_reader
 
@@ -264,7 +264,7 @@ def get_mapfile_dict(mapfile):
         try:
             norm_accno = normalize_id(accno)
         except ValueError:
-            print(f"Skipping badly formed accession # in csv: {accno}")
+            trace(1, "Skipping badly formed accession # in csv: {}", accno, color=Fore.YELLOW)
             return
         if norm_accno in mapdict:
             raise KeyError(f'Duplicate accession number: {norm_accno}')
@@ -391,7 +391,7 @@ def main():
             exhibition = exdict[exnum]
             one_object(exnum, elem, nidnum, exhibition, cataloguenumber)
             if _args.move_to_location:
-                place = exhibition.Place
+                place = _args.location if _args.location else exhibition.Place
                 if place == DEFAULT_EXHIBITION_PLACE:
                     place = DEFAULT_EXHIBITION_LONG
                 update_current_loc(elem, idnum, place, modesdate(exhibition.DateBegin),
@@ -479,6 +479,11 @@ def getparser():
         The exhibition number
         to apply to all objects in the CSV file. Do not specify this if
         --col_ex is specified.''', called_from_sphinx))
+    parser.add_argument('--location', help=sphinxify('''
+        if --move_to_location is specified, use this location for the current location
+        instead of the placename associated with the exhibition. This is useful if you
+        want the placename to be "Heath Robinson Museum" but the location to be
+        "Joan Brinsmead Gallery"''', called_from_sphinx))
     objgroup.add_argument('-m', '--mapfile', help=sphinxify('''
         The CSV  or XLSX file mapping the accession number to the catalog number and
         exhibition number. (but see --exhibition). There must be a heading row.
