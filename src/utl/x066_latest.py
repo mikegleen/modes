@@ -1,24 +1,35 @@
+"""
+    Search the named folders and return the path to the most recent file based on the
+    ISO-formatted front part of the filename and an optional suffix.
+
+    Files are of the format yyyy-mm-dd[a]_some_other_text.xml
+
+    [a] is an optional suffix in the case where there are more files created in one day.
+    It can be any single case-insensitve alphabetic character.
+
+    Folder names beginning with '#' are ignored.
+
+    An example runstream using x066_latest.py is::
+
+        #!/bin/zsh
+        set -e
+        INXML=`python src/utl/x066_latest.py -i prod_update/normal`
+        echo INXML= $INXML
+        python src/exhibition.py $INXML --verify
+
+"""
+
 import argparse
 from datetime import datetime, timedelta
 import os.path
 import re
 import sys
 
-DESCRIPTION = '''
-    Search the named folders and return the path to the most recent file based on the
-    ISO-formatted front part of the filename and an optional suffix.
-    
-    Files are of the format yyyy-mm-dd[a]_some_other_text.xml
-    
-    [a] is an optional suffix in the case where there are more files created in one day.
-    It can be any single case-insensitve alphabetic character.
-    
-    Folder names beginning with '#' are ignored.
-'''
+from utl.normalize import sphinxify, if_not_sphinx
 
 
 def getparser():
-    parser = argparse.ArgumentParser(description=DESCRIPTION)
+    parser = argparse.ArgumentParser(description=__doc__)
     megroup = parser.add_mutually_exclusive_group(required=True)
     megroup.add_argument('-i', '--indir', help='''
         Folder to search.''')
@@ -28,6 +39,14 @@ def getparser():
         Name of file to compare against the tentative newest in the named folder(s).
         Skip this file since it is the name of the file we are creating. This is not
         the first run of this script.''')
+    parser.add_argument('-m', '--modify', action='store_true', help=sphinxify('''
+        If specified, append the value of --modify_text to the date portion of the filename.
+        2026-03-15_prod_save becomes 2026-03-15s_prod_save. Used by script
+        sort_prod_save.sh so that x066_latest.py will select the sorted file
+        to use as input.''', calledfromsphinx))
+    parser.add_argument('--modify_text', default='s', help='''
+        The optional text to append to the date part of the filename.''' +
+        if_not_sphinx(''' Default = 's'. ''', calledfromsphinx))
     parser.add_argument('--re', help='''
         If specified, files must match this regular expression to be considered.''')
     parser.add_argument('-s', '--strict', action='store_true', help='''
@@ -90,18 +109,28 @@ def main(args):
             if row.startswith('#'):
                 continue
             onedir_datetime, onedir_path = onedir(row.strip())
+            # print("xxx", row.strip(), onedir_datetime, onedir_path, file=sys.stderr)
             if onedir_datetime > latest_datetime:
                 latest_path = onedir_path
+                latest_datetime = onedir_datetime
+                # print(f'{latest_path=}', file=sys.stderr)
     if latest_path:
+        if _args.modify:
+            m = re.match(r'(.*\d{4}-\d\d-\d\d)(.*)', latest_path)
+            if not m:
+                raise ValueError(f'path found: ({latest_path}) failed match.')
+            latest_path = m[1] + args.modify_text + m[2]
         print(latest_path, end='')
     else:
         raise ValueError('Cannot find path.')
 
 
+calledfromsphinx = True
 if __name__ == '__main__':
     assert sys.version_info >= (3, 13)
     sys.tracebacklimit = 0
     if len(sys.argv) == 1:
         sys.argv.append('-h')
+    calledfromsphinx = False
     _args = getargs(sys.argv)
     main(_args)
