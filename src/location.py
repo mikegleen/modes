@@ -50,7 +50,7 @@ def loadcsv():
     location_dict, reason_dict = {}, {}
     if _args.subp == 'validate':
         return location_dict, reason_dict
-    loc_arg = _args.location
+    loc_arg = 'Dummy' if _args.revert or _args.move_to_normal else _args.location
     # with codecs.open(_args.mapfile, encoding='utf-8-sig') as mapfile:
     reader = row_dict_reader(_args.mapfile, _args.verbose, _args.skiprows)
     for n in range(_args.skiprows):
@@ -338,7 +338,10 @@ def update_current_location(elem, idnum):
     if _args.move_to_normal:
         nl = elem.find('./ObjectLocation[@elementtype="normal location"]')
         newlocationelt = nl.find('./Location')
-        newlocationtext = newlocationelt.text.strip().upper()
+        if newlocationelt is not None and newlocationelt.text:
+            newlocationtext = newlocationelt.text.strip().upper()
+        else:
+            raise ValueError(f'{idnum}: Normal Location empty')
     else:
         newlocationtext = newlocs[nidnum] if newlocs[nidnum] else _args.location
 
@@ -467,11 +470,30 @@ def update_previous_location(elem, idnum):
 
 
 def delete_previous(elem, idnum):
+    # Delete all previous locations of this idnum.
     subelts = elem.findall('./ObjectLocation')
     for elt in subelts:
         if elt.get(ELEMENTTYPE) == PREVIOUS_LOCATION:
             trace(2, 'Removing previous location from {}.', idnum)
             elem.remove(elt)
+
+def revert_current_location(elem, idnum):
+    cl = elem.find('./ObjectLocation[@elementtype="current location"]')
+    pl = elem.find('./ObjectLocation[@elementtype="previous location"]')
+    if pl is None:
+        trace(1, '{}: Tried to revert current location but no previous location exists',
+              idnum)
+        return False
+    cl_loc = cl.find('./Location')  # validated
+    if not cl_loc.text:
+        trace(1, '{}: revert: current location empty', idnum, color=Fore.RED)
+    elem.remove(cl)
+    pl.set(ELEMENTTYPE, CURRENT_LOCATION)
+    d = pl.find('./Date')
+    de = d.find('./DateEnd')
+    if de is not None:
+        d.remove(de)
+    return True
 
 
 def loc_types(idnum, nidnum, args, rows):
@@ -528,6 +550,8 @@ def handle_update(idnum, elem):
         if not validate_locations(idnum, elem):
             trace(1, 'Failed pre-update validation.')
             sys.exit(1)
+        if _args.revert:
+            updated = revert_current_location(elem, idnum)
         is_current, is_normal, is_previous = loc_types(idnum, nidnum, _args,
                                                        newrows)
         if is_normal:
@@ -548,10 +572,11 @@ def handle_update(idnum, elem):
         sys.exit(1)
     if outfile:
         outfile.write(ET.tostring(elem, encoding='utf-8'))
+        total_written += 1
     if updated:
         if deltafile:
             deltafile.write(ET.tostring(elem, encoding='utf-8'))
-        total_written += 1
+        total_updated += 1
 
 
 def handle_validate(idnum, elem):
@@ -776,6 +801,13 @@ def add_arguments(parser, command):
         Insert this text as the reason for the move to the new current location
         for all of the objects updated. See also --col_reason.
         ''', called_from_sphinx))
+        parser.add_argument('--revert', action='store_true',
+                                  help=nd.sphinxify('''
+        Remove the current location and convert the most recent previous location
+        to be the current location. Do not also specify --current, --normal, --previous,
+        date-related, or location-related arguments. The mapfile requires just the column
+        with the accession number (titled "Serial").
+        ''', called_from_sphinx))
     parser.add_argument('--short', action='store_true', help='''
         Only process a single object. For debugging.''')
     parser.add_argument('-s', '--skiprows', type=int, default=0, help='''
@@ -868,7 +900,7 @@ if __name__ == '__main__':
     trace(1, 'Begin location {}.', _args.subp,
           color=Fore.GREEN)
     if is_update and _args.object:
-        if not _args.location and not _args.move_to_normal:
+        if not _args.location and not _args.move_to_normal and not _args.revert:
             trace(0, 'You specified the object id. You must also '
                      'specify the location.', color=Fore.RED)
         objectlist = expand_idnum(_args.object)
@@ -894,7 +926,7 @@ if __name__ == '__main__':
     main()
     if is_update:
         print(f'Total Updated: {total_updated}/{total_in_csvfile}\n'
-              f'Total Written: {total_written}')
+              f'Total Written: {total_written} to new XML file.')
     elif is_validate:
         print(f'Total failed: {total_failed}/{total_objects}.')
     elif is_diff:
