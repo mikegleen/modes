@@ -648,27 +648,27 @@ def add_arguments(parser, command):
         parser.add_argument('-o', '--outfile', required=True, help='''
             The output XML file containing all objects.''')
     if is_update or is_diff:
-        parser.add_argument('--col_acc', type=str, default='Serial', help='''
-        The heading of the column containing the accession number of the
+        parser.add_argument('--col_acc', type=str, default='Serial', help=nd.sphinxify('''
+        The heading of the column in the CSV file defined by --mapfile containing the accession number of the
         object to be updated. The default is "Serial".
-        ''')
+        ''', called_from_sphinx))
         defloc = nd.if_not_sphinx(''' The default is Location.''',
                                   called_from_sphinx)
         parser.add_argument('--col_loc', type=str, default='Location',
                             help=nd.sphinxify('''
-        The heading of the column containing the new location of the
+        The heading of the column in the CSV file defined by --mapfile containing the new location of the
         object to be updated. See the --location
         option which sets the default location for all objects being updated if
         the cell in the CSV file is not populated.''' + defloc, called_from_sphinx))
     if is_update:
         parser.add_argument('--col_loc_type', help=nd.sphinxify('''
-        Set this column in the CSV file to ``c``, ``n``, or ``cn`` indicating
+        Set this column in the CSV file defined by --mapfile to ``c``, ``n``, or ``cn`` indicating
         that the current, normal, or both, respectively, should be updated.
         If this is set, do not set the -c or -n or -p argument.
         ''', called_from_sphinx))
         patch_group = parser.add_mutually_exclusive_group()
         patch_group.add_argument('--col_patch', help=nd.sphinxify('''
-        Indicate that this column should contain
+        Indicate that this column in the CSV file defined by --mapfile should contain
         “``patch``”, possibly abbreviated to “``p``”, or be empty. This is
         equivalent for this row to setting the --patch command-line option
         which applies to all of the rows in the CSV file. The column can be a
