@@ -148,9 +148,11 @@ the ``cmd: global`` document.
    For use in the **copy** command. See that command for the usage.
 -  **date:**
 
+   .. _statement_date:
+
    If specified, indicates that a field may be in date
-   format and should be converted to Modes format. See the section *Date Formats*
-   in the document page *Data Formats* for the formats supported. Allowed in ``csv2xml.py``.
+   format and should be converted to Modes format. See the section :ref:`date_formats`
+   for the formats supported. Allowed in ``csv2xml.py``.
    Also used in ``update_from_csv.py`` with the **location** command.
 -  **denormalize:**
 

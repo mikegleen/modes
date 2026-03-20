@@ -1,5 +1,4 @@
-.. data_format.rst
-
+.. _data_formats:
 
 Data Formats
 ============
@@ -90,6 +89,7 @@ is illegal but::
 
 is legal. You can use a "/" instead of the "-" separator.
 
+.. _date_formats:
 
 Date Formats
 ------------
