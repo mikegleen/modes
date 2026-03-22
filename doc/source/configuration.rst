@@ -143,6 +143,28 @@ the ``cmd: global`` document.
    this must be unique so
    if you want the same column to behave differently depending upon **if_other_column:**
    and **if_other_column_value:** values, then specify the column title with this statement.
+   The following example shows a case from ``csv2xml.py`` where a single column in the input
+   CSV file contains data to be stored in different places in the XML file being created::
+
+        ---
+        cmd: column
+        title: Date
+        xpath: ./Production/Date[@elementtype="publication date"]/DateBegin
+        parent_path: ./Production/Date[@elementtype="publication date"]
+        date:
+        if_other_column: Template
+        if_other_column_value: ephemera
+        ---
+        cmd: column
+        title: Letter Date
+        column_title: Date
+        xpath: ./Production/Date/DateBegin
+        parent_path: ./Production/Date
+        date:
+        if_other_column: Template
+        if_other_column_value: letter
+        ---
+
 -  **copy_column:**
 
    For use in the **copy** command. See that command for the usage.
@@ -354,7 +376,7 @@ These statements are in the document whose **cmd:** is **global**.
 
    See the description of this command in the
    *Single-command Statements* section.
--  **prefixes**
+-  **prefixes:**
 
    This statement specifies the zero padding to be applied to accession numbers
    with specific prefixes. For example, the accession number "JB001" has a prefix
@@ -368,12 +390,13 @@ These statements are in the document whose **cmd:** is **global**.
 
    Any prefix not defined in the configuration will have no zero padding. So in
    the above example, the SH entry is redundant. Values specified in the configuration
-   will override the default values. The prefixes are coerced to upper case.
+   will override the default values. The prefixes are coerced to upper case. The default
+   values are defined in ``src/utl/cfg.py``.
 -  **record_tag:**
 
    This is the tag (of which there are usually many)
    that will be the root for extracting columns. The default is
-   ``Object``.
+   ``Object``, defined in ``src/utl/cfg.py``.
 -  **record_id_xpath:**
 
    This is where the ID is found based on the
@@ -384,7 +407,8 @@ These statements are in the document whose **cmd:** is **global**.
 
    This is the column title of the column to use for the accession number. The
    default value is ``Serial`` (case sensitive). If this statement is specified,
-   the command line parameter ``--serial`` is ignored.
+   the command line parameter ``--serial`` is ignored. Use of the command parameter
+   is deprecated.
 -  **skip_number:**
 
    If specified, do not automatically write the serial number as the
@@ -431,7 +455,8 @@ These statements are in the document whose **cmd:** is **global**.
 -  **template_dir:**
 
    Only in ``csv2xml.py``: This names the path to the directory
-   containing the files named in the ``templates`` statement.
+   containing the files named in the ``templates`` statement. All of the template files
+   must be in the same directory.
 -  **templates:**
 
    Only in ``csv2xml.py``: This is a complex statement used to map keys
@@ -585,7 +610,8 @@ the elements in the XML document to a corresponding column in the associated CSV
    to be updated are hard-coded. See :ref:`location_command_statements` above for the relevant
    location-command statements.
    Also see :ref:`updating_locations` in the documentation for ``update_from_csv.py``.
-   At most one **location** command may be included in a configuration.
+   At most one **location** command may be included in a configuration. The script
+   ``location.py`` provides more location-related functionality.
 -  **cmd: multiple**
 
    Used by ``xml2csv.py``. Like the **column** command except it produces a

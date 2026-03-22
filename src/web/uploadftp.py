@@ -9,6 +9,8 @@
       - Add a prefix of ``collection_`` to each file, if needed.
       - Send the file to the host.
 
+    The FTP password is hard-coded to be in file ``etc/passwd``. The folder ``/etc/``
+    must be included in ``.gitignore``.
 """
 from ftplib import FTP
 import os.path
