@@ -29,7 +29,7 @@ from utl.normalize import sphinxify, if_not_sphinx
 
 
 def getparser():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     megroup = parser.add_mutually_exclusive_group(required=True)
     megroup.add_argument('-i', '--indir', help='''
         Folder to search.''')
