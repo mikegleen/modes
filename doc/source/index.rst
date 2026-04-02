@@ -18,6 +18,7 @@ Modes Python Library
    list_by_box
    list_needed
    location
+   mergexml
    recode_collection
    shrinkjpg
    sync_xml

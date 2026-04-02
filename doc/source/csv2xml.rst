@@ -1,6 +1,3 @@
-.. documentatin
-
-
 csv2xml
 =======
 
@@ -8,4 +5,3 @@ csv2xml
    :filename: ../src/csv2xml.py
    :func: getparser
    :prog: csv2xml.py
-
