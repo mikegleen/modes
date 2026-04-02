@@ -1,4 +1,7 @@
+#!/bin/bash
+set -e
+eval "$(conda shell.bash hook)"
+conda activate py313
 pushd doc
-touch $1
-echo file: $1
-make html|grep ERROR
+touch source/$*
+make html
