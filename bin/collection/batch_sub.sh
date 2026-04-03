@@ -29,7 +29,7 @@ mkdir -p $DESTDIR
 # Create a file with the accession numbers in column 1 and a "|" delimited list of image
 # filename in column 2. There is no heading row.
 #
-python src/web/x053_list_pages.py $IMGDIR ${DESTDIR}/${BR}_list.csv
+python src/web/x053_list_pages.py $IMGDIR ${DESTDIR}/${BR}_list.csv --verbose $VERBOS
 #
 # Pull the relevant fields from the Modes XML file for the objects in the batch.
 #
@@ -42,11 +42,12 @@ python src/xml2csv.py $MODESFILE $DESTDIR/${BR}_modesdata.csv \
 # Modify the CSV file to included new and adjusted columns.
 #
 if [ -z "$ADDENDUM" ] ; then
-python src/web/recode_collection.py --incsvfile $DESTDIR/${BR}_modesdata.csv --outfile $DESTDIR/${BR}.csv --imgcsvfile $DESTDIR/${BR}_list.csv -v $VERBOS
+python src/web/recode_collection.py --incsvfile $DESTDIR/${BR}_modesdata.csv --outfile $DESTDIR/${BR}.csv --imgcsvfile $DESTDIR/${BR}_list.csv -v $VERBOS --skipimgrows 1
 else
 python src/web/recode_collection.py --incsvfile $DESTDIR/${BR}_modesdata.csv \
                                     --addendum $DESTDIR/$ADDENDUM \
                                     --outfile $DESTDIR/${BR}.csv \
                                     --imgcsvfile $DESTDIR/${BR}_list.csv \
+                                    --skipimgrows 1 \
                                     -v $VERBOS
 fi
