@@ -41,9 +41,7 @@ def trace(level, template, *args, color=None):
 
 
 def getparser():
-    parser = argparse.ArgumentParser(description='''
-        For every JPG file in a directory, copy it to the output directory or, if
-        it is large, copy a shrunken version of it.''')
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('indir', help='''
         Input directory''')
     parser.add_argument('outdir', help='''
@@ -74,7 +72,8 @@ def getparser():
                         Inhibit colorizing the output which makes reading redirected output easier''')
     parser.add_argument('--ppi', type=int, help=f'''
         Set the number of pixels per inch in the output image. This value is used if
-        the dimensions of the object is found. The default is {DEFAULT_PPI} unless the elementtype
+        the dimensions of the object are found in the Modes XML file.
+        The default is {DEFAULT_PPI} unless the elementtype
         is "cutting" in which case it is {DEFAULT_CUTTING_PPI}.''')
     parser.add_argument('-t', '--trace', type=argparse.FileType('w'),
                         default=sys.stdout, help=sphinxify('''
