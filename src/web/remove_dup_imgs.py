@@ -43,8 +43,7 @@ def handle_folder(img_ids: dict, imgdir: str):
     :return: The set of normalized numbers.
     """
     def onefile(imgf: str):
-        m = re.match(r'(collection_)?(.*)', imgf)
-        imgf2 = m.group(2)  # remove optional leading 'collection_'
+        imgf2 = imgf.removeprefix('collection_')
         prefix, suffix = os.path.splitext(imgf2)
         if suffix.lower() not in ('.jpg', '.png'):
             if _args.verbose > 1:
@@ -56,8 +55,12 @@ def handle_folder(img_ids: dict, imgdir: str):
             print(f'Skipping {imgf}')
             return
         if nid in img_ids:
-            print(f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
-                  f'original in {img_ids[nid][0].removeprefix(_args.imgdir)}')
+            origpath = img_ids[nid][0]
+            pathsize = os.path.getsize(dirpath)
+            origsize = os.path.getsize(origpath)
+            issame = "***SAME***" if pathsize == origsize else " diff "
+            print(f'Duplicate {dirpath.removeprefix(_args.imgdir)} ({pathsize}),'
+                  f' {origpath.removeprefix(_args.imgdir)} ({origsize}), {issame}')
             if _args.delete:
                 print(f'Removing {dirpath}')
                 os.remove(dirpath)
