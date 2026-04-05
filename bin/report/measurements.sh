@@ -1,36 +1,15 @@
 #!/bin/zsh
 set -e
-INXML=2024-09-01a_part.xml
-SCRIPT=$(python -c "print('$ZSH_ARGZERO'.split('.')[0].split('/')[-1])")
+INXML=$(python src/utl/x066_latest.py -i prod_save/normal)
+SCRIPT=${ZSH_ARGZERO:t:r}  # ZSH doc 14.1.4 Modifiers
 OUTCSV=tmp/$SCRIPT.csv
-# echo $SCRIPT
+# echo  SCRIPT = $SCRIPT
 cat >tmp/$SCRIPT.yml <<EOF
-cmd: ifattribeq
-xpath: .
-attribute: elementtype
-value: cutting
+cmd: if
+xpath: ./Description/Measurement[Part="mount"]/Reading
 ---
-cmd: attrib
-xpath: .
-attribute: elementtype
----
-cmd: count
-xpath: ./Description/Measurement
----
-cmd: count
-xpath: ./Description/Measurement/Part
----
-cmd: column
-xpath: ./Description/Measurement[1]/Part
-title: part 1
----
-cmd: column
-xpath: ./Description/Measurement[2]/Part
-title: part 2
----
-cmd: column
-xpath: ./Description/Measurement[3]/Part
-title: part 3
+column: Mount Reading
+xpath: ./Description/Measurement[Part="mount"]/Reading
 ---
 EOF
-python src/xml2csv.py prod_update/normal/$INXML results/reports/$SCRIPT.csv -b -c tmp/$SCRIPT.yml --heading
+python src/xml2csv.py $INXML results/reports/$SCRIPT.csv -b -c tmp/$SCRIPT.yml --heading
