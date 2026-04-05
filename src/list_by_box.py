@@ -2,20 +2,20 @@
 """
     Create a report of box contents.
     Parameters:
-        1. Input XML file or CSV file.
-           XML  This is a Modes database
-           CSV  Heading is required. The first column is the serial number
-                and the second column is the location. Typically, this was
-                produced by filtering the database by some prior criterion.
-        2. Optional output CSV file. If omitted, output is to STDOUT.
+
+    1. Input XML file or CSV file.
+       XML:  This is a Modes database.
+       CSV:  Heading is required. The first column is the serial number
+       and the second column is the location. Typically, this was
+       produced by filtering the database by some prior criterion.
+    2. Optional output CSV file. If omitted, output is to STDOUT.
+
 """
 import argparse
 from collections import defaultdict
 import csv
 import re
 import sys
-# noinspection PyPep8Naming
-import xml.etree.ElementTree as ET
 
 from utl.cfgutil import expand_idnum
 from utl.readers import read_include_dict
@@ -54,19 +54,29 @@ def unpad_loc(loc):
 
 def one_xml_object(elt):
     num = elt.find('./ObjectIdentity/Number').text
+    if _args.verbose  > 1:
+        print(f'accession number: {num}')
     nnum = normalize_id(num)
     if includes:
         if nnum not in includes:
             return
     loc = elt.find('./ObjectLocation[@elementtype="current location"]/Location')
-    if loc is not None and loc.text:
-        location = pad_loc(loc.text)
-    else:
+    if loc is None or not loc.text:
         location = 'unknown'
-    title = elt.find('./Identification/Title').text
-    if not title:
+    else:
+        location = pad_loc(loc.text)
+    if _args.box and location.upper() != _args.box:
+        return
+    title_elt  = elt.find('./Identification/Title')
+    if title_elt is not None:
+        title = title_elt.text
+    else:
         title = ''
-    briefdes = elt.find('./Identification/BriefDescription').text
+    briefdes_elt = elt.find('./Identification/BriefDescription')
+    if briefdes_elt is not None:
+        briefdes = briefdes_elt.text
+    else:
+        briefdes = ''
     if briefdes is None:
         briefdes = ''
     boxdict[location].append(nnum)
@@ -125,35 +135,40 @@ def getparser() -> argparse.ArgumentParser:
     Called either by getargs() in this file or by Sphinx.
     :return: an argparse.ArgumentParser object
     """
-    parser = argparse.ArgumentParser(description='''
-    ''')
+    parser = argparse.ArgumentParser(description='Create a report of box contents.')
     parser.add_argument('infile', help=sphinxify('''
-        Modes XML database file or CSV file.
+        Modes XML database file or CSV file. If XML, this is a Modes database. If CSV,
+        heading is required. The first column is the serial number
+        and the second column is the location. Typically, this was
+        produced by filtering the database by some prior criterion.        
         ''', called_from_sphinx))
+    parser.add_argument('-b', '--box', help='''
+        If selected, a single named box will be displayed. The name is case insensitive.''')
     parser.add_argument('-c', '--outcsv', action='store_true', help='''
         Output is formatted as a CSV file. If not selected, a text report is
         written.''')
     parser.add_argument('-i', '--imglist', help='''
-        Text file with accession numbers of pictures already scanned.''')
+        Text file with accession numbers of pictures already scanned. The script will add a note
+        next to each accession number if that image has been scanned.''')
     parser.add_argument('--include', required=False, help='''
         A CSV file specifying the accession numbers of objects to be processed.
-        If omitted, all records will be processed. In either case, objects will
-        be output based on configuration statements. ''')
+        If omitted, all records will be processed.''')
     parser.add_argument('--include_column', required=False,
-                        default='0', type=str, help='''
+                        default='0', type=str, help=
+                        '''
         The column number containing the accession number in the file
         specified by the --include option.
         The column can be a number or a spreadsheet-style letter.''' +
-                                                    if_not_sphinx(f''' The default is 0, the first column.''',
-                                                                  called_from_sphinx))
+                        if_not_sphinx(f''' The default is 0, the first column.''',
+                                      called_from_sphinx))
 
     parser.add_argument('--include_skip', type=int, default=0, help='''
         The number of rows to skip at the front of the include file.''' +
-                                                                    if_not_sphinx(f''' The default is 0.
+                        if_not_sphinx(f''' The default is 0.
         ''', called_from_sphinx))
     parser.add_argument('-o', '--outfile', type=argparse.FileType('w'),
-                        default='-', help='''
-        The output CSV file.''')
+                        default='-', help=sphinxify('''
+        The output text or CSV file. The default is to print to STDOUT. See --outcsv.''', called_from_sphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -166,6 +181,8 @@ def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
     args.include_column = col2num(args.include_column)
+    if args.box:
+        args.box = pad_loc(args.box).upper()
     return args
 
 
