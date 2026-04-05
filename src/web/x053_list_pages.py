@@ -45,10 +45,20 @@ import sys
 from collections import defaultdict
 from colorama import Fore, Style
 
+from utl.cfgutil import Config
 from utl.normalize import normalize_id, denormalize_id
 from web.webutil import COLLECTION_PREFIX, parse_prefix
 
 IMGFILES = ('.jpg', '.jpeg', '.png')
+verbose = 1  # overwritten by _args.verbose; set here for unittest
+
+
+def trace(level, template, *args, color=None):
+    if verbose >= level:
+        if color and not _args.nocolor:
+            print(f'{color}{template.format(*args)}{Style.RESET_ALL}')
+        else:
+            print(template.format(*args))
 
 
 def pad_page_number(prefix, suffix, accn, subnum, subnum_ab, pagenum, pagenum_ab):
@@ -111,6 +121,7 @@ def one_file(filename):
     """
 
     global num_failed_match
+    trace(2,'one_file: {}', filename)
     prefix, suffix = os.path.splitext(filename)
     if suffix.lower() not in IMGFILES:
         if filename != '.DS_Store':  # MacOS magic file
@@ -147,19 +158,23 @@ def main(indir):
         else:
             one_file(file)
 
-    listlen = 0
+    longest_listlen = 0
     longest = None
+    print('Serial', file=outfile)
     for accn, filelist in sorted(accndict.items()):
-        if len(filelist) > listlen:
-            listlen = len(filelist)
+        if len(filelist) > longest_listlen:
+            longest_listlen = len(filelist)
             longest = accn
         filelist.sort()
         # Now return the filenames to the unpadded form, that is, as they
         # actually appear in the folder.
         unpadded_filelist = [unpad_page_number(filename) for filename in filelist]
         files = '|'.join(unpadded_filelist)
+        trace(2, 'main: accn={}, files: {}', accn, files)
         print(f'{denormalize_id(accn)},{files}', file=outfile)
-    print(f'Longest page list: {denormalize_id(longest)}, length: {listlen}')
+    print(f'{len(accndict)} accession numbers found.')
+    if longest:
+        print(f'Longest page list: {denormalize_id(longest)}, length: {longest_listlen}')
     print(f'Number failed match: {num_failed_match}')
 
 
@@ -182,6 +197,9 @@ def getparser():  # called either by getargs or sphinx
                         each subnumber is assumed to have its own Modes Object
                         element group. This means that you will be unable to
                         mix the two different modes in a single batch.''')
+    parser.add_argument('-v', '--verbose', type=int, default=1, help='''
+        Set the verbosity. The default is 1 which prints summary information.
+        ''')
     return parser
 
 
@@ -197,10 +215,15 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         sys.argv.append('-h')
     _args = getargs(sys.argv)
+    verbose = _args.verbose
+    Config()  # denormalize_id() needs a prefixes defined in the config
     num_failed_match = 0
     accndict = defaultdict(list)
     inputdir = _args.indir
     outfile = open(_args.outfile, 'w')
     main(inputdir)
+    if not len(accndict):
+        print('x053_list_pages aborting.')
+        exit(1)
     print(f'Creating file: {outfile.name}')
     print(Fore.LIGHTGREEN_EX + 'End x053_list_pages.' + Style.RESET_ALL)
