@@ -1,6 +1,9 @@
 """
     For each file in a "candidate" folder, if that file is not in the "done"
-    folder, copy it to a "staging" folder.
+    folder, copy it to a "staging" folder. Optionally
+    check that the filename matches an object in the Modes database.
+
+    Run list_needed.py before this script.
 """
 import argparse
 import csv
@@ -10,7 +13,7 @@ import sys
 
 from utl.list_objects import list_objects
 from utl.normalize import sphinxify
-from utl.normalize import normalize_id, denormalize_id
+from utl.normalize import normalize_id
 
 
 def trace(level, template, *args):
@@ -19,13 +22,7 @@ def trace(level, template, *args):
 
 
 def getparser():
-    parser = argparse.ArgumentParser(description='''
-    For each file in a "candidate" folder, if that file is not in the "done"
-    folder or any of its subfolders, copy it to a "staging" folder. Optionally
-    check that the filename matches an object in the Modes database.
-    
-    Run list_needed.py before this script.
-        ''')
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-c', '--candidate', required=True, help='''
         Directory containing new files that may need to be transferred''')
     parser.add_argument('-d', '--done', required=True, help='''
@@ -44,8 +41,7 @@ def getparser():
         ''', calledfromsphinx))
     parser.add_argument('--dryrun', action='store_true',
                         help=sphinxify('''
-        Do not copy files. Just print info. --verbose is set to 2 unless it is already
-        set higher than 1.''', calledfromsphinx))
+        Do not copy files. Just print info.''', calledfromsphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -55,14 +51,15 @@ def getparser():
 def getargs():
     parser = getparser()
     args = parser.parse_args()
-    if args.dryrun and args.verbose == 1:
-        args.verbose = 2
+    # if args.dryrun and args.verbose == 1:
+    #     args.verbose = 2
     return args
 
 
-def getdonedir() -> dict[str]:
+def getdonedir() -> dict:
+    global num_bad_format
     donedir = _args.done
-    done_files = {}
+    done_files = dict()
     # for donef in os.listdir(donedir):
     for dirpath, dirnames, filenames in os.walk(donedir):
         trace(2, f'{dirpath=}')
@@ -74,8 +71,9 @@ def getdonedir() -> dict[str]:
                 try:
                     naccnum = normalize_id(prefix)
                 except (ValueError, AssertionError) as e:
-                    trace(1, '******** getdonedir: Bad format: {}, filename:{}, {}, {}',
+                    trace(2, '******** getdonedir: Bad format: {}, filename:{}, {}, {}',
                           prefix, donef, str(e), e.args)
+                    num_bad_format += 1
                     continue
                 done_files[naccnum] = os.path.join(dirpath, donef)
             elif not donefile.startswith('.'):  # ignore .DS_Store etc.
@@ -83,8 +81,8 @@ def getdonedir() -> dict[str]:
     return done_files
 
 
-def getdonecsv() -> dict[str]:
-    done_files = {}
+def getdonecsv() -> dict:
+    done_files = dict()
     reader = csv.reader(_args.done)
     for row in reader:
         if row[0]:
@@ -140,6 +138,8 @@ calledfromsphinx = True
 if __name__ == '__main__':
     calledfromsphinx = False
     assert sys.version_info >= (3, 9)
+    if len(sys.argv) <= 2:
+        sys.argv.append('-h')
     _args = getargs()
 
     if not _args.staging and not _args.dryrun:
@@ -149,7 +149,7 @@ if __name__ == '__main__':
         print(_args.staging, 'is not a directory. Aborting.')
         sys.exit(1)
     verbose = _args.verbose
-    ncandidates = ncopied = 0
+    ncandidates = ncopied = num_bad_format = 0
     donefiles = getdonedir() if os.path.isdir(_args.done) else getdonecsv()
     objects = None
     if _args.modes:
@@ -160,3 +160,4 @@ if __name__ == '__main__':
     harvest(_args.candidate)
     # print(donefiles)
     trace(1, '{} copied of {} candidates', ncopied, ncandidates)
+    trace(1, '{} filenames in done directory in bad format.', num_bad_format)

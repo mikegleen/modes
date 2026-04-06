@@ -42,7 +42,7 @@ def getparser():
     parser.add_argument('-m', '--modify', action='store_true', help=sphinxify('''
         If specified, append the value of --modify_text to the date portion of the filename.
         2026-03-15_prod_save becomes 2026-03-15s_prod_save. Used by script
-        sort_prod_save.sh so that x066_latest.py will select the sorted file
+        ``sort_prod_save.sh`` so that x066_latest.py will select the sorted file
         to use as input.''', calledfromsphinx))
     parser.add_argument('--modify_text', default='s', help='''
         The optional text to append to the date part of the filename.''' +

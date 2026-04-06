@@ -21,6 +21,7 @@ from inspect import getframeinfo, stack
 
 from colorama import Fore, Style
 
+from utl.cfgutil import Config
 from utl.normalize import britishdatefrommodes, normalize_id, denormalize_id
 from utl.normalize import isoformatfrommodesdate
 from utl.normalize import sphinxify
@@ -90,11 +91,11 @@ def read_img_csv_file() -> dict:
     if not _args.imgcsvfile:
         trace(1, 'Warning: no images loaded.', color=Fore.YELLOW)
         return img_dict
-    with codecs.open(_args.imgcsvfile, encoding='utf-8-sig') as imgcsvfile:
-        reader = csv.reader(imgcsvfile)
+    with open(_args.imgcsvfile, encoding='utf-8-sig') as imgcsvfile:
+        reader = csv.DictReader(imgcsvfile)
         for row in reader:
-            n_serial = normalize_id(row[0])
-            img_dict[n_serial] = row[1].split('|')
+            n_serial = normalize_id(row['Serial'])
+            img_dict[n_serial] = row['Images'].split('|')
     return img_dict
 
 
@@ -267,7 +268,10 @@ def onerow(oldrow):
 
 def main():
     inreader = csv.DictReader(incsvfile)
-    n_input_fields = len(inreader.fieldnames)
+    fn = []
+    if inreader.fieldnames is not None:  # gymnastics to avoid PyCharm warnings
+        fn = [n for n in inreader.fieldnames]
+    n_input_fields = len(fn)
     readers = [inreader]
     if _args.addendum:
         addreader = csv.DictReader(addendum)
@@ -321,7 +325,8 @@ def getparser() -> argparse.ArgumentParser:
     parser.add_argument('-g', '--imgcsvfile', required=False,
                         help=sphinxify('''
         This file contains two columns, the Serial number and a vertial bar
-        separated list of image files. This file is created by ``x053_list_pages.py``.       
+        separated list of image files. This file is created by ``x053_list_pages.py`` There is a heading
+        row with columns entitled "Serial" and "Images".       
         ''', called_from_sphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
@@ -334,11 +339,6 @@ def getparser() -> argparse.ArgumentParser:
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
-    #
-    # commented out because I can't remember why I wrote it.
-    # if args.addendum:
-    #     args.addendum = args.addendum.lower()
-
     return args
 
 
@@ -346,18 +346,18 @@ called_from_sphinx = True
 
 
 if __name__ == '__main__':
-    assert sys.version_info >= (3, 9)
+    assert sys.version_info >= (3, 14)
     called_from_sphinx = False
     if len(sys.argv) == 1:
         sys.argv.append('-h')
     _args = getargs(sys.argv)
-    incsvfile = codecs.open(_args.incsvfile, encoding='utf-8-sig')
-    outfile = codecs.open(_args.outfile, 'w', encoding='utf-8-sig')
-    trace(1, 'Begin recode_collection.', color=Fore.GREEN)
+    trace(1, Fore.LIGHTGREEN_EX + 'Begin recode_collection.' + Style.RESET_ALL)
+    Config()
+    incsvfile = open(_args.incsvfile, encoding='utf-8-sig')
+    outfile = open(_args.outfile, 'w', encoding='utf-8-sig')
     trace(1, '    Input file: {}', _args.incsvfile)
-    addendum = None
     if _args.addendum:
-        addendum = codecs.open(_args.addendum, encoding='utf-8-sig')
+        addendum = open(_args.addendum, encoding='utf-8-sig')
         trace(1, '    Input addendum file: {}', _args.addendum)
     trace(1, '    Creating file: {}', _args.outfile)
     imgdict = read_img_csv_file()

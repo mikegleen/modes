@@ -4,14 +4,13 @@ corresponding image is not in a folder.
 
 """
 import argparse
-import csv
 import os.path
 import re
 import sys
 from utl.excel_cols import col2num
 from utl.list_objects import list_objects
 from utl.normalize import normalize_id, denormalize_id
-from utl.readers import row_dict_reader, row_list_reader
+from utl.readers import row_list_reader
 
 
 def trace(level, template, *args):
@@ -36,7 +35,7 @@ def getparser():
         object we are searching for. The default is column zero.  The column
         can be a number or a spreadsheet-style letter.''')
     parser.add_argument('-i', '--invert', action='store_true', help='''
-        Report if the image **IS** in the folder.''')
+        Report if the image *is* in the folder.''')
     parser.add_argument('-m', '--modesfile', required=True, help='''
         File to search for valid accession numbers.''')
     parser.add_argument('-r', '--reportfile', help='''
@@ -71,6 +70,7 @@ def build_img_dict(img_ids: dict, imgdir: str):
              name without possible leading "collection_" and the path.
     """
     def onefile(imgf: str):
+        global num_skipped
         imgf2 = imgf.removeprefix('collection_')
         prefix, suffix = os.path.splitext(imgf2)
         if suffix.lower() not in ('.jpg', '.jpeg', '.png'):
@@ -85,7 +85,8 @@ def build_img_dict(img_ids: dict, imgdir: str):
         try:
             nid = normalize_id(prefix)
         except ValueError as ve:
-            print(f'Skipping {imgf}: {ve}')
+            trace(2, 'Skipping {}: {}', imgf, ve)
+            num_skipped += 1
             return
         if nid in img_ids:
             trace(3, f'Duplicate: {prefix} in {dirpath.removeprefix(_args.imgdir)},'
@@ -107,11 +108,13 @@ def build_img_dict(img_ids: dict, imgdir: str):
 def build_candidate_set(valid_idnums):
     """
     From a CSV file or a folder of JPG files, extract a set of accession
-    numbers that we want.
+    numbers that we want. Get the file or folder name from argument --candidatefile.
     :param valid_idnums: The set of normalized accession numbers extracted
            from a Modes XML file
-    :return:
+    :return: A set containing normalized accession numbers
     """
+
+    global num_skipped
 
     def add_one_id(candidate):
         """
@@ -119,6 +122,7 @@ def build_candidate_set(valid_idnums):
         :return: None. The nonlocal candidate_set is updated if the name
                  was valid.
         """
+        global num_skipped
         nonlocal notinmodes
         candidate2 = candidate.removeprefix('collection_')
         try:
@@ -126,6 +130,7 @@ def build_candidate_set(valid_idnums):
         except ValueError as ve:
             if not candidate2.startswith('.'):
                 trace(1, '{}', ve)
+                num_skipped += 1
             return
         if normid in valid_idnums:
             candidate_set.add(normid)
@@ -168,23 +173,25 @@ def main():
     img_dict = dict()
     build_img_dict(img_dict, _args.imgdir)
     for nid in sorted(candidate_set):
-        denid = denormalize_id(nid)
-        if _args.invert:
-            if nid not in img_dict:
-                trace(2, 'Not in image folder: {}', denid)
-                continue
+        idnum = denormalize_id(nid)
+        if nid in img_dict:
+            trace(3, 'In image folder: {}', idnum)
+            if reportfile:
+                print(idnum, img_dict[nid][1], file=reportfile)
         else:
             if nid in img_dict:
-                trace(3, 'In image folder: {}', denid)
+                trace(3, 'In image folder: {}', idnum)
                 if reportfile:
-                    print(denid, img_dict[nid][1], file=reportfile)
+                    print(idnum, img_dict[nid][1], file=reportfile)
                 continue
         # print IDs of objects needed as they are not in the image folder(s).
         # if --invert is set, print the objects in the image folder(s).
-        print(denid, file=outfile)
+        print(idnum, file=outfile)
         numneeded += 1
     needq = f'{"not " if _args.invert else ""}needed'
     trace(1, f'Total {needq}: {numneeded} of {len(candidate_set)} candidates.')
+    if num_skipped:
+        trace(1, '{} files skipped.', num_skipped)
 
 
 if __name__ == '__main__':
@@ -200,4 +207,5 @@ if __name__ == '__main__':
         outfile = sys.stdout
     VERBOSE = _args.verbose
     reportfile = open(_args.reportfile, 'w') if _args.reportfile else None
+    num_skipped = 0
     main()

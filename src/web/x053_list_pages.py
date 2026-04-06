@@ -160,7 +160,7 @@ def main(indir):
 
     longest_listlen = 0
     longest = None
-    print('Serial', file=outfile)
+    print('Serial,Images', file=outfile)
     for accn, filelist in sorted(accndict.items()):
         if len(filelist) > longest_listlen:
             longest_listlen = len(filelist)
@@ -181,7 +181,7 @@ def main(indir):
 def getparser():  # called either by getargs or sphinx
     parser = argparse.ArgumentParser(description='''
     Read the folder holding images and create a CSV file of accession number
-    and filename(s).
+    and filename(s). There is a heading row of "Serial,Images".
         ''')
     parser.add_argument('indir', help='''
         The folder containing the images.''')
