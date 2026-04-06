@@ -13,10 +13,11 @@
     Trace levels:
 
     #. Summary info
-    #. Inserted and deleted objects
+    #. Inserted objects
     #. Changed objects
     #. Unchanged objects
     #. Details for debugging
+
 """
 import argparse
 import os.path
@@ -132,13 +133,9 @@ def main():
     if _args.outfile:
         outfile.write(b'</Interchange>')
 
-
 def getparser():
-    parser = argparse.ArgumentParser(description=sphinxify('''
-        Compare two Modes XML Object files and output just the elements that
-        have changed or been added. If an element has been deleted, the accession
-        number is reported.
-        ''', calledfromsphinx))
+    parser = argparse.ArgumentParser(description=sphinxify(__doc__, calledfromsphinx),
+                                     formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('infile1', help='''
         The old XML file''')
     parser.add_argument('infile2', help='''
