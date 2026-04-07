@@ -67,7 +67,7 @@ def getdonedir() -> dict:
             donefile = donef.removeprefix('collection_').lower()
             if donefile.endswith('.jpg'):
                 trace(3, f'   {donefile}')
-                prefix, _ = os.path.splitext(donefile)
+                prefix, _ = os.path.splitext(str(donefile))
                 try:
                     naccnum = normalize_id(prefix)
                 except (ValueError, AssertionError) as e:
@@ -75,7 +75,7 @@ def getdonedir() -> dict:
                           prefix, donef, str(e), e.args)
                     num_bad_format += 1
                     continue
-                done_files[naccnum] = os.path.join(dirpath, donef)
+                done_files[naccnum] = os.path.join(str(dirpath), str(donef))
             elif not donefile.startswith('.'):  # ignore .DS_Store etc.
                 trace(2, f'----skipping {donef}')
     return done_files
@@ -131,7 +131,7 @@ def harvest(candidatedir):
             trace(1, 'harvesting: {}', candidate)
             trace(2, '    from {}, to directory {}', frompath, _args.staging)
             if not _args.dryrun:
-                shutil.copy(frompath, _args.staging)
+                shutil.copy(str(frompath), _args.staging)  # convert to str to stop PyCharm whining
 
 
 calledfromsphinx = True
