@@ -133,6 +133,7 @@ def main():
     if _args.outfile:
         outfile.write(b'</Interchange>')
 
+
 def getparser():
     parser = argparse.ArgumentParser(description=sphinxify(__doc__, calledfromsphinx),
                                      formatter_class=argparse.RawTextHelpFormatter)
