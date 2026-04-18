@@ -135,7 +135,7 @@ def main():
 
 
 def getparser():
-    parser = argparse.ArgumentParser(description=sphinxify(__doc__, calledfromsphinx),
+    parser = argparse.ArgumentParser(description=sphinxify(str(__doc__), calledfromsphinx),
                                      formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('infile1', help='''
         The old XML file''')
