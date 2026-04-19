@@ -13,6 +13,7 @@ Modes Python Library
    docx2csv
    utility_functions
    exhibition
+   filter_xml
    list_elt_type
    list_imgs
    list_by_box

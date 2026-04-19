@@ -91,10 +91,11 @@ def getparser():
                         help=sphinxify('''
         Allow output to a directory that is not empty.
         ''', calledfromsphinx))
-    parser.add_argument('--include', required=False, help='''
+    parser.add_argument('--include', required=False, help=sphinxify('''
         A CSV file specifying the accession numbers of records to process.
         If omitted, all records will be processed based on configuration
-        statements.''')
+        statements. If --exclude is specified, the objects specified in this
+        CSV file will be deleted.''', calledfromsphinx))
     parser.add_argument('--include_column', required=False, type=str,
                         default='0', help='''
         The column number containing the accession number in the file
