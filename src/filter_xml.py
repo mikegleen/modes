@@ -51,11 +51,15 @@ def main():
             selcount += 1
             outstring = ET.tostring(oldobject, encoding=_args.encoding)
             if _args.directory:
-                objfilename = os.path.join(_args.outfile, idnum + '.xml')
+                objfilename = os.path.join(_args.outfile, str(idnum) + '.xml')
                 objfile = open(objfilename, 'wb')
+                # PyCharm hack
+                # noinspection PyTypeChecker
                 objfile.write(outstring)
                 objfile.close()
             else:
+                # PyCharm hack
+                # noinspection PyTypeChecker
                 outfile.write(outstring)
         oldobject.clear()
         if _args.short:
@@ -145,10 +149,10 @@ if __name__ == '__main__':
     _args = getargs(sys.argv)
     infile = open(_args.infile)
     if _args.directory:
-        outfile = _args.outfile
-        ld = os.listdir(outfile)
+        outdir = _args.outfile
+        ld = os.listdir(outdir)
         if ld and not _args.force:
-            print(f'Directory {outfile} is not empty. Exiting.')
+            print(f'Directory {outdir} is not empty. Exiting.')
             sys.exit()
     else:
         outfile = open(_args.outfile, 'wb')

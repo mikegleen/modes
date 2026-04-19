@@ -40,7 +40,7 @@ def trace(level, template, *args, color=None):
             print(template.format(*args))
 
 
-def nextobj(pnum: int, reader: object_reader):
+def nextobj(pnum: int, reader):
     """
 
     :param pnum: Either 1 or 2 indicating which object_reader has ben passed
@@ -55,7 +55,7 @@ def nextobj(pnum: int, reader: object_reader):
     idnum, nidnum, obj = next(reader)
     objstr = ET.tostring(obj)
     trace(5, 'File {} {}', pnum, nidnum)
-    if nidnum <= oldid[pnum]:
+    if nidnum <= str(oldid[pnum]):
         trace(0, "Objects out of order in file {}. Old ID = {}, "
                  "New ID = {}", pnum, oldid[pnum], nidnum,
               color=Fore.RED)
@@ -173,7 +173,7 @@ def getargs(argv):
     return args
 
 
-def s(i: int):
+def s(i: int | None):
     return '' if i == 1 else 's'
 
 
