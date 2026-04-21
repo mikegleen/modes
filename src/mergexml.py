@@ -52,7 +52,11 @@ def nextobj(pnum: int, reader):
         the output of ET.tostring(obj)
     """
 
-    idnum, nidnum, obj = next(reader)
+    try:
+        idnum, nidnum, obj = next(reader)
+    except StopIteration:
+        trace(5, 'End of file {}', pnum)
+        return None, None, None, None
     objstr = ET.tostring(obj)
     trace(5, 'File {} {}', pnum, nidnum)
     if nidnum <= str(oldid[pnum]):
@@ -67,8 +71,8 @@ def nextobj(pnum: int, reader):
 
 def main():
     global objcount, written
-    reader1 = object_reader(_args.infile1, normalize=True, verbos=_args.verbos)
-    reader2 = object_reader(_args.infile2, normalize=True, verbos=_args.verbos)
+    reader1 = object_reader(_args.infile1, normalize=True, config=config, verbos=_args.verbose, filetag='file1')
+    reader2 = object_reader(_args.infile2, normalize=True, config=config, verbos=_args.verbose, filetag='file2')
     obj1, id1, nid1, objstr1 = nextobj(1, reader1)
     obj2, id2, nid2, objstr2 = nextobj(2, reader2)
     #
@@ -86,6 +90,7 @@ def main():
             if obj1 is None:
                 break
             written += 1
+            trace(2, "case 1: Write file1 element at end: {}", nid1)
             if _args.outfile:
                 outfile.write(objstr1)
             obj1.clear()
@@ -95,13 +100,14 @@ def main():
         if nid1 is None:
             # The objects in infile2 are new. Write them all
             written += 1
-            trace(2, "Write file2 element at end: {}", nid2)
+            trace(2, "case 2: Write file2 element at end: {}", nid2)
             if _args.outfile:
                 outfile.write(objstr2)
             obj2.clear()
             obj2, id2, nid2, objstr2 = nextobj(2, reader2)
             continue
         if nid1 == nid2:
+            trace(4, "case 3: nid1 == nid2")
             if _args.allow_replace:
                 written += 1
                 trace(2, "Duplicate found. Write file2 element: {}", nid2)
@@ -116,14 +122,14 @@ def main():
             sys.exit(1)
         if nid1 < nid2:
             written += 1
+            trace(2, "case 4: nid1 < nid2: Write file1 element: {}", nid1)
             if _args.outfile:
                 outfile.write(objstr1)
             obj1.clear()
             obj1, id1, nid1, objstr1 = nextobj(1, reader1)
-            trace(2, "Write file1 element: {}", nid1)
             continue
         # nid2 < nid1
-        trace(2, "Write file2 element {}", id2)
+        trace(2, "case 5: Write file2 element {}", id2)
         written += 1
         if _args.outfile:
             outfile.write(objstr2)

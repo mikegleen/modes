@@ -36,7 +36,7 @@ def _trimrow(r: list, maxlen: int):
     return r
 
 
-def object_reader(infilename: str | None, config=None, normalize=False, verbos=1):
+def object_reader(infilename: str | None, config=None, normalize=False, verbos=1, filetag=''):
     """
     Open an XML file and return Object elements.
 
@@ -45,6 +45,7 @@ def object_reader(infilename: str | None, config=None, normalize=False, verbos=1
                    The function refers to config members ``record_tag`` and ``record_id_xpath``.
     :param normalize: return a modified tuple (see below)
     :param verbos: trace level
+    :param filetag: string to print in trace indicating which file is being read
     :return: An iterator that returns tuples of:
                 (accession number, element)
              If normalize==True, return tuples of:
@@ -70,7 +71,7 @@ def object_reader(infilename: str | None, config=None, normalize=False, verbos=1
             idelem = elem.find(config.record_id_xpath)
             idnum = idelem.text if idelem is not None else ''
             if verbos >= 3:
-                print('idnum: {}', idnum)
+                print(f'{filetag} idnum: {idnum}')
             if normalize:
                 yield idnum, normalize_id(idnum), elem
             else:
