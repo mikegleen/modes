@@ -84,7 +84,8 @@ def one_document(document, parent, norm_idnum, includes):
         text = ''
     else:
         text = element.text.strip()
-
+        if Stmt.GROUP in document:
+            text = document[Stmt.GROUP].join(element.itertext())
     if Stmt.NORMALIZE in document:
         text = normalize_id(text, _args.mdacode)
     if Stmt.WIDTH in document:

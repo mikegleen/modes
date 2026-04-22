@@ -199,7 +199,7 @@ the ``cmd: global`` document.
 
 - **group:**
 
-   Used by **if**, **ifnot**, and **column** commands to indicate that the text
+   Used in ``xml2csv.py`` by **if**, **ifnot**, and **column** commands to indicate that the text
    from the named element and all of its descendents are to be examined instead
    of just the named element’s text.
 

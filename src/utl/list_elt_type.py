@@ -42,7 +42,8 @@ def getparser():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
-    parser.add_argument('-t', '--type', help='''Print the object number and title of all of the Object elements of this type.''')
+    parser.add_argument('-t', '--type', help='''Print the object number and title of all of the Object
+    elements of this type.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''Set the verbosity. '''
                         '''The default is 1 which prints summary information. ''')
     parser.add_argument('-w', '--width', type=int, default=50,
