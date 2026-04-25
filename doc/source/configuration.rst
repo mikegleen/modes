@@ -6,7 +6,7 @@ configuration
 .. contents::
 
 The Configuration Domain Specific Language (DSL)
-------------------------------------------------
+================================================
 
    Format conventions:
 
@@ -442,7 +442,7 @@ These statements are in the document whose **cmd:** is **global**.
    for all of the objects to be created. To specify different template files for different
    types of object, see the other template related statements below.
 
-   The ``--template`` command-line parameter overrides this statement.
+   You may not specify the ``--template`` command-line parameter if you specify this statement.
    If this statement or the ``--template`` command-line parameter is specified,
    do not specify other tempate-related statements.
 -  **template_title:**
@@ -457,6 +457,8 @@ These statements are in the document whose **cmd:** is **global**.
    Only in ``csv2xml.py``: This names the path to the directory
    containing the files named in the ``templates`` statement. All of the template files
    must be in the same directory.
+   You may not specify the ``--template`` command-line parameter if you specify this statement.
+
 -  **templates:**
 
    Only in ``csv2xml.py``: This is a complex statement used to map keys

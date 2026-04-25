@@ -171,9 +171,11 @@ def main():
     if not _args.noprolog:
         outfile.write(b'<?xml version="1.0"?><Interchange>\n')
     global_object_template = None
-    # The command-line argument --template overrides the YML config value.
     if _args.template:
+        trace(1, "Warning: the --template parameter is deprecated.")
         global_object_template = get_object_from_file(_args.template)
+        if config.template_file or config.templates:
+            raise ValueError('You may not specify both --template and template values in the YAML configuration.')
     elif config.template_file:
         global_object_template = get_object_from_file(config.template_file)
 
@@ -273,8 +275,7 @@ def getparser():
         if the parameter is "LDHRM.2021.2", the numbers assigned will be
         "LDHRM.2021.2", "LDHRM.2021.3", etc. This value will be stored in the
         ObjectIdentity/Number element.''')
-    parser.add_argument('-c', '--cfgfile', required=True,
-                        type=argparse.FileType(), help=sphinxify('''
+    parser.add_argument('-c', '--cfgfile', required=True, help=sphinxify('''
         The YAML file describing the column path(s) to update.
         The config file may contain only ``column``, ``constant``, or
         ``items`` column-related commands or template-related commands.
@@ -323,7 +324,7 @@ def getparser():
         Skip rows at the beginning of the CSV file.''')
     parser.add_argument('-t', '--template', help=sphinxify('''
         The XML file that is the template for creating the output XML.
-        Specify this or template-related statements in the configuration.
+        This parameter is deprecated. Specify template-related statements in the configuration.
         ''', calledfromsphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
@@ -380,7 +381,8 @@ if __name__ == '__main__':
     outfile = open(_args.outfile, 'wb')
     trace(1, 'Input file: {}', _args.incsvfile)
     trace(1, 'Creating file: {}', _args.outfile)
-    config: Config = Config(_args.cfgfile, dump=_args.verbose > 1,
+    cfgfile = open(_args.cfgfile)
+    config: Config = Config(cfgfile, dump=_args.verbose > 1,
                             allow_required=True)
     if errors := check_cfg(config):
         trace(1, '{} error(s) found. Aborting.', errors)
