@@ -1,14 +1,12 @@
 .. _configuration:
 
-configuration
-=============
-
-.. contents::
-
 The Configuration Domain Specific Language (DSL)
 ================================================
 
-   Format conventions:
+.. contents::
+
+
+Format conventions:
 
 -   *Italics*    - XML element names
 -    **Bold**     - Commands
