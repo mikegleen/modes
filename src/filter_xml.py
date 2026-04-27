@@ -104,7 +104,7 @@ def getparser():
                         default='0', help='''
         The column number containing the accession number in the file
         specified by the --include option. The default is 0, the first column.
-         The column can be a number or a spreadsheet-style letter.''')
+        The column can be a number or a spreadsheet-style letter.''')
     parser.add_argument('--include_skip', type=int, default=0, help='''
         The number of rows to skip at the front of the include file. The
         default is 0.
