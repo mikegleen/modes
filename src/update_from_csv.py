@@ -70,7 +70,7 @@
         </ItemList>
 
     See the commands **subid_column**, **subid_parent**, and **subid_grandparent** in the
-    :ref:`global_command` section in the configuration document.
+    :ref:`global_command_statements` section in the configuration document.
 
 """
 import argparse
