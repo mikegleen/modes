@@ -39,6 +39,7 @@ The Exhibition group template is::
                 <DateBegin />
                 <DateEnd />
             </Date>
+            <ExhibitionNumber />
         </Exhibition>
 
 
@@ -520,7 +521,7 @@ def getparser():
     parser.add_argument('--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('--validate', action='store_true', help='''
-        Alias for `--verify`.
+        Alias for ``--verify``.
         ''')
     parser.add_argument('--verify', action='store_true', help='''
         Compare the exhibition values in the XML file the values in exhibition_list.py.
