@@ -382,7 +382,7 @@ if __name__ == '__main__':
     trace(1, 'Input file: {}', _args.incsvfile)
     trace(1, 'Creating file: {}', _args.outfile)
     cfgfile = open(_args.cfgfile)
-    config: Config = Config(cfgfile, dump=_args.verbose > 1,
+    config: Config = Config(cfgfile, verbos=_args.verbose,
                             allow_required=True)
     if errors := check_cfg(config):
         trace(1, '{} error(s) found. Aborting.', errors)

@@ -68,7 +68,7 @@ def nextobj(pnum: int, objectreader):
 
 def main():
     global objcount, deleted, added, replaced, written, skipped
-    config = Config(_args.config, mdacode=_args.mdacode, dump=_args.verbose >= 2)
+    config = Config(_args.config, mdacode=_args.mdacode, verbos=_args.verbose)
     ip1 = readers.object_reader(_args.infile1, config=config, normalize=True,)
     ip2 = readers.object_reader(_args.infile2, config=config, normalize=True)
     obj1, id1, nid1, objstr1 = nextobj(1, ip1)

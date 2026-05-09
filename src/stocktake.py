@@ -170,7 +170,7 @@ if __name__ == '__main__':
         sys.argv.append('-h')
     _args = getargs(sys.argv)
     cfg_file = io.StringIO(CFG_STRING)
-    cfg = Config(cfg_file, dump=_args.verbose > 1)
+    cfg = Config(cfg_file, verbos=_args.verbose)
     is_xlsx = _args.outfile.lower().endswith('.xlsx')
     if is_xlsx:
         wb = Workbook()

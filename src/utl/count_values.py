@@ -73,7 +73,7 @@ def get_xpath() -> (str, bool):
     if _args.xpath:
         return _args.xpath, _args.normalize
     else:
-        config: Config = Config(_args.cfgfile, dump=_args.verbose > 1,
+        config: Config = Config(_args.cfgfile, verbos=_args.verbose,
                                 allow_required=True)
         if len(config.col_docs) > 1:
             raise ValueError('Only a single column command is allowed in the '

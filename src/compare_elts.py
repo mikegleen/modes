@@ -153,7 +153,7 @@ if __name__ == '__main__':
     called_from_sphinx = False
     _args = getargs(sys.argv)
     cfgfile = open(_args.cfgfile)
-    config = Config(cfgfile, dump=_args.verbose >= 2)
+    config = Config(cfgfile, verbos=_args.verbose)
     main()
     basename = os.path.basename(sys.argv[0])
     trace(1, f'End {basename.split(".")[0]}')

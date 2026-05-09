@@ -242,7 +242,7 @@ class Config:
         # print('set_location_doc', doc)
         return None
 
-    def __init__(self, yamlcfgfile=None, dump: bool = False,
+    def __init__(self, yamlcfgfile=None,
                  allow_required: bool = False, logfile=sys.stdout, verbos=1,
                  mdacode=DEFAULT_MDA_CODE, args=None):
         """
@@ -308,6 +308,7 @@ class Config:
         if Config.__instance is not None:
             raise ValueError("This class is a singleton!")
         Config.__instance = self
+        dump = verbos > 1
         cfg.config_instance = self  # kludge to avoid circular import
         # print(f'{cfg.config_instance=}')
         self.logfile = logfile
@@ -331,7 +332,7 @@ class Config:
         self.exhibition_inv_dict = None  # will map exhibition tuple to exhib #
         self.prefixes = {key.upper(): int(value) for key, value in
                          Config.get_default_prefix_padding().items()}
-
+        self.verbose = verbos  # In some scripts the verbose= arg will override
         cfglist = _read_yaml_cfg(yamlcfgfile, dump=dump, logfile=logfile)
         valid = validate_yaml_cfg(cfglist, allow_required)
         if not valid:

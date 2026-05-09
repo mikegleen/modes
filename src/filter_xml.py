@@ -160,7 +160,7 @@ if __name__ == '__main__':
         cfgfile = open(_args.cfgfile)
     else:
         cfgfile = None
-    config = Config(cfgfile, mdacode=_args.mdacode, dump=_args.verbose >= 2)
+    config = Config(cfgfile, mdacode=_args.mdacode, verbos=_args.verbose)
     if _args.object:
         expanded = [normalize_id(obj) for obj in expand_idnum(_args.object)]
         includeset = set(expanded)  # JB001-002 -> JB001, JB002

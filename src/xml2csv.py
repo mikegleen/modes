@@ -113,8 +113,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     else:
         cfgfile = None
         trace(1, 'Warning: Config file omitted. Only accession numbers will be output.')
-    config = Config(cfgfile, dump=_args.verbose >= 2, logfile=_logfile,
-                    verbos=_args.verbose)
+    config = Config(cfgfile, verbos=_args.verbose, logfile=_logfile)
     outcsv, outfile = opencsvwriter(outfilename, config.delimiter)
     outlist = []
     titles = yaml_fieldnames(config)

@@ -201,7 +201,7 @@ if __name__ == '__main__':
     trace(1, 'Begin {}', basename.split(".")[0], color=Fore.GREEN)
     if _args.outfile:
         outfile = open(_args.outfile, 'wb')
-    config = Config(_args.config, mdacode=_args.mdacode, dump=_args.verbose >= 2)
+    config = Config(_args.config, mdacode=_args.mdacode, verbos=_args.verbose)
     main()
     trace(1, '{} object{} in file 1: {}', objcount[1], s(objcount[1]), _args.infile1)
     trace(1, '{} object{} in file 2: {}', objcount[2], s(objcount[2]), _args.infile2)

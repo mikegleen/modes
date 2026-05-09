@@ -186,7 +186,7 @@ if __name__ == '__main__':
         cfgfile = open(_args.cfgfile)
     else:
         cfgfile = io.StringIO(CONFIGSTRING)
-    config = Config(cfgfile, dump=_args.verbose >= 2)
+    config = Config(cfgfile, verbos=_args.verbose)
     outfile = codecs.open(_args.output, 'w', 'utf-8-sig')
     outwriter = csv.writer(outfile)
     outwriter.writerow(('Serial', 'Title', 'Revised Title', 'BriefDescription',
