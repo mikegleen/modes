@@ -1,7 +1,6 @@
 """
 
 """
-import codecs
 import csv
 import datetime
 import os
@@ -91,7 +90,7 @@ def get_heading(filepath: str | None, verbos=1, skiprows=0) -> list | None:
         return None
     _, suffix = os.path.splitext(filepath)
     if suffix.lower() == '.csv':
-        with codecs.open(filepath, encoding='utf-8-sig') as mapfile:
+        with open(filepath, encoding='utf-8-sig') as mapfile:
             for _ in range(skiprows):
                 next(mapfile)
             reader = csv.DictReader(mapfile)
@@ -152,7 +151,7 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
         return None
     _, suffix = os.path.splitext(filename)
     if suffix.lower() == '.csv':
-        with codecs.open(filename, encoding='utf-8-sig') as mapfile:
+        with open(filename, encoding='utf-8-sig') as mapfile:
             for _ in range(skiprows):
                 next(mapfile)
             reader = csv.DictReader(mapfile)
@@ -227,7 +226,7 @@ def row_list_reader(filename: str | None, verbos=1, skiprows=0,
         return None
     _, suffix = os.path.splitext(filename)
     if suffix.lower() == '.csv':
-        with codecs.open(filename, encoding='utf-8-sig') as mapfile:
+        with open(filename, encoding='utf-8-sig') as mapfile:
             reader = csv.reader(mapfile)
             for _ in range(skiprows):
                 next(reader)
