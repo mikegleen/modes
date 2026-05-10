@@ -67,7 +67,7 @@ def getparser():
         if parameter --inxml and/or --incsv is specified and a size value is
         found.''' + if_not_sphinx(f'''
         The default is {DEFAULT_MAXPIXELS} pixels.''',
-                                   calledfromsphinx), calledfromsphinx))
+                                  calledfromsphinx), calledfromsphinx))
     parser.add_argument('--nocolor', action='store_true', help='''
                         Inhibit colorizing the output which makes reading redirected output easier''')
     parser.add_argument('--ppi', type=int, help=f'''
@@ -75,7 +75,7 @@ def getparser():
         the dimensions of the object are found in the Modes XML file.
         The default is {DEFAULT_PPI} unless the elementtype
         is "cutting" in which case it is {DEFAULT_CUTTING_PPI}.''')
-    parser.add_argument('-t', '--trace', type=argparse.FileType('w'),
+    parser.add_argument('-t', '--trace',
                         default=sys.stdout, help=sphinxify('''
                         File to write trace
                         output to, to avoid confusion with output from sips. Implies --nocolor. 
@@ -91,6 +91,7 @@ def getargs():
     args = parser.parse_args()
     if args.dryrun:
         args.verbose = max(2, args.verbose)
+    args.trace = open(args.trace, 'w')
     if args.trace != sys.stdout:
         args.nocolor = True
     return args

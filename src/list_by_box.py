@@ -166,7 +166,7 @@ def getparser() -> argparse.ArgumentParser:
         The number of rows to skip at the front of the include file.''' +
                         if_not_sphinx(f''' The default is 0.
         ''', called_from_sphinx))
-    parser.add_argument('-o', '--outfile', type=argparse.FileType('w'),
+    parser.add_argument('-o', '--outfile',
                         default='-', help=sphinxify('''
         The output text or CSV file. The default is to print to STDOUT. See --outcsv.''', called_from_sphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
@@ -181,6 +181,7 @@ def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
     args.include_column = col2num(args.include_column)
+    args.outfile = open(args.outfile, 'w')
     if args.box:
         args.box = pad_loc(args.box).upper()
     return args

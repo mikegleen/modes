@@ -123,14 +123,14 @@ def getparser():
     This is a somewhat specialized use case where the Title and BriefDescription
     fields duplicate each other.
         ''')
-    parser.add_argument('infile', type=argparse.FileType('r'), help='''
+    parser.add_argument('infile', help='''
         The input XML file''')
     parser.add_argument('-c', '--cfgfile', required=True, help='''
         The config file describing the Object elements to compare
         ''')
     parser.add_argument('-i', '--caseinsensitive', action='store_true', help='''
         Convert all values to lower case before comparison.''')
-    parser.add_argument('-o', '--output', type=argparse.FileType('w'),
+    parser.add_argument('-o', '--output',
                         dest='output', help='''
         If specified, the CSV file with per-object values.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -142,6 +142,8 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    args.infile = open(args.infile)
+    args.output = open(args.output, 'w')
     return args
 
 

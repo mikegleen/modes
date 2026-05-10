@@ -154,7 +154,7 @@ def getparser():
     This is a somewhat specialized use case where the Title and BriefDescription
     fields duplicate each other.
         ''')
-    parser.add_argument('infile', type=argparse.FileType('r'), help='''
+    parser.add_argument('infile', help='''
         The input XML file''')
     parser.add_argument('-c', '--cfgfile', help='''
         The config file describing the Object elements to compare
@@ -172,6 +172,7 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    args.infile = open(args.infile)
     return args
 
 

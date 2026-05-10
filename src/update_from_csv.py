@@ -553,8 +553,7 @@ def getparser():
     parser.add_argument('--allow_blanks', action='store_true', help='''
         Skip rows in the include CSV file with blank or badly formed accession
         numbers. If not set, this will cause an abort.''')
-    parser.add_argument('-c', '--cfgfile', required=True,
-                        type=argparse.FileType(), help='''
+    parser.add_argument('-c', '--cfgfile', required=True, help='''
         Required. The YAML configuration file describing the column path(s) to
          update''')
     parser.add_argument('-d', '--date', help='''
@@ -622,6 +621,7 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
+    args.cfgfile = open(args.cfgfile)
     if args.outfile is None and args.deltafile is None:
         raise ValueError('You must specify --outfile or --deltafile.')
     if args.empty:

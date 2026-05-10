@@ -69,7 +69,7 @@ def main(inf):
     return
 
 
-def get_xpath() -> (str, bool):
+def get_xpath() -> tuple[str, bool]:
     if _args.xpath:
         return _args.xpath, _args.normalize
     else:
@@ -87,8 +87,7 @@ def getparser() -> argparse.ArgumentParser:
         ''')
     parser.add_argument('infile', help='''
         The XML file saved from Modes.''')
-    parser.add_argument('-c', '--cfgfile',
-                        type=argparse.FileType(), help=sphinxify('''
+    parser.add_argument('-c', '--cfgfile', help=sphinxify('''
         The YAML file describing the column path containing values to count.
         The config file may contain only a single ``column`` command. Specify 
         this or the --xpath parameter.
@@ -132,6 +131,7 @@ def getargs(argv):
     if bool(args.cfgfile) == bool(args.xpath):
         raise ValueError('Exactly one of the --cfgfile and --xpath parameters'
                          ' must be specified.')
+    args.cfgfile = open(args.cfgfile)
     return args
 
 
