@@ -95,7 +95,7 @@ def get_exhibition_dict():
                                            ExhibitionName=row[3],
                                            Place=row[4] if len(row) >= 5 else DEFAULT_EXHIBITION_PLACE
                                            )
-        if exdic[int(row[0])].DateBegin > exdic[int(row[0])].DateEnd:
+        if exdic[exhib_num].DateBegin > exdic[exhib_num].DateEnd:
             raise ValueError(f"In exhibition_list.py, Begin Date > End Date: {row}")
     return exdic
 

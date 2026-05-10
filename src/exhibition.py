@@ -353,8 +353,9 @@ def verify():
             if exhibnum is None:
                 msg = (f'{modesdate(exhibition.DateBegin)}-{modesdate(exhibition.DateEnd)},'
                        f' {exhibition.ExhibitionName=}, {exhibition.Place=}')
-                print(f'{idnum}: Cannot find exhibition number by text search: {msg}')
+                print(f'{idnum}: Cannot find exhibition in table that matches XML: {msg}')
                 nerrors += 1
+                continue
             exhibnumelts = exhibition_element.findall('./ExhibitionNumber')
             if not exhibnumelts:
                 print(f'{idnum}: ExhibitionNumber is missing.')
@@ -368,6 +369,43 @@ def verify():
                     print(f'ExhibitionNumber does not match exhibition details: {idnum}.')
                     nerrors += 1
     print(f'End Exhibition validation: {nerrors} error{'' if nerrors == 1 else 's'} found.')
+
+
+def patch_by_number(idnum, object_element, new_exhib) -> bool:
+    """
+    In the case where exhibition_list.py has been updated, modify the XML
+    Exhibition element to match the EXSTR values.
+
+    This code assumes only minor date changes. If a major change (like fix a mis-typed
+    year), add code to sort the exhibitions in descending date order.
+
+    :param idnum: The accession number
+    :param object_element: The candidate object element
+    :param new_exhib: The new exhibition tuple
+    :return: True if updated, otherwise False
+    """
+    # print(f'{new_exhib=}')
+    updated = False
+    exhibition_elements = object_element.findall('./Exhibition')
+    # print(f'{exhibition_elements=}')
+    for exhibition_element in exhibition_elements:
+        exhibnumelt = exhibition_element.find('./ExhibitionNumber')
+        if exhibnumelt is None:
+            continue
+        exhibnum = int(exhibnumelt.text)
+        if exhibnum != _args.exhibition:
+            continue
+        subelt = exhibition_element.find('.Date/DateBegin')
+        subelt.text = modesdate(new_exhib.DateBegin)
+        subelt = exhibition_element.find('.Date/DateEnd')
+        subelt.text = modesdate(new_exhib.DateEnd)
+        subelt = exhibition_element.find('./ExhibitionName')
+        subelt.text = new_exhib.ExhibitionName
+        subelt = exhibition_element.find('./Place/PlaceName')
+        subelt.text = new_exhib.Place
+        updated = True
+
+    return updated
 
 
 def main():
@@ -384,11 +422,15 @@ def main():
     exdict = get_exhibition_dict()  # exhibition # -> Exhibition tuple
     written_to_main = 0
     numupdated = 0
-
+    new_exhib_tuple = ExhibitionTuple(None, None, None, None)  # Stop PyCharm whining
+    if _args.patch:
+        new_exhib_tuple = get_exhibition_dict()[_args.exhibition]
     for idnum, nidnum, elem in object_reader(_args.infile, normalize=True,
                                              verbos=_args.verbose):
         trace(3, 'idnum: {}', idnum)
-        if nidnum and nidnum in exmap:
+        if _args.patch:
+            updated = patch_by_number(idnum, elem, new_exhib_tuple)
+        elif nidnum and nidnum in exmap:
             exnum, cataloguenumber = exmap[nidnum]
             exhibition = exdict[exnum]
             one_object(exnum, elem, nidnum, exhibition, cataloguenumber)
@@ -400,13 +442,13 @@ def main():
                                    'Exhibition: ' + exhibition.ExhibitionName, trace)
             del exmap[nidnum]
             updated = True
-            numupdated += 1
         else:
             updated = False
         if outfile:
             outfile.write(ET.tostring(elem, encoding='utf-8'))
             written_to_main += 1
         if updated:
+            numupdated += 1
             if deltafile:
                 deltafile.write(ET.tostring(elem, encoding='utf-8'))
         if updated and _args.short:
@@ -511,6 +553,10 @@ def getparser():
     now in ``exhibition_list.py``. You must specify the --old_name parameter.
     This is optional and only needed if the exhibition name is not unique.
         ''', called_from_sphinx))
+    parser.add_argument('--patch', action='store_true', help=sphinxify('''
+    Update an Exhibition element group with data from ``exhibition_list.py``.
+    You must specify the --exhibition parameter.
+        ''', called_from_sphinx))
     parser.add_argument('--old_date', help=sphinxify('''
     Specify the old BeginDate of the exhibition to be replaced by the BeginDate
     now in ``exhibition_list.py``. This is optional and only needed if the
@@ -542,8 +588,9 @@ def getargs(argv):
         return args  # ignore all other options
     if args.outfile is None and args.deltafile is None:
         raise ValueError('You must specify --outfile or --deltafile.')
-    if (args.mapfile is None) == (args.object is None):
-        raise ValueError('You must specify one of --mapfile and --object')
+    if not args.patch:
+        if (args.mapfile is None) == (args.object is None):
+            raise ValueError('You must specify one of --mapfile and --object')
     if (args.exhibition is None) == (args.col_ex is None):
         raise ValueError('You must specify one of --exhibition and --col_ex')
     if (args.object or args.old_name) and not args.exhibition:
@@ -551,6 +598,9 @@ def getargs(argv):
                           ' also specify the exhibition.'))
     if args.delete and not args.exhibition:  # Modes format?
         raise ValueError('You specified --delete. You must also specify the'
+                         ' exhibition.')
+    if args.patch and not args.exhibition:
+        raise ValueError('You specified --patch. You must also specify the'
                          ' exhibition.')
     if args.catalogue and args.col_cat:
         raise ValueError('You may not specify both --catalogue and --col_cat')
