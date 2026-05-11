@@ -94,11 +94,11 @@ def get_heading(filepath: str | None, verbos=1, skiprows=0) -> list | None:
             for _ in range(skiprows):
                 next(mapfile)
             reader = csv.DictReader(mapfile)
-            return list(reader.fieldnames)
+            return list(reader.fieldnames)  # noqa
     elif suffix.lower() == '.xlsx':
         wb = load_workbook(filename=filepath)
         ws = wb.active
-        enumrows = enumerate(ws.iter_rows(values_only=True))
+        enumrows = enumerate(ws.iter_rows(values_only=True))  # noqa
         for _ in range(skiprows):
             next(enumrows)
         _, heading = next(enumrows)
@@ -155,8 +155,10 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
             for _ in range(skiprows):
                 next(mapfile)
             reader = csv.DictReader(mapfile)
+            # noinspection PyTypeChecker
             n_input_fields = len(reader.fieldnames)
             if verbos >= 2:
+                # noinspection PyTypeChecker
                 fieldnames = ", ".join(_trimrow(list(reader.fieldnames), 1))
                 print(f'CSV Column Headings: {fieldnames}')
             for nrow, row in enumerate(reader, start=1):
@@ -167,6 +169,7 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
     elif suffix.lower() == '.xlsx':
         wb = load_workbook(filename=filename)
         ws = wb.active
+        # noinspection PyUnresolvedReferences
         enumrows = enumerate(ws.iter_rows(values_only=True))
         for _ in range(skiprows):
             next(enumrows)
@@ -174,7 +177,6 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
         heading = list(heading)  # tuple -> list so it can be trimmed
         _trimrow(heading, 0)
         n_input_fields = len(heading)
-        # sys.exit()
         if verbos >= 2:
             print(f'row_dict_reader heading length: {n_input_fields}')
             print(f'Excel Column Headings: '
@@ -193,8 +195,6 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
                 ccell = cleancell(cell)
                 # print(f'{cell=}, {ccell=}')
                 row[heading[ncell]] = ccell
-                # if row['Accession Number'] == 'JB008':
-                #     sys.exit(1)
             if not ''.join(row.values()):
                 continue
             # print(f'{row=}')
@@ -243,7 +243,7 @@ def row_list_reader(filename: str | None, verbos=1, skiprows=0,
     elif suffix.lower() == '.xlsx':
         wb = load_workbook(filename=filename)
         ws = wb.active
-        enumrows = enumerate(ws.iter_rows(values_only=True))
+        enumrows = enumerate(ws.iter_rows(values_only=True))  # noqa
         for _ in range(skiprows):
             next(enumrows)
         _, heading = next(enumrows)
@@ -274,10 +274,18 @@ def row_list_reader(filename: str | None, verbos=1, skiprows=0,
 def read_include_dict(includes_file, include_column, include_skip, verbos=1,
                       logfile=sys.stdout, allow_blanks=False):
     """
+
     Read the optional CSV file from the --include argument. Build a dict
     of normalized accession IDs for use by cfgutil.select. The value
-    of the dict is the dict from row_dict_reader from the CSV file. Function expand_num is called
-    so one row in the CSV file may result in multiple entries in the dict.
+    of the dict is the dict from row_dict_reader from the CSV file. Function expand_num
+    is called so one row in the CSV file may result in multiple entries in the dict.
+
+    :param includes_file:
+    :param include_column: The case sensitive column heading containing the accession number
+    :param include_skip:
+    :param verbos:
+    :param logfile:
+    :param allow_blanks:
     :return: a dict or None if --include was not specified
     """
 
