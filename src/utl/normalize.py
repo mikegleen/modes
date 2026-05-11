@@ -12,7 +12,7 @@ MODESTYPE = 'modestype'
 BRITISHTYPE = 'britishtype'
 
 
-def modesdate(indate: datetime.date, nfields: int = 3) -> str:
+def modesdate(indate: datetime.date | None, nfields: int = 3) -> str:
     """
     :param indate: An object like a datetime or date that has month, day and
     year attributes.
@@ -22,6 +22,8 @@ def modesdate(indate: datetime.date, nfields: int = 3) -> str:
              2 -> m[m].yyyy
              3 -> d[d].m[m].yyyy
     """
+    if indate is None:
+        return 'None'
     d = indate.day
     m = indate.month
     y = indate.year
@@ -189,7 +191,7 @@ def vdate(indate: str):
     return d
 
 
-def split_subid(objid: str, mdacode=DEFAULT_MDA_CODE) -> (str, int | None):
+def split_subid(objid: str, mdacode=DEFAULT_MDA_CODE) -> tuple[str, int | None]:
     """
 
     :param objid: A normalized or unnormalized accession number
@@ -387,7 +389,7 @@ def modes_person(person: str) -> str:
 
 
 def serial_from_filename(filename):
-    pass
+    return filename
 
 
 if __name__ == '__main__':
