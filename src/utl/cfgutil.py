@@ -894,7 +894,7 @@ def yaml_fieldnames(config):
     return hdgs
 
 
-def _splitid(idstr: str, m: re.Match) -> (str, int, int, int):
+def _splitid(idstr: str, m: re.Match) -> tuple[str, int, int, int]:
     """
     Subroutine to function expand_one_idnum.
 
@@ -959,6 +959,8 @@ def _expand_one_idnum(idstr: str) -> list[str]:
     separator:
         JB001-JB002
         LDHRM.2022.1-LDHRM.2022.3
+
+    For the '&' separator, the prefix is not allowed following the separator.
     """
 
     jlist = []
@@ -1007,7 +1009,7 @@ def expand_idnum(idnumstr: str) -> list[str]:
     """
     Expand an idnumstr to a list of idnums.
     :param idnumstr: (See expand_one_idnum for the definition of idstr)
-        idnumstr ::= idstr | idnumstr,idstr
+        idnumstr ::= idstr | idstr,idnumstr
     :return: list of idnums
     """
     idstrlist = idnumstr.split(',')
