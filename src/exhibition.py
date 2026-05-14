@@ -195,7 +195,7 @@ def one_object(exhibnum, objelt, idnum, exhibition: ExhibitionTuple, catalog_num
             if status == 0:  # This is an empty Exhibition template
                 exhibs_to_remove.append(elt)
                 continue
-            begindate, _ = datefrommodes(elt.find('./Date/DateBegin').text)
+            begindate = datefrommodes(elt.find('./Date/DateBegin').text)
             if status == 1:  # Not this exhibition
                 # The <Exhibition> element from the XML file is not one we're
                 # interested in so just put it on the list to be written out.
@@ -323,12 +323,12 @@ def verify():
             if datebegin is None or not datebegin.text:
                 datebegin = None
             else:
-                datebegin, _ = datefrommodes(datebegin.text)
+                datebegin = datefrommodes(datebegin.text)
             dateend = exhibition_element.find('./Date/DateEnd')
             if dateend is None or not dateend.text:
                 dateend = None
             else:
-                dateend, _ = datefrommodes(dateend.text)
+                dateend = datefrommodes(dateend.text)
             exhibname = exhibition_element.find('./ExhibitionName')
             if exhibname is not None:
                 exhibname = exhibname.text
@@ -371,40 +371,62 @@ def verify():
     print(f'End Exhibition validation: {nerrors} error{'' if nerrors == 1 else 's'} found.')
 
 
-def patch_by_number(idnum, object_element, new_exhib) -> bool:
+def patch_by_number(idnum, objelt, new_exhib) -> bool:
     """
     In the case where exhibition_list.py has been updated, modify the XML
     Exhibition element to match the EXSTR values.
 
-    This code assumes only minor date changes. If a major change (like fix a mis-typed
-    year), add code to sort the exhibitions in descending date order.
-
     :param idnum: The accession number
-    :param object_element: The candidate object element
+    :param objelt: The candidate object element
     :param new_exhib: The new exhibition tuple
     :return: True if updated, otherwise False
     """
     # print(f'{new_exhib=}')
-    updated = False
-    exhibition_elements = object_element.findall('./Exhibition')
+    updated = False  # Set True if any Exhibition is updated.
+    exhibition_elements = objelt.findall('./Exhibition')
     # print(f'{exhibition_elements=}')
-    for exhibition_element in exhibition_elements:
-        exhibnumelt = exhibition_element.find('./ExhibitionNumber')
+    exhibs_to_insert = list()
+    for exhibelt in exhibition_elements:
+        exhibnumelt = exhibelt.find('./ExhibitionNumber')
+        datebeginelt = exhibelt.find('.Date/DateBegin')
         if exhibnumelt is None:
+            # This is probably an empty Exhibition element group, in which case just
+            # discard it. However if there is a DateBegin then it is a rogue Exhibition
+            # that should have been caught when someone ran --verify.
+            if datebeginelt is not None and datebeginelt.text:
+                trace(1, "{}: Missing exhibition number", idnum)
+                datebegin = datefrommodes(datebeginelt.text)
+                exhibs_to_insert.append((datebegin, exhibelt))
             continue
         exhibnum = int(exhibnumelt.text)
-        if exhibnum != _args.exhibition:
-            continue
-        subelt = exhibition_element.find('.Date/DateBegin')
-        subelt.text = modesdate(new_exhib.DateBegin)
-        subelt = exhibition_element.find('.Date/DateEnd')
-        subelt.text = modesdate(new_exhib.DateEnd)
-        subelt = exhibition_element.find('./ExhibitionName')
-        subelt.text = new_exhib.ExhibitionName
-        subelt = exhibition_element.find('./Place/PlaceName')
-        subelt.text = new_exhib.Place
-        updated = True
-
+        datebegin = datefrommodes(datebeginelt.text)
+        print(f'{new_exhib=}')
+        if exhibnum == _args.exhibition:
+            datebeginelt.text = modesdate(new_exhib.DateBegin)
+            datebegin = new_exhib.DateBegin
+            subelt = exhibelt.find('.Date/DateEnd')
+            subelt.text = modesdate(new_exhib.DateEnd)
+            subelt = exhibelt.find('./ExhibitionName')
+            subelt.text = new_exhib.ExhibitionName
+            subelt = exhibelt.find('./Place/PlaceName')
+            subelt.text = new_exhib.Place
+            updated = True
+        # At this point the Exhibition is updated or it doesn't need updating.
+        newtuple = (datebegin, exhibelt)
+        print(f'{newtuple=}')
+        exhibs_to_insert.append(newtuple)
+    if updated:
+        elts = list(objelt)
+        firstexix = len(elts)
+        for n, elt in enumerate(elts):
+            if elt.tag == 'Exhibition':
+                firstexix = n
+                break
+        for exhibelt in exhibition_elements:
+            objelt.remove(exhibelt)
+        print(exhibs_to_insert)
+        for _edate, exhib in sorted(exhibs_to_insert, key=lambda x: x[0]):
+            objelt.insert(firstexix, exhib)
     return updated
 
 

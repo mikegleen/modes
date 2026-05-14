@@ -27,7 +27,7 @@ def parsedate(indate: str):
     """
     indate = indate.strip('.')  # fix one bloody typo
     try:
-        d, _ = datefrommodes(indate)
+        d = datefrommodes(indate)
         return d, True, 0
     except ValueError:
         pass

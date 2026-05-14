@@ -105,7 +105,7 @@ def handle_diff(idnum, elem):
         return
     objlocs = elem.findall('./ObjectLocation')
     newdatetext = _args.date
-    newdate, _ = nd.datefrommodes(newdatetext) if _args.date else None
+    newdate = nd.datefrommodes(newdatetext) if _args.date else None
     norm_ol = curr_ol = None
     for ol in objlocs:
         loc = ol.get(ELEMENTTYPE)
@@ -158,7 +158,7 @@ def handle_diff(idnum, elem):
         xmldateelt = ol.find('./Date/DateBegin')
         if xmldateelt is not None:
             xmldatetext = xmldateelt.text
-            xmldate, _ = nd.datefrommodes(xmldatetext)
+            xmldate = nd.datefrommodes(xmldatetext)
             if xmldate > newdate:
                 trace(1, '{}: XML date ({}) is newer than CSV date ({})', idnum, xmldatetext,
                       newdatetext)
@@ -209,7 +209,7 @@ def validate_locations(idnum, elem, strict=True):
                 trace(1, 'E01 {}: No DateBegin for current location', idnum)
                 return False
             try:
-                datebegindate, _ = nd.datefrommodes(datebeginelt.text)
+                datebegindate = nd.datefrommodes(datebeginelt.text)
             except (ValueError, TypeError):
                 trace(1,
                       'E02 {}: Invalid DateBegin for current location: "{}".',
@@ -224,7 +224,7 @@ def validate_locations(idnum, elem, strict=True):
             locationdates.append((datebegindate, None))
         elif loctype == PREVIOUS_LOCATION:
             try:
-                datebegindate, _ = nd.datefrommodes(datebeginelt.text)
+                datebegindate = nd.datefrommodes(datebeginelt.text)
             except (ValueError, TypeError):
                 trace(1,
                       'E04 {}: Invalid DateBegin for previous location: "{}".',
@@ -235,7 +235,7 @@ def validate_locations(idnum, elem, strict=True):
                       idnum)
                 return False
             try:
-                dateenddate, _ = nd.datefrommodes(dateendelt.text)
+                dateenddate = nd.datefrommodes(dateendelt.text)
             except (ValueError, TypeError):
                 trace(1,
                       'E06 {}: Invalid DateEnd for previous location: "{}".',
@@ -363,7 +363,7 @@ def update_current_location(elem, idnum):
     #
     oldlocdatetext = datebeginelt.text
     try:
-        oldlocdate, _ = nd.datefrommodes(oldlocdatetext)
+        oldlocdate = nd.datefrommodes(oldlocdatetext)
     except ValueError:
         oldlocdate = None
     if oldlocdate and new_loc_date < oldlocdate:
@@ -896,7 +896,7 @@ if __name__ == '__main__':
     _args = getargs(sys.argv)
     verbose = _args.verbose
     if is_update:
-        new_loc_date, _ = nd.datefrommodes(_args.date)
+        new_loc_date = nd.datefrommodes(_args.date)
     trace(1, 'Begin location {}.', _args.subp,
           color=Fore.GREEN)
     if is_update and _args.object:

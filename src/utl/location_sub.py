@@ -95,14 +95,14 @@ def update_current_loc(elem: ET.Element, idnum: str, newtext: str,
     # one we are creating.
     #
     try:
-        new_loc_date, _ = nd.datefrommodes(newdate)
+        new_loc_date = nd.datefrommodes(newdate)
     except ValueError:
         trace(1, '{}: New date is badly formed: {}.', idnum, newdate,
               color=Fore.RED)
         return False
     oldlocdatetext = datebeginelt.text
     try:
-        oldlocdate, _ = nd.datefrommodes(oldlocdatetext)
+        oldlocdate = nd.datefrommodes(oldlocdatetext)
     except ValueError:
         oldlocdate = None
     if oldlocdate and new_loc_date < oldlocdate:

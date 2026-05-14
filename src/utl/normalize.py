@@ -50,11 +50,34 @@ def modesdatefromisoformat(instr):
 
 
 def isoformatfrommodesdate(instr):
-    dfm, _ = datefrommodes(instr)
+    dfm = datefrommodes(instr)
     return dfm.isoformat()
 
 
-def datefrommodes(indate: str) -> tuple[datetime.date, int]:
+def datefrommodes(indate: str | None):
+    """
+        Parse a string in Modes format which can be:
+            d.m.yyyy    (3 parts)
+            or m.yyyy   (2 parts)
+            or yyyy     (1 part)
+        If day or month aren't given, the default values are returned. The day
+        and month should not have leading zeros.
+    :param indate:
+    :return: datetime.date if it exists otherwise a ValueError is raised.
+             A TypeError is raised if indate is None.
+             A ValueError if the date format is not parseable.
+    """
+    try:
+        d = datetime.datetime.strptime(indate, '%d.%m.%Y')  # noqa
+    except ValueError:
+        try:
+            d = datetime.datetime.strptime(indate, '%m.%Y')  # noqa
+        except ValueError:
+            d = datetime.datetime.strptime(indate, '%Y')  # noqa
+    return d.date()
+
+
+def datefrommodes2(indate: str) -> tuple[datetime.date, int]:
     """
         Parse a string in Modes format which can be:
             d.m.yyyy    (3 parts)
@@ -104,7 +127,7 @@ def datefrombritishdate(indate: str) -> tuple[datetime.date, int, str]:
     """
 
     try:
-        d, nparts = datefrommodes(indate)
+        d, nparts = datefrommodes2(indate)
         return d, nparts, MODESTYPE
     except ValueError:
         pass
@@ -146,7 +169,7 @@ def britishdatefrommodes(indate: str) -> str:
     :return: A string like "17 Aug 1909" or "Aug 1909" or "1909" or "unknown"
     """
     try:
-        d, nparts = datefrommodes(indate)
+        d, nparts = datefrommodes2(indate)
     except ValueError:
         return 'unknown'
     if nparts == 1:  # just the year
@@ -218,6 +241,8 @@ def is_subid(objid: str, mdacode=DEFAULT_MDA_CODE) -> bool:
     """
 
     nobjid = normalize_id(objid, mdacode)
+    if nobjid is None:
+        nobjid = ''
     return len(nobjid.split('.')) > 2 + nobjid.startswith(mdacode)
 
 

@@ -510,10 +510,10 @@ def select_ifexhib(config: Config, objelem, document):
             # --verify function in exhibition.py will catch these.
             continue
         else:
-            datebegin, _ = datefrommodes(datebegin.text)
+            datebegin = datefrommodes(datebegin.text)
         dateend = element.find('./Date/DateEnd')
         if dateend is not None:
-            dateend, _ = datefrommodes(dateend.text)
+            dateend = datefrommodes(dateend.text)
         exhibname = element.find('./ExhibitionName')
         if exhibname is not None:
             exhibname = exhibname.text

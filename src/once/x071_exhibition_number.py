@@ -31,10 +31,10 @@ def tuple_from_element_group(exhibition_elt: ET.Element):
             case 'Date':
                 datebeginelt = subelt.find('./DateBegin')
                 if datebeginelt is not None and datebeginelt.text:
-                    datebegin, _ = datefrommodes(datebeginelt.text)
+                    datebegin = datefrommodes(datebeginelt.text)
                 dateendelt = subelt.find('./DateEnd')
                 if dateendelt is not None and dateendelt.text:
-                    dateend, _ = datefrommodes(dateendelt.text)
+                    dateend = datefrommodes(dateendelt.text)
             case 'ExhibitionNumber':
                 pass
             case _:
