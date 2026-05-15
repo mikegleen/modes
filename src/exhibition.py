@@ -357,7 +357,7 @@ def verify():
                 nerrors += 1
                 continue
             exhibnumelts = exhibition_element.findall('./ExhibitionNumber')
-            if not exhibnumelts:
+            if exhibnumelts is None:
                 print(f'{idnum}: ExhibitionNumber is missing.')
                 nerrors += 1
             elif len(exhibnumelts) > 1:
@@ -371,14 +371,14 @@ def verify():
     print(f'End Exhibition validation: {nerrors} error{'' if nerrors == 1 else 's'} found.')
 
 
-def patch_by_number(idnum, objelt, new_exhib) -> bool:
+def patch_by_number(idnum, objelt, exhib_tuple) -> bool:
     """
     In the case where exhibition_list.py has been updated, modify the XML
     Exhibition element to match the EXSTR values.
 
     :param idnum: The accession number
     :param objelt: The candidate object element
-    :param new_exhib: The new exhibition tuple
+    :param exhib_tuple: The new exhibition tuple
     :return: True if updated, otherwise False
     """
     # print(f'{new_exhib=}')
@@ -400,16 +400,16 @@ def patch_by_number(idnum, objelt, new_exhib) -> bool:
             continue
         exhibnum = int(exhibnumelt.text)
         datebegin = datefrommodes(datebeginelt.text)
-        print(f'{new_exhib=}')
+        print(f'{exhib_tuple=}')
         if exhibnum == _args.exhibition:
-            datebeginelt.text = modesdate(new_exhib.DateBegin)
-            datebegin = new_exhib.DateBegin
+            datebeginelt.text = modesdate(exhib_tuple.DateBegin)
+            datebegin = exhib_tuple.DateBegin
             subelt = exhibelt.find('.Date/DateEnd')
-            subelt.text = modesdate(new_exhib.DateEnd)
+            subelt.text = modesdate(exhib_tuple.DateEnd)
             subelt = exhibelt.find('./ExhibitionName')
-            subelt.text = new_exhib.ExhibitionName
+            subelt.text = exhib_tuple.ExhibitionName
             subelt = exhibelt.find('./Place/PlaceName')
-            subelt.text = new_exhib.Place
+            subelt.text = exhib_tuple.Place
             updated = True
         # At this point the Exhibition is updated or it doesn't need updating.
         newtuple = (datebegin, exhibelt)
