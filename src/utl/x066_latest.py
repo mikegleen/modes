@@ -7,8 +7,6 @@
     [a] is an optional suffix in the case where there are more files created in one day.
     It can be any single case-insensitve alphabetic character.
 
-    Folder names beginning with '#' are ignored.
-
     An example runstream using x066_latest.py is::
 
         #!/bin/zsh
@@ -34,7 +32,8 @@ def getparser():
     megroup.add_argument('-i', '--indir', help='''
         Folder to search.''')
     megroup.add_argument('-f', '--listfile', help='''
-        File containing multiple folders to search, one per line.''')
+        File containing multiple folders to search, one per line.
+            Folder names beginning with '#' are ignored.''')
     parser.add_argument('-n', '--newxml', help='''
         Name of file to compare against the tentative newest in the named folder(s).
         Skip this file since it is the name of the file we are creating. This is not
@@ -46,7 +45,7 @@ def getparser():
         to use as input.''', calledfromsphinx))
     parser.add_argument('--modify_text', default='s', help='''
         The optional text to append to the date part of the filename.''' +
-        if_not_sphinx(''' Default = 's'. ''', calledfromsphinx))
+                        if_not_sphinx(''' Default = 's'. ''', calledfromsphinx))
     parser.add_argument('--re', help='''
         If specified, files must match this regular expression to be considered.''')
     parser.add_argument('-s', '--strict', action='store_true', help='''
