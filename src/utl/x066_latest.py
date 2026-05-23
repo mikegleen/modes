@@ -38,14 +38,11 @@ def getparser():
         Name of file to compare against the tentative newest in the named folder(s).
         Skip this file since it is the name of the file we are creating. This is not
         the first run of this script.''')
-    parser.add_argument('-m', '--modify', action='store_true', help=sphinxify('''
-        If specified, append the value of --modify_text to the date portion of the filename.
+    parser.add_argument('-m', '--modify', help=sphinxify('''
+        Append the value to the date portion of the filename. With a value of "s",
         2026-03-15_prod_save becomes 2026-03-15s_prod_save. Used by script
         ``sort_prod_save.sh`` so that x066_latest.py will select the sorted file
         to use as input.''', calledfromsphinx))
-    parser.add_argument('--modify_text', default='s', help='''
-        The optional text to append to the date part of the filename.''' +
-                        if_not_sphinx(''' Default = 's'. ''', calledfromsphinx))
     parser.add_argument('--re', help='''
         If specified, files must match this regular expression to be considered.''')
     parser.add_argument('-s', '--strict', action='store_true', help='''
@@ -115,10 +112,10 @@ def main(args):
                 # print(f'{latest_path=}', file=sys.stderr)
     if latest_path:
         if _args.modify:
-            m = re.match(r'(.*\d{4}-\d\d-\d\d)(.*)', latest_path)
+            m = re.match(r'(.*\d{4}-\d\d-\d\d)(.*)', latest_path)  # noqa
             if not m:
                 raise ValueError(f'path found: ({latest_path}) failed match.')
-            latest_path = m[1] + args.modify_text + m[2]
+            latest_path = m[1] + args.modify + m[2]
         print(latest_path, end='')
     else:
         raise ValueError('Cannot find path.')
