@@ -106,7 +106,7 @@ def onefile(infile_name: str, outfile_name: str, mtime: float,
             etparsed = ET.fromstring(prettyxml)
             xmlstring = ET.tostring(etparsed, encoding=_args.output_encoding,
                                     xml_declaration=False)
-        outfile.write(xmlstring)
+        outfile.write(xmlstring)  # noqa
         nlines += 1
         if make_pretty:
             outfile.write(b'\n')
@@ -129,7 +129,7 @@ def onefile(infile_name: str, outfile_name: str, mtime: float,
               f'written in {elapsed:.3f} seconds')
 
 
-def get_mtime(subpath: str) -> (dict[str, float], str):
+def get_mtime(subpath: str) -> tuple[dict[str, float], str]:
     """
     For each file in the folder formed by parent/subpath, make an entry in a
     dict with keys being the common part of the file and containing the last
@@ -180,14 +180,14 @@ def main():
     normal_mtime, normal_path = get_mtime('normal')
     pretty_mtime, pretty_path = get_mtime('pretty')
 
-    trace(1, '\nNormal to Pretty:')
+    trace(2, '\nNormal to Pretty:')
     to_pretty = select(normal_mtime, pretty_mtime)
     for fn in to_pretty:
         from_file = str(op.join(normal_path, fn + '.xml'))
         to_file = str(op.join(pretty_path, fn + '_pretty.xml'))
         onefile(from_file, to_file, mtime=normal_mtime[fn], make_pretty=True)
 
-    trace(1, '\nPretty to Normal:')
+    trace(2, '\nPretty to Normal:')
     to_normal = select(pretty_mtime, normal_mtime)
     for fn in to_normal:
         from_file: str = str(op.join(pretty_path, fn + '_pretty.xml'))
@@ -248,4 +248,5 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         sys.argv.append('-h')
     _args = getargs(sys.argv)
+    trace(2, 'Begin sync, verbose={}, parent_dir={}', _args.verbose, _args.parent_dir)
     main()
