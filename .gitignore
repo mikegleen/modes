@@ -126,8 +126,9 @@ documentation
 history/
 .DS_Store
 index.html
-test/normal/
-test/pretty/
+test/**/normal/
+test/**/pretty/
+test/**/baseline/
 Manuals/
 Object Elements
 templates/normal/
@@ -135,6 +136,5 @@ templates/exported/
 templates/bak/
 templates/merged/
 *.zip
-test/*/baseline/*
 *.pdf
 hrm_downloads
