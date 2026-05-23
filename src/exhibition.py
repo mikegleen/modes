@@ -400,7 +400,7 @@ def patch_by_number(idnum, objelt, exhib_tuple) -> bool:
             continue
         exhibnum = int(exhibnumelt.text)
         datebegin = datefrommodes(datebeginelt.text)
-        print(f'{exhib_tuple=}')
+        # print(f'{exhib_tuple=}')
         if exhibnum == _args.exhibition:
             datebeginelt.text = modesdate(exhib_tuple.DateBegin)
             datebegin = exhib_tuple.DateBegin
@@ -413,7 +413,7 @@ def patch_by_number(idnum, objelt, exhib_tuple) -> bool:
             updated = True
         # At this point the Exhibition is updated or it doesn't need updating.
         newtuple = (datebegin, exhibelt)
-        print(f'{newtuple=}')
+        # print(f'{newtuple=}')
         exhibs_to_insert.append(newtuple)
     if updated:
         elts = list(objelt)
@@ -424,7 +424,7 @@ def patch_by_number(idnum, objelt, exhib_tuple) -> bool:
                 break
         for exhibelt in exhibition_elements:
             objelt.remove(exhibelt)
-        print(exhibs_to_insert)
+        # print(exhibs_to_insert)
         for _edate, exhib in sorted(exhibs_to_insert, key=lambda x: x[0]):
             objelt.insert(firstexix, exhib)
     return updated
