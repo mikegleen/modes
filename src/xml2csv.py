@@ -71,9 +71,10 @@ def one_document(document, parent, norm_idnum, includes):
     elif command == Cmd.MULTIPLE:
         elements = parent.findall(eltstr)
         delimiter = document[Stmt.MULTIPLE_DELIMITER]
-        # print(f'{elements=}')
-        # for e in elements:
-        #     print(f'{e.text=}')
+        if _args.verbose > 1:
+            print(f'{elements=}')
+            for e in elements:
+                print(f'{e.text=}')
         text = delimiter.join([e.text for e in elements if e.text is not None])
     elif command == Cmd.CONSTANT:
         text = document[Stmt.VALUE]
