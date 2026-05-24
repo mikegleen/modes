@@ -13,10 +13,11 @@ set -e
 INXML=$(python src/utl/x066_latest.py -i prod_save/normal)
 INCSV=results/reports/2026-05-23_classification_modified.csv
 SCRIPT=${ZSH_ARGZERO:t:r}  # ZSH doc 14.1.4 Modifiers
-TEMPXML=tmp/${SCRIPT}.xml
+TEMPXML=tmp/normal/${SCRIPT}.xml
 OUTXML=prod_update/normal/$SCRIPT.xml
 DELTAXML=prod_delta/normal/${SCRIPT}_delta.xml
 # echo  SCRIPT = $SCRIPT
+# cat >/dev/null <<COMMENTOUT
 cat >tmp/$SCRIPT.yml <<EOF
 cmd: delete_all
 xpath: ./Identification/Classification
@@ -36,18 +37,20 @@ parent_path: ./Identification/Classification
 ---
 EOF
 #
+echo python src/update_from_csv.py $INXML --outfile $TEMPXML --mapfile $INCSV --cfgfile tmp/$SCRIPT.yml -v 1
 python src/update_from_csv.py $INXML --outfile $TEMPXML --mapfile $INCSV --cfgfile tmp/$SCRIPT.yml -v 1
 #
 # Add blank Keyword entries where needed.
 #
+# Create a CSV file with the object numbers without Classification
+#
+python src/xml2csv.py $INXML tmp/objects2.csv  --heading --exclude --include $INCSV
 cat >tmp/$SCRIPT.yml <<EOF
-cmd: ifnot
+cmd: delete_all
 xpath: ./Identification/Classification
-title: Classification
+parent_path: ./Identification
+title: deletes
 ---
-EOF
-python src/xml2csv.py $INXML tmp/objects.csv -c tmp/$SCRIPT.yml --heading
-cat >tmp/$SCRIPT.yml <<EOF
 cmd: constant
 title: Identification
 xpath: ./Identification
@@ -66,4 +69,8 @@ parent_path: ./Identification/Classification
 value:
 ---
 EOF
-python src/update_from_csv.py $TEMPXML --outfile $OUTXML --cfgfile tmp/$SCRIPT.yml --deltafile $DELTAXML --mapfile tmp/objects.csv
+# COMMENTOUT
+echo python src/update_from_csv.py $TEMPXML --outfile $OUTXML --cfgfile tmp/$SCRIPT.yml --deltafile $DELTAXML --mapfile tmp/objects2.csv
+python src/update_from_csv.py $TEMPXML --outfile $OUTXML --cfgfile tmp/$SCRIPT.yml --deltafile $DELTAXML --mapfile tmp/objects2.csv -v 1
+bin/synctmp.sh
+bin/syncupdate.sh

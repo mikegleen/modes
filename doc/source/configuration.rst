@@ -383,7 +383,8 @@ parent_path:
    name to be created will be taken from the **element:** statement in the document.
    If the **element:** statement doesn't exist, the name will be taken from the **xpath:**
    statement in the document. The element named by this
-   path must already exist.
+   path must already exist. See the **insert_after:** statement to control where the new
+   element is inserted under the parent path.
 
 .. _person_name:
 
@@ -881,7 +882,7 @@ multiple
    elements, the new ones will be appended. Duplicates will be discarded.
 
    The **xpath:** statement must be relative to the path defined in the **parent_path:**
-   statement.
+   statement. The text from the CSV file is inserted as is, without any additional formatting (see :ref:`data_formats`).
 
    See the optional **multiple_delimiter:** statement.
 
@@ -907,7 +908,7 @@ by ``xml2csv.py`` and others that read from the XML file to select which
 records to output. Multiple **if...** commands may be used; these are
 processed in succession and have an **and** relationship, meaning that all of
 the tests must succeed for a record to be selected. Note that tests are
-case insensitive unless a **case_sensitive** statement is specified in the
+case insensitive unless a **case_sensitive:** statement is specified in the
 control command document.
 
 .. _cmd_if:

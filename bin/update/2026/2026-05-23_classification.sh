@@ -8,9 +8,14 @@
 # Input: XML file with one or more Classification elements each with one or more Keyword elements.
 #        Each Keyword element can have one or more keywords separated by either "," or ";".
 #
+# Output: A CSV file with two columns containing one row for each object having Classification keywords
+#   1. The serial number
+#   2. The keywords in a string separated by "|" characters.
+#
 set -e
 INXML=$(python src/utl/x066_latest.py -i prod_save/normal)
 SCRIPT=${ZSH_ARGZERO:t:r}  # ZSH doc 14.1.4 Modifiers
+OUTCSV=tmp/${SCRIPT}_expanded.csv
 # echo  SCRIPT = $SCRIPT
 cat >tmp/$SCRIPT.yml <<EOF
 cmd: global
@@ -36,7 +41,7 @@ cat >tmp/$SCRIPT.py <<EOF
 import csv
 infile = open('tmp/$SCRIPT.csv', encoding='utf-8-sig')
 reader = csv.reader(infile)
-outfile = open('tmp/${SCRIPT}_expanded.csv', 'w')
+outfile = open('$OUTCSV', 'w')
 print(f'{infile=}, {outfile=}')
 writer = csv.writer(outfile)
 writer.writerow(('Serial', 'Keywords'))
@@ -56,6 +61,7 @@ for row in reader:
     print(f'{row=}')
     print(f'{commas=}')
     writer.writerow((serial, '|'.join(commas)))
-# print('outfile', 'tmp/${SCRIPT}_expanded2.csv')
+print('outfile', '$OUTCSV')
 EOF
 python tmp/$SCRIPT.py >tmp/log.txt
+echo OUTCSV = $OUTCSV
