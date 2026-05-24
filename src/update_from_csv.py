@@ -81,6 +81,8 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 
+from soupsieve import SelectorSyntaxError
+
 from utl.cfg import DEFAULT_MDA_CODE
 from utl.cfgutil import Config, Stmt, Cmd, new_subelt, expand_idnum, process_if_other_column
 from utl.location_sub import update_normal_loc, update_current_loc
@@ -339,6 +341,45 @@ def one_doc_location(objelem, idnum, doc) -> bool:
     return updated
 
 
+def one_doc_multiple(objelem, idnum, doc, newtext) -> bool:
+    trace(3, 'one_doc_multiple: {}', idnum)
+    updated = False
+    delimiter = doc[Stmt.MULTIPLE_DELIMITER] if Stmt.MULTIPLE_DELIMITER in doc else cfg.multiple_delimiter
+    newtexts = newtext.split(delimiter)
+    parent = objelem.find(doc[Stmt.PARENT_PATH])
+    if parent is None:
+        trace(1, '{}: MULTIPLE command, cannot find parent', idnum)
+        return False
+    existing_elts = parent.findall(doc[Stmt.XPATH])
+    usefirst = None
+    existing_texts = set()
+    for elt in existing_elts:
+        if elt.text:
+            existing_texts.add(elt.text)
+            trace(3, 'Add to existing_texts: {}', elt.text)
+        else:
+            trace(3, 'found empty subelt')
+            usefirst = elt
+    element = doc[Stmt.ELEMENT]
+    for newtext in newtexts:
+        trace(3, 'newtext={}', newtext)
+        if newtext in existing_texts or not newtext:
+            trace(3, 'for newtext in newtexts: continuing')
+            continue
+        if usefirst is not None:
+            usefirst.text = newtext
+            trace(3, 'usefirst.text = "{}"', newtext)
+            usefirst = None
+        else:
+            newelt = ET.SubElement(parent, element)
+            newelt.text = newtext
+            trace(3, 'newelt.text = "{}"', newtext)
+        updated = True
+        existing_texts.add(newtext)
+
+    return updated
+
+
 def one_element(objelem, idnum):
     """
     Update the fields specified by "column" configuration documents.
@@ -388,8 +429,9 @@ def one_element(objelem, idnum):
                     ndeleted += 1
             continue
         elif command == Cmd.LOCATION:
-            updated |= one_doc_location(objelem, idnum, doc)
-            if updated:
+            one_updated = one_doc_location(objelem, idnum, doc)
+            if one_updated:
+                updated = one_updated
                 nupdated += 1
             # print(f'one_element {updated=}')
             continue
@@ -408,12 +450,19 @@ def one_element(objelem, idnum):
             updated = True
             nupdated += 1
             continue
-        # command is COLUMN
+        # command is COLUMN or MULTIPLE
         newtext = newvals[idnum][title]
         # print(f'Command is column: {idnum=} {title=} {newtext=}')
         if not newtext and not _args.empty:
             trace(2, '{}: empty field ({}) in CSV ignored. --empty not specified',
                   idnum, title)
+            continue
+        if command == Cmd.MULTIPLE:
+            # print('cmd is multiple')
+            one_updated = one_doc_multiple(objelem, idnum, doc, newtext)
+            if one_updated:
+                updated = one_updated
+                nupdated += 1
             continue
         target = objelem.find(xpath)
         if target is None:
@@ -689,7 +738,7 @@ if __name__ == '__main__':
         trace(1, 'Creating output file: {}', _args.outfile)
     if _args.deltafile:
         deltafile = open(_args.deltafile, 'wb')
-        trace(1, 'Creating delta file: {}', _args.outfile)
+        trace(1, 'Creating delta file: {}', _args.deltafile)
     cfg = Config(_args.cfgfile, verbos=_args.verbose)
     if errors := check_cfg(cfg):
         trace(1, '{} command{} ignored.', errors, 's' if errors > 1 else '')

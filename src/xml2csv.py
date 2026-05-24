@@ -168,6 +168,8 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         writerow = config.select(elem, includes, exclude=_args.exclude)
         # print(f'{writerow=}')
         if not writerow:
+            if _args.exclude and norm_idnum in includes:
+                includes.pop(norm_idnum)  # noqa
             continue
         # We have selected the id but only write the row if there is something
         # to display. There will always be at least the ID number in the first
