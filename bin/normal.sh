@@ -1,0 +1,22 @@
+set -e
+if [[ "$CONDA_DEFAULT_ENV" != $MODES_ENV ]]; then
+    echo Activating $MODES_ENV...
+    eval "$(conda shell.bash hook)"
+    conda activate $MODES_ENV
+fi
+pushd ~/pyprj/hrm/modes
+INXML=`basename $1`
+echo INXML = $INXML
+INDIR=`dirname $1`
+echo INDIR = $INDIR
+BASE=`basename $INDIR`
+if [[ "$BASE" != "pretty" ]]; then
+    echo XML file must be in folder named "pretty". Exiting
+    exit 1
+fi
+OUTDIR=`dirname $INDIR`/normal
+echo OUTDIR = $OUTDIR
+BASENAME=`python3 -c "print('$INXML'.split('.')[0].removesuffix('_pretty'))"`
+NORMALPATH="$OUTDIR/${BASENAME}.xml"
+echo Creating: $NORMALPATH
+python src/normalize_xml.py $1 $NORMALPATH
