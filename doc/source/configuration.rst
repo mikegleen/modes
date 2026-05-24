@@ -1,7 +1,7 @@
 .. _configuration:
 
-The Configuration Domain Specific Language (DSL)
-================================================
+The Configuration Language
+==========================
 
 .. contents::
 
@@ -356,7 +356,7 @@ multiple_delimiter:
 -------------------
 
    The character or characters to use within a column to separate the
-   values when used with the **multiple:** command or the **items:** command.
+   values when used with the :ref:`multiple <cmd_multiple>` command or the :ref:`items <cmd_items>` command.
    The statement may appear under the **global** command or a specific command,
    which takes precedence. The default is “|”.
 
@@ -473,9 +473,11 @@ These statements are in the document whose **cmd:** is **global**.
 add_mda_code:
 -------------
 
-   If the serial number does not begin with the MDA code (default LDHRM)
+   If the serial number specified in an input CSV file or on the command line
+   does not begin with the MDA code (default LDHRM)
    then insert it as a prefix. This is used only in ``csv2xml.py``
-   and ``update_from_csv.py``. You can specify an MDA code on the command line
+   and ``update_from_csv.py``.  In ``xml2csv.py`` this is the standard behavior.
+   You can specify an MDA code on the command line
    using the --mdacode argument.
 
 .. _delimiter:
@@ -852,8 +854,36 @@ location
 multiple
 --------
 
-   Used by ``xml2csv.py``. Like the **column** command except it produces a
-   delimiter-separated list of values. See the optional **multiple_delimiter:** statement.
+   Used by ``xml2csv.py``, like the **column** command except it produces a
+   delimiter-separated list of values.
+
+   Used by ``update_from_csv.py``, the opposite is done. The following command document::
+
+      cmd: multiple
+      parent_path: ./Identification/Classification
+      xpath: ./Keyword
+      ---
+
+   and the following input from a CSV file with a column entitled *Keyword*::
+
+      humour|drama|fiction
+
+   will produce the following XML structure::
+
+      <Classification>
+         <Keyword>humour</Keyword>
+         <Keyword>drama</Keyword>
+         <Keyword>fiction</Keyword>
+      </Classification>
+
+   This assumes that there is an existing *Classification* element. If not, you can create one
+   with a **constant** command document before the **multiple** document. If there are existing *Keyword*
+   elements, the new ones will be appended. Duplicates will be discarded.
+
+   The **xpath:** statement must be relative to the path defined in the **parent_path:**
+   statement.
+
+   See the optional **multiple_delimiter:** statement.
 
 .. _cmd_reproduction:
 

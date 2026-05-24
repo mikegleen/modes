@@ -1,6 +1,6 @@
 #!/bin/zsh
 #
-INXML=/Users/mlg/pyprj/hrm/modes/test/normal/group.xml
+INXML=$1
 DATE=$(date -I)
 cat >tmp/group.yml <<EOF
 cmd: if

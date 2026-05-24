@@ -1,10 +1,9 @@
 #!/bin/zsh
-CONDAENV=py314
 set -e
-if [[ "$CONDA_DEFAULT_ENV" != $CONDAENV ]] ; then
-    echo Activating $CONDAENV...
+if [[ "$CONDA_DEFAULT_ENV" != $MODES_ENV ]] ; then
+    echo Activating $MODES_ENV...
     eval "$(conda shell.bash hook)"
-    conda activate $CONDAENV
+    conda activate $MODES_ENV
 fi
 pushd ~/pyprj/hrm/modes
 INXML=`basename $1`
@@ -19,6 +18,7 @@ fi
 OUTDIR=`dirname $INDIR`/pretty
 echo OUTDIR = $OUTDIR
 BASENAME=`python3 -c "print('$INXML'.split('.')[0])"`
+BASENAME=$(basename -- ${INXML%.*})
 PRETTYPATH="$OUTDIR/${BASENAME}_pretty.xml"
 echo Creating: $PRETTYPATH
 python src/normalize_xml.py -p -n $1 $PRETTYPATH

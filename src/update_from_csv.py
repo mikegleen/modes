@@ -99,7 +99,7 @@ def trace(level, template, *args, color=None):
             print(template.format(*args))
 
 
-def loadsubidvals(reader, allow_blanks) -> (dict, dict):
+def loadsubidvals(reader, allow_blanks) -> tuple[dict, dict]:
     """
 
     :param reader:
@@ -191,7 +191,7 @@ def add_item(elt, subid: int, nmainid: str) -> ET.Element:
     # append it to the end.
     highest = items[-1].find('ListNumber')
     if highest is None:
-        raise ValueError('Cannot find expected ListNumber')
+        raise ValueError('Cannot find expected highest ListNumber')
     oldid = int(highest.text)
     if subid > oldid:
         elt.append(newitem)
@@ -380,10 +380,11 @@ def one_element(objelem, idnum):
             continue
         elif command == Cmd.DELETE_ALL:
             targets = objelem.findall(xpath)
+            parent = objelem.find(doc[Stmt.PARENT_PATH])
             if targets is not None:
                 for target in targets:
                     trace(2, '{}: Removing {}', idnum, xpath)
-                    objelem.remove(target)
+                    parent.remove(target)
                     ndeleted += 1
             continue
         elif command == Cmd.LOCATION:
@@ -397,7 +398,7 @@ def one_element(objelem, idnum):
             if target is None:
                 target = new_subelt(doc, objelem, idnum, _args.verbose)
                 if target is None:  # parent is not specified or doesn't exist
-                    trace(1, '{} ({}): Cannot find "{}", document "{}"', idnum,
+                    trace(1, '{} ({}): Cannot find "{}", document "{}", command: constant', idnum,
                           objelem.get('elementtype'), xpath, title)
                     continue
             if Stmt.ATTRIBUTE in doc:
@@ -639,7 +640,7 @@ def check_cfg(config: Config):
     errs = 0
     for doc in config.col_docs:
         cmd = doc[Stmt.CMD]
-        if cmd == Cmd.DELETE:
+        if cmd in (Cmd.DELETE, Cmd.DELETE_ALL):
             if Stmt.PARENT_PATH not in doc:
                 trace(1, 'The parent_path: statement is required for the delete command.',
                       color=Fore.RED)
@@ -653,7 +654,7 @@ def check_cfg(config: Config):
                     trace(1, 'Delete command: Statement "{}" not allowed, '
                              'ignored', stmt, color=Fore.RED)
                     errs += 1
-        elif cmd not in (Cmd.COLUMN, Cmd.CONSTANT, Cmd.LOCATION):
+        elif cmd not in (Cmd.COLUMN, Cmd.CONSTANT, Cmd.LOCATION, Cmd.MULTIPLE):
             trace(1, 'Command "{}" not allowed, ignored', cmd, color=Fore.RED)
             errs += 1
         elif (Stmt.ATTRIBUTE in doc) ^ (Stmt.ATTRIBUTE_VALUE in doc):
