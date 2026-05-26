@@ -52,9 +52,11 @@ This is matched with an input CSV detail file::
 
 The command to effect this update is::
 
-    python src/update_from_csv.py prod_update/normal/2022-08-25_entry.xml \
-    prod_update/normal/2022-08-25_entry2.xml -c src/cfg/entry.yml \
-    -m data/sally/2022-08-20_object_entry.csv
+    python src/update_from_csv.py \
+       prod_update/normal/2022-08-25_entry.xml \
+       prod_update/normal/2022-08-25_entry2.xml \
+       -c src/cfg/entry.yml \
+       -m data/sally/2022-08-20_object_entry.csv
 
 This illustrates several features.
 
