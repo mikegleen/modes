@@ -260,26 +260,30 @@ class Config:
             for stmt in document:
                 if stmt == Stmt.CMD:
                     pass
-                elif stmt == Stmt.SKIP_NUMBER:
-                    self.skip_number = True
-                elif stmt == Stmt.SORT_NUMERIC:
-                    self.sort_numeric = True
-                elif stmt == Stmt.SUBID_PARENT:
-                    self.subid_parent = document[stmt]
-                elif stmt == Stmt.SERIAL:
-                    self.serial = document[stmt]
-                elif stmt == Stmt.SUBID_GRANDPARENT:
-                    self.subid_grandparent = document[stmt]
-                elif stmt == Stmt.RECORD_ID_XPATH:
-                    self.record_id_xpath = document[stmt]
-                elif stmt == Stmt.RECORD_TAG:
-                    self.record_tag = document[stmt]
+                elif stmt == Stmt.ADD_MDA_CODE:
+                    self.add_mda_code = True
                 elif stmt == Stmt.DELIMITER:
                     self.delimiter = document[stmt]
                 elif stmt == Stmt.MULTIPLE_DELIMITER:
                     self.multiple_delimiter = document[stmt]
-                elif stmt == Stmt.ADD_MDA_CODE:
-                    self.add_mda_code = True
+                elif stmt == Stmt.PREFIXES:
+                    prefixes = yaml.load(document[stmt])
+                    for key, value in prefixes.items():
+                        self.prefixes[key.upper()] = int(value)
+                elif stmt == Stmt.RECORD_ID_XPATH:
+                    self.record_id_xpath = document[stmt]
+                elif stmt == Stmt.RECORD_TAG:
+                    self.record_tag = document[stmt]
+                elif stmt == Stmt.SERIAL:
+                    self.serial = document[stmt]
+                elif stmt == Stmt.SKIP_NUMBER:
+                    self.skip_number = True
+                elif stmt == Stmt.SORT_NUMERIC:
+                    self.sort_numeric = True
+                elif stmt == Stmt.SUBID_GRANDPARENT:
+                    self.subid_grandparent = document[stmt]
+                elif stmt == Stmt.SUBID_PARENT:
+                    self.subid_parent = document[stmt]
                 elif stmt == Stmt.TEMPLATE_DIR:
                     self.template_dir = document[stmt]
                 elif stmt == Stmt.TEMPLATE_FILE:
@@ -290,10 +294,6 @@ class Config:
                     templates = yaml.load(document[stmt])
                     self.templates = {key.lower(): value for key, value in
                                       templates.items()}
-                elif stmt == Stmt.PREFIXES:
-                    prefixes = yaml.load(document[stmt])
-                    for key, value in prefixes.items():
-                        self.prefixes[key.upper()] = int(value)
                 else:
                     print(f'Unknown global statement, ignored: {stmt}.')
             if self.templates or self.template_title or self.template_dir:
@@ -311,9 +311,17 @@ class Config:
         dump = verbos > 1
         cfg.config_instance = self  # kludge to avoid circular import
         # print(f'{cfg.config_instance=}')
-        self.logfile = logfile
         self.col_docs = []  # documents that generate columns
         self.ctrl_docs = []  # control documents
+        self.delimiter = ','
+        self.exhibition_inv_dict = None  # will map exhibition tuple to exhib #
+        self.logfile = logfile
+        self.mdacode = mdacode
+        self.multiple_delimiter = '|'
+        self.prefixes = {key.upper(): int(value) for key, value in
+                         Config.get_default_prefix_padding().items()}
+        self.record_tag = Stmt.get_default_record_tag()
+        self.record_id_xpath = Stmt.get_default_record_id_xpath()
         self.serial = None
         self.skip_number = False
         self.sort_numeric = False
@@ -324,14 +332,6 @@ class Config:
         self.template_title = None
         self.template_dir = None
         self.template_file = None
-        self.record_tag = Stmt.get_default_record_tag()
-        self.record_id_xpath = Stmt.get_default_record_id_xpath()
-        self.delimiter = ','
-        self.multiple_delimiter = '|'
-        self.mdacode = mdacode
-        self.exhibition_inv_dict = None  # will map exhibition tuple to exhib #
-        self.prefixes = {key.upper(): int(value) for key, value in
-                         Config.get_default_prefix_padding().items()}
         self.verbose = verbos  # In some scripts the verbose= arg will override
         cfglist = _read_yaml_cfg(yamlcfgfile, dump=dump, logfile=logfile)
         valid = validate_yaml_cfg(cfglist, allow_required)
