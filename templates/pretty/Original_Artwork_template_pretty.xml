@@ -9,6 +9,9 @@
 		<ObjectName elementtype="simple name">
 			<Keyword />
 		</ObjectName>
+		<Classification>
+			<Keyword />
+		</Classification>
 		<BriefDescription />
 	</Identification>
 	<Production>

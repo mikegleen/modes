@@ -5,7 +5,9 @@
 	</ObjectIdentity>
 	<Identification>
 		<Title />
-		<Classification />
+		<Classification>
+			<Keyword />
+		</Classification>
 		<BriefDescription />
 	</Identification>
 	<ObjectLocation elementtype="current location">

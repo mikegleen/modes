@@ -3,6 +3,11 @@
 	<ObjectIdentity>
 		<Number />
 	</ObjectIdentity>
+	<Identification>
+		<Classification>
+			<Keyword />
+		</Classification>
+	</Identification>
 	<NumberOfItems>0</NumberOfItems>
 	<Notes />
 </Object>
