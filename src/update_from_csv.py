@@ -53,7 +53,10 @@
         cmd: column
         xpath: Title
         EOF
-        python src/update_from_csv.py tmp/normal/step1.xml tmp/normal/step2.xml -c tmp/update2.yml -m tmp/in2.csv -v 1
+        python src/update_from_csv.py \\
+           tmp/normal/step1.xml tmp/normal/step2.xml \\
+           -c tmp/update2.yml \\
+           -m tmp/in2.csv -v 1
 
     This creates XML as follows::
 
