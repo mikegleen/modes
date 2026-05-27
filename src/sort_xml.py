@@ -21,6 +21,8 @@ from utl.readers import row_dict_reader
 
 from colorama import Fore, Style
 
+from utl.xmlutil import get_record_tag
+
 
 def trace(level, template, *args, color=None):
     if _args.verbose >= level:
@@ -63,16 +65,24 @@ def onefile(ifile, ofile) -> int:
         print(f'{ifile=}, {ofile=}')
         return 0
     objdict = {}
+    record_tag = get_record_tag(ifile)
+    is_template = record_tag == 'template'
     outfile = open(ofile, 'wb')
     infile = open(ifile, encoding=_args.encoding)
-    outfile.write(b'<?xml version="1.0" encoding="utf-8"?><Interchange>\n')
+    if is_template:
+        outfile.write(b'<templates application="Object">\n')
+    else:
+        outfile.write(b'<?xml version="1.0" encoding="utf-8"?><Interchange>\n')
     seq = 0
     for event, elem in ET.iterparse(infile):
-        if elem.tag != 'Object':
+        if elem.tag != record_tag:
             continue
         seq += 1
-        num = elem.find('./ObjectIdentity/Number').text
-        numn = normalize_id(num, _args.mdacode)
+        if is_template:
+            numn = num = elem.get('name')
+        else:
+            num = elem.find('./ObjectIdentity/Number').text
+            numn = normalize_id(num, _args.mdacode)
         if _args.verbose > 1:
             print(f'{seq:4}. {num}')
         if numn in objdict:
@@ -104,7 +114,10 @@ def onefile(ifile, ofile) -> int:
         objdict[newnum] = elem
     for numn in sorted(objdict):
         outfile.write(ET.tostring(objdict[numn], encoding='utf-8').strip())
-    outfile.write(b'\n</Interchange>')
+    if is_template:
+        outfile.write(b'</templates>')
+    else:
+        outfile.write(b'\n</Interchange>')
     return len(objdict)
 
 
