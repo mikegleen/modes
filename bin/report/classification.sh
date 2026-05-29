@@ -8,15 +8,11 @@ cat >tmp/$SCRIPT.yml <<EOF
 cmd: global
 skip_number:
 ---
-cmd: if
-xpath: ./Identification/Classification/Keyword
----
 cmd: multiple
 title: Classification
 xpath: ./Identification/Classification/Keyword
 ---
 EOF
-# python src/xml2csv.py $INXML results/reports/$SCRIPT.csv -b -c tmp/$SCRIPT.yml
 python src/xml2csv.py $INXML tmp/step1.csv -b -c tmp/$SCRIPT.yml
 cat >tmp/${SCRIPT}_step2.py <<EOF
 import sys
@@ -27,11 +23,13 @@ for row in open("tmp/step1.csv"):
         print(kw)
 EOF
 python tmp/${SCRIPT}_step2.py >tmp/step2.csv
-sort tmp/step2.csv |uniq -c>tmp/step3.csv
+sort tmp/step2.csv |uniq >results/reports/${SCRIPT}_termlist.csv
+sort tmp/step2.csv |uniq -c>tmp/step3.csv  # count occurrences
 cat >tmp/step3.py <<EOF
+# Convert "1 keyword" to "1,keyword"
 import re
 infile = open('tmp/step3.csv')
-outfile = open('results/reports/${SCRIPT}_termlist.csv', 'w')
+outfile = open('results/reports/${SCRIPT}_termlist_count.csv', 'w')
 for row in infile:
     print(re.sub(r'(\s*[0-9]+)? (.*)', r'\1,\2', row.strip()), file=outfile)
 EOF
