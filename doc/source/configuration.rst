@@ -443,8 +443,8 @@ xpath:
    Required. This describes the XSLT path to a relevant XML
    element. In subid mode this is a simple tag name.
 
-   If no **title** statement is specified, the title of the CSV column associated
-   with this document is generated from the **xpath** statement. For example::
+   If no **title:** statement is specified, the title of the CSV column associated
+   with this document is generated from the **xpath:** statement. For example::
 
       xpath: ./Description/Measurement[Part="Image"]/Reading
 
@@ -807,7 +807,7 @@ delete
 ------
 
    For ``update_from_csv.py``. Delete the first element specified by the
-   **xpath** statement. If the **delete** command is
+   **xpath:** statement. If the **delete** command is
    specified, the **xpath:**  and **parent_path:** statements are required and
    the only ones allowed.
 
@@ -834,7 +834,7 @@ keyword
 -------
 
    Used by ``xml2csv.py`` Find the element specified by the xpath statement
-   whose text equals the text in the **value** statement and then return the
+   whose text equals the text in the **value:** statement and then return the
    first *Keyword* sub-element's text. This for the special (and deprecated) case where
    an element contains both text and subelements.
 
@@ -906,7 +906,7 @@ Control Commands
 These commands do not generate output columns. The **if...** commands are used
 by ``xml2csv.py`` and others that read from the XML file to select which
 records to output. Multiple **if...** commands may be used; these are
-processed in succession and have an **and** relationship, meaning that all of
+processed in succession and have an *and* relationship, meaning that all of
 the tests must succeed for a record to be selected. Note that tests are
 case insensitive unless a **case_sensitive:** statement is specified in the
 control command document.
@@ -1021,7 +1021,7 @@ ifexhib
 
    A special purpose command that selects an object if it was displayed at a
    particular exhibition. The exhibition number (from ``exhibition_list.py``)
-   must be specified in the **value** statement.  This assumes that Exhibition
+   must be specified in the **value:** statement.  This assumes that Exhibition
    elements exist as follows, with subelement text exactly matching the values
    in ``exhibition_list.py``::
 
@@ -1051,7 +1051,7 @@ ifcolumneq
 ----------
 
    Used in ``csv2xml.py``. Process this row in the CSV file if the value in the
-   column named in this document’s **title** statement is equal the value named
+   column named in this document’s **title:** statement is equal the value named
    in this document’s **value:** statement.
 
 The **global** Command
