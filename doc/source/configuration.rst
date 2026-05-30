@@ -23,7 +23,7 @@ Most but not all of the commands and statements are used for all cases.
 The configuration consists of a YAML file broken into multiple sections
 (called *documents*) separated by lines containing ``---`` in the left three columns.
 Documents are control documents, column documents, or special documents. The special
-documents are **global** and **location**.
+documents are :ref:`cmd_global` and :ref:`cmd_location`.
 Each column document corresponds to a column in the associated CSV file, although there are
 exceptions. The “control”
 document directs the selection of records (the if... commands).
@@ -36,13 +36,13 @@ on the individual programs.
 
 Each document contains some of the following statements. Statement names are
 case sensitive; all must be lower case. The lead statement in a document
-is the **cmd:** statement, which controls the function of the document.
+is the :ref:`cmd` statement, which controls the function of the document.
 Commands can be column-related or control commands which determine which objects
-are processed. There is also a **global** command.
+are processed. There is also a :ref:`cmd_global` command.
 
 When creating a CSV file, by default the first column is the serial number
 (accession number) of the object affected. This can be suppressed using the
-**skip_number:** statement under the **global** command.
+:ref:`skip_number` statement under the :ref:`cmd_global` command.
 
 Statements
 ~~~~~~~~~~
@@ -67,16 +67,16 @@ the ``cmd: global`` document.
 aspect:
 -------
 
-   Used by ``update_from_csv.py``. The argument of the **aspect:** statement
+   Used by ``update_from_csv.py``. The argument of the :ref:`aspect` statement
    is the text of a *Keyword* subelement. If an *Aspect* element group exists
    whose subelement *Keyword* text equals the argument, the subelement *Reading*
-   text is updated with the **column** command's column value or with the **constant**
-   command's **value:**
+   text is updated with the :ref:`cmd_column` command's column value or with the :ref:`cmd_constant`
+   command's :ref:`value`
    statement's argument. If no matching *Aspect* element group exists, then
    an *Aspect* with an empty *Keyword* subelement is overwritten or a new *Aspect*
    element group is created.
 
-   Note that the document’s **xpath:** points to the parent of the *Aspect* being updated.
+   Note that the document’s :ref:`xpath` points to the parent of the *Aspect* being updated.
 
    For example, given a configuration::
 
@@ -106,17 +106,17 @@ aspect:
 attribute:
 ----------
 
-   Required by the **attrib** and **ifattrib** commands when used by
+   Required by the :ref:`cmd_attrib` and :ref:`cmd_ifattrib` commands when used by
    ``xml2csv.py``. If used by ``csv2xml.py`` or ``update_from_csv.py`` and you
-   are creating an element using the **parent_path:** statement, this will create
-   an attribute and requires an **attribute_value:** statement.
+   are creating an element using the :ref:`parent_path` statement, this will create
+   an attribute and requires an :ref:`attribute_value` statement.
 
 .. _attribute_value:
 
 attribute_value:
 ----------------
 
-   The value to insert in an attribute created with the **attribute:**
+   The value to insert in an attribute created with the :ref:`attribute`
    statement.
 
 .. _case_sensitive:
@@ -131,7 +131,7 @@ case_sensitive:
 child:
 ------
 
-   Used by ``update_from_csv.py`` when **parent_path:** is specified to force
+   Used by ``update_from_csv.py`` when :ref:`parent_path` is specified to force
    creation of a new element. When that element is created, a subelement of that element is also created.
    The tag of the new subelement is the value of this statement.
 
@@ -148,6 +148,8 @@ cmd:
 ----
 
    Required. But see the :ref:`column` statement for an exception.
+   The cmd: statement is the lead statement of each document and controls how
+   the other statements in the document will be interpreted.
    See below for a description of the individual commands.
 
 .. _column:
@@ -164,7 +166,7 @@ column:
         cmd: column
         title: Date
 
-   Do not use both the **column:** statement and the **cmd:** statement within
+   Do not use both the :ref:`column` statement and the :ref:`cmd` statement within
    a single document. (Remember, a configuation file consists of multiple
    documents separated by ``---`` lines).
 
@@ -233,15 +235,15 @@ denormalize:
 element:
 --------
 
-   Referenced when processing the **parent_path:** statement for the name
+   Referenced when processing the :ref:`parent_path` statement for the name
    of the element's tag to be created. If this is omitted the element name will be taken
-   from the **xpath:** statment. You should use this, for example, if a parent path
+   from the :ref:`xpath` statment. You should use this, for example, if a parent path
    includes a selector in square brackets such as::
 
       xpath: ./Association[Type="Adopt a Picture"]
 
-   In the above example, if the **element:** statement is omitted, one will be
-   created from the **xpath:** statement by removing the selector::
+   In the above example, if the :ref:`element` statement is omitted, one will be
+   created from the :ref:`xpath` statement by removing the selector::
 
       element: Association
 
@@ -251,7 +253,7 @@ element:
 group:
 ------
 
-   Used in ``xml2csv.py`` by **if**, **ifnot**, and **column** commands to indicate that the text
+   Used in ``xml2csv.py`` by :ref:`cmd_if`, :ref:`cmd_ifnot`, and :ref:`cmd_column` commands to indicate that the text
    from the named element and all of its descendents are to be examined instead
    of just the named element’s text.
 
@@ -269,9 +271,9 @@ if_other_column:
 ----------------
 
    Used by ``csv2xml.py``. Process this column if one of the values in the
-   **if_other_column_value:** statement matches the value in the column named in the
-   **if_other_column:** statement. The values are separated by a "|" character. Leading
-   and trailing spaces are ignored. If the **if_other_column_value:** statement
+   :ref:`if_other_column_value` statement matches the value in the column named in the
+   :ref:`if_other_column` statement. The values are separated by a "|" character. Leading
+   and trailing spaces are ignored. If the :ref:`if_other_column_value` statement
    is omitted, then process this column if the other column is populated in this
    row. For example::
 
@@ -296,9 +298,9 @@ if_template:
 ------------
 
    This a a shortcut command to be used when there is a :ref:`template_title` statement
-   in the :ref:`global_command_statements` command to generate **if_other_column:** and **if_other_column_value:**
+   in the :ref:`global_command_statements` command to generate :ref:`if_other_column` and :ref:`if_other_column_value`
    statements. See `if-other-column`_.
-   For example, given a **global** command containing::
+   For example, given a :ref:`cmd_global` command containing::
 
       cmd: global
       ...
@@ -345,7 +347,7 @@ insert_after:
 -------------
 
    If an element doesn't exist, it will be inserted after the
-   element who's simple name is given here. You must also specify **parent_path:**. If this
+   element who's simple name is given here. You must also specify :ref:`parent_path`. If this
    statement is not specified, the new element will be inserted as the parent's last
    subelement. If the statement is specified but the element name parameter is
    left blank, the new element will be inserted as the first subelement.
@@ -357,7 +359,7 @@ multiple_delimiter:
 
    The character or characters to use within a column to separate the
    values when used with the :ref:`multiple <cmd_multiple>` command or the :ref:`items <cmd_items>` command.
-   The statement may appear under the **global** command or a specific command,
+   The statement may appear under the :ref:`cmd_global` command or a specific command,
    which takes precedence. The default is “|”.
 
 .. _normalize:
@@ -377,13 +379,13 @@ normalize:
 parent_path:
 ------------
 
-   Include this statement if the **xpath:** may not
+   Include this statement if the :ref:`xpath` may not
    exist, in which case a new one will be created as a child of this path.
    Implemented in ``csv2xml.py`` and ``update_from_csv.py`` only. The element
-   name to be created will be taken from the **element:** statement in the document.
-   If the **element:** statement doesn't exist, the name will be taken from the **xpath:**
+   name to be created will be taken from the :ref:`element` statement in the document.
+   If the :ref:`element` statement doesn't exist, the name will be taken from the :ref:`xpath`
    statement in the document. The element named by this
-   path must already exist. See the **insert_after:** statement to control where the new
+   path must already exist. See the :ref:`insert_after` statement to control where the new
    element is inserted under the parent path.
 
 .. _person_name:
@@ -403,7 +405,7 @@ required:
 
    If specified then issue an error message and discard the row if
    this field is missing or empty. Valid only with a control
-   command (**if** ...) or with a **column** command in ``csv2xml.py``. In this
+   command (:ref:`cmd_if` ...) or with a :ref:`cmd_column` command in ``csv2xml.py``. In this
    case it is useful for discarding rubbish rows in the CSV file.
 
 .. _title:
@@ -423,8 +425,8 @@ title:
 value:
 ------
 
-   Required for **ifeq**, **ifnoteq**, **ifattribeq**, **ifcontains**, **ifanyeq**,
-   **ifnotanyeq**, or **constant** command.
+   Required for :ref:`cmd_ifeq`, :ref:`cmd_ifnoteq`, :ref:`cmd_ifattribeq`, :ref:`cmd_ifcontains`, :ref:`cmd_ifanyeq`,
+   :ref:`cmd_ifnotanyeq`, or :ref:`cmd_constant` command.
 
 .. _width:
 
@@ -443,8 +445,8 @@ xpath:
    Required. This describes the XSLT path to a relevant XML
    element. In subid mode this is a simple tag name.
 
-   If no **title:** statement is specified, the title of the CSV column associated
-   with this document is generated from the **xpath:** statement. For example::
+   If no :ref:`title` statement is specified, the title of the CSV column associated
+   with this document is generated from the :ref:`xpath` statement. For example::
 
       xpath: ./Description/Measurement[Part="Image"]/Reading
 
@@ -457,7 +459,7 @@ xpath2:
 
    This describes the XSLT path to a relevant XML element in the case where a
    single column must be stored in two places. Used in ``csv2xml.py``. This is only valid
-   for a **column** command. You can, for example, create both the ``normal`` and
+   for a :ref:`cmd_column` command. You can, for example, create both the ``normal`` and
    ``current`` locations from a single column value.
 
 
@@ -466,7 +468,7 @@ xpath2:
 Global-command Statements
 +++++++++++++++++++++++++
 
-These statements are in the document whose **cmd:** is **global**.
+These statements are in the document whose :ref:`cmd` is :ref:`cmd_global`.
 
 
 .. _add_mda_code:
@@ -589,8 +591,8 @@ subid_parent:
 subid_grandparent:
 ------------------
 
-   If the element named in **subid_parent:** doesn't exist, it
-   will be appended under this element. Required if **subid_parent:** is specified.
+   If the element named in :ref:`subid_parent` doesn't exist, it
+   will be appended under this element. Required if :ref:`subid_parent` is specified.
 
 .. _template_file:
 
@@ -612,7 +614,7 @@ template_title:
 
    Only in ``csv2xml.py``: Defines a CSV column containing a key that
    matches one of the keys in the
-   global **templates:** statement. For each row in the CSV file, this specifies which
+   global :ref:`templates` statement. For each row in the CSV file, this specifies which
    template should be used to create the XML Object element. The default title of the
    column in the CSV file is ``template``. Note that this is case-sensitive.
 
@@ -640,7 +642,7 @@ templates:
          key2: filename2.xml
 
    The keys should be entered in the CSV file specified by ``--incsvfile`` in a column
-   specified by **template_title:**.
+   specified by :ref:`template_title`.
    See statements :ref:`template_title` and :ref:`template_dir`. Note that the indentation of the
    "key" rows in the YAML file is mandatory and must be consistent. The keys in the YAML and
    CSV files are case insensitive. Do not use this statement and also the :ref:`template_file`
@@ -651,8 +653,8 @@ templates:
 Location-command Statements
 +++++++++++++++++++++++++++
 
-The following statements are either unique to the **location** command or are used in
-a different way from their use with, for example, the **column** command.
+The following statements are either unique to the :ref:`cmd_location` command or are used in
+a different way from their use with, for example, the :ref:`cmd_column` command.
 
 
 .. _location_date:
@@ -695,11 +697,11 @@ location_column:
 ----------------
 
    This indicates the column in the CSV file containing the new location. You must
-   include either this statement or a **value:** statement. If both are included then
+   include either this statement or a :ref:`value` statement. If both are included then
    the new location will be taken from the field in the CSV file unless it
-   is empty in which case the value from the **value:** statement will be used.
+   is empty in which case the value from the :ref:`value` statement will be used.
 
-   If there is no **value:** statement, an empty field in the CSV file is an error.
+   If there is no :ref:`value` statement, an empty field in the CSV file is an error.
 
 .. _location_title:
 
@@ -710,29 +712,29 @@ title:
    from the :ref:`location_column` statement if it exists. Otherwise a default of "Location" will be used.
 
    This statement is only needed in the rare case that there is a CSV column entitled "Location" other than
-   the column named in the **location_column:** statement.
+   the column named in the :ref:`location_column` statement.
 
 .. _location-value:
 
 value:
 ------
 
-   The new location to be inserted in all objects updated. See the **location_column:** statement above for more
+   The new location to be inserted in all objects updated. See the :ref:`location_column` statement above for more
    details.
 
 Commands
 ~~~~~~~~
 
-Each document has one **cmd:** statement, which is customarily the first
-statement in the document. The **cmd:** statement can either be explicitly
-written or generated internally by a **column:** statement.
+Each document has one :ref:`cmd` statement, which is customarily the first
+statement in the document. The :ref:`cmd` statement can either be explicitly
+written or generated internally by a :ref:`column` statement.
 
 Data-related Commands
 +++++++++++++++++++++
 
 Data-related commands are those that map
 the elements in the XML document to a corresponding column in the associated CSV file
-(but see the **location**, **constant**, and **delete** commands for exceptions).
+(but see the :ref:`cmd_location`, :ref:`cmd_constant`, and :ref:`cmd_delete` commands for exceptions).
 
 
 .. _cmd_attrib:
@@ -740,8 +742,8 @@ the elements in the XML document to a corresponding column in the associated CSV
 attrib
 ------
 
-   Like **column** except displays the value of the attribute
-   named in the **attribute:** statement. For ``xml2csv.py`` only.
+   Like :ref:`cmd_column` except displays the value of the attribute
+   named in the :ref:`attribute` statement. For ``xml2csv.py`` only.
 
 .. _cmd_column:
 
@@ -756,10 +758,10 @@ column
    override this. Note ``--empty`` implies ``--replace``. See the section
    :ref:`Reserved Words` for other actions.
 
-   You must specify a title explicitly with the **title:** statement or implicitly
-   with the **xpath:** statement.
+   You must specify a title explicitly with the :ref:`title` statement or implicitly
+   with the :ref:`xpath` statement.
 
-   See the **group:** statement to include text from sub-elements.
+   See the :ref:`group` statement to include text from sub-elements.
 
 .. _cmd_constant:
 
@@ -767,13 +769,13 @@ constant
 --------
 
    For ``csv2xml.py`` and ``update_from_csv.py``, create an element
-   from the **value:** statement of this document without reference to the CSV file.
-   You may also use **constant** in ``xml2csv.py`` but you must include an **xpath:**
-   statement with a value that is used for the heading if no **title:** statement
+   from the :ref:`value` statement of this document without reference to the CSV file.
+   You may also use :ref:`cmd_constant` in ``xml2csv.py`` but you must include an :ref:`xpath`
+   statement with a value that is used for the heading if no :ref:`title` statement
    is specified. The value is inserted unconditionally into the xpath’s text.
 
-   The text in the **value:** statement is inserted as is without modification by
-   statements such as **date:** or **person_name:** or by using reserved words such
+   The text in the :ref:`value` statement is inserted as is without modification by
+   statements such as :ref:`date` or :ref:`person_name` or by using reserved words such
    as ``{{clear}}`` or ``{{today}}``.
 
 .. _cmd_copy:
@@ -791,7 +793,7 @@ copy
 
    For the accession number specified, copy the value of the column with heading "Old Location"
    in the file specified by ``--include`` to the output CSV file in the column with heading "Old Loc".
-   Do not include an **xpath:** statement.
+   Do not include an :ref:`xpath` statement.
 
 .. _cmd_count:
 
@@ -807,8 +809,8 @@ delete
 ------
 
    For ``update_from_csv.py``. Delete the first element specified by the
-   **xpath:** statement. If the **delete** command is
-   specified, the **xpath:**  and **parent_path:** statements are required and
+   :ref:`xpath` statement. If the :ref:`cmd_delete` command is
+   specified, the :ref:`xpath`  and :ref:`parent_path` statements are required and
    the only ones allowed.
 
    To delete complete ``Object`` elements, use ``filter_xml.py``.
@@ -818,7 +820,7 @@ delete
 delete_all
 ----------
 
-   Like **delete** except all occurrences of the element are deleted.
+   Like :ref:`cmd_delete` except all occurrences of the element are deleted.
 
 .. _cmd_items:
 
@@ -834,7 +836,7 @@ keyword
 -------
 
    Used by ``xml2csv.py`` Find the element specified by the xpath statement
-   whose text equals the text in the **value:** statement and then return the
+   whose text equals the text in the :ref:`value` statement and then return the
    first *Keyword* sub-element's text. This for the special (and deprecated) case where
    an element contains both text and subelements.
 
@@ -843,11 +845,11 @@ keyword
 location
 --------
 
-   Update the location of objects. Do not include an **xpath:** statement; the paths
+   Update the location of objects. Do not include an :ref:`xpath` statement; the paths
    to be updated are hard-coded. See :ref:`location_command_statements` above for the relevant
    location-command statements.
    Also see :ref:`updating_locations` in the documentation for ``update_from_csv.py``.
-   At most one **location** command may be included in a configuration. The script
+   At most one :ref:`cmd_location` command may be included in a configuration. The script
    ``location.py`` provides more location-related functionality.
 
 .. _cmd_multiple:
@@ -855,7 +857,7 @@ location
 multiple
 --------
 
-   Used by ``xml2csv.py``, like the **column** command except it produces a
+   Used by ``xml2csv.py``, like the :ref:`cmd_column` command except it produces a
    delimiter-separated list of values.
 
    Used by ``update_from_csv.py``, the opposite is done. The following command document::
@@ -878,13 +880,13 @@ multiple
       </Classification>
 
    This assumes that there is an existing *Classification* element. If not, you can create one
-   with a **constant** command document before the **multiple** document. If there are existing *Keyword*
+   with a :ref:`cmd_constant` command document before the :ref:`cmd_multiple` document. If there are existing *Keyword*
    elements, the new ones will be appended. Duplicates will be discarded.
 
-   The **xpath:** statement must be relative to the path defined in the **parent_path:**
+   The :ref:`xpath` statement must be relative to the path defined in the :ref:`parent_path`
    statement. The text from the CSV file is inserted as is, without any additional formatting (see :ref:`data_formats`).
 
-   See the optional **multiple_delimiter:** statement.
+   See the optional :ref:`multiple_delimiter` statement.
 
 .. _cmd_reproduction:
 
@@ -908,7 +910,7 @@ by ``xml2csv.py`` and others that read from the XML file to select which
 records to output. Multiple **if...** commands may be used; these are
 processed in succession and have an *and* relationship, meaning that all of
 the tests must succeed for a record to be selected. Note that tests are
-case insensitive unless a **case_sensitive:** statement is specified in the
+case insensitive unless a :ref:`case_sensitive` statement is specified in the
 control command document.
 
 .. _cmd_if:
@@ -932,14 +934,14 @@ ifattrib
 --------
 
    Selects an object if the attribute is present and the value is
-   populated. Requires an **attribute:** statement.
+   populated. Requires an :ref:`attribute` statement.
 
 .. _cmd_ifattribeq:
 
 ifattribeq
 ----------
 
-   Like **ifeq** except compares the value against an
+   Like :ref:`cmd_ifeq` except compares the value against an
    attribute. Example::
 
        cmd: ifattribeq
@@ -955,7 +957,7 @@ ifattribeq
 ifattribnoteq
 -------------
 
-   Like **ifnoteq** except compares the value against an
+   Like :ref:`cmd_ifnoteq` except compares the value against an
    attribute.
 
 .. _cmd_ifcontains:
@@ -963,7 +965,7 @@ ifattribnoteq
 ifcontains
 ----------
 
-   Select an object if the value in the **value:**
+   Select an object if the value in the :ref:`value`
    statement is contained in the element text.
 
 .. _cmd_ifelt:
@@ -972,7 +974,7 @@ ifelt
 -----
 
    Select an object if the element exists, even if the text is empty.
-   If the **required:** statement is included, a warning message is issued.
+   If the :ref:`required` statement is included, a warning message is issued.
 
 .. _cmd_ifnotelt:
 
@@ -986,7 +988,7 @@ ifnotelt
 ifeq
 ----
 
-   Select an object if the element text equals the **value:**
+   Select an object if the element text equals the :ref:`value`
    statement text. Returns false if the element doesn’t exist.
 
 .. _cmd_ifnoteq:
@@ -995,7 +997,7 @@ ifnoteq
 -------
 
    Select an object if the element text does not equal the
-   **value:** statement text.
+   :ref:`value` statement text.
 
 .. _cmd_ifanyeq:
 
@@ -1003,7 +1005,7 @@ ifanyeq
 -------
 
    This is for elements that can occur more than once but is otherwise like
-   **ifeq**.
+   :ref:`cmd_ifeq`.
 
 .. _cmd_ifnotanyeq:
 
@@ -1011,8 +1013,8 @@ ifnotanyeq
 ----------
 
    This is for elements that can occur more than once but is otherwise like
-   **ifnoteq**. The object is selected if none of the instances of this element
-   equals the contents of the **value:** statement.
+   :ref:`cmd_ifnoteq`. The object is selected if none of the instances of this element
+   equals the contents of the :ref:`value` statement.
 
 .. _cmd_ifexhib:
 
@@ -1021,7 +1023,7 @@ ifexhib
 
    A special purpose command that selects an object if it was displayed at a
    particular exhibition. The exhibition number (from ``exhibition_list.py``)
-   must be specified in the **value:** statement.  This assumes that Exhibition
+   must be specified in the :ref:`value` statement.  This assumes that Exhibition
    elements exist as follows, with subelement text exactly matching the values
    in ``exhibition_list.py``::
 
@@ -1042,7 +1044,7 @@ ifexhib
 ifnoexhib
 ---------
 
-   Select objects that have never been exhibited. No **xpath:** or other statement
+   Select objects that have never been exhibited. No :ref:`xpath` or other statement
    is required. This assumes the normal format as described above.
 
 .. _cmd_ifcolumneq:
@@ -1051,8 +1053,8 @@ ifcolumneq
 ----------
 
    Used in ``csv2xml.py``. Process this row in the CSV file if the value in the
-   column named in this document’s **title:** statement is equal the value named
-   in this document’s **value:** statement.
+   column named in this document’s :ref:`title` statement is equal the value named
+   in this document’s :ref:`value` statement.
 
 The **global** Command
 ++++++++++++++++++++++
@@ -1064,8 +1066,7 @@ global
 ------
 
    This document contains statements that affect the
-   overall processing, not just a specific column. See the section above *Global-command
-   Statements*. Some of the statements affect the entire process, like **delimiter:**.
+   overall processing, not just a specific column. See the section above :ref:`global_command_statements`.
+   Some of the statements affect the entire process, like :ref:`delimiter`.
    Some of the statements affect the individual columns in the associated CSV file and
    may be overriden by the same named statement in individual documents.
-
