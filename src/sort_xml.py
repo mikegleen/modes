@@ -166,7 +166,7 @@ def getparser():
     parser.add_argument('--encoding', default='utf-8', help='''
         Set the input encoding. Default is utf-8. Output is always utf-8.
         ''')
-    parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
+    parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.
         The default is "{DEFAULT_MDA_CODE}".
         ''')

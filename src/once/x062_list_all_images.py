@@ -86,7 +86,7 @@ def getparser():
         One or more folders containing files to search.''')
     parser.add_argument('-o', '--outfile', help='''
         File to contain the output CSV file.''')
-    parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
+    parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code. The default is {DEFAULT_MDA_CODE}''')
     parser.add_argument('-p', '--dups', action='store_true', help='''
         Only write to output if there are multiple copies of the same file, determined

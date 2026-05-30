@@ -293,7 +293,7 @@ def getparser():
         The file must have a (case-insensitive) suffix of ``.csv`` or ``.xlsx``
         containing CSV format or Excel format data,
         respectively.''', calledfromsphinx))
-    parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
+    parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.''' +
                         if_not_sphinx(f''' The default is "{DEFAULT_MDA_CODE}".
                         ''', calledfromsphinx))

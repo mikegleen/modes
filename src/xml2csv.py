@@ -282,7 +282,7 @@ def getparser():  # called either by getargs or sphinx
     ''')
     parser.add_argument('-l', '--logfile', help='''
     Specify a file to write messages to. Default is sys.stdout ''')
-    parser.add_argument('-m', '--mdacode', default=DEFAULT_MDA_CODE, help=f'''
+    parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code, used in normalizing the accession number.''' +
                         if_not_sphinx(f''' The default is "{DEFAULT_MDA_CODE}". ''',
                                       called_from_sphinx))
