@@ -329,9 +329,9 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
         return newobjid
     if strict:
         raise ValueError(f'Unsupported accession ID format: "{objid}". Select'
-                         f' option --allow_blank to continue.')
+                         f' option --allow_blank to continue. MDA code: {mdacode}')
     else:
-        print(f'normalize_id: Warning: unsupported accession ID format: "{objid}"')
+        print(f'normalize_id: Warning: unsupported accession ID format: "{objid}" MDA code: {mdacode}')
 
     return objidu
 
