@@ -311,7 +311,7 @@ def getparser():
         but is useful if the output is to be manually edited.''')
     parser.add_argument('--serial', default='Serial',
                         deprecated=True, help=sphinxify('''
-        The column containing the serial number (the first column) must have a
+        The column containing the serial number. The CSV file must have a
         heading with this value. This is ignored if the --acc_num parameter is
         specified. This argument is deprecated. Use the
         ``serial:`` global configuration statement.
@@ -382,7 +382,7 @@ if __name__ == '__main__':
     trace(1, 'Input file: {}', _args.incsvfile)
     trace(1, 'Creating file: {}', _args.outfile)
     cfgfile = open(_args.cfgfile)
-    config: Config = Config(cfgfile, verbos=_args.verbose,
+    config: Config = Config(cfgfile, args=_args,
                             allow_required=True)
     if errors := check_cfg(config):
         trace(1, '{} error(s) found. Aborting.', errors)
