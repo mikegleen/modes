@@ -94,6 +94,8 @@ def getargs():
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
     nofinds = 0
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs()
     cfgfile = open(_args.cfgfile)
     config = Config(cfgfile, args=_args)
