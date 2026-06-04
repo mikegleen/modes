@@ -742,7 +742,7 @@ if __name__ == '__main__':
     if _args.deltafile:
         deltafile = open(_args.deltafile, 'wb')
         trace(1, 'Creating delta file: {}', _args.deltafile)
-    cfg = Config(_args.cfgfile, verbos=_args.verbose)
+    cfg = Config(_args.cfgfile, args=_args)
     if errors := check_cfg(cfg):
         trace(1, '{} command{} ignored.', errors, 's' if errors > 1 else '')
         trace(1, 'update_from_csv aborting due to config error(s).',
