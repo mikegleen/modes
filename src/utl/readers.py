@@ -149,12 +149,15 @@ def row_dict_reader(filename: str | None, verbos=1, skiprows=0,
     """
     if not filename:
         return None
+    config = Config.get_config()
     _, suffix = os.path.splitext(filename)
     if suffix.lower() == '.csv':
         with open(filename, encoding='utf-8-sig') as mapfile:
             for _ in range(skiprows):
                 next(mapfile)
             reader = csv.DictReader(mapfile)
+            if config.serial is not None and config.serial not in reader.fieldnames:
+                raise ValueError(f'First row of --include file does not contain "{config.serial}".')
             # noinspection PyTypeChecker
             n_input_fields = len(reader.fieldnames)
             if verbos >= 2:
