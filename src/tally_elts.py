@@ -96,7 +96,7 @@ if __name__ == '__main__':
     nofinds = 0
     _args = getargs()
     cfgfile = open(_args.cfgfile)
-    config = Config(cfgfile, verbos=_args.verbose)
+    config = Config(cfgfile, args=_args)
     main()
     basename = os.path.basename(sys.argv[0])
     print(f'End {basename.split(".")[0]}')
