@@ -170,7 +170,7 @@ if __name__ == '__main__':
         sys.argv.append('-h')
     _args = getargs(sys.argv)
     cfg_file = io.StringIO(CFG_STRING)
-    cfg = Config(cfg_file, verbos=_args.verbose)
+    cfg = Config(cfg_file, args=_args)
     is_xlsx = _args.outfile.lower().endswith('.xlsx')
     if is_xlsx:
         wb = Workbook()
@@ -178,9 +178,8 @@ if __name__ == '__main__':
         ws = wb.create_sheet('Sheet1')
     else:
         encoding = 'utf-8-sig'
-        csvfile = codecs.open(_args.outfile, 'w', encoding)
-        outcsv = csv.writer(csvfile, delimiter=',')
-        writer = csv.writer(outcsv)
+        csvfile = open(_args.outfile, 'w', encoding=encoding)
+        writer = csv.writer(csvfile, delimiter=',')
 
     boxdict = defaultdict(list)
     main(cfg)
