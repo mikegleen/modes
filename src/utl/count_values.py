@@ -22,11 +22,13 @@ def trace(level, template, *args):
 def main(inf):
     counts = defaultdict(int)
     accn_nums = defaultdict(list)
-    xpath, normalize = get_xpath()
+    config: Config = Config(_args.cfgfile, args=_args,
+                            allow_required=True)
+    xpath, normalize = get_xpath(config)
     trace(2, 'xpath: {}', xpath)
     nonepathcount = 0
 
-    for accnum, elem in object_reader(inf):
+    for accnum, elem in object_reader(inf, config=config):
         path = elem.find(xpath)
         if path is None:
             nonepathcount += 1
@@ -37,7 +39,7 @@ def main(inf):
                 if val:
                     value += val.strip()
         else:
-            value = path.text
+            value = path.text if path.text else ""
         if normalize:
             # disable accession number checks - could be, for example,
             # location
@@ -69,16 +71,14 @@ def main(inf):
     return
 
 
-def get_xpath() -> tuple[str, bool]:
+def get_xpath(config) -> tuple[str, bool]:
     if _args.xpath:
         return _args.xpath, _args.normalize
     else:
-        config: Config = Config(_args.cfgfile, verbos=_args.verbose,
-                                allow_required=True)
         if len(config.col_docs) > 1:
             raise ValueError('Only a single column command is allowed in the '
                              'config file.')
-        return config.col_docs[0].xpath, Stmt.NORMALIZE in config.col_docs
+        return config.col_docs[0][Stmt.XPATH], Stmt.NORMALIZE in config.col_docs
 
 
 def getparser() -> argparse.ArgumentParser:
