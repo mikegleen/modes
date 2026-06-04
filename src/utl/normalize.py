@@ -282,7 +282,7 @@ def normalize_id(objid, mdacode=DEFAULT_MDA_CODE, verbose=1, strict=True):
     """
     if objid is None or len(objid) == 0:
         if strict:
-            return None
+            raise ValueError(f'Invalid object id: "{objid}"')
         else:
             return ""
     objidu = objid.upper()
