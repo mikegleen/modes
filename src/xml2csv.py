@@ -114,7 +114,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     else:
         cfgfile = None
         trace(1, 'Warning: Config file omitted. Only accession numbers will be output.')
-    config = Config(cfgfile, verbos=_args.verbose, logfile=_logfile)
+    config = Config(cfgfile, logfile=_logfile, args=_args)
     outcsv, outfile = opencsvwriter(outfilename, config.delimiter)
     outlist = []
     titles = yaml_fieldnames(config)
@@ -128,7 +128,7 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
         includeset = set(expanded)  # JB001-002 -> JB001, JB002
         includes = dict.fromkeys(includeset)
     else:
-        includes = read_include_dict(_args.include, _args.include_column,
+        includes = read_include_dict(_args.include, _args.serial,
                                      _args.include_skip, _args.verbose,
                                      logfile=_logfile,
                                      allow_blanks=_args.allow_blanks)
@@ -266,12 +266,6 @@ def getparser():  # called either by getargs or sphinx
         A CSV file specifying the accession numbers of objects to be processed.
         If omitted, all records will be processed. In either case, objects will
         be output based on configuration statements. There must be a heading row.''')
-    parser.add_argument('--include_column', required=False,
-                        default='Serial', type=str, help=sphinxify('''
-        The title in the heading row of the column containing the accession number in the file
-        specified by the --include option.
-        ''', called_from_sphinx) + if_not_sphinx(f''' The default is "Serial".''',
-                                                 called_from_sphinx))
     parser.add_argument('--include_skip', type=int, default=0, help='''
         The number of rows to skip at the front of the include file before the heading row.''' +
                         if_not_sphinx(f''' The default is 0.
@@ -286,6 +280,12 @@ def getparser():  # called either by getargs or sphinx
         Specify the MDA code, used in normalizing the accession number.''' +
                         if_not_sphinx(f''' The default is "{DEFAULT_MDA_CODE}". ''',
                                       called_from_sphinx))
+    parser.add_argument('--serial', required=False, deprecated=True,
+                        default='Serial', type=str, help=sphinxify('''
+        The title in the heading row of the column containing the accession number in the file
+        specified by the --include option.
+        ''', called_from_sphinx) + if_not_sphinx(f''' The default is "Serial".''',
+                                                 called_from_sphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object. For debugging.''')
     parser.add_argument('-t', '--lineterminator', help=r'''

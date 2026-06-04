@@ -58,7 +58,7 @@ def nextobj(pnum: int, iterparser):
         try:
             event, obj = next(iterparser)
         except StopIteration:
-            trace(5, 'End of file {}', pnum)
+            trace(3, 'End of file {}', pnum)
             return None, None, None, None
         if event == 'start':
             if obj.tag == config.record_tag:
@@ -74,8 +74,8 @@ def nextobj(pnum: int, iterparser):
         idnum = idelem.text if idelem is not None else None
         nidnum = normalize_id(idnum)
         objstr = ET.tostring(obj)
-        trace(5, 'File {} {}', pnum, nidnum)
-        if nidnum <= oldid[pnum]:
+        trace(3, 'File {} {}', pnum, nidnum)
+        if nidnum <= oldid[pnum]:  # noqa (The zero-th entry in oldid is never referenced.)
             trace(0, "Objects out of order in file {}. Old ID = {}, "
                      "New ID = {}", pnum, oldid[pnum], nidnum,
                   color=Fore.RED)
@@ -110,7 +110,7 @@ def main():
             if obj1 is None:
                 break
             obj1.clear()
-            trace(2, "Deleting object at end: {}", id1)
+            trace(2, "Deleting object at end of oldfile: {}", id1)
             obj1, id1, nid1, objstr1 = nextobj(1, ip1)
             deleted += 1
             continue
@@ -176,8 +176,7 @@ def getparser():
     parser.add_argument('-c', '--config', help=sphinxify('''
         Optionally specify a YAML configuration file to allow specification
         of ``record_tag`` and ``record_id_xpath`` statements.''', calledfromsphinx))
-    parser.add_argument('-e', '--encoding', default='utf-8', help=
-                        '''Set the output encoding.''' +
+    parser.add_argument('-e', '--encoding', default='utf-8', help='''Set the output encoding.''' +
                         if_not_sphinx(''' The default is "utf-8".
                         ''', calledfromsphinx))
     parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
@@ -207,7 +206,7 @@ def getargs(argv):
     return args
 
 
-def s(i: int):
+def s(i: int | None):
     return '' if i == 1 else 's'
 
 
@@ -233,7 +232,7 @@ if __name__ == '__main__':
         outfile = open(_args.outfile, 'wb')
     if _args.outorig:
         outorig = open(_args.outorig, 'wb')
-    config = Config(_args.config, mdacode=_args.mdacode, verbos=_args.verbose)
+    config = Config(_args.config, mdacode=_args.mdacode, args=_args)
     main()
     trace(1, '{} object{} in old file: {}', objcount[1], s(objcount[1]), _args.infile1)
     trace(1, '{} object{} in new file: {}', objcount[2], s(objcount[2]), _args.infile2)
