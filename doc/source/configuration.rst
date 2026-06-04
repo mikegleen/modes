@@ -548,7 +548,7 @@ serial:
 
    This is the column title of the column to use for the accession number. The
    default value is ``Serial`` (case sensitive). If this statement is specified,
-   the command line parameter ``--serial`` is ignored. Use of the command parameter
+   the command line parameter ``--serial`` is ignored. Use of the command line parameter
    is deprecated.
 
 .. _skip_number:

@@ -111,6 +111,20 @@ to Modes format::
 Modes format data is cleaned with any leading zeros removed. 
 
 
+Input CSV/XLSX File Format
+--------------------------
+CSV files are read for various purposes. For example, in ``csv2xml.py``, the input
+file contains the data that will be used to populate the XML fields in a template XML
+file. In ``xml2csv.py`` the optional file consists of just one column containing the accession
+number of the object to be output.
+
+All input CSV files must contain a heading row with the accession number in the column
+whose heading is, by default, "Serial" (case sensitive). This can be changed by a command
+line option (``--serial``) or by the :ref:`serial` statement in the configuration. Do not
+specify both the command line option and the configuration statement.
+
+Input XLSX files may be used interchangeably with CSV files. Only the first tab is read.
+
 Output CSV File Formats
 -----------------------
 
