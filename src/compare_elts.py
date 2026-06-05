@@ -143,7 +143,8 @@ def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
     args.infile = open(args.infile)
-    args.output = open(args.output, 'w')
+    if args.output is not None:
+        args.output = open(args.output, 'w')
     return args
 
 
@@ -153,9 +154,11 @@ called_from_sphinx = True
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
     called_from_sphinx = False
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs(sys.argv)
     cfgfile = open(_args.cfgfile)
-    config = Config(cfgfile, verbos=_args.verbose)
+    config = Config(cfgfile, args=_args)
     main()
     basename = os.path.basename(sys.argv[0])
     trace(1, f'End {basename.split(".")[0]}')
