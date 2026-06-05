@@ -61,7 +61,7 @@ def onefile(infile):
             sys.exit(1)
         iddict[nidnum] = idnum
         trace(2, 'Creating iddict[{}] = {}, des = {}', nidnum, idnum, des)
-        outfile.write(ET.tostring(oldobject, encoding=_args.encoding))
+        outfile.write(ET.tostring(oldobject, encoding=_args.encoding))  # noqa
         written += 1
         oldobject.clear()
     return written
