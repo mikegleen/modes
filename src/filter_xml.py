@@ -13,7 +13,6 @@ from utl.cfg import DEFAULT_MDA_CODE
 from utl.cfgutil import Config
 from utl.cfgutil import expand_idnum
 from utl.readers import read_include_dict
-from utl.excel_cols import col2num
 from utl.normalize import normalize_id, sphinxify
 from utl.normalize import if_not_sphinx
 
@@ -100,11 +99,6 @@ def getparser():
         If omitted, all records will be processed based on configuration
         statements. If --exclude is specified, the objects specified in this
         CSV file will be deleted.''', calledfromsphinx))
-    parser.add_argument('--include_column', required=False, type=str,
-                        default='0', help='''
-        The column number containing the accession number in the file
-        specified by the --include option. The default is 0, the first column.
-        The column can be a number or a spreadsheet-style letter.''')
     parser.add_argument('--include_skip', type=int, default=0, help='''
         The number of rows to skip at the front of the include file. The
         default is 0.
@@ -121,6 +115,15 @@ def getparser():
         Noramlize the accession number written to the CSV file or used to
         create the output filename.
         ''')
+    parser.add_argument('--serial', default='Serial',
+                        deprecated=True, help=sphinxify('''
+        The column containing the serial number. The CSV file must have a
+        heading with this value. This is ignored if the --acc_num parameter is
+        specified. This argument is deprecated. Use the
+        ``serial:`` global configuration statement.
+        ''' + if_not_sphinx('''
+        The default value is "Serial".''', calledfromsphinx),
+                                       calledfromsphinx))
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object.''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -134,7 +137,6 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
-    args.include_column = col2num(args.include_column)
     return args
 
 
@@ -160,7 +162,7 @@ if __name__ == '__main__':
         cfgfile = open(_args.cfgfile)
     else:
         cfgfile = None
-    config = Config(cfgfile, mdacode=_args.mdacode, verbos=_args.verbose)
+    config = Config(cfgfile, mdacode=_args.mdacode, args=_args)
     if _args.object:
         expanded = [normalize_id(obj) for obj in expand_idnum(_args.object)]
         includeset = set(expanded)  # JB001-002 -> JB001, JB002
