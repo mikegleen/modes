@@ -13,6 +13,12 @@ DEFAULT_PREFIX_PADDING = {
     'JB': 3,
     'L': 3
 }
+#
+#   Common command line arguments
+#
+ARG_VERBOSE = 'verbose'
+ARG_SERIAL = 'serial'
+ARG_MDACODE = 'mdacode'
 
 # Set by Config.__init__(). Placed here to avoid circular import
 config_instance = None
