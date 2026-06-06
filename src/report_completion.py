@@ -28,7 +28,7 @@ def main(inf, dslf):
     nobjects = 0
     nrows = 0
     tally = collections.defaultdict(int)
-    config = Config(dslf, verbos=_args.verbose)
+    config = Config(dslf, args=_args)
     col_docs = config.col_docs
     titles = [stmt[Stmt.TITLE] for stmt in col_docs]
     if not config.skip_number:
