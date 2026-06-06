@@ -182,12 +182,14 @@ called_from_sphinx = True
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
     called_from_sphinx = False
+    if len(sys.argv) == 1:
+        sys.argv.append('-h')
     _args = getargs(sys.argv)
     if _args.cfgfile:
         cfgfile = open(_args.cfgfile)
     else:
         cfgfile = io.StringIO(CONFIGSTRING)
-    config = Config(cfgfile, verbos=_args.verbose)
+    config = Config(cfgfile, args=_args)
     outfile = codecs.open(_args.output, 'w', 'utf-8-sig')
     outwriter = csv.writer(outfile)
     outwriter.writerow(('Serial', 'Title', 'Revised Title', 'BriefDescription',
