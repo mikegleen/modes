@@ -1,0 +1,57 @@
+<?xml version="1.0"?><Interchange>
+<Object elementtype="Original Artwork">
+	<ObjectIdentity>
+		<Number>TEST01</Number>
+	</ObjectIdentity>
+	<DummyElement />
+	<DummyElement />
+	<ObjectLocation elementtype="current location">
+		<Location>S9</Location>
+	</ObjectLocation>
+	<ObjectLocation elementtype="normal location">
+		<Location>S9</Location>
+		<Date>
+			<DateBegin>27.9.2017</DateBegin>
+		</Date>
+		<Reason>Identical</Reason>
+	</ObjectLocation>
+	<DummyElement />
+</Object>
+<Object elementtype="Original Artwork">
+	<ObjectIdentity>
+		<Number>TEST02</Number>
+	</ObjectIdentity>
+	<DummyElement />
+	<DummyElement />
+    <ObjectLocation />
+	<ObjectLocation elementtype="normal location">
+		<Location>S9</Location>
+	</ObjectLocation>
+	<ObjectLocation elementtype="current location">
+		<Location>S9</Location>
+		<Date>
+			<DateBegin>27.9.2017</DateBegin>
+		</Date>
+		<Reason>Different -- This is the oldmaster version</Reason>
+	</ObjectLocation>
+	<DummyElement />
+</Object>
+<Object elementtype="Original Artwork">
+	<ObjectIdentity>
+		<Number>TEST04</Number>
+	</ObjectIdentity>
+	<DummyElement />
+	<DummyElement />
+	<ObjectLocation elementtype="normal location">
+		<Location>S9</Location>
+	</ObjectLocation>
+	<ObjectLocation elementtype="current location">
+		<Location>S9</Location>
+		<Date>
+			<DateBegin>27.9.2017</DateBegin>
+		</Date>
+		<Reason>This is only in the oldmaster.</Reason>
+	</ObjectLocation>
+	<DummyElement />
+</Object>
+</Interchange>
