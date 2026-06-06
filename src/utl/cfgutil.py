@@ -14,7 +14,7 @@ import ruamel.yaml.constructor
 import xml.etree.ElementTree as ET
 
 from utl import cfg
-from utl.cfg import DEFAULT_MDA_CODE
+from utl.cfg import DEFAULT_MDA_CODE, ARG_SERIAL, ARG_VERBOSE
 from utl.normalize import normalize_id, datefrommodes
 from utl.exhibition_list import get_inverted_exhibition_dict, ExhibitionTuple
 
@@ -243,13 +243,13 @@ class Config:
         return None
 
     def __init__(self, yamlcfgfile=None,
-                 allow_required: bool = False, logfile=sys.stdout, verbos=1,
+                 allow_required: bool = False, logfile=sys.stdout,
                  mdacode=DEFAULT_MDA_CODE, args=None):
         """
 
         :param yamlcfgfile: If None then only the default global values will
                             be initialized.
-        :param dump: If True, print the YAML documents
+        :param args: the namespace of arguments returned by argparse
         :param allow_required: If True, allow the REQUIRED statement under the
                                COLUMN command. This only makes sense for
                                csv2xml.py.
@@ -308,7 +308,6 @@ class Config:
         if Config.__instance is not None:
             raise ValueError("This class is a singleton!")
         Config.__instance = self
-        dump = verbos > 1
         cfg.config_instance = self  # kludge to avoid circular import
         # print(f'{cfg.config_instance=}')
         self.col_docs = []  # documents that generate columns
@@ -323,6 +322,8 @@ class Config:
         self.record_tag = Stmt.get_default_record_tag()
         self.record_id_xpath = Stmt.get_default_record_id_xpath()
         self.serial = None
+        if args is not None and ARG_SERIAL in args:
+            self.serial = args.serial
         self.skip_number = False
         self.sort_numeric = False
         self.subid_parent = None
@@ -332,6 +333,10 @@ class Config:
         self.template_title = None
         self.template_dir = None
         self.template_file = None
+        verbos = 1
+        if args is not None and ARG_VERBOSE in args:
+            verbos = args.verbose
+        dump = verbos > 1
         self.verbose = verbos  # In some scripts the verbose= arg will override
         cfglist = _read_yaml_cfg(yamlcfgfile, dump=dump, logfile=logfile)
         valid = validate_yaml_cfg(cfglist, allow_required)
