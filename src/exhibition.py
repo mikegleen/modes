@@ -18,7 +18,7 @@ The format of the exhibition list is::
     Exhibition Number,Date Begin,Date End,Exhibition Name[,Place]
 
 | Dates must be in ISO 8601 format (yyyy-mm-dd).
-| If ``Place`` is omitted, it is taken to be DEFAULT_EXHIBITION_PLACE
+| If ``Place`` is omitted, it is taken to be utl.cfg.DEFAULT_EXHIBITION_PLACE
 
 In the CSV file, the exhibition number is optional and is ignored if the ``--exhibition``
 parameter is given. The accession number in the CSV file or specified as a parameter
