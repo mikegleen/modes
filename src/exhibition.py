@@ -558,8 +558,8 @@ def getparser():
                         help=sphinxify(f'''
         If set, the current location will be updated to the exhibition location. If the
         location in ``exhibition_list.py`` is "{DEFAULT_EXHIBITION_PLACE}", the location
-        will be set to "{DEFAULT_EXHIBITION_LONG}". The DateBegin field is set to the
-        start date of the exhibition.
+        will be set to "{DEFAULT_EXHIBITION_LONG}". To change this, use the ``--location``
+        command line parameter. The DateBegin field is set to the start date of the exhibition.
         ''', called_from_sphinx))
     objgroup.add_argument('-j', '--object', help=sphinxify('''
     Specify a single object to be processed. If specified, do not specify
