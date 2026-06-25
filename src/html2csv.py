@@ -8,7 +8,6 @@ Output: full path to the output CSV file.
 """
 
 import argparse
-import codecs
 import csv
 import os.path
 import re
@@ -27,7 +26,7 @@ def trace(level, template, *args):
 
 
 def opencsvwriter(filename):
-    csvfile = codecs.open(filename, 'w', _args.encoding)
+    csvfile = open(filename, 'w', encoding=_args.encoding)
     outcsv = csv.writer(csvfile, delimiter=',')
     return outcsv
 
@@ -79,7 +78,7 @@ def one_table(table, outcsv):
 
 def main():
     global tablenumber
-    htmlfile = codecs.open(_args.infile, encoding=_args.encoding)
+    htmlfile = open(_args.infile, encoding=_args.encoding)
     trace(1, 'Input: {}', _args.infile)
     outcsv = opencsvwriter(_args.outfile)
     trace(1, 'Output: {}', _args.outfile)
@@ -135,5 +134,3 @@ if __name__ == '__main__':
     main()
     print('---\nEnd html2csv. {} rows read, {} rows written to {}'.
           format(rowcount, outrowcount, os.path.abspath(_args.outfile)))
-
-
