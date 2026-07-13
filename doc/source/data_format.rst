@@ -162,7 +162,7 @@ varies depending on the platform (Windows or MacOS). To avoid this, a Byte Order
 Mark (BOM) can be included at the front of the file using the ``-b`` option in programs
 that produce CSV output. This will force Excel to process the CSV file as UTF-8
 data. This BOM is recognized by most Windows programs but not Unix-like systems.
-So if you are processing the output with a program (other than Excel) on a MacOs
+So if you are processing the output with a program (other than Excel) on a MacOS
 system, do not include the BOM.
 
 A utility program, ``bin/putbom.sh``, will insert a BOM into an existing file.
