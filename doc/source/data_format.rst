@@ -158,7 +158,7 @@ Byte Order Mark
 
 A separate issue arises when processing the output CSV file in Excel. The file
 is created in UTF-8 format but by default Excel assumes a different format which
-varies depending on the platform (Windows or MacOs). To avoid this, a Byte Order
+varies depending on the platform (Windows or MacOS). To avoid this, a Byte Order
 Mark (BOM) can be included at the front of the file using the ``-b`` option in programs
 that produce CSV output. This will force Excel to process the CSV file as UTF-8
 data. This BOM is recognized by most Windows programs but not Unix-like systems.
