@@ -388,10 +388,16 @@ def if_not_sphinx(txt: str, calledfromsphinx: bool) -> str:
 
 def sphinxify(txt: str, calledfromsphinx: bool) -> str:
     """ Sphinx displays '--' as  an em dash, '—', so partially work around
-    that. """
+    that by adding "``" marks around the parameter.
+
+    Important: Do not add "``" marks around parameters such as "--version". This will
+    convert "``--version``" to "````--version````" which gets Sphinx upset.
+    """
     if not calledfromsphinx:
         return txt
     # print(f'before:{txt}')
+    if "``--" in txt:
+        print('Warning: do not put "``" marks around parameters like "--version".')
     txt = re.sub(r'(--\w+)', r'``\1``', txt)
     # print(f'after:{txt}')
     return txt
