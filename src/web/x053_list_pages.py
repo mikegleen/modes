@@ -121,7 +121,7 @@ def one_file(filename):
     """
 
     global num_failed_match
-    trace(2,'one_file: {}', filename)
+    trace(2, 'one_file: {}', filename)
     prefix, suffix = os.path.splitext(filename)
     if suffix.lower() not in IMGFILES:
         if filename != '.DS_Store':  # MacOS magic file
@@ -137,11 +137,11 @@ def one_file(filename):
         num_failed_match += 1
         return
     n_modes_key1 = normalize_id(modes_key1)
-    n_modes_key2 = normalize_id(modes_key2)
     # Pad the page number in the filename so the pages are sorted so they appear
     # on the website in order.
     padded_filename = pad_page_number(prefix, suffix, accn, subn, subn_ab, page, page_ab)
-    if n_modes_key2:  # if the filename includes a subnumber
+    if modes_key2:  # if the filename includes a subnumber
+        n_modes_key2 = normalize_id(modes_key2)
         accndict[n_modes_key2].append(padded_filename)
     else:
         accndict[n_modes_key1].append(padded_filename)
@@ -159,7 +159,7 @@ def main(indir):
             one_file(file)
 
     longest_listlen = 0
-    longest = None
+    longest = ''
     print('Serial,Images', file=outfile)
     for accn, filelist in sorted(accndict.items()):
         if len(filelist) > longest_listlen:
