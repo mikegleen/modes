@@ -138,3 +138,5 @@ templates/merged/
 *.zip
 *.pdf
 hrm_downloads
+doc/log.txt
+
