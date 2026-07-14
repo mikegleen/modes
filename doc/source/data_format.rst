@@ -167,6 +167,9 @@ system, do not include the BOM.
 
 A utility program, ``bin/putbom.sh``, will insert a BOM into an existing file.
 
+If you are given a CSV file without a byte order mark, to open it in Excel, open a blank
+document and use the "import" feature which will allow you to set the format to UTF-8.
+
 .. _Reserved Words:
 
 Reserved Words

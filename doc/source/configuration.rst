@@ -25,8 +25,7 @@ The configuration consists of a YAML file broken into multiple sections
 Documents are control documents, column documents, or special documents. The special
 documents are :ref:`cmd_global` and :ref:`cmd_location`.
 Each column document corresponds to a column in the associated CSV file, although there are
-exceptions. The “control”
-document directs the selection of records (the if... commands).
+exceptions. The control documents directs the selection of records (the if... commands).
 The various programs use the CSV file for slightly different purposes. For example,
 ``csv2xml.py`` uses it to contain multiple columns each of which defines a value to
 go into a corresponding field in the XML file. On the other hand, ``xml2csv.py`` uses
@@ -37,8 +36,6 @@ on the individual programs.
 Each document contains some of the following statements. Statement names are
 case sensitive; all must be lower case. The lead statement in a document
 is the :ref:`cmd` statement, which controls the function of the document.
-Commands can be column-related or control commands which determine which objects
-are processed. There is also a :ref:`cmd_global` command.
 
 When creating a CSV file, by default the first column is the serial number
 (accession number) of the object affected. This can be suppressed using the
@@ -67,7 +64,7 @@ the ``cmd: global`` document.
 aspect:
 -------
 
-   Used by ``update_from_csv.py``. The argument of the :ref:`aspect` statement
+   This is a specialsed statement used by ``update_from_csv.py``. The argument of the :ref:`aspect` statement
    is the text of a *Keyword* subelement. If an *Aspect* element group exists
    whose subelement *Keyword* text equals the argument, the subelement *Reading*
    text is updated with the :ref:`cmd_column` command's column value or with the :ref:`cmd_constant`
@@ -298,8 +295,8 @@ if_template:
 ------------
 
    This a a shortcut command to be used when there is a :ref:`template_title` statement
-   in the :ref:`global_command_statements` command to generate :ref:`if_other_column` and :ref:`if_other_column_value`
-   statements. See `if-other-column`_.
+   in the :ref:`global_command_statements` command to generate :ref:`if_other_column` and
+   :ref:`if_other_column_value` statements.
    For example, given a :ref:`cmd_global` command containing::
 
       cmd: global
