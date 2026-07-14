@@ -91,8 +91,8 @@ def getargs():
     args = parser.parse_args()
     if args.dryrun:
         args.verbose = max(2, args.verbose)
-    args.trace = open(args.trace, 'w')
     if args.trace != sys.stdout:
+        args.trace = open(args.trace, 'w')
         args.nocolor = True
     return args
 
@@ -126,7 +126,7 @@ def normalize_prefix(prefix: str):
     return modes_key1, modes_key2
 
 
-def new_hxw(xh, xw, ih, iw, ppi: int) -> (int, int):
+def new_hxw(xh, xw, ih, iw, ppi: int):
     """
     :param xh: XML height in mm
     :param xw: XML width in mm
@@ -170,6 +170,8 @@ def main():
         trace(3, 'prefix = {}, idnums = {}', prefix, idnums)
         for idnum in idnums:
             trace(3, 'idnum = {}', idnum)
+            if idnum is None:
+                continue
             nidnum = normalize_id(idnum)
             trace(2, 'Normalized id: {}', nidnum)
             if nidnum not in readings:
@@ -191,7 +193,7 @@ def main():
                 if newh == img_height and neww == img_width:
                     trace(2, 'copying {}', filepath)
                     if not _args.dryrun:
-                        copy2(filepath, outdir)
+                        copy2(filepath, outdir)  # noqa
                 else:
                     if not _args.dryrun:
                         call_sips(newh, neww, filepath, outdir)
@@ -212,7 +214,7 @@ def main():
                 ncopied += 1
                 if dryrun:
                     return
-                copy2(filepath, outdir)
+                copy2(filepath, outdir)  # noqa
 
     outdir = _args.outdir
     maxpixels = _args.maxpixels
