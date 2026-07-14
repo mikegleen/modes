@@ -33,8 +33,7 @@ def onebox(box):
         ncandidates += 1
         if os.path.isdir(filepath):
             try:
-                shutil.copy2(os.path.join(filepath, f'{filename}.jpg'),
-                             outdir)
+                shutil.copy2(os.path.join(filepath, f'{filename}.jpg'), outdir)
                 ncopied += 1
                 print('    ', filename, ' copied.')
             except FileNotFoundError as e:
