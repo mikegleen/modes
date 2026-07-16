@@ -16,7 +16,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 import utl.normalize as nd
-from utl.cfgutil import expand_idnum
+from utl.cfgutil import expand_idnum, Config
 from utl.readers import row_dict_reader
 
 NORMAL_LOCATION = 'normal location'
@@ -48,8 +48,6 @@ def loadcsv():
     rownum = 0
     rows = {}
     location_dict, reason_dict = {}, {}
-    if _args.subp == 'validate':
-        return location_dict, reason_dict
     loc_arg = 'Dummy' if _args.revert or _args.move_to_normal else _args.location
     # with codecs.open(_args.mapfile, encoding='utf-8-sig') as mapfile:
     reader = row_dict_reader(_args.mapfile, _args.verbose, _args.skiprows)
@@ -65,6 +63,8 @@ def loadcsv():
         if not objid:
             if ''.join(row):  # if there is anything else on the line
                 trace(2, 'Skipping row with blank accession id: {}', row)
+            continue
+        if objid.startswith('#'):
             continue
         objidlist = expand_idnum(objid)
         reason = ''
@@ -477,6 +477,7 @@ def delete_previous(elem, idnum):
             trace(2, 'Removing previous location from {}.', idnum)
             elem.remove(elt)
 
+
 def revert_current_location(elem, idnum):
     cl = elem.find('./ObjectLocation[@elementtype="current location"]')
     pl = elem.find('./ObjectLocation[@elementtype="previous location"]')
@@ -552,8 +553,7 @@ def handle_update(idnum, elem):
             sys.exit(1)
         if _args.revert:
             updated = revert_current_location(elem, idnum)
-        is_current, is_normal, is_previous = loc_types(idnum, nidnum, _args,
-                                                       newrows)
+        is_current, is_normal, is_previous = loc_types(idnum, nidnum, _args, newrows)  # noqa
         if is_normal:
             ol = elem.find('./ObjectLocation[@elementtype="normal location"]')
             updated = update_normal_location(ol, idnum)
@@ -802,7 +802,7 @@ def add_arguments(parser, command):
         for all of the objects updated. See also --col_reason.
         ''', called_from_sphinx))
         parser.add_argument('--revert', action='store_true',
-                                  help=nd.sphinxify('''
+                            help=nd.sphinxify('''
         Remove the current location and convert the most recent previous location
         to be the current location. Do not also specify --current, --normal, --previous,
         date-related, or location-related arguments. The mapfile requires just the column
@@ -893,6 +893,7 @@ if __name__ == '__main__':
     is_select = sys.argv[1] == 'select'
     is_update = sys.argv[1] == 'update'
     is_validate = sys.argv[1] == 'validate'
+    Config()
     _args = getargs(sys.argv)
     verbose = _args.verbose
     if is_update:
