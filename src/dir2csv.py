@@ -20,6 +20,7 @@ import argparse
 import os.path
 import re
 import sys
+from utl.cfgutil import Config
 from utl.normalize import normalize_id, denormalize_id
 
 
@@ -34,7 +35,11 @@ def dir2listsub(jpegdir):
     jpgfiles = os.listdir(jpegdir)
     print_normalized = _args.normalize
     for jpgfile in jpgfiles:
+        if _args.verbose > 1:
+            print(f'{jpgfile=}')
         jpgfile = jpgfile.removeprefix('collection_')
+        if _args.verbose > 2:
+            print(f'{jpgfile=}')
         m = re.fullmatch(r'(.*)\.(jpg|jpeg)', jpgfile)
         if not m:
             if jpgfile != '.DS_Store':
@@ -131,6 +136,7 @@ if __name__ == '__main__':
         sys.argv.append('-h')
     _args = getargs(sys.argv)
     print('Begin dir2csv.')
+    Config()
     indir = _args.indir
     outfile = open(_args.csvfile, 'w')
     nwritten = main()
