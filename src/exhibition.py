@@ -13,7 +13,7 @@ first column but the other columns must be specified in the program arguments,
 
       Accession Number,[Exhibition Number],[Catalogue Number]
 
-The format of the exhibition list is::
+The format of the exhibition list in ``exhibition_list.py`` is::
 
     Exhibition Number,Date Begin,Date End,Exhibition Name[,Place]
 
@@ -558,7 +558,7 @@ def getparser():
                         help=sphinxify(f'''
         If set, the current location will be updated to the exhibition location. If the
         location in ``exhibition_list.py`` is "{DEFAULT_EXHIBITION_PLACE}", the location
-        will be set to "{DEFAULT_EXHIBITION_LONG}". To change this, use the ``--location``
+        will be set to "{DEFAULT_EXHIBITION_LONG}". To change this, use the --location
         command line parameter. The DateBegin field is set to the start date of the exhibition.
         ''', called_from_sphinx))
     objgroup.add_argument('-j', '--object', help=sphinxify('''
@@ -566,6 +566,12 @@ def getparser():
     the CSV file containing object numbers, exhibitions and catalogue numbers
     (--mapfile). You must also specify --exhibition and optionally --catalogue.
     ''', called_from_sphinx))
+    parser.add_argument('--old_date', help=sphinxify('''
+    Specify the old BeginDate of the exhibition to be replaced by the BeginDate
+    now in ``exhibition_list.py``. This is optional and only needed if the
+    exhibition name, is not unique. You must specify the --old_name and --old_place parameter.
+    The date must be in Modes format (d.m.yyyy).
+        ''', called_from_sphinx))
     parser.add_argument('--old_name', help=sphinxify('''
     Specify the old name of the exhibition to be replaced by the name now in
     ``exhibition_list.py``. You must specify the --exhibition parameter.
@@ -577,13 +583,8 @@ def getparser():
         ''', called_from_sphinx))
     parser.add_argument('--patch', action='store_true', help=sphinxify('''
     Update an Exhibition element group with data from ``exhibition_list.py``.
-    You must specify the --exhibition parameter.
-        ''', called_from_sphinx))
-    parser.add_argument('--old_date', help=sphinxify('''
-    Specify the old BeginDate of the exhibition to be replaced by the BeginDate
-    now in ``exhibition_list.py``. This is optional and only needed if the
-    exhibition name is not unique. You must specify the --old_place parameter.
-    The date must be in Modes format (d.m.yyyy).
+    You must specify the --exhibition parameter. It is usually more convenient
+    to use this parameter than --old_name.
         ''', called_from_sphinx))
     parser.add_argument('-s', '--skiprows', type=int, default=0, help='''
         Number of lines to skip at the start of the CSV file''')
