@@ -63,6 +63,9 @@ def print_table():
     maxlen = 0
     maxfn = ''
     for fn in sorted(table):
+        if _args.keydir:
+            if fn not in keys:
+                continue
         row = table[fn]
         if len(row) > maxlen:
             maxlen = len(row)
@@ -76,6 +79,15 @@ def print_table():
                 sizes.add(row[i])
             if not found:
                 continue
+        elif _args.nodups:
+            found = False
+            sizes = set()
+            for i in range(2, len(row), 2):
+                if row[i] in sizes:
+                    found = True
+                sizes.add(row[i])
+            if found:
+                continue
         csvwriter.writerow(table[fn])
     print(f'{maxfn=}, {maxlen=}')
 
@@ -84,12 +96,19 @@ def getparser():
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('indirs', nargs='*', help='''
         One or more folders containing files to search.''')
-    parser.add_argument('-o', '--outfile', help='''
+    parser.add_argument('-o', '--outfile', required=True, help='''
         File to contain the output CSV file.''')
     parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE, help=f'''
         Specify the MDA code. The default is {DEFAULT_MDA_CODE}''')
-    parser.add_argument('-p', '--dups', action='store_true', help='''
+    parser.add_argument('-k', '--keydir', help=f'''
+        Only write to output if the file is in this directory. ''')
+    dup_group = parser.add_mutually_exclusive_group()
+    dup_group.add_argument('-p', '--dups', action='store_true', help='''
         Only write to output if there are multiple copies of the same file, determined
+        by name and file size.
+        ''')
+    dup_group.add_argument('-q', '--nodups', action='store_true', help='''
+        Only write to output if there are NOT multiple copies of the same file, determined
         by name and file size.
         ''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
@@ -112,5 +131,9 @@ if __name__ == '__main__':
     table = dict()
     csvfile = open(_args.outfile, 'w')
     csvwriter = csv.writer(csvfile)
+    if _args.keydir:
+        keys = set()
+        for keyfile in os.listdir(_args.keydir):
+            keys.add(keyfile)
     main()
     print_table()
