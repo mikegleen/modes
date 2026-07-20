@@ -425,6 +425,8 @@ value:
    Required for :ref:`cmd_ifeq`, :ref:`cmd_ifnoteq`, :ref:`cmd_ifattribeq`, :ref:`cmd_ifcontains`, :ref:`cmd_ifanyeq`,
    :ref:`cmd_ifnotanyeq`, or :ref:`cmd_constant` command.
 
+   In ``csv2xml.py``, this is the default value to be used by the :ref:`cmd_column` command if a CSV cell is empty.
+
 .. _width:
 
 width:
@@ -749,11 +751,14 @@ column
 
    This is the basic command to display or update the text of an
    element. When inserting into an XML field, you can control various features.
-   By default, values are only inserted into an XML field if that field is
+   In ``update_from_csv.py``, values are only inserted into an XML field if that field is
    unpopulated. Specify ``--replace`` to override this. By default, if a field
    in the CSV file is empty, no action takes place. Specify ``--empty`` to
    override this. Note ``--empty`` implies ``--replace``. See the section
    :ref:`Reserved Words` for other actions.
+
+   In ``csv2xml.py``, if a cell in the CSV file is empty, the default value from the :ref:`value`
+   statement is used, if present.
 
    You must specify a title explicitly with the :ref:`title` statement or implicitly
    with the :ref:`xpath` statement.
