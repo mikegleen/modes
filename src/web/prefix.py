@@ -9,7 +9,7 @@ import time
 
 import utl.normalize as nd
 
-COLLECTION_PREFIX = 'collection_'
+from web.webutil import COLLECTION_PREFIX
 IMGFILES = ('.jpg', '.jpeg', '.png')
 
 
