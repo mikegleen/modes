@@ -4,6 +4,8 @@ COLLECTION_PREFIX = 'collection_'
 
 #
 #   <accession #>-<3-digit subnumber>[<A|B>][-<page #>][<A|B>]
+#   The accession number can be any valid accession number including JB001A or
+#   LDHRM.2021.1.
 #   The 'A|B' can either follow the subnumber or the page number (or neither)
 #   but not both. This is not enforced by the pattern.
 #
