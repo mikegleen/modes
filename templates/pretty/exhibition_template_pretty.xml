@@ -1,0 +1,77 @@
+<templates application="Procedure records"><template filename="SYSTEM" name="hrm exhibition template">
+<Object elementtype="use of collections - exhibition">
+	<ObjectIdentity elementtype="Exhibition number">999999</ObjectIdentity>
+	<Exhibition>
+		<ExhibitionName />
+		<SummaryText />
+		<Organisation>
+			<Role>exhibition organiser</Role>
+			<OrganisationName />
+			<Address />
+			<Person>
+				<Role>organiser's contact</Role>
+				<PersonName />
+				<Email />
+				<Phone />
+			</Person>
+		</Organisation>
+		<Organisation>
+			<Role>venue</Role>
+			<OrganisationName />
+			<Address />
+			<Person>
+				<Role>venue's contact</Role>
+				<PersonName />
+				<Email />
+				<Phone />
+			</Person>
+			<Date elementtype="venue dates">
+				<DateBegin />
+				<DateEnd />
+			</Date>
+		</Organisation>
+		<Date elementtype="exhibition dates">
+			<DateBegin />
+			<DateEnd />
+		</Date>
+		<Progress>
+			<Keyword />
+			<Date />
+		</Progress>
+		<Cost />
+		<Note />
+	</Exhibition>
+	<LoanOut>
+		<LoanNumber />
+	</LoanOut>
+	<LoanIn>
+		<LoanNumber />
+	</LoanIn>
+	<ConditionCheck>
+		<ReferenceNumber />
+	</ConditionCheck>
+	<Conservation>
+		<ConservationNumber />
+	</Conservation>
+	<Movement>
+		<MovementNumber />
+	</Movement>
+	<NumberOfItems />
+	<References elementtype="multimedia">
+		<Filename />
+		<SummaryText />
+	</References>
+	<Reproduction>
+		<Filename />
+		<SummaryText />
+	</Reproduction>
+	<RecordType>exhibition record</RecordType>
+	<Recorder>
+		<PersonName>mlg</PersonName>
+		<Date>18.7.2026</Date>
+		<Time>10:35:03 AM</Time>
+	</Recorder>
+	<Notes />
+</Object>
+</template>
+</templates>
