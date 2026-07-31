@@ -654,12 +654,11 @@ def add_arguments(parser, command):
         ''', called_from_sphinx))
         defloc = nd.if_not_sphinx(''' The default is Location.''',
                                   called_from_sphinx)
-        parser.add_argument('--col_loc', type=str, default='Location',
+        parser.add_argument('--col_loc', type=str, default='',
                             help=nd.sphinxify('''
         The heading of the column in the CSV file defined by --mapfile containing the new location of the
-        object to be updated. See the --location
-        option which sets the default location for all objects being updated if
-        the cell in the CSV file is not populated.''' + defloc, called_from_sphinx))
+        object to be updated. Do not specify both this option and --location.''' + defloc,
+                                              called_from_sphinx))
     if is_update:
         parser.add_argument('--col_loc_type', help=nd.sphinxify('''
         Set this column in the CSV file defined by --mapfile to ``c``, ``n``, or ``cn`` indicating
@@ -747,8 +746,7 @@ def add_arguments(parser, command):
         parser.add_argument('-l', '--location', help=nd.sphinxify('''
         Set the location for all of the objects in the CSV file. In this 
         case the CSV file only needs a single column containing the 
-        accession number. If --col_loc is also specified, this location will
-        be used if that cell is not populated.
+        accession number.
         ''', called_from_sphinx))
         map_group.add_argument('-m', '--mapfile', help=nd.sphinxify('''
             The CSV file mapping the object number to its new location. By
@@ -860,6 +858,12 @@ def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
     if is_update:
+        if args.col_loc:
+            if args.location:
+                trace(0, 'You may not specify both --col_loc and --location')
+                sys.exit()
+        else:
+            args.col_loc = 'Location'
         if args.col_loc_type:
             if args.current or args.normal:
                 trace(0, 'You may not specify both --col_loc_type and -c or -n.')
