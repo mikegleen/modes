@@ -116,8 +116,8 @@ def harvest(candidatedir):
             naccnum = normalize_id(prefix)
         except (ValueError, AssertionError) as e:
             trace(1, '******** Bad format: candidate: "{}", prefix: "{}", '
-                     'error: {}',
-                  candidate, prefix,  str(e))
+                     'candidate dir: {}',
+                  candidate, prefix,  candidatedir)
             continue
         if _args.modes:
             if naccnum not in objects:
@@ -128,8 +128,7 @@ def harvest(candidatedir):
         else:
             ncopied += 1
             frompath = os.path.join(candidatedir, candidate)
-            trace(1, 'harvesting: {}', candidate)
-            trace(2, '    from {}, to directory {}', frompath, _args.staging)
+            trace(2, 'harvesting: {}', frompath)
             if not _args.dryrun:
                 shutil.copy(str(frompath), _args.staging)  # convert to str to stop PyCharm whining
 
