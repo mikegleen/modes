@@ -113,7 +113,10 @@ def one_file(filename):
 
         JB001   The accession number
         -001    The subnumber
-        A       The page indicator can be A (verso) or B (recto)
+        A       The page indicator can be A (verso) or B (recto). This is used when
+                there is only one page but it has a front and back.
+        -1[A]   One of multiple pages with optionally a front and back. The page
+                number is optionally padded to three digits.
         --      Indicates that an object with an accession number but not a
                 subnumber has multiple pages
 
