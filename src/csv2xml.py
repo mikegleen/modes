@@ -233,12 +233,16 @@ def main():
             if not process_if_other_column(row, doc, accnum, _args.verbose):
                 continue
             if cmd != Cmd.CONSTANT and not text:
-                trace(3, '{}: cell empty {}', accnum, title)
-                if Stmt.REQUIRED in doc:
-                    print(f'*** Required column “{title}” is missing from'
-                          f' {accnum}. Object excluded.')
-                    emit = False
-                continue
+                # if the column is empty, then the value statement's text is used.
+                if Stmt.VALUE in doc:
+                    text = doc[Stmt.VALUE]
+                else:
+                    trace(3, '{}: cell empty {}', accnum, title)
+                    if Stmt.REQUIRED in doc:
+                        trace(1, '*** Required column “{}” is missing from'
+                              ' {}. Object excluded.', title, accnum, color=Fore.YELLOW)
+                        emit = False
+                    continue
             if text == '{{clear}}':
                 text = ''
             elif text == '{{today}}':
