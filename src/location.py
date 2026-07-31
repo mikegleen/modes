@@ -667,11 +667,10 @@ def add_arguments(parser, command):
         ''', called_from_sphinx))
         patch_group = parser.add_mutually_exclusive_group()
         patch_group.add_argument('--col_patch', help=nd.sphinxify('''
-        Indicate that this column in the CSV file defined by --mapfile should contain
+        This is the title of the column in the CSV file defined by --mapfile which should contain
         “``patch``”, possibly abbreviated to “``p``”, or be empty. This is
         equivalent for this row to setting the --patch command-line option
-        which applies to all of the rows in the CSV file. The column can be a
-        number or a spreadsheet-style letter.''', called_from_sphinx))
+        which applies to all of the rows in the CSV file.''', called_from_sphinx))
         parser.add_argument('--col_reason', help=nd.sphinxify('''
             The zero-based column containing text to be inserted as the
             reason for the move to the new current location for the object
