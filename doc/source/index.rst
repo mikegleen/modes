@@ -24,6 +24,7 @@ Modes Python Library
    shrinkjpg
    sync_xml
    x053_list_pages
+   x062_list_all_images
    update_from_csv
    utility_programs
    xmldiff
