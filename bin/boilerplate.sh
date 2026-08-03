@@ -1,5 +1,10 @@
-SCRIPT=$(python -c "print('$ZSH_ARGZERO'.split('.')[0].split('/')[-1])")
-echo SCRIPT: $SCRIPT
+set -e
+pushd /Users/mlg/pyprj/hrm/modes
+SCRIPT="$(basename -- "${0%.*}")"
+OUTFILE=$SCRIPT.xml
+DELTAXML=${SCRIPT}_delta.xml
+echo INXML = $INXML
+echo OUTXML=$OUTFILE
 green () {
     print -P "%F{green}$*%f"
 }
