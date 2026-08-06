@@ -142,6 +142,30 @@ class TestExpandIDnum(unittest.TestCase):
     def test_34(self):
         self.assertRaises(ValueError, expand_idnum, '2022.4-2024.3')
 
+    def test_35(self):
+        idnums = expand_idnum('SH2+3+1')
+        self.assertEqual(idnums, ['SH2', 'SH3', 'SH1'])
+
+    def test_36(self):
+        # idnums = expand_idnum('SH2-3+   1')
+        self.assertRaises(ValueError, expand_idnum, 'SH2-3&1')
+
+    def test_37(self):
+        idnums = expand_idnum('SH2+30+1')
+        self.assertEqual(idnums, ['SH2', 'SH30', 'SH1'])
+
+    def test_38(self):
+        idnums = expand_idnum('SH10+3')
+        self.assertEqual(idnums, ['SH10', 'SH3'])
+
+    def test_39(self):
+        idnums = expand_idnum('LDHRM.2021.17 + 2')
+        target = ['LDHRM.2021.17', 'LDHRM.2021.2']
+        self.assertEqual(idnums, target)
+
+    def test_40(self):
+        self.assertRaises(ValueError, expand_idnum, 'LDHRM.2021.17 + .2')
+
 
 if __name__ == '__main__':
     assert sys.version_info >= (3, 9)
