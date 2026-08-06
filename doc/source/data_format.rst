@@ -66,10 +66,13 @@ Sometimes it is convenient to specify
 multiple numbers as one expression, e.g. in one row of a CSV file.
 The following format allows this.
 
-Accession numbers can be given with trailing
+Multiple accession numbers can be written on a single line, separated by commas.
+
+Each accession number can be given with trailing
 expansion syntax. For example, JB001-002 will expand to JB001, JB002. The
 syntax is flexible in that you can also specify JB001-2 for the same effect.
 JB998-1023 also works. White space in the field is ignored.
+
 
 The following formats are allowed::
 
@@ -88,6 +91,7 @@ is illegal but::
     JB002-3,JB005
 
 is legal. You can use a "/" instead of the "-" separator.
+You can use a "+" instead of the "&" separator.
 
 .. _date_formats:
 

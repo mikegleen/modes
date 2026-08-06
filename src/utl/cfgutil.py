@@ -935,7 +935,7 @@ def _expand_one_idnum(idstr: str) -> list[str]:
     """
     :param idstr: An accession number or a range of numbers. If it is a range,
     indicated by a hyphen or ampersand anywhere in the string, the format of
-    the number is:
+    the number is as follows. "+" may be used instead of "&".:
         idstr ::= idnum | rangestr | liststr
         idnum ::= string without '-', '/', or '&'
         rangestr ::= prefix-suffix | prefix/suffix
@@ -971,9 +971,9 @@ def _expand_one_idnum(idstr: str) -> list[str]:
     jlist = []
     idstr = ''.join(idstr.split())  # remove all whitespace
     if '-' in idstr or '/' in idstr:  # if ID is actually a range like JB021-23
-        if '&' in idstr:
+        if re.search(r'[&+]', idstr):
             raise ValueError(f'Bad accession number list: cannot contain both'
-                             f' "-" and "&": "{idstr}"')
+                             f' "-" and "&" or "+": "{idstr}"')
         if m := re.match(r'''(.+?)  # prefix like "JB" or "LDHRM.2024."
                              (\d+)  # number up to the separator
                              [-/]   # the separator can be "-" or "/"
@@ -990,8 +990,8 @@ def _expand_one_idnum(idstr: str) -> list[str]:
                                  f'well formed: {m.groups()}')
         else:
             raise ValueError('Bad accession number, failed pattern match:', idstr)
-    elif '&' in idstr:
-        parts = idstr.split('&')
+    elif re.search(r'[&+]', idstr):
+        parts = re.split(r'[&+]', idstr)
         head = parts[0]
         jlist.append(head)
         m = re.match(r'(.+?)(\d+)$', head)
