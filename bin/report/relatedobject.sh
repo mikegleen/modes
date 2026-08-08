@@ -1,22 +1,23 @@
 #!/bin/zsh
 set -e
-INXML=2025-02-07_stocktake_loc.xml
-SCRIPT=$(python -c "print('$ZSH_ARGZERO'.split('.')[0].split('/')[-1])")
+INXML=`python src/utl/x066_latest.py -i prod_update/normal`
+SCRIPT="$(basename -- "${0%.*}")"
 OUTCSV=tmp/$SCRIPT.csv
 # echo $SCRIPT
 cat >tmp/$SCRIPT.yml <<EOF
 cmd: global
 # skip_number:
 ---
-cmd: if
-xpath: ./Description/Aspect
+cmd: ifnot
+xpath: ./RelatedObject[@elementtype="Mounted With"]/ObjectIdentity/Number
+title: if_mounted_with
 ---
 cmd: column
-xpath: ./Description/Aspect/Keyword
+xpath: ./RelatedObject[@elementtype="Mounted With"]/ObjectIdentity/Number
 ---
 # cmd: column
 # xpath: ./Identification/Title
 # width: 50
 # ---
 EOF
-python src/xml2csv.py prod_update/normal/$INXML results/reports/$SCRIPT.csv -b -c tmp/$SCRIPT.yml --heading
+python src/xml2csv.py $INXML results/reports/$SCRIPT.csv -b -c tmp/$SCRIPT.yml --heading

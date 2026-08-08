@@ -401,7 +401,10 @@ def one_element(objelem, idnum):
     for doc in cfg.col_docs:
         command = doc[Stmt.CMD]
         # print(f'{command=}')
-        must_process = process_if_other_column(newvals[idnum], doc, idnum, _args.verbose)
+        if process_all_objects:
+            must_process = True
+        else:
+            must_process = process_if_other_column(newvals[idnum], doc, idnum, _args.verbose)
         trace(3, 'process... {} {} {}, must process: {}', idnum, command, doc[Stmt.TITLE], must_process)
         if not must_process:
             continue
@@ -557,14 +560,15 @@ def main():
         idnum = idelem.text if idelem is not None else None
         nidnum = normalize_id(idnum)
         trace(4, 'idnum: {}', idnum)
-        if nidnum and nidnum in newvals:
+        if nidnum and (process_all_objects or nidnum in newvals):
             trace(4, 'nidnum: {}', nidnum, color=Fore.GREEN)
             if cfg.subid_parent is not None:
                 one_element_subid_mode(nidnum, elem)
                 updated = True
             else:
                 updated = one_element(elem, nidnum)
-                del newvals[nidnum]
+                if not process_all_objects:
+                    del newvals[nidnum]
         else:
             updated = False
             if _args.missing:
@@ -584,7 +588,7 @@ def main():
         deltafile.write(b'</Interchange>')
     # if it's not subid mode and we're not debugging, then trace the serial
     # numbers in the CSV file that did not result in XML updates.
-    if cfg.subid_parent is None and not _args.short:
+    if cfg.subid_parent is None and not _args.short and not process_all_objects:
         for nidnum in newvals:
             trace(1, 'In CSV but not XML: "{}"', denormalize_id(nidnum))
 
@@ -627,17 +631,16 @@ def getparser():
         trace the missing index. Useful if you are updating all objects.''')
     parser.add_argument('-m', '--mapfile', required=True, help=sphinxify('''
         Required. The CSV file mapping the object number to the new element
-        value(s). The file may also be an Excel spreadsheet with a filename
+        value(s) or the keyword "all". The file may also be an Excel spreadsheet with a filename
         ending ``.xlsx``. The
         first column must contain the object number and subsequent columns
         must have headers that correspond to the titles of the columns in the
         configuration
         file. If a row in the CSV file has fewer fields than defined in the
         configuration file, zero-length strings will be assumed. See
-        --empty. To do: make this optional in which case all objects will
-        be selected. This is useful to add a constant value to all objects.
-        In the meantime, use ``xml2csv.py`` with no configuration
-        file which will generate a CSV file will all accession numbers.
+        --empty. If the value of this parameter is "all" then all objects are processed
+        and you may only use ``delete``, ``delete_all``, or ``constant`` commands or
+        any "if..." command.
         ''', called_from_sphinx))
     parser.add_argument('--mdacode', default=DEFAULT_MDA_CODE,
                         help=sphinxify(f'''
@@ -679,8 +682,9 @@ def getargs(argv):
         raise ValueError('You must specify --outfile or --deltafile.')
     if args.empty:
         args.replace = True
-    if os.path.splitext(args.mapfile)[1].lower() not in ('.csv', '.xlsx'):
-        raise ValueError('mapfile must be a CSV or Excel file.')
+    if args.mapfile.lower() != 'all':
+        if os.path.splitext(args.mapfile)[1].lower() not in ('.csv', '.xlsx'):
+            raise ValueError('mapfile must be a CSV or Excel file.')
     if args.date:
         args.date, _, _ = modesdatefrombritishdate(args.date)
     else:
@@ -713,10 +717,11 @@ def check_cfg(config: Config):
             trace(1, 'cmd: {}: attribute statement requires '
                   'attribute_value:', cmd, color=Fore.RED)
             errs += 1
-    for doc in config.ctrl_docs:  # "global" is not in this dict
-        trace(1, 'Control command "{}" not allowed, ignored.', doc[Stmt.CMD],
-              color=Fore.RED)
-        errs += 1
+    if not process_all_objects:
+        for doc in config.ctrl_docs:  # "global" is not in this dict
+            trace(1, 'Control command "{}" not allowed, ignored.', doc[Stmt.CMD],
+                  color=Fore.RED)
+            errs += 1
     return errs
 
 
@@ -731,6 +736,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         sys.argv.append('-h')
     _args = getargs(sys.argv)
+    process_all_objects = _args.mapfile.lower() == 'all'
     nupdated = nunchanged = nwritten = nequal = ndeleted = 0
     trace(1, 'Begin update_from_csv.', color=Fore.GREEN)
     infile = open(_args.infile)
@@ -750,13 +756,15 @@ if __name__ == '__main__':
         sys.exit(1)
     if not cfg.serial:
         cfg.serial = _args.serial
-    csvreader = row_dict_reader(_args.mapfile, _args.verbose, _args.skiprows)
-    if cfg.subid_parent is not None:
-        newvals, subvals = loadsubidvals(csvreader, allow_blanks=_args.allow_blanks)
-    else:
-        newvals = loadnewvals(csvreader, allow_blanks=_args.allow_blanks)
-        subvals = None  # for trace
-    trace(4, 'newvals = {}\nsubvals = {}', newvals, subvals, color=Fore.YELLOW)
+    newvals = None
+    if not process_all_objects:
+        csvreader = row_dict_reader(_args.mapfile, _args.verbose, _args.skiprows)
+        if cfg.subid_parent is not None:
+            newvals, subvals = loadsubidvals(csvreader, allow_blanks=_args.allow_blanks)
+        else:
+            newvals = loadnewvals(csvreader, allow_blanks=_args.allow_blanks)
+            subvals = None  # for trace
+        trace(4, 'newvals = {}\nsubvals = {}', newvals, subvals, color=Fore.YELLOW)
     nnewvals = len(newvals) if newvals else 0
     main()
     trace(1, '{} element{} in {} object{} updated.\n'
