@@ -63,6 +63,7 @@ EXSTR = '''Serial,DateBegin,DateEnd,ExhibitionName,Place
 43,2025-11-01,2026-02-22,Sublime Space
 44,2026-02-28,2026-06-28,The LIFE in a Line!
 45,2026-07-04,2026-11-01,Heath Robinson Unseen
+46,2026-11-07,2027-03-07,The Genie and Other Stories
 '''
 # data for testing
 '''
