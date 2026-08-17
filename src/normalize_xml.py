@@ -12,6 +12,35 @@ import xml.dom.minidom as minidom
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET  # PEP8 doesn't like two uppercase chars
 
+from utl.readers import object_reader
+from utl.normalize import if_not_sphinx, sphinxify
+
+
+def es(i: int):
+    return '' if i == 1 else 'es'
+
+
+def validate():
+    global mismatches
+    for idnum, elem in object_reader(_args.infile):
+        orig_xmlstring = ET.tostring(elem, encoding=_args.output_encoding,
+                                     xml_declaration=False)
+        for e in elem.iter():
+            # print(f'{e.tag} "{e.text}" "{e.tail}"')
+            if e.text:
+                e.text = ' '.join(e.text.strip().split())
+            if e.tail:
+                e.tail = ' '.join(e.tail.strip().split())
+        norm_xmlstring = ET.tostring(elem, encoding=_args.output_encoding,
+                                     xml_declaration=False)
+        if orig_xmlstring != norm_xmlstring:
+            mismatches += 1
+            if _args.verbose >= 2:
+                print(f'Mismatch {idnum}')
+    label = 'mismatch' + es(mismatches)
+    print(f'{mismatches} {label}.' + (' Set --verbose 2 to see details.' if
+          _args.verbose < 2 and mismatches > 0 else ''))
+
 
 def main():
     nlines = 0
@@ -66,14 +95,14 @@ def main():
         print(f'End normalize_xml. {nlines} object{s} written in {elapsed:.3f} seconds')
 
 
-def getargs():
+def getparser():
     parser = argparse.ArgumentParser(description='''
-        Modify the XML structure. Remove leading and trailing spaces and
+        Clean the XML structure. Remove leading and trailing spaces and
         convert multiple spaces to single spaces.
         ''')
-    parser.add_argument('infile', help='''
+    parser.add_argument('-i', '--infile', help='''
         The input XML file''')
-    parser.add_argument('outfile', help='''
+    parser.add_argument('-o', '--outfile', help='''
         The output XML file.''')
     parser.add_argument('-e', '--input_encoding', default=None, help='''
         Set the input encoding. The encoding defaults to UTF-8. If set, you
@@ -90,10 +119,20 @@ def getargs():
         Prettyprint the output.''')
     parser.add_argument('-s', '--short', action='store_true', help='''
         Only process one object.''')
+    parser.add_argument('--validate', action='store_true',
+                        help=sphinxify('''
+        If specified, scan the input file for trailing whitespace in elements.
+        All options except --input and --input_encoding are ignored.''',
+                                       calledfromsphinx=called_from_sphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
-    args = parser.parse_args()
+    return parser
+
+
+def getargs(argv):
+    parser = getparser()
+    args = parser.parse_args(args=argv[1:])
     e = args.input_encoding
     g = args.output_encoding
     if (e and not g) or (g and not e):
@@ -101,17 +140,24 @@ def getargs():
             'Both input and output encoding must be specified.')
     elif not e:
         args.input_encoding = args.output_encoding = 'UTF-8'
+    if _args.infile == _args.outfile:
+        raise ValueError("Input is the same as output. Aborting.")
     return args
 
 
+called_from_sphinx = True
+
+
 if __name__ == '__main__':
+    called_from_sphinx = False
     assert sys.version_info >= (3, 6)
     if len(sys.argv) == 1:
         sys.argv.append('-h')
-    _args = getargs()
-    if _args.infile == _args.outfile:
-        print("Input is the same as output. Aborting.")
-        sys.exit(1)
+    _args = getargs(sys.argv)
     infile = open(_args.infile, encoding=_args.input_encoding)
-    outfile = open(_args.outfile, 'wb')
-    main()
+    if _args.validate:
+        mismatches = 0
+        validate()
+    else:
+        outfile = open(_args.outfile, 'wb')
+        main()

@@ -20,6 +20,7 @@ Modes Python Library
    list_needed
    location
    mergexml
+   normalize_xml
    recode_collection
    shrinkjpg
    sync_xml
