@@ -1010,11 +1010,12 @@ def _expand_one_idnum(idstr: str) -> list[str]:
     return jlist
 
 
-def expand_idnum(idnumstr: str) -> list[str]:
+def expand_idnum(idnumstr: str, normalize=False) -> list[str]:
     """
     Expand an idnumstr to a list of idnums.
     :param idnumstr: (See expand_one_idnum for the definition of idstr)
         idnumstr ::= idstr | idstr,idnumstr
+    :param normalize: convert the idnums to normalized form
     :return: list of idnums
     """
     idstrlist = idnumstr.split(',')
@@ -1022,4 +1023,6 @@ def expand_idnum(idnumstr: str) -> list[str]:
     for idstr in idstrlist:
         # _expand_one_idnum returns a list. Append the members of that list.
         rtnlist += _expand_one_idnum(idstr)
+    if normalize:
+        rtnlist = [normalize_id(idnum) for idnum in rtnlist]
     return rtnlist

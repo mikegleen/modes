@@ -10,11 +10,9 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 from utl.cfg import DEFAULT_MDA_CODE
-from utl.cfgutil import Config
-from utl.cfgutil import expand_idnum
+from utl.cfgutil import Config, expand_idnum
 from utl.readers import read_include_dict
-from utl.normalize import normalize_id, sphinxify
-from utl.normalize import if_not_sphinx
+from utl.normalize import normalize_id, sphinxify, if_not_sphinx
 
 
 def trace(level, template, *args):
@@ -82,16 +80,14 @@ def getparser():
     parser.add_argument('-c', '--cfgfile', help='''
         The config file describing the Object elements to include in the
         output''')
-    parser.add_argument('-d', '--directory', action='store_true',
-                        help=sphinxify('''
+    parser.add_argument('-d', '--directory', action='store_true', help=sphinxify('''
         The output file is a directory. Create files in the directory,
         one per object in the XML file. The directory must be empty (but
         see --force).''', calledfromsphinx))
     parser.add_argument('-e', '--encoding', default='utf-8', help='''
         Set the output encoding. The default is "utf-8".
         ''')
-    parser.add_argument('-f', '--force', action='store_true',
-                        help=sphinxify('''
+    parser.add_argument('-f', '--force', action='store_true', help=sphinxify('''
         Allow output to a directory that is not empty.
         ''', calledfromsphinx))
     parser.add_argument('--include', required=False, help=sphinxify('''
