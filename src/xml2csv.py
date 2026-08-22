@@ -124,7 +124,8 @@ def main(argv):  # can be called either by __main__ or test_xml2csv
     else:
         trace(1, 'Heading row not written.')
     if _args.object:
-        expanded = [normalize_id(obj) for obj in expand_idnum(_args.object)]
+        expanded = expand_idnum(_args.object, normalize=True)
+
         includeset = set(expanded)  # JB001-002 -> JB001, JB002
         includes = dict.fromkeys(includeset)
     else:

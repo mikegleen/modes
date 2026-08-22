@@ -197,7 +197,7 @@ def get_imgset() -> set[str]:
         return imgset
     imgfile = open(_args.imglist)
     for row in imgfile:
-        expanded = [normalize_id(obj) for obj in expand_idnum(row)]
+        expanded = expand_idnum(row, normalize=True)
         imgset.update(expanded)
     return imgset
 

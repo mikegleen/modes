@@ -907,9 +907,9 @@ if __name__ == '__main__':
         if not _args.location and not _args.move_to_normal and not _args.revert:
             trace(0, 'You specified the object id. You must also '
                      'specify the location.', color=Fore.RED)
-        objectlist = expand_idnum(_args.object)
-        newlocs = {nd.normalize_id(obj): _args.location for obj in objectlist}
-        newreasons = {nd.normalize_id(obj): _args.reason for obj in objectlist}
+        nobjectlist = expand_idnum(_args.object, normalize=True)
+        newlocs = {obj: _args.location for obj in nobjectlist}
+        newreasons = {obj: _args.reason for obj in nobjectlist}
         newrows = None  # will be ignored if -j is set
         trace(2, 'Object(s) specified, newlocs= {}', newlocs)
     elif is_validate:

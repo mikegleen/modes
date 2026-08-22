@@ -310,7 +310,7 @@ def read_include_dict(includes_file, include_column, include_skip, verbos=1,
             else:
                 raise ValueError('Blank accession number in include file;'
                                  ' --allow_blank not selected.')
-        idnumlist: list[str] = [normalize_id(i) for i in expand_idnum(idnum)]
+        idnumlist: list[str] = [idnum for idnum in expand_idnum(idnum, normalize=True)]
         if verbos >= 1:
             for num in idnumlist:
                 if num in includedict:

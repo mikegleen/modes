@@ -160,8 +160,8 @@ if __name__ == '__main__':
         cfgfile = None
     config = Config(cfgfile, mdacode=_args.mdacode, args=_args)
     if _args.object:
-        expanded = [normalize_id(obj) for obj in expand_idnum(_args.object)]
-        includeset = set(expanded)  # JB001-002 -> JB001, JB002
+        idnumlist = [idnum for idnum in expand_idnum(_args.object, normalize=True)]
+        includeset = set(idnumlist)  # JB001-002 -> JB001, JB002
         includes = dict.fromkeys(includeset)
     else:
         includes = read_include_dict(_args.include, _args.include_column,

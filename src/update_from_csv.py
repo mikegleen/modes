@@ -145,7 +145,6 @@ def loadsubidvals(reader, allow_blanks) -> tuple[dict, dict]:
 
 
 def loadnewvals(reader, allow_blanks=False):
-    strict = not allow_blanks
     newval_dict = {}
     for row in reader:
         # print(f'{row=}')
@@ -159,10 +158,10 @@ def loadnewvals(reader, allow_blanks=False):
                                  ' --allow_blank not selected.')
         if cfg.add_mda_code and accnum[0].isnumeric():
             accnum = _args.mdacode + '.' + accnum
-        accnums = expand_idnum(accnum)
-        trace(3, 'loadnewvals: accnums = {}', accnums)
-        for accnum in accnums:
-            newval_dict[normalize_id(accnum, strict=strict)] = row
+        naccnums = expand_idnum(accnum, normalize=True)
+        trace(3, 'loadnewvals: accnums = {}', naccnums)
+        for naccnum in naccnums:
+            newval_dict[naccnum] = row
     return newval_dict
 
 
