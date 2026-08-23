@@ -267,7 +267,7 @@ group:
 if_other_column:
 ----------------
 
-   Used by ``csv2xml.py``. Process this column if one of the values in the
+   Used by ``csv2xml.py`` and ``update_from_csv.py``. Process this column if one of the values in the
    :ref:`if_other_column_value` statement matches the value in the column named in the
    :ref:`if_other_column` statement. The values are separated by a "|" character. Leading
    and trailing spaces are ignored. If the :ref:`if_other_column_value` statement
