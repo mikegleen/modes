@@ -9,7 +9,7 @@ exhibition
 The help text when executing the program with the ``-h`` option follows:
 
 .. argparse::
-   :filename: ../src/exhibition.py
+   :filename: ../../src/exhibition.py
    :func: getparser
    :prog: exhibition.py
 

@@ -1,8 +1,8 @@
-filter_xml
-==========
+xmlfilter
+=========
 
 .. argparse::
-   :filename: ../src/filter_xml.py
+   :filename: ../../src/xmlfilter.py
    :func: getparser
-   :prog: filter_xml.py
+   :prog: xmlfilter.py
 

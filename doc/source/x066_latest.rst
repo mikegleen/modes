@@ -6,6 +6,6 @@ x066_latest
 
 
 .. argparse::
-   :filename: ../src/utl/x066_latest.py
+   :filename: ../../src/utl/x066_latest.py
    :func: getparser
    :prog: x066_latest.py

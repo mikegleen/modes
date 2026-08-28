@@ -7,6 +7,6 @@ xmlupd
 
 
 .. argparse::
-   :filename: ../src/xmlupd.py
+   :filename: ../../src/xmlupd.py
    :func: getparser
    :prog: xmlupd.py

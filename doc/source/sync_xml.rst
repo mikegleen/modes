@@ -7,6 +7,6 @@ sync_xml
 
 
 .. argparse::
-   :filename: ../src/sync_xml.py
+   :filename: ../../src/sync_xml.py
    :func: getparser
    :prog: sync_xml.py

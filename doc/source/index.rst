@@ -13,7 +13,6 @@ Modes Python Library
    docx2csv
    utility_functions
    exhibition
-   filter_xml
    list_elt_type
    list_imgs
    list_by_box
@@ -29,6 +28,7 @@ Modes Python Library
    update_from_csv
    utility_programs
    xmldiff
+   xmlfilter
    xmlupd
    xml2csv
    x066_latest
