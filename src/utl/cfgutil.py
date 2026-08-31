@@ -799,7 +799,8 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
 
     :param cfgf: The YAML file specifying the configuration. Might be None
                  for an empty document, like trailing "---". An empty Config
-                 may be used to get the default values.
+                 may be used to get the default values. You can specify a file-like
+                 object or a string containing a file name.
     :param dump: if True, dump YAML documents as processed.
     :return: A list of dicts, each of which is a YAML document. If the config
              file was not specified on the command line, then return an empty
@@ -807,6 +808,10 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
     """
     if cfgf is None:
         return []
+    must_close = False
+    if type(cfgf) is str:
+        must_close = True
+        cfgf = open(cfgf)
     try:
         config = [c for c in yaml.load_all(cfgf) if c is not None]
     except ruamel.yaml.constructor.DuplicateKeyError as e:
@@ -882,6 +887,8 @@ def _read_yaml_cfg(cfgf, dump: bool = False, logfile=sys.stdout):
         # dump_document(document, logfile=logfile)
         if Stmt.COLUMN_TITLE not in document:
             document[Stmt.COLUMN_TITLE] = document[Stmt.TITLE]
+    if must_close:
+        cfgf.close()
     return config
 
 

@@ -14,6 +14,7 @@ import sys
 # noinspection PyPep8Naming
 import xml.etree.ElementTree as ET
 from utl.cfgutil import Config, Stmt
+from utl.readers import object_reader
 
 
 def trace(level, template, *args):
@@ -69,26 +70,12 @@ def one_object(parent, doc1, doc2, idnum) -> tuple:
 def main():
     doc_a = config.col_docs[0]
     doc_b = config.col_docs[1]
-    objectlevel = 0
     nhits = nlikes = nrevlikes = nnomatch = 0
-    nnot1 = nnot2 = 0
+    nnot1 = nnot2 = nnotboth =0
     ntotal = 0
     results = ['Match', f'{doc_a[Stmt.TITLE]} in {doc_b[Stmt.TITLE]}',
                f'{doc_b[Stmt.TITLE]} in {doc_a[Stmt.TITLE]}']
-    for event, oldobject in ET.iterparse(_args.infile,
-                                         events=('start', 'end')):
-        if event == 'start':
-            if oldobject.tag == 'Object':
-                objectlevel += 1
-            continue
-        # It's an "end" event.
-        if oldobject.tag != 'Object':
-            continue
-        objectlevel -= 1
-        if objectlevel:
-            continue  # It's not a top level Object.
-        idelem = oldobject.find(config.record_id_xpath)
-        idnum = idelem.text if idelem is not None else ''
+    for idnum, oldobject in object_reader(_args.infile, config=config):
         trace(3, 'idnum: {}', idnum)
         response = one_object(oldobject, doc_a, doc_b, idnum)
         ntotal += 1
@@ -98,6 +85,8 @@ def main():
         nrevlikes += revlikes
         nnot1 += not1
         nnot2 += not2
+        if not1 + not2 == 2:
+            nnotboth += 1
         ismatch = hits + likes + revlikes  # 0 or 1
         nnomatch += 1 - ismatch
         if _args.output and ismatch:
@@ -111,6 +100,7 @@ def main():
     print(f'nomatch: {nnomatch}')
     print(f'{doc_a[Stmt.TITLE]} empty: {nnot1}')
     print(f'{doc_b[Stmt.TITLE]} empty: {nnot2}')
+    print(f'Both empty: {nnotboth}')
     print(f'{ntotal=}')
 
 
@@ -142,7 +132,6 @@ def getparser():
 def getargs(argv):
     parser = getparser()
     args = parser.parse_args(args=argv[1:])
-    args.infile = open(args.infile)
     if args.output is not None:
         args.output = open(args.output, 'w')
     return args
@@ -157,8 +146,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 1:
         sys.argv.append('-h')
     _args = getargs(sys.argv)
-    cfgfile = open(_args.cfgfile)
-    config = Config(cfgfile, args=_args)
+    config = Config(_args.cfgfile, args=_args)
     main()
     basename = os.path.basename(sys.argv[0])
     trace(1, f'End {basename.split(".")[0]}')

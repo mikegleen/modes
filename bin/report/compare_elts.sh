@@ -10,4 +10,4 @@ xpath: ./Identification/Title
 cmd: column
 xpath: ./Identification/BriefDescription
 EOF
-python src/compare_elts.py $INXML -c tmp/$SCRIPT.yml -v 1
+python src/compare_elts.py $INXML -c tmp/$SCRIPT.yml` $*
