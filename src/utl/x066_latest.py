@@ -49,6 +49,9 @@ def getparser():
     If set, abort if we are using the output file as input. This would happen
     if we re-run a script without previously deleting the output file. If not set,
     check for the output file and skip it, issuing a warning.''')
+    parser.add_argument('--suffix', default='.xml', help='''
+    Only include files ending in this string (case insensitive). A value of "" will disable this test.
+    ''')
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
         Set the verbosity. The default is 1 which prints summary information.
         ''')
@@ -71,7 +74,9 @@ def onedir(dirname):
             print(f'Skipping {filename}', file=sys.stderr)
             continue
         path = os.path.join(dirname, filename)
-        if not (os.path.isfile(path) and filename.lower().endswith('.xml')):
+        if not (os.path.isfile(path) and filename.lower().endswith(_args.suffix)):
+            if _args.verbose > 1:
+                print(f'{filename} ignored. Suffix not "{_args.suffix}"')
             continue
         if len(filename) < 15:
             print(f'Short filename, ignored: {filename}')
