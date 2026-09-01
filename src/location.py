@@ -648,16 +648,15 @@ def add_arguments(parser, command):
         parser.add_argument('-o', '--outfile', required=True, help='''
             The output XML file containing all objects.''')
     if is_update or is_diff:
+        defcol = nd.if_not_sphinx(' The default is "Serial".', called_from_sphinx)
         parser.add_argument('--col_acc', type=str, default='Serial', help=nd.sphinxify('''
         The heading of the column in the CSV file defined by --mapfile containing the accession number of the
-        objects to be updated. The default is "Serial".
-        ''', called_from_sphinx))
-        defloc = nd.if_not_sphinx(''' The default is Location.''',
-                                  called_from_sphinx)
+        objects to be updated.''' + defcol, called_from_sphinx))
+        defcol = nd.if_not_sphinx(''' The default is "Location".''', called_from_sphinx)
         parser.add_argument('--col_loc', type=str, default='',
                             help=nd.sphinxify('''
         The heading of the column in the CSV file defined by --mapfile containing the new location of the
-        object to be updated. Do not specify both this option and --location.''' + defloc,
+        object to be updated. Do not specify both this option and --location.''' + defcol,
                                               called_from_sphinx))
     if is_update:
         parser.add_argument('--col_loc_type', help=nd.sphinxify('''
@@ -672,11 +671,10 @@ def add_arguments(parser, command):
         equivalent for this row to setting the --patch command-line option
         which applies to all of the rows in the CSV file.''', called_from_sphinx))
         parser.add_argument('--col_reason', help=nd.sphinxify('''
-            The zero-based column containing text to be inserted as the
+            The column containing text to be inserted as the
             reason for the move to the new current location for the object
             named in the row. If this field is specified and --reason is also specified,
-            the  --reason value will be used if this field is empty. The column can be a
-            number or a spreadsheet-style letter.
+            the  --reason value will be used if this field is empty.
             ''', called_from_sphinx))
         parser.add_argument('-c', '--current', action='store_true',
                             help=nd.sphinxify('''
@@ -755,14 +753,15 @@ def add_arguments(parser, command):
             --col_loc option. This  argument is ignored if --object is
             specified.
             ''', called_from_sphinx))
-    parser.add_argument('--nocolor', action='store_true', help='''
-                        Inhibit colorizing the output which makes reading redirected output easier''')
     if is_update:
-        parser.add_argument('-q', '--move_to_normal', action='store_true',
+        parser.add_argument('--move_to_normal', action='store_true',
                             help=nd.sphinxify('''
             Implies -c. Updates the current location. Do not specify this
             and --col_loc_type. If you select --move_to_normal 
-            you may not select --normal or --previous''', called_from_sphinx))
+            you may not select --normal or --previous.''', called_from_sphinx))
+    parser.add_argument('--nocolor', action='store_true', help='''
+                        Inhibit colorizing the output which makes reading redirected output easier''')
+    if is_update:
         parser.add_argument('-n', '--normal', action='store_true',
                             help=nd.sphinxify('''
             Update the normal location. You may also specify ``-c`` to update
