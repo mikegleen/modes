@@ -650,7 +650,7 @@ def add_arguments(parser, command):
     if is_update or is_diff:
         parser.add_argument('--col_acc', type=str, default='Serial', help=nd.sphinxify('''
         The heading of the column in the CSV file defined by --mapfile containing the accession number of the
-        object to be updated. The default is "Serial".
+        objects to be updated. The default is "Serial".
         ''', called_from_sphinx))
         defloc = nd.if_not_sphinx(''' The default is Location.''',
                                   called_from_sphinx)
