@@ -125,7 +125,7 @@ def main():
             continue
         if nid1 == nid2:
             if objstr1 != objstr2:
-                trace(3, "Write changed element {}", id2)
+                trace(2, "Write changed element {}", id2)
                 written += 1
                 replaced += 1
                 if _args.outfile:
