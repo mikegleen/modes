@@ -15,6 +15,8 @@
         echo INXML= $INXML
         python src/exhibition.py $INXML --verify
 
+    .. note:: The default value of ``--verbose`` is 1. A value greater than 1 will causes
+        unintended output which can corrupt the command substitution when used in a script (see example above).
 """
 
 import argparse
@@ -50,11 +52,18 @@ def getparser():
     if we re-run a script without previously deleting the output file. If not set,
     check for the output file and skip it, issuing a warning.''')
     parser.add_argument('--suffix', default='.xml', help='''
-    Only include files ending in this string (case insensitive). A value of "" will disable this test.
-    ''')
+    Only include files ending in this string (case insensitive). A value of ``""`` will disable this test.
+    ''' + if_not_sphinx('''The default is ".xml".''', calledfromsphinx))
     parser.add_argument('-v', '--verbose', type=int, default=1, help='''
-        Set the verbosity. The default is 1 which prints summary information.
+        Set the verbosity. The default is 1 which suppresses non-fatal diagnostics. See the note above.
         ''')
+    parser.add_argument('-x', '--skip_date_suffix', default='',
+                        help='''
+    This should be a single case-insensitive character.
+    If this character appears after the leading date in the filename, skip this file. For example, we want to
+    skip file ``2026-09-02s_prod_save.xml`` because it is a sorted file not the original downloaded file. Used
+    in batch script ``sort_prod_save.sh``.
+    ''')
     return parser
 
 
@@ -79,7 +88,6 @@ def onedir(dirname):
                 print(f'{filename} ignored. Suffix not "{_args.suffix}"')
             continue
         if len(filename) < 15:
-            print(f'Short filename, ignored: {filename}')
             raise ValueError(f'Badly formed filename: {path}. Short filename: \'{filename}\'')
         try:
             isodate = datetime.fromisoformat(filename[:10])
@@ -90,6 +98,8 @@ def onedir(dirname):
             if not m:
                 continue
         suffix = filename[10].lower()
+        if _args.skip_date_suffix.lower() == suffix:
+            continue
         minutes = timedelta()
         if suffix.isalpha():
             minutes = timedelta(minutes=ord(suffix) - ord('a') + 1)
@@ -117,7 +127,7 @@ def main(args):
                 # print(f'{latest_path=}', file=sys.stderr)
     if latest_path:
         if _args.modify:
-            m = re.match(r'(.*\d{4}-\d\d-\d\d)(.*)', latest_path)  # noqa
+            m = re.match(r'(.*\d{4}-\d\d-\d\d[^_]{0,1})(.*)', latest_path)  # noqa
             if not m:
                 raise ValueError(f'path found: ({latest_path}) failed match.')
             latest_path = m[1] + args.modify + m[2]

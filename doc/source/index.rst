@@ -25,13 +25,13 @@ Modes Python Library
    sync_xml
    x053_list_pages
    x062_list_all_images
+   x066_latest
    update_from_csv
    utility_programs
    xmldiff
    xmlfilter
    xmlupd
    xml2csv
-   x066_latest
    genindex
    data_format
 
