@@ -46,7 +46,9 @@ def getparser():
         ``sort_prod_save.sh`` so that x066_latest.py will select the sorted file
         to use as input.''', calledfromsphinx))
     parser.add_argument('--re', help='''
-        If specified, files must match this regular expression to be considered.''')
+        If specified, files must match this regular expression to be considered. The
+        function ``re.match`` is called, requiring a match from the beginning of the 
+        filename.''')
     parser.add_argument('-s', '--strict', action='store_true', help='''
     If set, abort if we are using the output file as input. This would happen
     if we re-run a script without previously deleting the output file. If not set,
@@ -96,6 +98,8 @@ def onedir(dirname):
         if _args.re:
             m = re.match(_args.re, filename)
             if not m:
+                if _args.verbose > 1:
+                    print(f'{filename} failed re match "{_args.re}".')
                 continue
         suffix = filename[10].lower()
         if _args.skip_date_suffix.lower() == suffix:
@@ -133,7 +137,7 @@ def main(args):
             latest_path = m[1] + args.modify + m[2]
         print(latest_path, end='')
     else:
-        raise ValueError('Cannot find path.')
+        raise ValueError('x066_latest: No file matches criteria.')
 
 
 calledfromsphinx = True
